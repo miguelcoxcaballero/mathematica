@@ -1,0 +1,770 @@
+{
+ "id": "1-p22",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo II",
+ "order": 22,
+ "title": "Integrales curvilíneas",
+ "summary": "Longitud, masa y valor medio sobre una curva, trabajo de un campo de fuerzas, divergencia, rotacional y función potencial. Todo sale de una única receta: parametrizar, derivar e integrar en t.",
+ "minutes": 55,
+ "commands": [
+  "Div",
+  "Curl"
+ ],
+ "uses": [
+  "D",
+  "Norm",
+  "Integrate",
+  "NIntegrate",
+  "Grad",
+  "Clear",
+  "ParametricPlot3D",
+  "ContourPlot3D",
+  "Plot3D",
+  "Show",
+  "N",
+  "ReplaceAll",
+  "Part",
+  "Sqrt",
+  "ArcTan"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Para qué sirve una integral sobre una curva",
+   "md": "Un cable tiene una **longitud** y una **masa** (si su densidad cambia de un punto a otro). Un avión que sigue una trayectoria dentro de un campo de viento recibe un **trabajo** de ese viento. Las tres cosas se calculan igual: una integral *a lo largo de una curva*.\n\nLa receta de toda la práctica tiene tres pasos:\n\n- **Parametrizar**: escribir la curva como una lista de funciones de `t`, por ejemplo `{Cos[t], Sin[t], t/4}`.\n- **Derivar** esa lista con `D[..., t]`: sale el vector tangente (la velocidad).\n- **Integrar en `t`** entre el valor inicial y el final.\n\nAl acabar sabrás calcular longitudes, masas, valores medios, áreas de «vallas», trabajos y decidir si un campo es conservativo, que es justo lo que piden la prueba de la práctica 22 y la pregunta de integral de línea del examen.\n\nEmpieza viendo una curva en el espacio: `ParametricPlot3D[{x(t), y(t), z(t)}, {t, desde, hasta}]`.",
+   "cells": [
+    {
+     "code": "ParametricPlot3D[{Cos[t], Sin[t], t/4}, {t, 0, 4 Pi}]",
+     "note": "una hélice: gira en XY mientras sube en Z"
+    }
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Paso 1 y 2: la curva y su vector tangente",
+   "md": "Guarda la curva en una variable y derívala. `D` deriva **cada componente** de la lista:\n\n- `r = {Cos[t], Sin[t], t}` es el punto de la curva para cada `t`.\n- `D[r, t]` es el vector tangente `r'(t)`.\n- `Norm[v]` es el **módulo** de un vector: `Norm[{3, 4}]` da `5`.\n\nAl aplicar `Norm` a un vector con símbolos, Mathematica escribe `Abs[...]^2` en vez de `(...)^2`: no sabe si `t` es real o complejo. No es un error y a `NIntegrate` le da igual. Si quieres verlo limpio, dile que `t` es real: `Simplify[..., Element[t, Reals]]`.",
+   "cells": [
+    {
+     "code": "r = {Cos[t], Sin[t], t}\nD[r, t]"
+    },
+    {
+     "code": "Norm[D[r, t]]",
+     "note": "módulo del vector tangente (con Abs porque no sabe que t es real)"
+    },
+    {
+     "code": "Simplify[Norm[D[r, t]], Element[t, Reals]]",
+     "note": "sabiendo que t es real: la rapidez es constante, Sqrt[2]"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e01",
+    "kind": "predict",
+    "title": "Módulo de un vector",
+    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "difficulty": 1,
+    "cmds": [
+     "Norm"
+    ],
+    "real": false,
+    "source": null,
+    "code": "Norm[{3, 4}]",
+    "options": [
+     "7",
+     "5",
+     "25",
+     "{3, 4}"
+    ],
+    "answer": 1,
+    "explain": "`Norm` da el módulo: la raíz de `3^2 + 4^2`, es decir `5`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e02",
+    "kind": "code",
+    "title": "Vector tangente",
+    "prompt": "La curva es `r(t) = (t, t^2, t^3)`. Calcula su vector tangente, es decir, la derivada de la lista `{t, t^2, t^3}` respecto de `t`.",
+    "difficulty": 1,
+    "cmds": [
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "D[{t, t^2, t^3}, t]",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 2 t, 3 t^2}"
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "`D` acepta una lista y deriva cada componente.",
+     "`D[{t, t^2, t^3}, t]`"
+    ],
+    "explain": "Derivar una curva es derivar cada coordenada. Ese vector es el que luego mides con `Norm` o multiplicas por el campo."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Longitud de una curva",
+   "md": "La longitud es la integral del módulo del vector tangente:\n\n`L = Integrate[Norm[r'(t)], {t, t1, t2}]`\n\n- `Integrate` intenta el resultado **exacto**; con raíces dentro a veces no puede o tarda.\n- `NIntegrate` da directamente el **número**. En las pruebas piden 6 cifras: es la opción segura.\n\n`{t, 0, 2 Pi}` = variable, desde, hasta (igual que en `Plot`).",
+   "cells": [
+    {
+     "code": "r = {Cos[t], Sin[t], t};\nIntegrate[Norm[D[r, t]], {t, 0, 2 Pi}]",
+     "note": "exacto: una vuelta de hélice"
+    },
+    {
+     "code": "NIntegrate[Norm[D[r, t]], {t, 0, 2 Pi}]",
+     "note": "numérico"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e03",
+    "kind": "fill",
+    "title": "Longitud de una circunferencia",
+    "prompt": "Completa la celda para calcular la longitud de la circunferencia de radio 3, `{3 Cos[t], 3 Sin[t]}`, dando una vuelta completa.",
+    "difficulty": 1,
+    "cmds": [
+     "NIntegrate",
+     "Norm"
+    ],
+    "real": false,
+    "source": null,
+    "template": "NIntegrate[Norm[D[{3 Cos[t], 3 Sin[t]}, __1__]], {t, 0, __2__}]",
+    "blanks": [
+     [
+      "t"
+     ],
+     [
+      "2 Pi",
+      "2Pi",
+      "2*Pi",
+      "2 π",
+      "2π"
+     ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "6 Pi",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Se deriva respecto del parámetro de la curva.",
+     "Una vuelta completa: `t` va de `0` a `2 Pi`."
+    ],
+    "explain": "Sale `2 Pi · 3 = 18.85`, la longitud de siempre. La receta funciona con cualquier curva."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e04",
+    "kind": "code",
+    "title": "Longitud de un arco",
+    "prompt": "Calcula la longitud de la curva `r(t) = (t, t^2, 2 t^3/3)` entre `t = 0` y `t = 1`. Da el resultado numérico.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Norm",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "r = {t, t^2, 2 t^3/3};\nNIntegrate[Norm[D[r, t]], {t, 0, 1}]",
+    "check": {
+     "type": "expr",
+     "expected": "5/3",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "Norm"
+    ],
+    "hints": [
+     "Longitud = integral de `Norm[D[r, t]]`.",
+     "`NIntegrate[Norm[D[{t, t^2, 2 t^3/3}, t]], {t, 0, 1}]`"
+    ],
+    "explain": "El módulo del tangente es `1 + 2 t^2`, cuya integral entre 0 y 1 es `5/3 = 1.66667`. No hace falta verlo a mano: `Norm` y `NIntegrate` lo hacen."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Integral de un campo escalar: masa de un alambre",
+   "md": "Si en cada punto de la curva hay una densidad `f(x, y, z)`, la masa es\n\n`Integrate[f(r(t)) * Norm[r'(t)], {t, t1, t2}]`\n\n**Truco de clase**: asigna la parametrización a las propias variables, `x = ...; y = ...; z = ...;`. A partir de ahí, cualquier expresión con `x`, `y`, `z` queda escrita en función de `t` sin que tengas que sustituir nada.\n\n**Cuidado**: desde ese momento `x`, `y`, `z` ya no son variables libres. Antes de empezar otro problema (o de usar `Div`, `Curl`, `Solve` con ellas) hay que liberarlas con `Clear[x, y, z]`. Olvidarlo es el error más frecuente de esta práctica.",
+   "cells": [
+    {
+     "code": "x = Cos[t]; y = Sin[t]; z = t;\nf[x_, y_, z_] := x^2 + z\nf[x, y, z]",
+     "note": "el campo ya queda en función de t"
+    },
+    {
+     "code": "NIntegrate[f[x, y, z] Norm[D[{x, y, z}, t]], {t, 0, 2 Pi}]",
+     "note": "masa del alambre con densidad f"
+    },
+    {
+     "code": "Clear[x, y, z]\nx + y + z",
+     "note": "liberadas: vuelven a ser símbolos"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e05",
+    "kind": "code",
+    "title": "Masa de un alambre semicircular",
+    "prompt": "Un alambre tiene forma de semicircunferencia: `x = 2 Cos[t]`, `y = 2 Sin[t]`, con `t` entre `0` y `Pi`. Su densidad en cada punto es `f(x, y) = y`. Calcula su masa.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Norm"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "x = 2 Cos[t]; y = 2 Sin[t];\nNIntegrate[y Norm[D[{x, y}, t]], {t, 0, Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "8",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "Norm"
+    ],
+    "hints": [
+     "Masa = integral de `densidad * Norm[D[{x, y}, t]]`.",
+     "Asigna `x = 2 Cos[t]; y = 2 Sin[t];` y luego `NIntegrate[y Norm[D[{x, y}, t]], {t, 0, Pi}]`."
+    ],
+    "explain": "El módulo del tangente vale 2 y la densidad `2 Sin[t]`: la integral de `4 Sin[t]` entre 0 y π es 8."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e06",
+    "kind": "fix",
+    "title": "Tres errores típicos",
+    "prompt": "Esta celda debería calcular la integral del campo `x^2 y` sobre la semicircunferencia unidad (`t` de `0` a `Pi`), pero tiene **tres errores**. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Norm",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "x = Cos[t]; y = Sin[t];\nNintegrate[x^2 y norm[D[{x, y} t]], {t, 0, Pi}]",
+    "solution": "x = Cos[t]; y = Sin[t];\nNIntegrate[x^2 y Norm[D[{x, y}, t]], {t, 0, Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "2/3",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "NIntegrate",
+     "Norm"
+    ],
+    "hints": [
+     "Los nombres de las funciones llevan mayúsculas exactas: `NIntegrate`, `Norm`.",
+     "En `D[{x, y} t]` falta la coma que separa qué derivas de la variable."
+    ],
+    "explain": "`NIntegrate` (N e I mayúsculas), `Norm` y la coma de `D[{x, y}, t]`. Si escribes mal un nombre, Mathematica no avisa: lo deja sin evaluar en azul."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Curvas en polares y valor medio",
+   "md": "Si la curva viene en polares, `ρ = ρ(α)`, se parametriza con `x = ρ Cos[α]`, `y = ρ Sin[α]` y el elemento de longitud es\n\n`ds = Sqrt[ρ^2 + ρ'(α)^2] dα`\n\n(es lo mismo que `Norm[D[{x, y}, α]]`, ya simplificado).\n\nEl **valor medio** de un campo sobre la curva es `masa / longitud`: la integral del campo dividida entre la integral de 1.\n\nEn clase se usan las letras griegas (`Esc r Esc` = ρ, `Esc a Esc` = α). Aquí puedes usar `r` y `a`, que se teclean antes: a Mathematica le da igual el nombre.",
+   "cells": [
+    {
+     "code": "r = 1 + a; x = r Cos[a]; y = r Sin[a];\nds = Sqrt[r^2 + D[r, a]^2]",
+     "note": "elemento de longitud de la espiral r = 1 + a"
+    },
+    {
+     "code": "longitud = NIntegrate[ds, {a, 0, Pi}]"
+    },
+    {
+     "code": "masa = NIntegrate[(x^2 + y^2) ds, {a, 0, Pi}];\nmasa/longitud",
+     "note": "valor medio del campo x^2 + y^2 sobre la espiral"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e07",
+    "kind": "code",
+    "title": "Valor medio sobre una espiral",
+    "prompt": "Considera el campo escalar `f(x, y) = x^2 + 2 y^2 + ArcTan[2 y/(x + 15)]` actuando sobre la espiral dada en polares por `r = 2 + a`, con `a` entre `0` y `5 Pi/2`.\n\nHalla el **valor medio** del campo sobre ese arco de espiral (6 cifras). Deja el valor medio como última salida.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate",
+     "D",
+     "Sqrt",
+     "ArcTan"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P2 (variante A)",
+    "solution": "f[x_, y_] := x^2 + 2 y^2 + ArcTan[2 y/(x + 15)]\nr = 2 + a; x = r Cos[a]; y = r Sin[a];\nmasa = NIntegrate[f[x, y] Sqrt[r^2 + D[r, a]^2], {a, 0, 5 Pi/2}];\nlongitud = NIntegrate[Sqrt[r^2 + D[r, a]^2], {a, 0, 5 Pi/2}];\nmasa/longitud",
+    "check": {
+     "type": "expr",
+     "expected": "76.1164098",
+     "compare": "numeric",
+     "tol": 5e-06
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Valor medio = (integral de `f * ds`) / (integral de `ds`), con `ds = Sqrt[r^2 + D[r, a]^2]`.",
+     "Define `f`, asigna `r = 2 + a; x = r Cos[a]; y = r Sin[a];` y calcula las dos integrales con `NIntegrate` entre `0` y `5 Pi/2`.",
+     "La integral del numerador no tiene forma exacta: `Integrate` la devuelve sin hacer. Usa `NIntegrate`."
+    ],
+    "explain": "Masa ≈ 3602.87, longitud ≈ 47.33 y valor medio ≈ 76.1164. En la prueba real el resultado admitido era 76.1159–76.1169."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e08",
+    "kind": "code",
+    "title": "Área de una valla sobre una elipse",
+    "prompt": "Halla el área de la superficie lateral del cilindro elíptico `3 x^2 + 5 y^2 = 8` contenida en el primer octante, limitada por abajo por el plano XOY y por arriba por la superficie `z = 2 x + 3 y`.\n\nIdea: es una «valla» levantada sobre el cuarto de elipse; su área es la integral de la altura `z` a lo largo de la curva. La elipse `x^2/a^2 + y^2/b^2 = 1` se parametriza con `x = a Cos[t]`, `y = b Sin[t]`.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate",
+     "Norm",
+     "D"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P3 (variante B)",
+    "solution": "x = Sqrt[8/3] Cos[t]; y = Sqrt[8/5] Sin[t];\nz = 2 x + 3 y;\nNIntegrate[z Norm[D[{x, y}, t]], {t, 0, Pi/2}]",
+    "check": {
+     "type": "expr",
+     "expected": "10.3070697",
+     "compare": "numeric",
+     "tol": 5e-06
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Divide la ecuación entre 8: `x^2/(8/3) + y^2/(8/5) = 1`, así que `a = Sqrt[8/3]` y `b = Sqrt[8/5]`.",
+     "Primer octante: `t` va de `0` a `Pi/2`.",
+     "`NIntegrate[z Norm[D[{x, y}, t]], {t, 0, Pi/2}]` con `z = 2 x + 3 y` ya escrito en función de `t`."
+    ],
+    "explain": "Es una integral curvilínea de campo escalar: la «densidad» es la altura `z`. El módulo se toma solo de `{x, y}` porque la curva base está en el plano XY. Resultado: 10.3071."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Trabajo de un campo vectorial",
+   "md": "Si `F` es un campo de fuerzas (una lista de 3 componentes), el trabajo a lo largo de la curva es\n\n`W = Integrate[F(r(t)) . r'(t), {t, t1, t2}]`\n\nEl punto `.` es el **producto escalar** de dos listas (`{1, 2, 3}.{4, 5, 6}` da `32`). Ahora **no** hay `Norm`: se multiplica el campo por el vector tangente, no por su módulo.\n\nEn la celda: `F[x, y, z]` es el campo ya evaluado sobre la curva (porque `x`, `y`, `z` están asignadas) y `D[{x, y, z}, t]` es el tangente.",
+   "cells": [
+    {
+     "code": "F[x_, y_, z_] := {y, -x, z}\nx = Cos[t]; y = Sin[t]; z = t;\nintegrando = F[x, y, z].D[{x, y, z}, t]",
+     "note": "campo · tangente: queda una función de t"
+    },
+    {
+     "code": "Integrate[integrando, {t, 0, 2 Pi}]",
+     "note": "trabajo a lo largo de una vuelta de hélice"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e09",
+    "kind": "mcq",
+    "title": "¿Cuál es el integrando del trabajo?",
+    "prompt": "Con `x`, `y`, `z` ya asignadas en función de `t`, ¿qué expresión hay que integrar para obtener el **trabajo** del campo `F`?",
+    "difficulty": 1,
+    "cmds": [
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "options": [
+     "`F[x, y, z] * Norm[D[{x, y, z}, t]]`",
+     "`F[x, y, z].D[{x, y, z}, t]`",
+     "`Norm[F[x, y, z]]`",
+     "`D[F[x, y, z], t]`"
+    ],
+    "answer": 1,
+    "explain": "Trabajo = campo · vector tangente (producto escalar con `.`). El `Norm` del tangente es para campos **escalares** (masa, longitud)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e10",
+    "kind": "order",
+    "title": "La receta del trabajo, en orden",
+    "prompt": "Ordena las líneas para calcular el trabajo del campo `F = (y, -x, z)` a lo largo de la hélice `(Cos[t], Sin[t], t)`, con `t` de `0` a `2 Pi`.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "lines": [
+     "F[x_, y_, z_] := {y, -x, z}",
+     "x = Cos[t]; y = Sin[t]; z = t;",
+     "integrando = F[x, y, z].D[{x, y, z}, t];",
+     "NIntegrate[integrando, {t, 0, 2 Pi}]"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "2 Pi (Pi - 1)",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "explain": "Definir el campo, parametrizar, construir el integrando (campo · tangente) e integrar. Siempre en ese orden."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e11",
+    "kind": "code",
+    "title": "Trabajo al dar una vuelta",
+    "prompt": "Calcula el trabajo del campo plano `F(x, y) = (-y, x)` a lo largo de la circunferencia unidad `x = Cos[t]`, `y = Sin[t]`, con `t` de `0` a `2 Pi`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "F[x_, y_] := {-y, x}\nx = Cos[t]; y = Sin[t];\nIntegrate[F[x, y].D[{x, y}, t], {t, 0, 2 Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "2 Pi",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "Integrando: `F[x, y].D[{x, y}, t]`.",
+     "Define `F[x_, y_] := {-y, x}`, asigna `x` e `y`, e integra entre `0` y `2 Pi`."
+    ],
+    "explain": "El integrando se simplifica a `Sin[t]^2 + Cos[t]^2 = 1`, así que el trabajo es `2 Pi`. No es cero aunque la curva sea cerrada: este campo no es conservativo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e12",
+    "kind": "code",
+    "title": "Trabajo a lo largo de una hélice elíptica",
+    "prompt": "Dado el campo de fuerzas\n\n`F = (y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z])`\n\ny el arco de curva `C(t) = (Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t)` con `t` entre `Pi/5` y `6 Pi`, halla el **trabajo** realizado por `F` a lo largo de `C` desde `C(Pi/5)` hasta `C(6 Pi)` mediante una integral en la variable `t`.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate",
+     "D"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P4",
+    "solution": "F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}\nx = Cos[t]/Sqrt[5]; y = Sin[t]/Sqrt[3]; z = t;\nintegrando = F[x, y, z].D[{x, y, z}, t];\nNIntegrate[integrando, {t, Pi/5, 6 Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "-0.1196219773",
+     "compare": "numeric",
+     "tol": 2e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Define `F[x_, y_, z_] := {...}` con las tres componentes entre llaves.",
+     "Asigna `x = Cos[t]/Sqrt[5]; y = Sin[t]/Sqrt[3]; z = t;` y construye `integrando = F[x, y, z].D[{x, y, z}, t];`",
+     "`NIntegrate[integrando, {t, Pi/5, 6 Pi}]`"
+    ],
+    "explain": "Sale −0.119622. Es la misma receta de cuatro líneas: lo único largo es teclear bien el campo. Más abajo verás que este campo es conservativo y que el mismo número sale sin integrar."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Divergencia y rotacional: Div y Curl",
+   "md": "Dos operadores sobre un campo vectorial `F`:\n\n- `Div[F, {x, y, z}]` → la **divergencia**, un número en cada punto (suma de las derivadas de cada componente respecto de su variable).\n- `Curl[F, {x, y, z}]` → el **rotacional**, un vector.\n\nEl segundo argumento es la lista de variables, igual que en `Grad`. Para evaluar en un punto, usa reglas: `/. {x -> 1, y -> -2, z -> 1}`.\n\nLo importante: **si el rotacional es `{0, 0, 0}`, el campo es conservativo**. Entonces el trabajo no depende del camino, solo de los puntos inicial y final.\n\nLas variables tienen que estar libres: si vienes de parametrizar, haz antes `Clear[x, y, z]`.",
+   "cells": [
+    {
+     "code": "Div[{x^2 y, y z, x z^2}, {x, y, z}]"
+    },
+    {
+     "code": "Curl[{-y, x, 0}, {x, y, z}]",
+     "note": "un campo que gira: rotacional no nulo"
+    },
+    {
+     "code": "Curl[{y z, x z, x y}, {x, y, z}]",
+     "note": "rotacional nulo: campo conservativo"
+    },
+    {
+     "code": "Div[{x^2 y, y z, x z^2}, {x, y, z}] /. {x -> 1, y -> 2, z -> 3}",
+     "note": "divergencia en el punto (1, 2, 3)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e13",
+    "kind": "code",
+    "title": "Divergencia en un punto",
+    "prompt": "El campo `F[x, y, z]` del ejercicio anterior ya está definido:\n\n`F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}`\n\nCalcula su **divergencia** y evalúala en el punto `(1, -2, 1)`. Da el valor numérico.",
+    "difficulty": 3,
+    "cmds": [
+     "Div",
+     "N",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P5 a)",
+    "setup": "F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}",
+    "solution": "Div[F[x, y, z], {x, y, z}] /. {x -> 1, y -> -2, z -> 1} // N",
+    "check": {
+     "type": "expr",
+     "expected": "5.5270931627",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Div"
+    ],
+    "hints": [
+     "`Div[F[x, y, z], {x, y, z}]` da la divergencia como expresión.",
+     "Añade `/. {x -> 1, y -> -2, z -> 1} // N` para evaluarla en el punto."
+    ],
+    "explain": "div F(1, −2, 1) = 5.52709. Primero se calcula la divergencia con símbolos y **después** se sustituye el punto; al revés derivarías números."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e14",
+    "kind": "code",
+    "title": "¿Es conservativo?",
+    "prompt": "Con el mismo campo `F[x, y, z]` (ya definido), calcula su **rotacional**.",
+    "difficulty": 2,
+    "cmds": [
+     "Curl"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P5 a)",
+    "setup": "F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}",
+    "solution": "Curl[F[x, y, z], {x, y, z}]",
+    "check": {
+     "type": "expr",
+     "expected": "{0, 0, 0}"
+    },
+    "requires": [
+     "Curl"
+    ],
+    "hints": [
+     "`Curl[campo, {x, y, z}]`",
+     "`Curl[F[x, y, z], {x, y, z}]`; si no sale simplificado, añade `// Simplify`."
+    ],
+    "explain": "Sale `{0, 0, 0}`: el campo es **conservativo**. Por eso existe una función potencial y el trabajo solo depende de los extremos."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Función potencial",
+   "md": "Si `Curl` da cero, existe una función `U` con `Grad[U, {x, y, z}] == F`: el **potencial**. Receta de clase para obtenerlo (el que vale 0 en el origen):\n\n`U = Integrate[F[x, y, z][[1]], x] + Integrate[F[0, y, z][[2]], y] + Integrate[F[0, 0, z][[3]], z]`\n\n- `F[x, y, z][[1]]` es la primera componente (`[[i]]` extrae la parte i-ésima).\n- En la segunda integral se pone `x = 0`; en la tercera, `x = 0` e `y = 0`.\n- `Integrate[expr, x]` sin límites es la primitiva.\n\n**Comprueba siempre** con `Grad[U, {x, y, z}]`: tiene que devolver el campo.\n\nCon el potencial, el trabajo entre dos puntos es una resta: `W = U(final) - U(inicial)`.",
+   "cells": [
+    {
+     "code": "F[x_, y_, z_] := {2 x y z + Sin[x], x^2 z, x^2 y}\nCurl[F[x, y, z], {x, y, z}]",
+     "note": "conservativo"
+    },
+    {
+     "code": "U = Integrate[F[x, y, z][[1]], x] + Integrate[F[0, y, z][[2]], y] + Integrate[F[0, 0, z][[3]], z]",
+     "note": "potencial"
+    },
+    {
+     "code": "Grad[U, {x, y, z}]",
+     "note": "comprobación: debe salir F"
+    },
+    {
+     "code": "(U /. {x -> 2, y -> 0, z -> 1}) - (U /. {x -> 0, y -> -2, z -> 1})",
+     "note": "trabajo de (0,-2,1) a (2,0,1) sin integrar sobre ninguna curva"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e15",
+    "kind": "mcq",
+    "title": "Rotacional nulo",
+    "prompt": "Has calculado `Curl[F[x, y, z], {x, y, z}]` y sale `{0, 0, 0}`. ¿Qué puedes afirmar?",
+    "difficulty": 1,
+    "cmds": [
+     "Curl"
+    ],
+    "real": false,
+    "source": null,
+    "options": [
+     "Que el campo es nulo en todos los puntos.",
+     "Que el campo es conservativo: tiene potencial y el trabajo solo depende de los extremos.",
+     "Que la divergencia también es cero.",
+     "Que el trabajo a lo largo de cualquier curva es cero."
+    ],
+    "answer": 1,
+    "explain": "Rotacional nulo ⇔ campo conservativo. El trabajo es cero solo en curvas **cerradas**; entre dos puntos distintos vale `U(final) - U(inicial)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e16",
+    "kind": "code",
+    "title": "Potencial del campo de la práctica",
+    "prompt": "El campo `F[x, y, z]` de la práctica ya está definido (el de los ejercicios anteriores). Calcula su función potencial `U(x, y, z)` que vale cero en `(0, 0, 0)`, **guárdala en `U`** y evalúala en `(1, -2, 1)` (valor numérico como última salida).",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "Part",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P5 b)",
+    "setup": "F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}",
+    "solution": "U = Integrate[F[x, y, z][[1]], x] + Integrate[F[0, y, z][[2]], y] + Integrate[F[0, 0, z][[3]], z];\nU /. {x -> 1, y -> -2, z -> 1} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Max[Abs[(Grad[U, {x, y, z}] - F[x, y, z]) /. {x -> 0.7, y -> -1.3, z -> 0.4}]] < 10^-6",
+       "msg": "El gradiente de tu `U` no coincide con el campo `F`. Revisa la receta de las tres integrales."
+      },
+      {
+       "type": "expr",
+       "expected": "-1.0806046117",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`U = Integrate[F[x, y, z][[1]], x] + Integrate[F[0, y, z][[2]], y] + Integrate[F[0, 0, z][[3]], z]`",
+     "Después: `U /. {x -> 1, y -> -2, z -> 1} // N`.",
+     "Puedes comprobar con `Grad[U, {x, y, z}]` que sale el campo."
+    ],
+    "explain": "El potencial es `U = x y Cos[x z]` y U(1, −2, 1) = −1.08060. Las dos últimas integrales dan 0 porque al poner `x = 0` esas componentes se anulan."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e17",
+    "kind": "code",
+    "title": "Extremos del arco",
+    "prompt": "La curva es `C(t) = (Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t)`. Calcula las coordenadas numéricas de sus extremos `C(Pi/5)` y `C(6 Pi)`. Deja como salida la lista `{Pini, Pfin}` (cada uno es una lista de 3 números).",
+    "difficulty": 2,
+    "cmds": [
+     "ReplaceAll",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P5 c)",
+    "solution": "c = {Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t};\nPini = c /. t -> Pi/5 // N;\nPfin = c /. t -> 6 Pi // N;\n{Pini, Pfin}",
+    "check": {
+     "type": "expr",
+     "expected": "{{0.3618033989, 0.3393579736, 0.6283185307}, {0.4472135955, 0, 18.8495559215}}",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "Guarda la curva en una lista y sustituye el parámetro: `c /. t -> Pi/5 // N`.",
+     "No asignes `x`, `y`, `z` aquí: te hará falta tenerlas libres para el potencial."
+    ],
+    "explain": "C(π/5) = (0.361803, 0.339358, 0.628319) y C(6π) = (0.447214, 0, 18.8496). Sustituir con `/.` no «ensucia» las variables, a diferencia de asignar con `=`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e18",
+    "kind": "code",
+    "title": "Trabajo como diferencia de potencial",
+    "prompt": "Ya están definidos el potencial `U = x y Cos[x z]` y los extremos del arco, `Pini` y `Pfin` (listas de 3 números: `C(Pi/5)` y `C(6 Pi)`).\n\nCalcula el trabajo de `F` desde `Pini` hasta `Pfin` **sin integrar**: `W = U(final) - U(inicial)`.",
+    "difficulty": 3,
+    "cmds": [
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 22 · P5 d)",
+    "setup": "U = x y Cos[x z];\nPini = {Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t} /. t -> Pi/5 // N;\nPfin = {Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t} /. t -> 6 Pi // N;",
+    "solution": "Ufinal = U /. {x -> Pfin[[1]], y -> Pfin[[2]], z -> Pfin[[3]]};\nUinicial = U /. {x -> Pini[[1]], y -> Pini[[2]], z -> Pini[[3]]};\nW = Ufinal - Uinicial",
+    "check": {
+     "type": "expr",
+     "expected": "-0.1196219773",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "forbids": [
+     "Integrate",
+     "NIntegrate"
+    ],
+    "hints": [
+     "Evalúa `U` en cada punto con reglas: `U /. {x -> Pfin[[1]], y -> Pfin[[2]], z -> Pfin[[3]]}`.",
+     "`Pfin[[1]]` es la primera coordenada del punto final.",
+     "Resta: valor en el final menos valor en el inicial."
+    ],
+    "explain": "W = 0 − 0.119622 = −0.119622, el mismo número que salió integrando sobre la curva. En el examen, si el campo es conservativo, esta resta te ahorra la integral."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p22-e19",
+    "kind": "code",
+    "title": "Examen: longitud y trabajo",
+    "prompt": "Considera el campo de fuerzas `V = (2 x + 2 y^2 - z, x^2 y z, y^2 - 3 z)` y el arco de curva\n\n`r(t) = (5/2 Sin[t/3], Sqrt[5^(t + 1)], Log[t + 1])`, con `t` entre `1/(3 Pi)` y `4 Pi/3`.\n\na) Calcula la longitud `L` de ese arco. b) Calcula el trabajo `W` realizado por una partícula que se desplaza sobre el arco sometida al campo `V`.\n\nDeja como última salida la lista `{L, W}`.",
+    "difficulty": 5,
+    "cmds": [
+     "NIntegrate",
+     "Norm",
+     "D"
+    ],
+    "real": true,
+    "source": "Examen PL2 · junio 2018 · P3 (Cálculo de varias variables)",
+    "solution": "V[x_, y_, z_] := {2 x + 2 y^2 - z, x^2 y z, y^2 - 3 z}\nx = 5/2 Sin[t/3]; y = Sqrt[5^(t + 1)]; z = Log[t + 1];\nt1 = 1/(3 Pi); t2 = 4 Pi/3;\nL = NIntegrate[Norm[D[{x, y, z}, t]], {t, t1, t2}];\nW = NIntegrate[V[x, y, z].D[{x, y, z}, t], {t, t1, t2}];\n{L, W}",
+    "check": {
+     "type": "expr",
+     "expected": "{62.8976365751, 19287.3110882}",
+     "compare": "numeric",
+     "tol": 2e-06
+    },
+    "requires": [
+     "NIntegrate",
+     "Norm"
+    ],
+    "hints": [
+     "Son las dos recetas de la lección con la misma parametrización: longitud con `Norm[D[{x, y, z}, t]]` y trabajo con `V[x, y, z].D[{x, y, z}, t]`.",
+     "Asigna `x = 5/2 Sin[t/3]; y = Sqrt[5^(t + 1)]; z = Log[t + 1];` y usa `NIntegrate` en las dos.",
+     "No uses `L` y `W` minúsculas/mayúsculas distintas al final: la salida debe ser `{L, W}`."
+    ],
+    "explain": "L = 62.8976 y W = 19287.3. La curva asusta, pero no hay que entenderla: se teclea, se deriva con `D` y se integra con `NIntegrate`. Esta pregunta valía 1.2–1.6 puntos del examen."
+   }
+  }
+ ]
+}

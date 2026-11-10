@@ -1,0 +1,948 @@
+{
+ "title": "WolframLab Aero",
+ "today": "2026-11-10",
+ "statusLegend": {
+  "hecha": "Hay un cuaderno propio completo en el Drive.",
+  "parcial": "Hay cuaderno propio, pero con apartados vacíos o sin terminar.",
+  "pendiente": "Sin evidencia en el Drive (no hay cuaderno, está vacío o la práctica aún no se ha impartido)."
+ },
+ "years": [
+  {
+   "year": 1,
+   "label": "1º · curso 2025-26",
+   "state": "ya cursado",
+   "subjects": [
+    {
+     "id": "mat1",
+     "name": "Matemáticas I",
+     "semester": "anual",
+     "state": "cursada",
+     "summary": "27 prácticas semanales de Mathematica: cálculo en una variable, álgebra lineal, y cálculo en varias variables con series.",
+     "evaluation": {
+      "format": "Cada sesión termina con una prueba en «Exámenes» de PoliformaT: se teclean números en casillas y la corrección es automática por rango. Además hay dos exámenes de Mathematica: PL1 (enero o diciembre, cálculo en una variable) y PL2 (junio, álgebra + varias variables).",
+      "notes": [
+       "Examen PL1: 10 puntos, 6 preguntas de contenido (complejos, curva paramétrica, EDO lineal de 2º orden, integrales impropias, Newton-Raphson, polares).",
+       "Examen PL2: dos partes el mismo día, Álgebra (4,5 puntos) y Cálculo en varias variables (5,5 puntos).",
+       "Casi siempre se piden 6 cifras significativas; el cuaderno .nb se sube al final.",
+       "El peso de las prácticas en la nota de Matemáticas I no consta en el material del Drive."
+      ]
+     },
+     "blocks": [
+      {
+       "id": "calculo1",
+       "name": "Cálculo I · una variable",
+       "units": [
+        {
+         "lesson": "1-p01",
+         "practice": "Práctica 1",
+         "title": "Primeros pasos: números exactos y aproximados",
+         "topics": [
+          "Aritmética exacta frente a decimal y N[expr, n]",
+          "Constantes Pi, E, I",
+          "Grados, minutos y segundos con FromDMS",
+          "Complejos en forma binómica",
+          "Factorial y doble factorial; test con =="
+         ],
+         "status": "pendiente",
+         "evidence": "No hay cuaderno propio de la sesión 01 en la carpeta «mis prácticas» del Drive: sin evidencia de que la resolvieras.",
+         "nExercisesReal": 2,
+         "minutes": 30,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 1
+        },
+        {
+         "lesson": "1-p02",
+         "practice": "Práctica 2",
+         "title": "Variables y listas",
+         "topics": [
+          "Asignación inmediata = y diferida :=",
+          "Borrar con Clear",
+          "Sustituir con /. y ->",
+          "Generar listas con Table",
+          "Operar con listas: Total, Sqrt, N"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S02 casi completo: la última celda de P3 quedó sin evaluar (usa una variable Q que no está definida).",
+         "nExercisesReal": 3,
+         "minutes": 35,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 2
+        },
+        {
+         "lesson": "1-p03",
+         "practice": "Práctica 3",
+         "title": "Funciones",
+         "topics": [
+          "Funciones elementales: Sin, Log, Abs, Sqrt, Cosh",
+          "Definir funciones con f[x_] := …",
+          "Evaluar una función en una lista de valores",
+          "Despejar con Solve y función inversa",
+          "Ángulos en grados con FromDMS"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S03 parcial: P1a no calcula el seno pedido y P3 tiene celdas vacías y un error por intentar asignar al símbolo protegido D.",
+         "nExercisesReal": 3,
+         "minutes": 35,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 3
+        },
+        {
+         "lesson": "1-p04",
+         "practice": "Práctica 4",
+         "title": "Límites, derivadas e integrales",
+         "topics": [
+          "Límites en el infinito y laterales (Direction)",
+          "Asíntota oblicua con Limit",
+          "Derivadas con f'[x]: recta tangente y normal",
+          "Optimización: Solve + /. + Flatten",
+          "Primitivas con Integrate"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S04 completo (P1–P3 con resultados).",
+         "nExercisesReal": 4,
+         "minutes": 40,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 4
+        },
+        {
+         "lesson": "1-p05",
+         "practice": "Práctica 5",
+         "title": "Complejos, logaritmos y determinaciones",
+         "topics": [
+          "Módulo y argumento: Abs, Arg, Degree",
+          "Rotar un complejo con E^(I θ)",
+          "Sucesiones y primer n que cumple una condición (FixedPoint)",
+          "Funciones puras # &",
+          "Determinación n-ésima del argumento y del logaritmo"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay cuaderno propio de la sesión 05 en la carpeta «mis prácticas» del Drive: sin evidencia de que la resolvieras.",
+         "nExercisesReal": 4,
+         "minutes": 40,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 5
+        },
+        {
+         "lesson": "1-p06",
+         "practice": "Práctica 6",
+         "title": "Gráficas I: implícitas, a trozos y estilos",
+         "topics": [
+          "Curvas implícitas con ContourPlot",
+          "Familias de curvas con Table",
+          "Funciones a trozos con Piecewise",
+          "Plot de varias funciones con leyenda",
+          "PlotRange, PlotStyle, Thickness y colores"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S06 completo (las dos gráficas generadas).",
+         "nExercisesReal": 2,
+         "minutes": 35,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 6
+        },
+        {
+         "lesson": "1-p07",
+         "practice": "Práctica 7",
+         "title": "Gráficas II: paramétricas, polares y animaciones",
+         "topics": [
+          "ParametricPlot y PolarPlot",
+          "Puntos con Graphics y Point",
+          "Superponer gráficas con Show",
+          "Deslizadores con Manipulate",
+          "PlotRange y PlotStyle en cada tipo de gráfica"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S07 completo.",
+         "nExercisesReal": 2,
+         "minutes": 35,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 7
+        },
+        {
+         "lesson": "1-p08",
+         "practice": "Práctica 8",
+         "title": "Ecuaciones y sistemas",
+         "topics": [
+          "Solve exacto y paso a decimal con N",
+          "Raíces complejas de z^n = w",
+          "Localizar cortes con ContourPlot y GridLines",
+          "FindRoot con punto inicial y WorkingPrecision",
+          "Convertir reglas en puntos con /. y Flatten"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S08 con P1–P3 completos; la sección Pextra está vacía.",
+         "nExercisesReal": 4,
+         "minutes": 40,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 8
+        },
+        {
+         "lesson": "1-p09",
+         "practice": "Práctica 9",
+         "title": "Cálculos iterativos: Newton e interpolación",
+         "topics": [
+          "Iterar con NestWhileList y funciones puras",
+          "Método de Newton-Raphson con error controlado",
+          "Elegir el punto inicial con Plot y f''",
+          "Precisión con SetPrecision y N[expr, n]",
+          "Polinomio interpolador y gráfica con ListPlot + Show"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay cuaderno propio de la sesión 09 en la carpeta «mis prácticas» del Drive: sin evidencia de que la resolvieras.",
+         "nExercisesReal": 3,
+         "minutes": 45,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 9
+        },
+        {
+         "lesson": "1-p10",
+         "practice": "Práctica 10",
+         "title": "Aplicaciones de la integral y método de Simpson",
+         "topics": [
+          "Área entre curvas (FindRoot + Integrate)",
+          "Volumen de revolución en polares",
+          "Longitud de una curva paramétrica con NIntegrate",
+          "Número de subintervalos con NestWhile",
+          "Fórmula de Simpson con Table y Total"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay cuaderno propio de la sesión 10 en la carpeta «mis prácticas» del Drive: sin evidencia de que la resolvieras.",
+         "nExercisesReal": 4,
+         "minutes": 45,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 10
+        },
+        {
+         "lesson": "1-p11",
+         "practice": "Práctica 11",
+         "title": "Integrales impropias y funciones Gamma y Beta",
+         "topics": [
+          "Integrales impropias con Infinity",
+          "Funciones a trozos con asíntotas (PlotRange -> Full)",
+          "Longitud de una espiral con NIntegrate",
+          "NSolve para hallar el corte",
+          "Funciones Gamma y Beta"
+         ],
+         "status": "pendiente",
+         "evidence": "El cuaderno S11 es la plantilla vacía: las cuatro secciones solo tienen una celda de entrada sin rellenar.",
+         "nExercisesReal": 3,
+         "minutes": 40,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 11
+        },
+        {
+         "lesson": "1-p12",
+         "practice": "Práctica 12",
+         "title": "Ecuaciones diferenciales y PVI",
+         "topics": [
+          "Solución general con DSolve y constantes C[1], C[2]",
+          "Problemas de valor inicial",
+          "Convertir la solución en función: y[x] /. Flatten[sol]",
+          "Hallar las constantes con Solve",
+          "Sistemas de EDO"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S12 completo (P1–P4 con resultado numérico); en P1 la salida pegada perdió los C[1], C[2].",
+         "nExercisesReal": 4,
+         "minutes": 45,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 12
+        },
+        {
+         "lesson": "1-p13",
+         "practice": "Práctica 13",
+         "title": "Resolución gráfica: intersección de curvas",
+         "topics": [
+          "Curvas paramétricas, polares y cartesianas juntas",
+          "Zoom con PlotRange y GridLines",
+          "FindRoot para sistemas de 2 ecuaciones",
+          "Longitud de arco con NIntegrate",
+          "Áreas con Integrate"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S13 con P1 completo; la sección «P2(extra)» está vacía.",
+         "nExercisesReal": 4,
+         "minutes": 45,
+         "dateHint": "1.er cuatrimestre del curso 2025-26",
+         "order": 13
+        }
+       ]
+      },
+      {
+       "id": "algebra",
+       "name": "Álgebra lineal",
+       "units": [
+        {
+         "lesson": "1-p14",
+         "practice": "Práctica 14",
+         "title": "Matrices y vectores",
+         "topics": [
+          "Definir matrices y verlas con MatrixForm",
+          "Producto matricial . frente a producto elemento a elemento *",
+          "Matrices por fórmula con Table",
+          "Inverse, Det, Transpose",
+          "Adjunta con Cofactor y menores con Minors"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S14 completo (P1–P4).",
+         "nExercisesReal": 5,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 14
+        },
+        {
+         "lesson": "1-p15",
+         "practice": "Práctica 15",
+         "title": "Matrices II y sistemas de ecuaciones lineales",
+         "topics": [
+          "Bloques con Take y Join",
+          "Rango con MatrixRank y discusión con parámetros",
+          "Solve, NSolve y LinearSolve",
+          "Matriz ampliada y RowReduce",
+          "Sistemas compatibles indeterminados"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S15 completo (P1–P4).",
+         "nExercisesReal": 4,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 15
+        },
+        {
+         "lesson": "1-p16",
+         "practice": "Práctica 16",
+         "title": "Espacios vectoriales I",
+         "topics": [
+          "Independencia lineal con MatrixRank y RowReduce",
+          "Bases de subespacios con Solve",
+          "Suma e intersección de subespacios (Join)",
+          "Matriz de cambio de base",
+          "Coordenadas de un vector en otra base"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S16 completo (P1–P3).",
+         "nExercisesReal": 3,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 16
+        },
+        {
+         "lesson": "1-p17",
+         "practice": "Práctica 17",
+         "title": "Espacios vectoriales II: distancias, ángulos y ajustes",
+         "topics": [
+          "EuclideanDistance, VectorAngle, Norm",
+          "Gram-Schmidt con Orthogonalize",
+          "Proyección sobre un subespacio (Projection)",
+          "Mínimos cuadrados con las ecuaciones normales",
+          "Ajuste de datos con Fit"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S17 completo (P1–P3).",
+         "nExercisesReal": 3,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 17
+        },
+        {
+         "lesson": "1-p18",
+         "practice": "Práctica 18",
+         "title": "Aplicaciones lineales y diagonalización",
+         "topics": [
+          "Matriz asociada a una aplicación lineal",
+          "Núcleo (NullSpace) e imagen (RowReduce)",
+          "Eigenvalues, Eigenvectors, DiagonalMatrix",
+          "Comprobar A = P.D.P⁻¹",
+          "Diagonalización ortogonal con Orthogonalize"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S18 con P1–P3 completos; la sección «P Extra» está vacía.",
+         "nExercisesReal": 4,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 18
+        }
+       ]
+      },
+      {
+       "id": "calculo2",
+       "name": "Cálculo II · varias variables y series",
+       "units": [
+        {
+         "lesson": "1-p19",
+         "practice": "Práctica 19",
+         "title": "Funciones de varias variables y gráficas 3D",
+         "topics": [
+          "Definir f[x_, y_]",
+          "Superficies con Plot3D y opacidad",
+          "Superficies implícitas con ContourPlot3D",
+          "Curvas en el espacio con ParametricPlot3D",
+          "Manipulate en 3D"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S19 completo (tres gráficas).",
+         "nExercisesReal": 3,
+         "minutes": 35,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 19
+        },
+        {
+         "lesson": "1-p20",
+         "practice": "Práctica 20",
+         "title": "Derivadas parciales y extremos",
+         "topics": [
+          "Límites por rectas, parábolas y polares",
+          "Gradiente y derivada direccional",
+          "Puntos críticos con Solve",
+          "Matriz hessiana y clasificación",
+          "Extremos condicionados (Lagrange)"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S20 con P1–P4 completos; las secciones PExtra1 y PExtra2 están vacías.",
+         "nExercisesReal": 6,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 20
+        },
+        {
+         "lesson": "1-p21",
+         "practice": "Práctica 21",
+         "title": "Diferenciales, jacobianos y derivadas implícitas",
+         "topics": [
+          "Derivada total con Dt",
+          "Derivada implícita y recta tangente",
+          "Parciales implícitas con Constants",
+          "Sistemas de funciones implícitas",
+          "Jacobiano con Det y Grad"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S21 con P1–P3 completos; la sección PExtra está vacía.",
+         "nExercisesReal": 4,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 21
+        },
+        {
+         "lesson": "1-p22",
+         "practice": "Práctica 22",
+         "title": "Integrales curvilíneas",
+         "topics": [
+          "Parametrizar la curva y derivar con D",
+          "Masa y longitud: f·Norm[r'(t)]",
+          "Trabajo de un campo: F·r'(t)",
+          "Campos conservativos: Curl y función potencial",
+          "Div y Grad"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S22 completo (P1–P4).",
+         "nExercisesReal": 4,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 22
+        },
+        {
+         "lesson": "1-p23",
+         "practice": "Práctica 23",
+         "title": "Integrales dobles",
+         "topics": [
+          "Dibujar el recinto con ContourPlot",
+          "Límites de integración con Solve",
+          "Integrate iterado: área y masa",
+          "Cambio a polares y jacobiano",
+          "Cambio de variable general"
+         ],
+         "status": "parcial",
+         "evidence": "Cuaderno S23 con P1–P3 completos; la sección P4 está vacía.",
+         "nExercisesReal": 4,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 23
+        },
+        {
+         "lesson": "1-p24",
+         "practice": "Práctica 24",
+         "title": "Integrales triples",
+         "topics": [
+          "Dibujar sólidos con RegionPlot3D",
+          "Intersección de superficies con Solve",
+          "Volumen y masa con Integrate/NIntegrate triples",
+          "Momentos de inercia",
+          "Densidad media"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S24 completo (P1–P4).",
+         "nExercisesReal": 4,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 24
+        },
+        {
+         "lesson": "1-p25",
+         "practice": "Práctica 25",
+         "title": "Integrales de superficie y teorema de Stokes",
+         "topics": [
+          "Elemento de área dS con Norm",
+          "Área y masa de una superficie",
+          "Circulación con una parametrización",
+          "Rotacional con Curl",
+          "Flujo del rotacional (Stokes)"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S25 completo (P1–P3); una integral da el aviso NIntegrate::izero porque vale 0.",
+         "nExercisesReal": 3,
+         "minutes": 50,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 25
+        },
+        {
+         "lesson": "1-p26",
+         "practice": "Práctica 26",
+         "title": "Series numéricas y de potencias",
+         "topics": [
+          "Suma de series con Sum",
+          "Series alternadas y error con NestWhile",
+          "Radio de convergencia con Limit",
+          "SumConvergence en los extremos",
+          "Polinomios de Taylor con Series y Normal"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S26 completo (P1–P3).",
+         "nExercisesReal": 3,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 26
+        },
+        {
+         "lesson": "1-p27",
+         "practice": "Práctica 27",
+         "title": "Series de Fourier",
+         "topics": [
+          "Función a trozos y extensión periódica con Mod",
+          "FourierTrigSeries y FourierParameters",
+          "Comparar sumas parciales en una gráfica",
+          "Teorema de Dirichlet con límites laterales",
+          "Fenómeno de Gibbs"
+         ],
+         "status": "hecha",
+         "evidence": "Cuaderno S27 completo.",
+         "nExercisesReal": 1,
+         "minutes": 45,
+         "dateHint": "2.º cuatrimestre del curso 2025-26",
+         "order": 27
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "year": 2,
+   "label": "2º · curso 2026-27",
+   "state": "en curso",
+   "subjects": [
+    {
+     "id": "mat2",
+     "name": "Matemáticas II",
+     "semester": "A",
+     "state": "en curso",
+     "summary": "9 sesiones de Mathematica en clase inversa (EDO, Laplace, series de potencias y EDP) y un examen de prácticas en enero.",
+     "evaluation": {
+      "mathematicaWeight": "20 % de la nota: 5 % pruebas de sesión + 15 % examen de prácticas (ExPL)",
+      "format": "Cada sesión: preparas el guion antes (60-90 min) y en clase haces una prueba en «Exámenes» de PoliformaT. El ExPL es el 18-01-2027 a las 11:45 en aula informática.",
+      "notes": [
+       "Nota = 80 % teoría-problemas + 20 % prácticas de Mathematica.",
+       "La parte de prácticas (5 % + 15 %) no se recupera.",
+       "ExPL de 2021: una pregunta por bloque de PL1–PL9 y casi todas las respuestas son valores numéricos.",
+       "ExPL de 2014: 1 h 15 min, 5 preguntas al azar de una lista de 9, se podía usar libro, apuntes y cuadernos propios.",
+       "La duración y el material permitido para 2027 no constan: confírmalo con el profesorado."
+      ]
+     },
+     "blocks": [
+      {
+       "id": "edo",
+       "name": "Ecuaciones diferenciales ordinarias",
+       "units": [
+        {
+         "lesson": "2-m2-pl1",
+         "practice": "PL1",
+         "title": "EDO de primer orden (I)",
+         "topics": [
+          "DSolve: solución general y PVI",
+          "Convertir la solución en función",
+          "Campo de direcciones con VectorPlot + familia de curvas",
+          "Homogéneas y reducibles",
+          "Exactas y factor integrante"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre lo normal sería haberla hecho en clase (sesión de mediados de septiembre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 3,
+         "minutes": 60,
+         "dateHint": "≈ mediados de septiembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 28
+        },
+        {
+         "lesson": "2-m2-pl2",
+         "practice": "PL2",
+         "title": "EDO de primer orden (II)",
+         "topics": [
+          "Lineales con la fórmula integral",
+          "Bernoulli y Riccati (deshacer el cambio con /.)",
+          "Problemas de mezclas",
+          "Envolventes",
+          "Trayectorias ortogonales e isogonales"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre lo normal sería haberla hecho en clase (sesión de finales de septiembre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 5,
+         "minutes": 60,
+         "dateHint": "≈ finales de septiembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 29
+        },
+        {
+         "lesson": "2-m2-pl3",
+         "practice": "PL3",
+         "title": "EDO de orden superior",
+         "topics": [
+          "EDO asociada a una familia de curvas",
+          "Wronskiano con Det",
+          "Raíces características con Solve",
+          "Coeficientes indeterminados (Collect + Solve)",
+          "Variación de constantes",
+          "Oscilaciones forzadas y resonancia"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre lo normal sería haberla hecho en clase (sesión de mediados de octubre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 6,
+         "minutes": 60,
+         "dateHint": "≈ mediados de octubre de 2026 (estimación por el calendario 2025-26)",
+         "order": 30
+        },
+        {
+         "lesson": "2-m2-pl4",
+         "practice": "PL4",
+         "title": "Repaso de EDO y prueba",
+         "topics": [
+          "Repaso de PL1–PL3",
+          "Elegir el método según el tipo de EDO",
+          "Comprobar soluciones sustituyendo",
+          "Prueba de EDO en PoliformaT"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre lo normal sería haber pasado ya la prueba de EDO (tercera semana de octubre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 0,
+         "minutes": 50,
+         "dateHint": "≈ tercera semana de octubre de 2026 (estimación por el calendario 2025-26)",
+         "order": 31
+        },
+        {
+         "lesson": "2-m2-pl5",
+         "practice": "PL5",
+         "title": "Sistemas de EDO lineales",
+         "topics": [
+          "Sistemas con DSolve",
+          "Método matricial: Eigenvalues y Eigenvectors",
+          "Autovalores complejos (Re, Im)",
+          "Matriz no diagonalizable",
+          "Sistema no homogéneo por variación de constantes"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre lo normal sería haberla hecho en clase (última semana de octubre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 4,
+         "minutes": 60,
+         "dateHint": "≈ última semana de octubre de 2026 (estimación por el calendario 2025-26)",
+         "order": 32
+        }
+       ]
+      },
+      {
+       "id": "laplace",
+       "name": "Transformada de Laplace",
+       "units": [
+        {
+         "lesson": "2-m2-pl6",
+         "practice": "PL6",
+         "title": "Transformadas de Laplace",
+         "topics": [
+          "LaplaceTransform e InverseLaplaceTransform",
+          "Escalón, delta y funciones a trozos",
+          "Funciones periódicas y convolución",
+          "PVI con Laplace: transformar, despejar, invertir",
+          "Sistemas con Laplace"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre toca justo estas semanas (hecha o inminente según el grupo); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 4,
+         "minutes": 60,
+         "dateHint": "≈ segunda o tercera semana de noviembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 33
+        }
+       ]
+      },
+      {
+       "id": "series",
+       "name": "Resolución en serie de potencias",
+       "units": [
+        {
+         "lesson": "2-m2-pl7",
+         "practice": "PL7",
+         "title": "Resolución de EDO en serie de potencias",
+         "topics": [
+          "Serie truncada con coeficientes simbólicos",
+          "Identificar coeficientes con Expand y Solve",
+          "Versión compacta con Sum y derivadas en 0",
+          "Método de Frobenius",
+          "Legendre, Hermite, Laguerre y Bessel"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre todavía no se habría impartido (finales de noviembre o principios de diciembre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 3,
+         "minutes": 60,
+         "dateHint": "≈ finales de noviembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 34
+        }
+       ]
+      },
+      {
+       "id": "edp",
+       "name": "Ecuaciones en derivadas parciales",
+       "units": [
+        {
+         "lesson": "2-m2-pl8",
+         "practice": "PL8",
+         "title": "Primeras EDP",
+         "topics": [
+          "DSolve con funciones de dos variables",
+          "EDP lineal de primer orden: fórmula con Integrate",
+          "Reducibles: Factor y método iterativo",
+          "Coeficientes indeterminados",
+          "Cuerda ilimitada (d'Alembert) con Manipulate"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre todavía no se habría impartido (segunda semana de diciembre); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 3,
+         "minutes": 60,
+         "dateHint": "≈ segunda semana de diciembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 35
+        },
+        {
+         "lesson": "2-m2-pl9",
+         "practice": "PL9",
+         "title": "EDP de segundo orden: ondas, calor y Laplace",
+         "topics": [
+          "Coeficientes de Fourier An[n_Integer]",
+          "Serie truncada con Sum",
+          "Ecuación de ondas y del calor",
+          "Laplace en un rectángulo con Plot3D",
+          "Cuerda forzada con extremos móviles",
+          "Instante en que u vale un dato (FindRoot)"
+         ],
+         "status": "pendiente",
+         "evidence": "No hay ningún cuaderno propio de 2026 en el Drive. Por inferencia con el calendario 2025-26, a 10 de noviembre todavía no se habría impartido (tercera semana de diciembre o tras Reyes); no está confirmado por ningún archivo, así que se marca pendiente.",
+         "nExercisesReal": 4,
+         "minutes": 70,
+         "dateHint": "≈ tercera semana de diciembre de 2026 (estimación por el calendario 2025-26)",
+         "order": 36
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "mat3",
+     "name": "Matemáticas III",
+     "semester": "B",
+     "state": "pendiente",
+     "summary": "3 prácticas de Mathematica de variable compleja (PL1–PL3) y un examen de Mathematica (PL4). El resto de prácticas son de MATLAB.",
+     "evaluation": {
+      "mathematicaWeight": "Informática 15 % = 4 % variable compleja (Mathematica, PL1–PL4) + 11 % métodos numéricos (MATLAB)",
+      "format": "Estudias el cuaderno-guion y en clase haces una prueba en «Exámenes» de PoliformaT con datos personalizados; hay que subir el .nb antes del cierre. El examen PL4 son 5 ejercicios de variable compleja.",
+      "notes": [
+       "Las prácticas no se recuperan.",
+       "No hay fechas confirmadas para 2026-27; en 2020-21 fueron PL1–PL3 entre febrero y marzo y el examen PL4 en abril.",
+       "Las soluciones oficiales del examen PL4 nunca se publicaron: los modelos disponibles son de alumnos."
+      ]
+     },
+     "blocks": [
+      {
+       "id": "compleja",
+       "name": "Variable compleja",
+       "units": [
+        {
+         "lesson": "2-m3-pl1",
+         "practice": "PL1",
+         "title": "Variable compleja I",
+         "topics": [
+          "Complejos, raíces n-ésimas y su dibujo",
+          "Funciones complejas y Cauchy-Riemann",
+          "Determinaciones del argumento y del logaritmo",
+          "Transformación de regiones y ala de Joukowski",
+          "Integrales de camino",
+          "Fórmula integral de Cauchy"
+         ],
+         "status": "pendiente",
+         "evidence": "Asignatura del semestre B: todavía no ha empezado y no hay ningún cuaderno propio de Matemáticas III en el Drive.",
+         "nExercisesReal": 6,
+         "minutes": 70,
+         "dateHint": "≈ febrero–marzo de 2027 (patrón del curso 2020-21, sin confirmar)",
+         "order": 37
+        },
+        {
+         "lesson": "2-m3-pl2",
+         "practice": "PL2",
+         "title": "Variable compleja II: series y residuos",
+         "topics": [
+          "Series de Taylor y de Laurent con Series",
+          "Coronas de convergencia con RegionPlot",
+          "Fracciones simples con Apart",
+          "Residuos con Residue y con límites",
+          "Integrales por el teorema de los residuos"
+         ],
+         "status": "pendiente",
+         "evidence": "Asignatura del semestre B: todavía no ha empezado y no hay ningún cuaderno propio de Matemáticas III en el Drive.",
+         "nExercisesReal": 3,
+         "minutes": 60,
+         "dateHint": "≈ febrero–marzo de 2027 (patrón del curso 2020-21, sin confirmar)",
+         "order": 38
+        },
+        {
+         "lesson": "2-m3-pl3",
+         "practice": "PL3",
+         "title": "Transformadas de Fourier, Laplace y Z",
+         "topics": [
+          "FourierTransform con FourierParameters -> {1, -1}",
+          "Transformadas seno y coseno",
+          "Laplace y EDO",
+          "ZTransform e inversa (también por residuos)",
+          "Ecuaciones en diferencias con RSolve"
+         ],
+         "status": "pendiente",
+         "evidence": "Asignatura del semestre B: todavía no ha empezado y no hay ningún cuaderno propio de Matemáticas III en el Drive.",
+         "nExercisesReal": 5,
+         "minutes": 70,
+         "dateHint": "≈ febrero–marzo de 2027 (patrón del curso 2020-21, sin confirmar)",
+         "order": 39
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "exams": [
+  {
+   "id": "2-m2-sim1",
+   "title": "Simulacro 1 · examen de Mathematica (ExPL)",
+   "subject": "Matemáticas II",
+   "year": 2,
+   "durationMin": 75,
+   "date": "2027-01-18",
+   "description": "Modelo del ExPL de 2021: una pregunta por bloque de PL1–PL9 con respuestas numéricas en casillas."
+  },
+  {
+   "id": "2-m2-sim2",
+   "title": "Simulacro 2 · examen de Mathematica (ExPL)",
+   "subject": "Matemáticas II",
+   "year": 2,
+   "durationMin": 75,
+   "date": "2027-01-18",
+   "description": "Segundo modelo con otros datos: EDO, sistemas, Laplace, series y EDP en 75 minutos."
+  },
+  {
+   "id": "2-m2-sim3",
+   "title": "Simulacro 3 · examen de Mathematica (ExPL)",
+   "subject": "Matemáticas II",
+   "year": 2,
+   "durationMin": 75,
+   "date": "2027-01-18",
+   "description": "Tercer modelo para llegar con margen al 18 de enero: mezcla de los tipos de pregunta de 2014 y 2021."
+  },
+  {
+   "id": "2-m3-sim1",
+   "title": "Simulacro · examen de Mathematica (PL4)",
+   "subject": "Matemáticas III",
+   "year": 2,
+   "durationMin": 90,
+   "date": null,
+   "description": "Cinco ejercicios de variable compleja como el PL4 de 2021: integrales de contorno, Cauchy-Riemann, Laurent, residuos y Fourier inversa."
+  },
+  {
+   "id": "1-sim-pl1",
+   "title": "Simulacro · examen PL1 (Cálculo I)",
+   "subject": "Matemáticas I",
+   "year": 1,
+   "durationMin": 90,
+   "date": null,
+   "description": "Los seis tipos fijos del examen PL1: complejos, curva paramétrica, EDO, integrales impropias, Newton-Raphson y polares."
+  },
+  {
+   "id": "1-sim-pl2",
+   "title": "Simulacro · examen PL2 (Álgebra y varias variables)",
+   "subject": "Matemáticas I",
+   "year": 1,
+   "durationMin": 90,
+   "date": null,
+   "description": "Álgebra (diagonalización, mínimos cuadrados, aplicación lineal) y varias variables (extremos, integral de línea, flujo, Taylor)."
+  }
+ ],
+ "keyDates": [
+  {
+   "date": "2026-11-10",
+   "label": "Hoy · semestre A de 2º en marcha",
+   "kind": "hoy"
+  },
+  {
+   "date": "2026-11-17",
+   "label": "PL6 Laplace · Matemáticas II (fecha estimada por el calendario 2025-26)",
+   "kind": "estimada",
+   "lesson": "2-m2-pl6"
+  },
+  {
+   "date": "2026-11-24",
+   "label": "PL7 Series de potencias · Matemáticas II (fecha estimada)",
+   "kind": "estimada",
+   "lesson": "2-m2-pl7"
+  },
+  {
+   "date": "2026-12-08",
+   "label": "PL8 Primeras EDP · Matemáticas II (fecha estimada)",
+   "kind": "estimada",
+   "lesson": "2-m2-pl8"
+  },
+  {
+   "date": "2026-12-15",
+   "label": "PL9 EDP de segundo orden · Matemáticas II (fecha estimada)",
+   "kind": "estimada",
+   "lesson": "2-m2-pl9"
+  },
+  {
+   "date": "2027-01-18",
+   "label": "Examen de Mathematica (ExPL) · Matemáticas II · 11:45 h",
+   "kind": "examen",
+   "exam": "2-m2-sim1"
+  },
+  {
+   "date": "2027-01-18",
+   "label": "Segundo parcial de teoría-problemas · Matemáticas II · 08:00 h",
+   "kind": "examen"
+  },
+  {
+   "date": "2027-01-28",
+   "label": "Recuperación de teoría-problemas · Matemáticas II (las prácticas no se recuperan)",
+   "kind": "examen"
+  },
+  {
+   "date": "2027-02-01",
+   "label": "Empieza el semestre B: prácticas PL1–PL3 de Matemáticas III entre febrero y marzo (sin fechas confirmadas)",
+   "kind": "estimada",
+   "lesson": "2-m3-pl1"
+  },
+  {
+   "date": "2027-04-20",
+   "label": "Examen de Mathematica (PL4) · Matemáticas III (estimación: en 2021 fue el 20 de abril)",
+   "kind": "estimada",
+   "exam": "2-m3-sim1"
+  }
+ ]
+}

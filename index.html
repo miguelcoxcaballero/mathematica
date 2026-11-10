@@ -1,5 +1,107 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WolframLab Aero</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#070b16;color:#e8eeff;font:16px system-ui,sans-serif;text-align:center}</style>
-</head><body><div><h1>WolframLab Aero</h1><p>En construcción: la web se está subiendo.</p></div></body></html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>WolframLab Aero</title>
+  <meta name="description" content="Aprende Wolfram Mathematica desde cero hasta resolver todas las prácticas y exámenes de 1º y 2º de Ingeniería Aeroespacial.">
+  <meta name="theme-color" content="#070b16">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d1426'/%3E%3Cpath d='M20 14h-8v36h8M44 14h8v36h-8' fill='none' stroke='%237c5cff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 40 42 22l-5 21-6-6z' fill='%2319e3c5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/shell.css">
+  <link rel="stylesheet" href="css/notebook.css">
+  <link rel="stylesheet" href="css/gfx.css">
+  <link rel="stylesheet" href="css/learn.css">
+</head>
+<body>
+  <a class="skip-link" href="#view">Saltar al contenido</a>
+
+  <!-- fondo: estrellas (canvas) + aurora (CSS) -->
+  <div class="sky" aria-hidden="true">
+    <div class="sky-aurora"></div>
+    <canvas id="sky-canvas"></canvas>
+    <div class="sky-vignette"></div>
+  </div>
+
+  <div class="app" id="app">
+    <!-- barra lateral (escritorio) -->
+    <aside class="side" id="side" aria-label="Navegación principal">
+      <a class="brand" href="#/" aria-label="WolframLab Aero — inicio">
+        <svg class="brand-mark" viewBox="0 0 64 64" width="38" height="38" aria-hidden="true">
+          <defs><linearGradient id="bm-g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#19e3c5"/></linearGradient></defs>
+          <path d="M20 10h-9v44h9M44 10h9v44h-9" fill="none" stroke="url(#bm-g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path class="brand-plane" d="M19 43 45 19l-6.5 27-8-7.5z" fill="#e8eeff"/>
+          <path d="M30.5 38.5 45 19" stroke="#070b16" stroke-width="1.6" fill="none"/>
+        </svg>
+        <span class="brand-text"><b>WolframLab</b><i>AERO</i></span>
+      </a>
+
+      <nav class="nav" id="nav">
+        <div class="nav-group">Aprender</div>
+        <a class="nav-item" data-nav="home" href="#/"><span class="nav-ic" data-icon="home"></span><span>Inicio</span><kbd>g h</kbd></a>
+        <a class="nav-item" data-nav="indice" href="#/indice"><span class="nav-ic" data-icon="route"></span><span>Índice</span><kbd>g i</kbd></a>
+        <a class="nav-item" data-nav="practica" href="#/practica"><span class="nav-ic" data-icon="bolt"></span><span>Práctica</span><kbd>g p</kbd></a>
+        <a class="nav-item" data-nav="simulacros" href="#/simulacros"><span class="nav-ic" data-icon="timer"></span><span>Simulacros</span><kbd>g s</kbd></a>
+        <div class="nav-group">Consultar</div>
+        <a class="nav-item" data-nav="comandos" href="#/comandos"><span class="nav-ic" data-icon="brackets"></span><span>Comandos</span><kbd>g c</kbd></a>
+        <a class="nav-item" data-nav="esquema" href="#/esquema"><span class="nav-ic" data-icon="graph"></span><span>Esquema</span><kbd>g e</kbd></a>
+        <a class="nav-item" data-nav="registro" href="#/registro"><span class="nav-ic" data-icon="table"></span><span>Registro</span><kbd>g r</kbd></a>
+        <div class="nav-group">Libre</div>
+        <a class="nav-item" data-nav="cuaderno" href="#/cuaderno"><span class="nav-ic" data-icon="book"></span><span>Cuaderno</span><kbd>g n</kbd></a>
+      </nav>
+
+      <div class="side-foot" id="side-foot">
+        <div class="side-rank">
+          <div class="side-rank-k">Rango</div>
+          <div class="side-rank-v" id="side-rank">Pasajero</div>
+          <div class="side-rank-n" id="side-next"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <!-- HUD superior -->
+      <header class="hud" id="hud">
+        <a class="hud-brand" href="#/" aria-label="Inicio">
+          <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><path d="M20 10h-9v44h9M44 10h9v44h-9" fill="none" stroke="url(#bm-g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 43 45 19l-6.5 27-8-7.5z" fill="#e8eeff"/></svg>
+        </a>
+        <button class="hud-level" id="hud-level" type="button" aria-label="Nivel 1" title="Tu nivel"><span id="hud-level-n">1</span></button>
+        <div class="hud-xp" id="hud-xp" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Experiencia hasta el siguiente nivel">
+          <div class="hud-xp-top"><b id="hud-rank">Pasajero</b><span id="hud-xp-txt">0 / 50 XP</span></div>
+          <div class="hud-xp-bar"><i id="hud-xp-fill"></i></div>
+        </div>
+        <div class="hud-gap"></div>
+        <div class="hud-combo" id="hud-combo" hidden aria-live="polite"><b id="hud-combo-n">×2</b><span>combo</span></div>
+        <button class="hud-streak" id="hud-streak" type="button" aria-label="Racha: 0 días" title="Racha de días seguidos estudiando">
+          <span class="hud-flame" data-icon="flame"></span><b id="hud-streak-n">0</b><span class="hud-streak-u">días</span>
+        </button>
+        <button class="hud-btn" id="hud-sound" type="button" aria-pressed="true" aria-label="Sonido activado" title="Sonido (m)"></button>
+        <button class="hud-btn" id="hud-settings" type="button" aria-label="Ajustes y progreso" title="Ajustes y progreso"></button>
+        <button class="kpill" id="kpill" type="button" data-status="idle" aria-live="polite" title="Motor de cálculo (Wolfram Language en tu navegador)">
+          <span class="kpill-fill" id="kpill-fill"></span>
+          <span class="kpill-dot"></span>
+          <span class="kpill-tx" id="kpill-tx">Motor en reposo</span>
+        </button>
+      </header>
+
+      <main class="view" id="view" tabindex="-1">
+        <div class="page"><div class="skel skel-page" aria-hidden="true"><i style="width:40%;height:28px"></i><i style="width:70%"></i><i style="width:100%;height:140px"></i><i style="width:100%;height:140px"></i></div></div>
+      </main>
+    </div>
+
+    <!-- barra de pestañas (móvil) -->
+    <nav class="tabbar" id="tabbar" aria-label="Navegación">
+      <a class="tab" data-nav="home" href="#/"><span data-icon="home"></span><span>Inicio</span></a>
+      <a class="tab" data-nav="indice" href="#/indice"><span data-icon="route"></span><span>Índice</span></a>
+      <a class="tab tab-main" data-nav="practica" href="#/practica"><span data-icon="bolt"></span><span>Práctica</span></a>
+      <a class="tab" data-nav="comandos" href="#/comandos"><span data-icon="brackets"></span><span>Comandos</span></a>
+      <button class="tab" id="tab-more" type="button" data-nav="more" aria-haspopup="dialog"><span data-icon="more"></span><span>Más</span></button>
+    </nav>
+  </div>
+
+  <div id="fx-layer" aria-hidden="true"></div>
+  <noscript><div class="noscript">WolframLab Aero necesita JavaScript para funcionar (el motor de Mathematica corre en tu navegador).</div></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

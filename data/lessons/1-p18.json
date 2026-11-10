@@ -1,0 +1,825 @@
+{
+ "id": "1-p18",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Álgebra",
+ "order": 18,
+ "title": "Aplicaciones lineales y diagonalización",
+ "summary": "Pasas de una aplicación lineal a su matriz, calculas núcleo e imagen, y diagonalizas matrices con valores y vectores propios (también ortogonalmente).",
+ "minutes": 50,
+ "commands": [
+  "Eigenvalues",
+  "Eigenvectors",
+  "Eigensystem",
+  "DiagonalMatrix",
+  "IdentityMatrix"
+ ],
+ "uses": [
+  "NullSpace",
+  "RowReduce",
+  "Transpose",
+  "Inverse",
+  "Normalize",
+  "Orthogonalize",
+  "MatrixRank",
+  "MatrixForm",
+  "Part",
+  "N"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "De la aplicación lineal a su matriz",
+   "md": "El tensor de inercia de un avión es una matriz 3×3. Sus **vectores propios** son los ejes principales de inercia y sus **valores propios**, los momentos principales. Diagonalizar es encontrar los ejes en los que una matriz «solo estira». Antes, lo básico: toda aplicación lineal **es** una matriz.\n\nUna aplicación lineal `f: R³ → R²` se define como una función de varias variables que devuelve una **lista**:\n\n`f[x_, y_, z_] := {x + 2 y, y - z}`\n\nSu **matriz asociada** (bases canónicas) tiene por **columnas** las imágenes de los vectores canónicos. Como una lista de listas se lee por filas, hay que trasponer:\n\n`M = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]`\n\nA partir de ahí, aplicar `f` es multiplicar: `M.v` da lo mismo que `f` evaluada en `v`.",
+   "cells": [
+    {
+     "code": "f[x_, y_, z_] := {x + 2 y, y - z}\nf[1, 2, 3]",
+     "note": "imagen del vector (1, 2, 3)"
+    },
+    {
+     "code": "M = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]",
+     "note": "matriz 2×3: una columna por cada vector canónico"
+    },
+    {
+     "code": "M.{1, 2, 3}",
+     "note": "lo mismo que f[1, 2, 3]"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e01",
+    "kind": "predict",
+    "title": "¿Qué matriz sale?",
+    "prompt": "Sin ejecutarlo: ¿qué devuelve la segunda línea?",
+    "difficulty": 1,
+    "cmds": [
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "code": "f[x_, y_] := {x + y, x - y, 2 x}\nTranspose[{f[1, 0], f[0, 1]}]",
+    "options": [
+     "{{1, 1, 2}, {1, -1, 0}}",
+     "{{1, 1}, {1, -1}, {2, 0}}",
+     "{{1, 0}, {0, 1}}",
+     "{{2, 0, 2}}"
+    ],
+    "answer": 1,
+    "explain": "`f[1, 0] = {1, 1, 2}` y `f[0, 1] = {1, -1, 0}` son las **columnas**. `Transpose` las coloca como columnas: matriz 3×2 (3 filas porque f llega a R³)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e02",
+    "kind": "fill",
+    "title": "Monta la matriz asociada",
+    "prompt": "Ya está definida `g[x_, y_, z_] := {2 x - z, x + y + z}`. Completa la celda para obtener su matriz asociada respecto de las bases canónicas.",
+    "difficulty": 1,
+    "cmds": [
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "g[x_, y_, z_] := {2 x - z, x + y + z}",
+    "template": "Transpose[{g[1, 0, 0], g[__1__], g[__2__]}]",
+    "blanks": [
+     [
+      "0, 1, 0"
+     ],
+     [
+      "0, 0, 1"
+     ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{2, 0, -1}, {1, 1, 1}}"
+    },
+    "explain": "Se evalúa `g` en los tres vectores canónicos, en orden. Las filas de la matriz son los coeficientes de cada componente: `2x - z` → `(2, 0, -1)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e03",
+    "kind": "fix",
+    "title": "El error de MatrixForm",
+    "prompt": "Este código (sacado de un cuaderno real) quiere calcular la imagen de `(1, 2, 3)` multiplicando por la matriz, pero la segunda línea se queda sin evaluar. `f` ya está definida como `f[x_, y_, z_] := {x + y, y + z}`. Arréglalo sin cambiar el método.",
+    "difficulty": 2,
+    "cmds": [
+     "Transpose",
+     "MatrixForm"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "f[x_, y_, z_] := {x + y, y + z}",
+    "broken": "Mcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}] // MatrixForm\nMcc.{1, 2, 3}",
+    "solution": "Mcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];\nMcc // MatrixForm\nMcc.{1, 2, 3}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Mcc",
+       "expected": "{{1, 1, 0}, {0, 1, 1}}",
+       "msg": "`Mcc` debe ser la matriz (lista de listas), no un `MatrixForm`."
+      },
+      {
+       "type": "expr",
+       "expected": "{3, 5}"
+      }
+     ]
+    },
+    "hints": [
+     "`Mcc = … // MatrixForm` guarda en `Mcc` el **dibujo** de la matriz, no la matriz.",
+     "Asigna sin `MatrixForm` y, si quieres verla, escribe `Mcc // MatrixForm` aparte."
+    ],
+    "explain": "`MatrixForm` es solo para mirar. Si lo metes en la asignación, `Mcc` deja de ser una lista de listas y ni `.` ni `Inverse` funcionan. Patrón seguro: `Mcc = …; Mcc // MatrixForm`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Núcleo e imagen",
+   "md": "El **núcleo** (kernel) son los vectores que `f` manda al cero: las soluciones de `M.v == 0`. Eso es justo lo que da `NullSpace[M]`: una base del núcleo (lista de vectores; `{}` si el núcleo es solo el cero).\n\nLa **imagen** está generada por las columnas de `M`. Para una base limpia: `RowReduce[Transpose[M]]` y te quedas con las **filas no nulas**. (Se traspone porque `RowReduce` trabaja con filas y los generadores están en columnas.)\n\nComprobación: `dim núcleo + dim imagen = nº de variables de entrada`. La dimensión de la imagen es `MatrixRank[M]`.\n\nSi piden una base **normalizada** del núcleo: `Normalize[vector] // N`.",
+   "cells": [
+    {
+     "code": "M = {{1, 2, 3}, {2, 4, 6}, {1, 0, 1}};\nNullSpace[M]",
+     "note": "base del núcleo: un vector"
+    },
+    {
+     "code": "RowReduce[Transpose[M]]",
+     "note": "imagen: las dos filas no nulas"
+    },
+    {
+     "code": "MatrixRank[M]",
+     "note": "dim imagen = 2; con el núcleo: 1 + 2 = 3"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e04",
+    "kind": "code",
+    "title": "Núcleo de una aplicación",
+    "prompt": "Sea `h[x_, y_, z_] := {x - y, y - z, x - z}` (ya definida). Calcula una base de su núcleo y guárdala en `ker`.",
+    "difficulty": 2,
+    "cmds": [
+     "NullSpace",
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "h[x_, y_, z_] := {x - y, y - z, x - z}",
+    "solution": "M = Transpose[{h[1, 0, 0], h[0, 1, 0], h[0, 0, 1]}];\nker = NullSpace[M]",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[ker] && Dimensions[ker] == {1, 3} && MatrixRank[{ker[[1]], {1, 1, 1}}] == 1",
+     "msg": "`ker` debe ser una lista con un único vector, proporcional a (1, 1, 1)."
+    },
+    "requires": [
+     "NullSpace"
+    ],
+    "hints": [
+     "Primero la matriz: `M = Transpose[{h[1, 0, 0], h[0, 1, 0], h[0, 0, 1]}];`",
+     "`ker = NullSpace[M]`"
+    ],
+    "explain": "El núcleo es la recta generada por (1, 1, 1): si las tres coordenadas son iguales, todas las diferencias se anulan. `NullSpace` devuelve una **lista** de vectores, aunque solo haya uno."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Valores y vectores propios",
+   "md": "Un **vector propio** de `A` es un vector `v` (no nulo) que `A` solo estira: `A.v == λ v`. El número `λ` es su **valor propio**.\n\n- `Eigenvalues[A]` → lista de valores propios.\n- `Eigenvectors[A]` → lista de vectores propios, **en el mismo orden** que los valores.\n- `Eigensystem[A]` → las dos cosas: `{valores, vectores}`.\n\nUn valor propio repetido aparece repetido en la lista. Los vectores propios salen como **filas**. Si la matriz tiene decimales o salen expresiones enormes, usa `Eigenvalues[N[A]]`.",
+   "cells": [
+    {
+     "code": "A = {{4, 1}, {2, 3}};\nEigenvalues[A]"
+    },
+    {
+     "code": "Eigenvectors[A]",
+     "note": "(1,1) va con el 5; (-1,2) con el 2"
+    },
+    {
+     "code": "A.{1, 1} == 5 {1, 1}",
+     "note": "comprobación de la definición"
+    },
+    {
+     "code": "Eigensystem[A]",
+     "note": "todo junto"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e05",
+    "kind": "code",
+    "title": "El vector propio de un valor concreto",
+    "prompt": "Sea `A = {{1, 2, 0}, {2, 1, 0}, {0, 0, 5}}` (ya definida). Calcula sus valores propios y obtén el vector propio asociado al valor propio **-1**, normalizado y en decimales. Guárdalo en `u`.\n\nRecuerda: `Eigenvectors` respeta el orden de `Eigenvalues`, y `lista[[n]]` extrae el elemento n-ésimo.",
+    "difficulty": 2,
+    "cmds": [
+     "Eigenvectors",
+     "Normalize",
+     "Part"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "A = {{1, 2, 0}, {2, 1, 0}, {0, 0, 5}};",
+    "solution": "Eigenvalues[A]\nvecs = Eigenvectors[A];\nu = Normalize[vecs[[3]]] // N",
+    "check": {
+     "type": "satisfies",
+     "test": "VectorQ[u, NumericQ] && Length[u] == 3 && Abs[Norm[u] - 1] < 10^-5 && Norm[N[A.u + u]] < 10^-5",
+     "msg": "`u` debe ser un vector de norma 1 que cumpla `A.u == -u`."
+    },
+    "requires": [
+     "Eigenvectors",
+     "Normalize"
+    ],
+    "hints": [
+     "`Eigenvalues[A]` da `{5, 3, -1}`: el -1 es el **tercero**.",
+     "`u = Normalize[Eigenvectors[A][[3]]] // N`"
+    ],
+    "explain": "`(-0.707107, 0.707107, 0)` (o su opuesto). La posición en `Eigenvectors` es la misma que la de su valor propio en `Eigenvalues`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Diagonalizar: D y P",
+   "md": "Diagonalizar `A` es escribirla como `A = P.D.Inverse[P]`, con `D` diagonal.\n\n- `d = DiagonalMatrix[Eigenvalues[A]]` → matriz diagonal con los valores propios. (No la llames `D`: es el comando de derivar.)\n- `P = Transpose[Eigenvectors[A]]` → matriz de paso, con los vectores propios en **columnas** (por eso el `Transpose`).\n\nEl orden manda: la columna i de `P` tiene que ser el vector propio del valor que está en la posición i de `d`. Como `Eigenvalues` y `Eigenvectors` vienen emparejados, sale bien solo.\n\nComprobaciones: `Inverse[P].A.P` debe dar `d`, y `A == P.d.Inverse[P]` debe dar `True`.",
+   "cells": [
+    {
+     "code": "A = {{1, 2, 0}, {2, 1, 0}, {0, 0, 5}};\nd = DiagonalMatrix[Eigenvalues[A]]"
+    },
+    {
+     "code": "P = Transpose[Eigenvectors[A]]",
+     "note": "vectores propios en columnas"
+    },
+    {
+     "code": "Inverse[P].A.P",
+     "note": "sale d"
+    },
+    {
+     "code": "A == P.d.Inverse[P]",
+     "note": "True: diagonalización correcta"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e06",
+    "kind": "order",
+    "title": "Diagonaliza, en orden",
+    "prompt": "Ordena las líneas para diagonalizar `A` y comprobar el resultado.",
+    "difficulty": 2,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "DiagonalMatrix"
+    ],
+    "real": false,
+    "source": null,
+    "lines": [
+     "A = {{4, 1}, {2, 3}};",
+     "d = DiagonalMatrix[Eigenvalues[A]];",
+     "P = Transpose[Eigenvectors[A]];",
+     "A == P.d.Inverse[P]"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "True"
+    },
+    "explain": "Primero la matriz, luego `d` y `P` (las dos dependen de `A`), y al final la comprobación, que necesita las tres."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e07",
+    "kind": "code",
+    "title": "Tu primera diagonalización",
+    "prompt": "Diagonaliza `A = {{1, 2}, {3, 2}}` (ya definida): deja definidas la matriz diagonal `d` y la matriz de paso `P` de modo que `Inverse[P].A.P` sea `d`.",
+    "difficulty": 3,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "DiagonalMatrix",
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "A = {{1, 2}, {3, 2}};",
+    "solution": "d = DiagonalMatrix[Eigenvalues[A]];\nP = Transpose[Eigenvectors[A]];\nInverse[P].A.P",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[P] && MatrixQ[d] && Det[P] != 0 && d[[1, 2]] == 0 && d[[2, 1]] == 0 && Max[Abs[Flatten[N[Inverse[P].A.P - d]]]] < 10^-8",
+     "msg": "Comprueba que `d` es diagonal y que `Inverse[P].A.P` da `d` (¿has puesto los vectores propios en columnas con `Transpose`?)."
+    },
+    "requires": [
+     "Eigenvectors"
+    ],
+    "hints": [
+     "`d = DiagonalMatrix[Eigenvalues[A]];`",
+     "`P = Transpose[Eigenvectors[A]];`",
+     "Comprueba con `Inverse[P].A.P`."
+    ],
+    "explain": "Valores propios 4 y -1. Sin el `Transpose` los vectores propios quedarían en filas y `Inverse[P].A.P` no saldría diagonal (salvo casualidad)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Cuando no se puede: subespacios propios",
+   "md": "No toda matriz es diagonalizable. Hacen falta tantos vectores propios independientes como el tamaño de la matriz.\n\nLa señal en Mathematica: `Eigenvectors` rellena con **vectores de ceros** `{0, 0, …}` cuando faltan. Un vector nulo no es un vector propio: si aparece, la matriz **no es diagonalizable** (y `P` sale singular, sin inversa).\n\nEl **subespacio propio** de un valor `λ` son las soluciones de `(A - λ·Identidad).v == 0`:\n\n`NullSpace[A - λ IdentityMatrix[n]]`\n\n- `IdentityMatrix[n]` es la identidad n×n.\n- Su `Length` es la dimensión del subespacio propio. Si es menor que las veces que se repite `λ`, no es diagonalizable.",
+   "cells": [
+    {
+     "code": "B = {{1, 1}, {0, 1}};\nEigenvalues[B]",
+     "note": "el 1, doble"
+    },
+    {
+     "code": "Eigenvectors[B]",
+     "note": "solo un vector propio de verdad; el otro es {0, 0}"
+    },
+    {
+     "code": "NullSpace[B - 1 IdentityMatrix[2]]",
+     "note": "subespacio propio de λ = 1: dimensión 1 < 2"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e08",
+    "kind": "mcq",
+    "title": "Lee la salida",
+    "prompt": "`Eigenvalues[M]` devuelve `{2, 2, 5}` y `Eigenvectors[M]` devuelve `{{1, 0, 0}, {0, 0, 0}, {3, 1, 4}}`. ¿Qué concluyes?",
+    "difficulty": 2,
+    "cmds": [
+     "Eigenvectors",
+     "Eigenvalues"
+    ],
+    "real": false,
+    "source": null,
+    "options": [
+     "M es diagonalizable: hay tres vectores propios",
+     "M no es diagonalizable: el subespacio propio de λ = 2 tiene dimensión 1",
+     "M no tiene inversa",
+     "Hay un error de sintaxis en la matriz"
+    ],
+    "answer": 1,
+    "explain": "El `{0, 0, 0}` indica que para el valor doble λ = 2 solo existe **un** vector propio independiente. Faltan vectores para formar `P`: no diagonalizable."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Diagonalización ortogonal (matrices simétricas)",
+   "md": "Si `A` es **simétrica** (`A == Transpose[A]`) se puede elegir `P` **ortogonal**: columnas ortonormales. La ventaja: su inversa es su traspuesta, `Inverse[Po] == Transpose[Po]`.\n\nReceta: ortonormalizar los vectores propios (práctica 17) y ponerlos en columnas:\n\n`Po = Transpose[Orthogonalize[Eigenvectors[A]]]`\n\n- `Orthogonalize` trabaja con los vectores en **filas**, tal como los da `Eigenvectors`.\n- El `Transpose` de fuera los pasa a columnas.\n\nComprobación: `Transpose[Po].A.Po` da la matriz diagonal `d`.",
+   "cells": [
+    {
+     "code": "A = {{2, 1}, {1, 2}};\nPo = Transpose[Orthogonalize[Eigenvectors[A]]]"
+    },
+    {
+     "code": "Transpose[Po] == Inverse[Po]",
+     "note": "Po es ortogonal"
+    },
+    {
+     "code": "Transpose[Po].A.Po",
+     "note": "diagonal con los valores propios 3 y 1"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e09",
+    "kind": "code",
+    "title": "Ejes principales de inercia",
+    "prompt": "El tensor de inercia de una aeronave (en ciertas unidades) es la matriz simétrica `J = {{6, -2, 0}, {-2, 9, 0}, {0, 0, 12}}` (ya definida).\n\nCalcula la matriz **ortogonal** `Po` que la diagonaliza (ejes principales en columnas) y, en la última línea, `Transpose[Po].J.Po`.",
+    "difficulty": 3,
+    "cmds": [
+     "Eigenvectors",
+     "Orthogonalize",
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "J = {{6, -2, 0}, {-2, 9, 0}, {0, 0, 12}};",
+    "solution": "Po = Transpose[Orthogonalize[Eigenvectors[J]]];\nTranspose[Po].J.Po",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[Po] && Max[Abs[Flatten[N[Transpose[Po].Po - IdentityMatrix[3]]]]] < 10^-6 && With[{m = N[Transpose[Po].J.Po]}, Max[Abs[Flatten[m - DiagonalMatrix[Diagonal[m]]]]] < 10^-6]",
+     "msg": "`Po` debe tener columnas ortonormales y `Transpose[Po].J.Po` debe salir diagonal."
+    },
+    "requires": [
+     "Orthogonalize"
+    ],
+    "hints": [
+     "`Po = Transpose[Orthogonalize[Eigenvectors[J]]];`",
+     "Última línea: `Transpose[Po].J.Po`."
+    ],
+    "explain": "Sale la diagonal `{12, 10, 5}`: los momentos principales de inercia. Las columnas de `Po` son los ejes principales."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e10",
+    "kind": "code",
+    "title": "Prueba real · matriz asociada e imágenes",
+    "prompt": "Considera `f: R³ → R⁴` definida por\n\n`f(x1, x2, x3) = (x1 - 3 x2 - 3 x3, x2, -2 x1 + 6 x3, x2)`.\n\nDefine `f`, guarda en `Mcc` su matriz asociada respecto de las bases canónicas y devuelve, en la última línea, la lista `{f[1, 4, 2], f[6, 0, 2]}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Transpose"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 1 (a, b)",
+    "solution": "f[x1_, x2_, x3_] := {x1 - 3 x2 - 3 x3, x2, -2 x1 + 6 x3, x2}\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];\n{f[1, 4, 2], f[6, 0, 2]}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[a, b, c]",
+       "expected": "{a - 3 b - 3 c, b, -2 a + 6 c, b}",
+       "msg": "Revisa la definición de `f` (tres argumentos con guion bajo: `f[x1_, x2_, x3_] := {…}`)."
+      },
+      {
+       "type": "value",
+       "expr": "Mcc",
+       "expected": "{{1, -3, -3}, {0, 1, 0}, {-2, 0, 6}, {0, 1, 0}}",
+       "msg": "`Mcc` debe ser la matriz 4×3 con las imágenes de la base canónica en columnas."
+      },
+      {
+       "type": "expr",
+       "expected": "{{-17, 4, 10, 4}, {0, 0, 0, 0}}"
+      }
+     ]
+    },
+    "requires": [
+     "Transpose"
+    ],
+    "hints": [
+     "`f[x1_, x2_, x3_] := {x1 - 3 x2 - 3 x3, x2, -2 x1 + 6 x3, x2}`",
+     "`Mcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];`",
+     "Última línea: `{f[1, 4, 2], f[6, 0, 2]}`."
+    ],
+    "explain": "`Mcc` tiene filas (1,-3,-3), (0,1,0), (-2,0,6), (0,1,0). `f(1,4,2) = (-17, 4, 10, 4)` y `f(6,0,2) = (0,0,0,0)`: el vector (6,0,2) está en el núcleo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e11",
+    "kind": "code",
+    "title": "Prueba real · base normalizada del núcleo",
+    "prompt": "Con la misma `f` (ya definidas `f` y `Mcc`), halla una base **normalizada** del núcleo: guarda en `kerN` su vector, en decimales.",
+    "difficulty": 3,
+    "cmds": [
+     "NullSpace",
+     "Normalize",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 1 (c)",
+    "setup": "f[x1_, x2_, x3_] := {x1 - 3 x2 - 3 x3, x2, -2 x1 + 6 x3, x2}\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];",
+    "solution": "Ker = NullSpace[Mcc];\nkerN = Normalize[Ker[[1]]] // N",
+    "check": {
+     "type": "satisfies",
+     "test": "VectorQ[kerN, NumericQ] && Length[kerN] == 3 && Abs[Norm[kerN] - 1] < 10^-5 && Norm[N[Mcc.kerN]] < 10^-5",
+     "msg": "`kerN` debe ser un vector de norma 1 del núcleo (`Mcc.kerN` = 0)."
+    },
+    "requires": [
+     "NullSpace",
+     "Normalize"
+    ],
+    "hints": [
+     "`Ker = NullSpace[Mcc]` devuelve `{{3, 0, 1}}`: una lista con un vector.",
+     "Extrae el vector con `Ker[[1]]` y normalízalo: `kerN = Normalize[Ker[[1]]] // N`."
+    ],
+    "explain": "Núcleo `<(3, 0, 1)>`; normalizado, `(0.948683, 0, 0.316228)`. Fíjate en que (6, 0, 2) del apartado anterior es el doble de (3, 0, 1)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e12",
+    "kind": "code",
+    "title": "Prueba real · base de la imagen",
+    "prompt": "Con `Mcc` (ya definida), halla una base de la imagen de `f`: dos vectores de la forma `(1, 0, _, _)` y `(0, 1, _, _)`.",
+    "difficulty": 3,
+    "cmds": [
+     "RowReduce",
+     "Transpose"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 1 (d)",
+    "setup": "f[x1_, x2_, x3_] := {x1 - 3 x2 - 3 x3, x2, -2 x1 + 6 x3, x2}\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];",
+    "solution": "RowReduce[Transpose[Mcc]]",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{{1, 0, -2, 0}, {0, 1, -6, 1}, {0, 0, 0, 0}}"
+      },
+      {
+       "type": "expr",
+       "expected": "{{1, 0, -2, 0}, {0, 1, -6, 1}}"
+      },
+      {
+       "type": "expr",
+       "expected": "MatrixForm[{{1, 0, -2, 0}, {0, 1, -6, 1}, {0, 0, 0, 0}}]",
+       "compare": "same"
+      }
+     ]
+    },
+    "requires": [
+     "RowReduce"
+    ],
+    "hints": [
+     "La imagen la generan las **columnas** de `Mcc`; `RowReduce` trabaja con filas → traspón.",
+     "`RowReduce[Transpose[Mcc]]`"
+    ],
+    "explain": "Filas no nulas: `(1, 0, -2, 0)` y `(0, 1, -6, 1)`. Dimensión de la imagen 2, del núcleo 1, y 2 + 1 = 3 variables."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e13",
+    "kind": "code",
+    "title": "Prueba real · valores propios y vector propio normalizado",
+    "prompt": "Considera `B = {{3, 3, -5}, {0, 3, -3}, {0, 0, -7}}` (ya definida).\n\nGuarda en `vals` sus valores propios y en `u1` un vector propio **normalizado** (en decimales) asociado al valor propio **negativo**.",
+    "difficulty": 3,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Normalize"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 2 (a, b)",
+    "setup": "B = {{3, 3, -5}, {0, 3, -3}, {0, 0, -7}};",
+    "solution": "vals = Eigenvalues[B]\nvecs = Eigenvectors[B]\nu1 = Normalize[vecs[[1]]] // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "vals",
+       "expected": "{-7, 3, 3}",
+       "compare": "set",
+       "msg": "`vals` debe ser `Eigenvalues[B]`."
+      },
+      {
+       "type": "satisfies",
+       "test": "VectorQ[u1, NumericQ] && Length[u1] == 3 && Abs[Norm[u1] - 1] < 10^-5 && Norm[N[B.u1 + 7 u1]] < 10^-5",
+       "msg": "`u1` debe tener norma 1 y cumplir `B.u1 == -7 u1`."
+      }
+     ]
+    },
+    "requires": [
+     "Eigenvalues",
+     "Eigenvectors"
+    ],
+    "hints": [
+     "`vals = Eigenvalues[B]` da `{-7, 3, 3}`: el negativo es el primero.",
+     "`u1 = Normalize[Eigenvectors[B][[1]]] // N`"
+    ],
+    "explain": "Valores propios -7, 3, 3. Vector propio de -7: `(41, 30, 100)`, normalizado `(0.365533, 0.267463, 0.891543)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e14",
+    "kind": "code",
+    "title": "Prueba real · ¿es diagonalizable?",
+    "prompt": "Para la misma `B` (ya definida), calcula la **dimensión del subespacio propio** asociado al mayor valor propio, λ = 3 (que es doble).",
+    "difficulty": 4,
+    "cmds": [
+     "NullSpace",
+     "IdentityMatrix"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 2 (d, e)",
+    "setup": "B = {{3, 3, -5}, {0, 3, -3}, {0, 0, -7}};",
+    "solution": "Length[NullSpace[B - 3 IdentityMatrix[3]]]",
+    "check": {
+     "type": "expr",
+     "expected": "1"
+    },
+    "requires": [
+     "IdentityMatrix"
+    ],
+    "hints": [
+     "El subespacio propio de λ = 3 es `NullSpace[B - 3 IdentityMatrix[3]]`.",
+     "Su dimensión: `Length[…]`. (Otra vía: `3 - MatrixRank[B - 3 IdentityMatrix[3]]`.)"
+    ],
+    "explain": "Dimensión 1, pero λ = 3 es doble: falta un vector propio, así que `B` **no es diagonalizable** (en el examen: «0»). Por eso `Eigenvectors[B]` devuelve `{{41, 30, 100}, {1, 0, 0}, {0, 0, 0}}` y `P` es singular."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e15",
+    "kind": "code",
+    "title": "Prueba real · base ortonormal de vectores propios",
+    "prompt": "Considera la matriz simétrica (ya definida)\n\n`A = {{3, 3, -3, 3}, {3, 3, -3, 3}, {-3, -3, 3, -3}, {3, 3, -3, 3}}`.\n\nCalcula sus valores propios (mayor → menor) y guarda en `Bo` la base **ortonormal** de vectores propios, en decimales (cada vector, una fila; el primero, el del valor propio mayor).",
+    "difficulty": 4,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Orthogonalize"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 3 (a-d)",
+    "setup": "A = {{3, 3, -3, 3}, {3, 3, -3, 3}, {-3, -3, 3, -3}, {3, 3, -3, 3}};",
+    "solution": "Eigenvalues[A]\nBo = Orthogonalize[Eigenvectors[A]] // N",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[Bo, NumericQ] && Dimensions[Bo] == {4, 4} && Max[Abs[Flatten[N[Bo.Transpose[Bo] - IdentityMatrix[4]]]]] < 10^-6 && Max[Abs[Flatten[N[Bo.A - DiagonalMatrix[{12, 0, 0, 0}].Bo]]]] < 10^-6",
+     "msg": "`Bo` debe tener 4 filas ortonormales: la primera, vector propio de 12; las otras tres, de 0."
+    },
+    "requires": [
+     "Orthogonalize",
+     "Eigenvectors"
+    ],
+    "hints": [
+     "`Eigenvalues[A]` da `{12, 0, 0, 0}`.",
+     "`Eigenvectors[A]` ya viene en ese orden; ortonormaliza: `Bo = Orthogonalize[Eigenvectors[A]] // N`."
+    ],
+    "explain": "Valores propios 12 y 0 (triple). `Bo[[1]] = (0.5, 0.5, -0.5, 0.5)` es el `w` del examen y las otras tres filas son `u1, u2, u3`: base ortonormal del subespacio propio de λ = 0."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e16",
+    "kind": "code",
+    "title": "Prueba real · la matriz P ortogonal y su comprobación",
+    "prompt": "Para la misma `A` (ya definida), con `d11 = 12`: construye la matriz ortogonal `Po` que diagonaliza `A` y la matriz diagonal `d`. En la última línea comprueba `d == Transpose[Po].A.Po`.",
+    "difficulty": 4,
+    "cmds": [
+     "DiagonalMatrix",
+     "Orthogonalize",
+     "Eigenvectors",
+     "Transpose"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ej. 3 (e, f)",
+    "setup": "A = {{3, 3, -3, 3}, {3, 3, -3, 3}, {-3, -3, 3, -3}, {3, 3, -3, 3}};",
+    "solution": "d = DiagonalMatrix[Eigenvalues[A]];\nPo = Transpose[Orthogonalize[Eigenvectors[A]]];\nTranspose[Po] == Inverse[Po]\nd == Transpose[Po].A.Po",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "d",
+       "expected": "DiagonalMatrix[{12, 0, 0, 0}]",
+       "msg": "`d` debe ser la diagonal con los valores propios, empezando por 12."
+      },
+      {
+       "type": "satisfies",
+       "test": "MatrixQ[Po] && Max[Abs[Flatten[N[Transpose[Po].Po - IdentityMatrix[4]]]]] < 10^-6 && Max[Abs[Flatten[N[Transpose[Po].A.Po - d]]]] < 10^-6",
+       "msg": "`Po` debe ser ortogonal y cumplir `Transpose[Po].A.Po == d`."
+      }
+     ]
+    },
+    "requires": [
+     "DiagonalMatrix",
+     "Orthogonalize"
+    ],
+    "hints": [
+     "`d = DiagonalMatrix[Eigenvalues[A]];`",
+     "`Po = Transpose[Orthogonalize[Eigenvectors[A]]];`",
+     "Comprobaciones: `Transpose[Po] == Inverse[Po]` y `d == Transpose[Po].A.Po`."
+    ],
+    "explain": "Primera fila de `Po`: `(0.5, -0.707107, 0.408248, -0.288675)`. Hazlo en exacto y pasa a decimales solo para mirar (`Po // N // MatrixForm`): con decimales, `==` puede dar `False` por redondeo y hay que usar `Chop`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e17",
+    "kind": "code",
+    "title": "Prueba real · un endomorfismo a partir de tres imágenes",
+    "prompt": "El endomorfismo `g: R³ → R³` cumple\n\n`g(1, 2, 3) = (1, 14, -12)`, `g(1, 1, -1) = (6, -4, 16)`, `g(1, 1, -2) = (-2, -5, 1)`.\n\nHalla su matriz respecto de la base canónica y guárdala en `gcc`. En la última línea calcula `g(2, 3, -1)`.\n\nIdea: si `V` tiene los vectores de partida en columnas y `W` sus imágenes en columnas, entonces `gcc.V == W`, luego `gcc = W.Inverse[V]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Transpose",
+     "Inverse"
+    ],
+    "real": true,
+    "source": "Práctica 18 · Ejercicio extra",
+    "solution": "V = Transpose[{{1, 2, 3}, {1, 1, -1}, {1, 1, -2}}];\nW = Transpose[{{1, 14, -12}, {6, -4, 16}, {-2, -5, 1}}];\ngcc = W.Inverse[V]\ngcc.{2, 3, -1}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "gcc",
+       "expected": "{{51, -37, 8}, {-17, 14, 1}, {119, -88, 15}}",
+       "msg": "`gcc` no es la matriz de g. Comprueba que `gcc.{1, 2, 3}` da `{1, 14, -12}`."
+      },
+      {
+       "type": "expr",
+       "expected": "{-17, 7, -41}"
+      }
+     ]
+    },
+    "requires": [
+     "Inverse"
+    ],
+    "hints": [
+     "`V = Transpose[{{1, 2, 3}, {1, 1, -1}, {1, 1, -2}}]` (vectores en columnas) y lo mismo con las imágenes en `W`.",
+     "`gcc = W.Inverse[V]`",
+     "Última línea: `gcc.{2, 3, -1}`."
+    ],
+    "explain": "`gcc = {{51, -37, 8}, {-17, 14, 1}, {119, -88, 15}}`, es decir `g(x,y,z) = (51x - 37y + 8z, -17x + 14y + z, 119x - 88y + 15z)`, y `g(2,3,-1) = (-17, 7, -41)`. En clase también lo hacían con una matriz de 9 incógnitas y `Solve`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e18",
+    "kind": "code",
+    "title": "Examen PL2 · diagonalización con el orden impuesto",
+    "prompt": "Examen real (junio 2022). `A = {{56, 33, 33}, {22, 1, 11}, {-44, -22, -32}}` (ya definida) tiene valores propios `K1 = -10` (doble) y `K2 = 45`.\n\nConstruye la matriz de paso `P` que diagonaliza `A` cuando las filas de D son `(K1, 0, 0), (0, K1, 0), (0, 0, K2)`. Guárdala en `P`.",
+    "difficulty": 5,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Transpose",
+     "Part"
+    ],
+    "real": true,
+    "source": "Examen PL2 2022 · Álgebra P2",
+    "setup": "A = {{56, 33, 33}, {22, 1, 11}, {-44, -22, -32}};",
+    "solution": "Eigenvalues[A]\nvecs = Eigenvectors[A]\nP = Transpose[{vecs[[2]], vecs[[3]], vecs[[1]]}]\nInverse[P].A.P",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[P] && Dimensions[P] == {3, 3} && Det[P] != 0 && Max[Abs[Flatten[N[Inverse[P].A.P - DiagonalMatrix[{-10, -10, 45}]]]]] < 10^-7",
+     "msg": "`Inverse[P].A.P` debe dar la diagonal `{-10, -10, 45}` en ese orden: las dos primeras columnas de `P`, vectores propios de -10; la tercera, de 45."
+    },
+    "requires": [
+     "Eigenvectors"
+    ],
+    "hints": [
+     "`Eigenvalues[A]` da `{45, -10, -10}`: el orden de Mathematica no es el que pide el enunciado.",
+     "Reordena los vectores propios a mano: `{vecs[[2]], vecs[[3]], vecs[[1]]}`.",
+     "`P = Transpose[{vecs[[2]], vecs[[3]], vecs[[1]]}]` y comprueba con `Inverse[P].A.P`."
+    ],
+    "explain": "`P = {{-1, -1, -3}, {0, 2, -1}, {2, 0, 2}}`. Si el enunciado fija el orden de D, reordenas los vectores propios **antes** de trasponer. `A` no es simétrica: es diagonalizable, pero no ortogonalmente."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p18-e19",
+    "kind": "code",
+    "title": "Examen PL2 · núcleo y coordenadas en otra base",
+    "prompt": "Examen real (junio 2022). `f(x, y, z) = (2x - y - z, x + 3y - z, 7y - z, x - 4y)` ya está definida, igual que su matriz `Mcc` y la base de R⁴\n\n`U = {{1, 0, 2, -1}, {1, 1, 0, 2}, {0, 3, -1, 2}, {-1, 0, 3, -1}}` (vectores por filas).\n\n- Guarda en `k1` el vector del núcleo cuya **segunda componente es 1**.\n- En la última línea, calcula las coordenadas de `f(1, -4, 5)` en la base `U`, en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "NullSpace",
+     "Inverse",
+     "Transpose",
+     "Part"
+    ],
+    "real": true,
+    "source": "Examen PL2 2022 · Álgebra P4",
+    "setup": "f[x_, y_, z_] := {2 x - y - z, x + 3 y - z, 7 y - z, x - 4 y}\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}];\nU = {{1, 0, 2, -1}, {1, 1, 0, 2}, {0, 3, -1, 2}, {-1, 0, 3, -1}};",
+    "solution": "ker = NullSpace[Mcc];\nk1 = ker[[1]]/ker[[1, 2]]\nInverse[Transpose[U]].f[1, -4, 5] // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "k1",
+       "expected": "{4, 1, 7}",
+       "msg": "`k1` debe ser el vector del núcleo con segunda componente 1: divide el vector de `NullSpace` por su segunda componente."
+      },
+      {
+       "type": "expr",
+       "expected": "{-12.08, 7.52, -7.84, -5.56}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "La última línea debe ser `Inverse[Transpose[U]].f[1, -4, 5]`."
+      }
+     ]
+    },
+    "requires": [
+     "NullSpace",
+     "Inverse"
+    ],
+    "hints": [
+     "`ker = NullSpace[Mcc]`; el vector es `ker[[1]]` y su segunda componente `ker[[1, 2]]`.",
+     "`k1 = ker[[1]]/ker[[1, 2]]`",
+     "Coordenadas en U (práctica 16): `Inverse[Transpose[U]].f[1, -4, 5] // N`."
+    ],
+    "explain": "`k1 = (4, 1, 7)` y `(f(1,-4,5))_U = (-12.08, 7.52, -7.84, -5.56)`. La pregunta mezcla esta práctica con el cambio de base de la 16: canónica → U es `Inverse[Transpose[U]]`."
+   }
+  }
+ ]
+}

@@ -1,0 +1,722 @@
+{
+ "id": "1-p16",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Álgebra",
+ "order": 16,
+ "title": "Espacios vectoriales I: independencia, subespacios y cambio de base",
+ "summary": "Con el rango de una matriz decides qué vectores son independientes, calculas dimensiones de sumas e intersecciones de subespacios y cambias las coordenadas de un vector de una base a otra.",
+ "minutes": 45,
+ "commands": [
+  "MatrixRank",
+  "RowReduce",
+  "NullSpace",
+  "Drop",
+  "Join",
+  "Normalize"
+ ],
+ "uses": [
+  "Det",
+  "Solve",
+  "Transpose",
+  "Inverse",
+  "MatrixForm",
+  "Part",
+  "ReplaceAll",
+  "Flatten",
+  "N",
+  "Table"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Vectores, familias y MatrixRank",
+   "md": "Las fuerzas sobre un avión, las velocidades, los modos de vibración de un ala… todo son **vectores**. Esta práctica responde a tres preguntas de examen: ¿estos vectores son independientes?, ¿qué dimensión tiene este subespacio (o una suma, o una intersección)? y ¿qué coordenadas tiene este vector en otra base?\n\nUn vector es una **lista** `{1, 2, 3}`. Una familia de vectores es una **lista de listas**: una matriz en la que **cada vector es una fila**. `G = {a, b, c}` junta tres vectores ya definidos.\n\n`MatrixRank[G]` devuelve el **rango**: el número de filas (vectores) linealmente independientes.\n\n- Rango **igual** al número de vectores → son independientes.\n- Rango **menor** → sobra alguno: es combinación de los demás.\n\nEn el ejemplo `c = a + b`, así que de los tres solo hay dos independientes. (`// MatrixForm` solo sirve para **ver** la matriz; no lo metas en una asignación.)",
+   "cells": [
+    {
+     "code": "a = {1, 2, 3}; b = {0, 1, 1}; c = {1, 3, 4};\nG = {a, b, c}",
+     "note": "tres vectores de R³ como filas de G"
+    },
+    {
+     "code": "MatrixRank[G]",
+     "note": "rango 2 con 3 vectores: son dependientes"
+    },
+    {
+     "code": "MatrixRank[{{1, 2, 3}, {0, 1, 1}, {0, 0, 1}}]",
+     "note": "rango 3 = nº de vectores: independientes"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e01",
+    "kind": "predict",
+    "title": "Rango a ojo",
+    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "difficulty": 1,
+    "cmds": [
+     "MatrixRank"
+    ],
+    "real": false,
+    "source": null,
+    "code": "MatrixRank[{{1, 2}, {2, 4}}]",
+    "options": [
+     "2",
+     "1",
+     "0",
+     "{1, 2}"
+    ],
+    "answer": 1,
+    "explain": "La segunda fila es el doble de la primera: solo hay **un** vector independiente, así que el rango es 1."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e02",
+    "kind": "code",
+    "title": "¿Son independientes?",
+    "prompt": "Ya están definidos los vectores de R⁴ `u = {1, 0, 2, 1}`, `v = {0, 1, 1, 1}` y `w = {1, 1, 3, 2}`.\n\nCalcula el rango de la familia formada por los tres (cada vector, una fila).",
+    "difficulty": 1,
+    "cmds": [
+     "MatrixRank"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "u = {1, 0, 2, 1}; v = {0, 1, 1, 1}; w = {1, 1, 3, 2};",
+    "solution": "MatrixRank[{u, v, w}]",
+    "check": {
+     "type": "expr",
+     "expected": "2"
+    },
+    "requires": [
+     "MatrixRank"
+    ],
+    "hints": [
+     "Junta los vectores en una lista de listas: `{u, v, w}`.",
+     "`MatrixRank[{u, v, w}]`"
+    ],
+    "explain": "Sale 2 con 3 vectores: son **dependientes** (de hecho `w = u + v`)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Drop: quitar un vector y ver si baja el rango",
+   "md": "Para saber **cuál** sobra se quita un vector y se mira el rango de lo que queda.\n\n`Drop[G, {n}]` devuelve la lista `G` **sin** su elemento n-ésimo. Ojo a las llaves: `{n}` significa «solo el n-ésimo»; `Drop[G, n]` (sin llaves) quitaría los n primeros.\n\n- Si al quitar un vector el rango **no baja**, ese vector no aportaba nada (era combinación de los otros).\n- Si el rango **baja**, ese vector era imprescindible.",
+   "cells": [
+    {
+     "code": "G = {{1, 2, 3}, {0, 1, 1}, {1, 3, 4}, {0, 0, 1}};\nMatrixRank[G]",
+     "note": "4 vectores de R³: rango 3"
+    },
+    {
+     "code": "Drop[G, {4}]",
+     "note": "G sin el 4º vector"
+    },
+    {
+     "code": "MatrixRank[Drop[G, {4}]]",
+     "note": "baja a 2: el 4º era imprescindible"
+    },
+    {
+     "code": "MatrixRank[Drop[G, {3}]]",
+     "note": "sigue en 3: el 3º sobraba"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e03",
+    "kind": "fill",
+    "title": "Quita el segundo",
+    "prompt": "`G` es la matriz de la celda anterior (4 vectores de R³). Completa para calcular el rango de la familia que queda al quitar **solo el 2º vector**.",
+    "difficulty": 1,
+    "cmds": [
+     "Drop",
+     "MatrixRank"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "G = {{1, 2, 3}, {0, 1, 1}, {1, 3, 4}, {0, 0, 1}};",
+    "template": "MatrixRank[__1__[G, __2__]]",
+    "blanks": [
+     [
+      "Drop"
+     ],
+     [
+      "{2}"
+     ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "3"
+    },
+    "explain": "`Drop[G, {2}]` quita solo el 2º. El rango sigue siendo 3: el 2º vector también era prescindible (se obtiene con el 1º y el 3º)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "RowReduce: una base «limpia»",
+   "md": "`RowReduce[G]` hace Gauss-Jordan y devuelve la **forma escalonada reducida**. Lo que te interesa:\n\n- Las **filas no nulas** forman una base del subespacio que generan tus vectores.\n- El número de filas no nulas es el rango.\n- Las filas de ceros son los vectores que sobraban.",
+   "cells": [
+    {
+     "code": "RowReduce[{{1, 2, 3}, {0, 1, 1}, {1, 3, 4}}] // MatrixForm",
+     "note": "2 filas no nulas → dimensión 2; base {(1,0,1), (0,1,1)}"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e04",
+    "kind": "code",
+    "title": "Base del subespacio generado",
+    "prompt": "Calcula la forma escalonada reducida de la familia `{u, v, w}` (ya definidos: `u = {1, 0, 2, 1}`, `v = {0, 1, 1, 1}`, `w = {1, 1, 3, 2}`).",
+    "difficulty": 1,
+    "cmds": [
+     "RowReduce"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "u = {1, 0, 2, 1}; v = {0, 1, 1, 1}; w = {1, 1, 3, 2};",
+    "solution": "RowReduce[{u, v, w}]",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{{1, 0, 2, 1}, {0, 1, 1, 1}, {0, 0, 0, 0}}"
+      },
+      {
+       "type": "expr",
+       "expected": "MatrixForm[{{1, 0, 2, 1}, {0, 1, 1, 1}, {0, 0, 0, 0}}]",
+       "compare": "same"
+      }
+     ]
+    },
+    "requires": [
+     "RowReduce"
+    ],
+    "hints": [
+     "`RowReduce[matriz]` con la matriz `{u, v, w}`."
+    ],
+    "explain": "Queda una fila de ceros: la dimensión del subespacio es 2 y una base es {(1,0,2,1), (0,1,1,1)}."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "¿Es base? Determinante y parámetros",
+   "md": "n vectores de Rⁿ forman **base** si son independientes. Como la matriz es cuadrada, eso equivale a que su **determinante no sea 0**.\n\nPregunta típica: «¿para qué valor de k NO es base?». Receta: `Solve[Det[T] == 0, k]`.\n\n- `Det[T]` es un polinomio en `k`.\n- `==` (doble) es una **ecuación**; `=` (simple) sería una asignación y da error.\n- El segundo argumento de `Solve` es la incógnita.",
+   "cells": [
+    {
+     "code": "T = {{1, 2, k}, {0, 1, 1}, {1, 0, 1}};\nDet[T]"
+    },
+    {
+     "code": "Solve[Det[T] == 0, k]",
+     "note": "para k = 3 no es base; para cualquier otro k, sí"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e05",
+    "kind": "fix",
+    "title": "Arregla la celda",
+    "prompt": "Esta celda quiere hallar el valor de `k` para el que los vectores `(k, 1, 0)`, `(1, 1, 1)`, `(0, 2, k)` **no** forman base de R³. Tiene tres errores típicos. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "Det",
+     "Solve"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "T = {{k, 1, 0}, {1, 1, 1}, {0, 2, k}};\nsolve[Det(T) = 0, k]",
+    "solution": "T = {{k, 1, 0}, {1, 1, 1}, {0, 2, k}};\nSolve[Det[T] == 0, k]",
+    "check": {
+     "type": "expr",
+     "expected": "{{k -> 0}, {k -> 3}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "Det"
+    ],
+    "hints": [
+     "Los comandos empiezan por mayúscula y sus argumentos van entre **corchetes**.",
+     "Una ecuación se escribe con `==`.",
+     "`Solve[Det[T] == 0, k]`"
+    ],
+    "explain": "`Solve` con mayúscula, `Det[T]` con corchetes y `==` para la ecuación. El determinante es `k^2 - 3 k`: no es base para k = 0 ni para k = 3."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Subespacios dados por ecuaciones: NullSpace y Solve",
+   "md": "Un subespacio puede venir dado por **generadores**, `S = <(1,0,1), (0,1,1)>`, o por **ecuaciones**, `{(x,y,z) : x + y + z = 0}`. Para operar necesitas una base (generadores). Dos caminos:\n\n**NullSpace.** Escribe la matriz de coeficientes de las ecuaciones (una fila por ecuación). `NullSpace[M]` devuelve una base de las soluciones de `M.v == 0`.\n\n**Solve.** Resuelve las ecuaciones poniendo en la lista de incógnitas **solo las que quieres despejar**; las demás quedan como parámetros. Luego das valores al parámetro.\n\nAviso: un subespacio nunca se puede llamar `E`, `C`, `D`, `N` ni `I`: son símbolos reservados de Mathematica (`E` es el número e). Usa `E1`, `ME`, `S`…",
+   "cells": [
+    {
+     "code": "NullSpace[{{1, 1, 1}}]",
+     "note": "x + y + z = 0 en R³: un plano, base de 2 vectores"
+    },
+    {
+     "code": "sol = Solve[{x + y + z == 0, x - y == 0}, {y, z}]",
+     "note": "despeja y, z; x queda libre"
+    },
+    {
+     "code": "{x, y, z} /. Flatten[sol] /. x -> 1",
+     "note": "con x = 1: el vector (1, 1, -2) genera la recta"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e06",
+    "kind": "code",
+    "title": "Base de un subespacio implícito",
+    "prompt": "Sea `H = {(x, y, z, w) de R⁴ : x - y = 0, z + 2w = 0}`.\n\nCalcula una base de `H` con `NullSpace` y guárdala en `base`. La matriz de coeficientes tiene una fila por ecuación y una columna por variable (x, y, z, w).",
+    "difficulty": 2,
+    "cmds": [
+     "NullSpace"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "base = NullSpace[{{1, -1, 0, 0}, {0, 0, 1, 2}}]",
+    "check": {
+     "type": "satisfies",
+     "test": "MatrixQ[base] && Dimensions[base] == {2, 4} && MatrixRank[base] == 2 && {{1, -1, 0, 0}, {0, 0, 1, 2}}.Transpose[base] == {{0, 0}, {0, 0}}",
+     "msg": "`base` debe ser una lista con 2 vectores independientes de R⁴ que cumplan las dos ecuaciones."
+    },
+    "requires": [
+     "NullSpace"
+    ],
+    "hints": [
+     "Primera ecuación `x - y = 0` → fila `{1, -1, 0, 0}`.",
+     "Segunda, `z + 2w = 0` → fila `{0, 0, 1, 2}`.",
+     "`base = NullSpace[{{1, -1, 0, 0}, {0, 0, 1, 2}}]`"
+    ],
+    "explain": "4 incógnitas − 2 ecuaciones independientes = dimensión 2. `NullSpace` te da directamente dos vectores que cumplen ambas ecuaciones."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Suma de subespacios: Join + MatrixRank",
+   "md": "El subespacio suma `S + T` está generado por los generadores de `S` **junto con** los de `T`. Así que:\n\n- `Join[S, T]` apila las dos listas de vectores en una sola matriz.\n- `MatrixRank[Join[S, T]]` es `dim(S + T)`.\n\nY la intersección sale gratis con la **fórmula de Grassmann**:\n\n`dim(S ∩ T) = dim S + dim T - dim(S + T)`",
+   "cells": [
+    {
+     "code": "S = {{1, 0, 0, 1}, {0, 0, 1, 1}}; T = {{1, 0, 0, 0}, {0, 0, 1, 0}};\nJoin[S, T]",
+     "note": "4 generadores de S + T"
+    },
+    {
+     "code": "MatrixRank[Join[S, T]]",
+     "note": "dim(S + T) = 3"
+    },
+    {
+     "code": "MatrixRank[S] + MatrixRank[T] - MatrixRank[Join[S, T]]",
+     "note": "Grassmann: dim(S ∩ T) = 2 + 2 - 3 = 1"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e07",
+    "kind": "code",
+    "title": "Dimensión de la suma y de la intersección",
+    "prompt": "Están definidos `S = {{1, 1, 0, 0}, {0, 1, 1, 0}}` y `T = {{1, 0, -1, 0}, {0, 0, 0, 1}}` (generadores por filas).\n\nDevuelve la lista `{dim(S + T), dim(S ∩ T)}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Join",
+     "MatrixRank"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "S = {{1, 1, 0, 0}, {0, 1, 1, 0}}; T = {{1, 0, -1, 0}, {0, 0, 0, 1}};",
+    "solution": "{MatrixRank[Join[S, T]], MatrixRank[S] + MatrixRank[T] - MatrixRank[Join[S, T]]}",
+    "check": {
+     "type": "expr",
+     "expected": "{3, 1}"
+    },
+    "requires": [
+     "Join",
+     "MatrixRank"
+    ],
+    "hints": [
+     "`dim(S + T) = MatrixRank[Join[S, T]]`.",
+     "`dim(S ∩ T) = MatrixRank[S] + MatrixRank[T] - MatrixRank[Join[S, T]]`."
+    ],
+    "explain": "`(1,0,-1,0) = (1,1,0,0) - (0,1,1,0)` ya estaba en S: la suma tiene dimensión 3 y la intersección, 1."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "La intersección, vector a vector",
+   "md": "Si te piden **una base** de `S ∩ T` (no solo la dimensión): un vector de la intersección es a la vez combinación de los generadores de `S` **y** de los de `T`. Se igualan las dos combinaciones genéricas y se resuelve.\n\n- `S[[1]]` es el primer generador de `S` (doble corchete = extraer).\n- `x S[[1]] + y S[[2]]` es un vector genérico de `S`.\n- En `Solve` ponemos `{y, w, t}`: despejamos esas y dejamos `x` como parámetro.\n- Luego se sustituye la solución en uno de los dos lados con `/. Flatten[sol]`.\n\n`Normalize[v]` da el vector de norma 1 con la misma dirección (lo piden a menudo: «la base cuyo vector tiene norma 1»).",
+   "cells": [
+    {
+     "code": "S = {{1, 0, 0, 1}, {0, 0, 1, 1}}; T = {{1, 0, 0, 0}, {0, 0, 1, 0}};\nsol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {y, w, t}]"
+    },
+    {
+     "code": "x S[[1]] + y S[[2]] /. Flatten[sol]",
+     "note": "los vectores de la intersección: x·(1, 0, -1, 0)"
+    },
+    {
+     "code": "Normalize[{1, 0, -1, 0}] // N",
+     "note": "el generador de norma 1"
+    }
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Cambio de base",
+   "md": "Una base se escribe con **cada vector en una fila**: `B = {b1, b2, b3}`. La matriz que de verdad trabaja es la traspuesta, con los vectores en **columnas**:\n\n- `Bc = Transpose[B]` pasa coordenadas **en B → canónicas**: `Bc.vB` da el vector «normal».\n- `Inverse[Bc]` hace lo contrario: **canónicas → B**. Las coordenadas de `v` en `B` son `Inverse[Bc].v`.\n\nPara ir de una base `B2` a otra `B1` se encadenan los dos pasos (B2 → canónica → B1):\n\n`M21 = Inverse[Transpose[B1]].Transpose[B2]`\n\nEl punto `.` es el producto de matrices. Se lee de derecha a izquierda: primero actúa `Transpose[B2]`.",
+   "cells": [
+    {
+     "code": "B = {{1, 1, 0}, {0, 1, 1}, {1, 0, 1}}; v = {2, 3, 1};\nBc = Transpose[B];\nvB = Inverse[Bc].v",
+     "note": "coordenadas de v en la base B"
+    },
+    {
+     "code": "Bc.vB",
+     "note": "comprobación: vuelve a salir v"
+    },
+    {
+     "code": "B1 = {{1, 1}, {1, -1}}; B2 = {{2, 1}, {1, 1}};\nM21 = Inverse[Transpose[B1]].Transpose[B2]",
+     "note": "matriz de cambio de B2 a B1"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e08",
+    "kind": "code",
+    "title": "Coordenadas en otra base",
+    "prompt": "Están definidos la base `B = {{1, 0, 1}, {1, 1, 0}, {0, 2, 1}}` de R³ (vectores por filas) y el vector `v = {3, 4, 2}` en la base canónica.\n\nCalcula las coordenadas de `v` en la base `B`.",
+    "difficulty": 2,
+    "cmds": [
+     "Transpose",
+     "Inverse"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "B = {{1, 0, 1}, {1, 1, 0}, {0, 2, 1}}; v = {3, 4, 2};",
+    "solution": "Inverse[Transpose[B]].v",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 2, 1}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Transpose"
+    ],
+    "hints": [
+     "Primero los vectores en columnas: `Transpose[B]`.",
+     "Canónicas → B es la **inversa**: `Inverse[Transpose[B]].v`."
+    ],
+    "explain": "`{1, 2, 1}`: en efecto `1·(1,0,1) + 2·(1,1,0) + 1·(0,2,1) = (3,4,2)`. Sin el `Transpose` habrías usado los vectores como filas y saldría otra cosa."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e09",
+    "kind": "order",
+    "title": "Receta del cambio de base",
+    "prompt": "Ordena las líneas para: definir las dos bases, calcular la matriz `M21` de cambio de coordenadas de `B2` a `B1` y aplicarla al vector `vB2` (coordenadas en `B2`).",
+    "difficulty": 2,
+    "cmds": [
+     "Transpose",
+     "Inverse"
+    ],
+    "real": false,
+    "source": null,
+    "lines": [
+     "B1 = {{1, 1}, {1, -1}}; B2 = {{2, 1}, {1, 1}};",
+     "B1C = Transpose[B1]; B2C = Transpose[B2];",
+     "M21 = Inverse[B1C].B2C;",
+     "vB2 = {1, 2};",
+     "vB1 = M21.vB2"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{7/2, 1/2}"
+    },
+    "explain": "Primero las bases, luego sus traspuestas (vectores en columnas), después `M21 = Inverse[B1C].B2C` y por último se aplica al vector. No puedes usar `B1C` antes de definirla."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e10",
+    "kind": "code",
+    "title": "Prueba real · ¿cuáles son independientes?",
+    "prompt": "Considera los vectores de R⁴ (ya definidos):\n\n`a = (-2, -1, 1, 3)`, `b = (4, -1, 3, 2)`, `c = (14, 1, 3, -5)`, `d = (1, 5, -2, 3)`.\n\nDefine `G = {a, b, c, d}` y devuelve la lista de los cuatro rangos que se obtienen al quitar, por orden, el vector 1.º, 2.º, 3.º y 4.º.",
+    "difficulty": 3,
+    "cmds": [
+     "MatrixRank",
+     "Drop"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P2 (ej1a)",
+    "setup": "a = {-2, -1, 1, 3}; b = {4, -1, 3, 2}; c = {14, 1, 3, -5}; d = {1, 5, -2, 3};",
+    "solution": "G = {a, b, c, d};\nTable[MatrixRank[Drop[G, {i}]], {i, 1, 4}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "G",
+       "expected": "{a, b, c, d}"
+      },
+      {
+       "type": "expr",
+       "expected": "{3, 3, 3, 2}"
+      }
+     ]
+    },
+    "requires": [
+     "MatrixRank",
+     "Drop"
+    ],
+    "hints": [
+     "`G = {a, b, c, d};` y después una lista con los cuatro rangos: `{MatrixRank[Drop[G, {1}]], MatrixRank[Drop[G, {2}]], …}`.",
+     "Más corto con `Table`: `Table[MatrixRank[Drop[G, {i}]], {i, 1, 4}]`."
+    ],
+    "explain": "Sale `{3, 3, 3, 2}`. El rango total es 3. Al quitar `d` baja a 2: **d es imprescindible** y `a, b, c` son dependientes entre sí. Respuesta del examen: cualquier terna que contenga a `d` y dos de `{a, b, c}`, por ejemplo `a, b, d`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e11",
+    "kind": "mcq",
+    "title": "Prueba real · elige la terna",
+    "prompt": "Con los rangos anteriores (`{3, 3, 3, 2}` al quitar a, b, c, d respectivamente), ¿cuál de estas ternas es linealmente **independiente**?",
+    "difficulty": 2,
+    "cmds": [
+     "MatrixRank"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P2 (ej1a)",
+    "options": [
+     "a, b, c",
+     "a, c, d",
+     "Ninguna: el rango de los cuatro es 3",
+     "Todas las ternas lo son"
+    ],
+    "answer": 1,
+    "explain": "`MatrixRank[Drop[G, {4}]]` = 2 dice que `a, b, c` solo generan dimensión 2. Cualquier terna con `d` y dos de los otros (como `a, c, d`) tiene rango 3."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e12",
+    "kind": "code",
+    "title": "Prueba real · el valor de k",
+    "prompt": "Con los mismos `a`, `b`, `d` (ya definidos): ¿para qué valor de `k` el sistema `{(1, 8, 1, k), a, b, d}` **no** es base de R⁴?\n\nDevuelve la salida de `Solve`.",
+    "difficulty": 3,
+    "cmds": [
+     "Det",
+     "Solve"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P2 (ej1b)",
+    "setup": "a = {-2, -1, 1, 3}; b = {4, -1, 3, 2}; c = {14, 1, 3, -5}; d = {1, 5, -2, 3};",
+    "solution": "T = {{1, 8, 1, k}, a, b, d};\nSolve[Det[T] == 0, k]",
+    "check": {
+     "type": "expr",
+     "expected": "{{k -> 17}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "Det"
+    ],
+    "hints": [
+     "Monta la matriz con el vector nuevo como primera fila: `T = {{1, 8, 1, k}, a, b, d}`.",
+     "No es base cuando el determinante se anula: `Solve[Det[T] == 0, k]`."
+    ],
+    "explain": "`k = 17`. Es base para cualquier `k ≠ 17`. (En el otro grupo, con otros datos, salía k = 5: mismo método.)"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e13",
+    "kind": "code",
+    "title": "Prueba real · base de G con segunda componente 1",
+    "prompt": "Sea `G = {(x, y, z, w) de R⁴ : x - 2y = 0; 2x - 2z = w; 2w = y + 3z}`.\n\nHalla el vector que genera `G` cuya **segunda componente es 1** y guárdalo en `g`.\n\nPista de método: resuelve el sistema despejando `x, z, w` (deja `y` como parámetro) y sustituye `y -> 1`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "NullSpace"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P3 (ej2a)",
+    "solution": "sol = Solve[{x - 2 y == 0, 2 x - 2 z == w, 2 w == y + 3 z}, {x, z, w}];\ng = {x, y, z, w} /. Flatten[sol] /. y -> 1",
+    "check": {
+     "type": "value",
+     "expr": "g",
+     "expected": "{2, 1, 1, 2}",
+     "msg": "`g` debe ser el vector de G con segunda componente 1."
+    },
+    "hints": [
+     "`Solve[{x - 2 y == 0, 2 x - 2 z == w, 2 w == y + 3 z}, {x, z, w}]` deja todo en función de `y`.",
+     "Sustituye en el vector genérico: `{x, y, z, w} /. Flatten[sol] /. y -> 1`.",
+     "Otra vía: `NullSpace` de la matriz de coeficientes y dividir el vector por su 2ª componente."
+    ],
+    "explain": "`G = <(2, 1, 1, 2)>`: tres ecuaciones independientes en R⁴ dejan dimensión 1. En el Mathematica de clase escribieron `Solve[…, {y, x, z, w}]`: cuando sobran incógnitas, Mathematica deja como parámetro la primera de la lista."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e14",
+    "kind": "code",
+    "title": "Prueba real · dimensiones de sumas e intersección",
+    "prompt": "Están definidos (generadores por filas):\n\n- `ME = {{1, 0, 0, 1}, {0, 0, 1, 1}}` (el subespacio E; no se puede llamar `E`),\n- `F = {{1, 0, 0, 0}, {0, 0, 1, 0}}` (es `y = w = 0`),\n- `G = {{2, 1, 1, 2}}`.\n\nDevuelve la lista `{dim(E + G), dim(E + G + F), dim(E ∩ F)}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Join",
+     "MatrixRank"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P3 (ej2b)",
+    "setup": "ME = {{1, 0, 0, 1}, {0, 0, 1, 1}}; F = {{1, 0, 0, 0}, {0, 0, 1, 0}}; G = {{2, 1, 1, 2}};",
+    "solution": "EplusG = Join[ME, G];\n{MatrixRank[EplusG], MatrixRank[Join[EplusG, F]], MatrixRank[ME] + MatrixRank[F] - MatrixRank[Join[ME, F]]}",
+    "check": {
+     "type": "expr",
+     "expected": "{3, 4, 1}"
+    },
+    "requires": [
+     "Join",
+     "MatrixRank"
+    ],
+    "hints": [
+     "`dim(E + G) = MatrixRank[Join[ME, G]]`; para tres subespacios, `Join[ME, G, F]`.",
+     "La intersección, con Grassmann: `MatrixRank[ME] + MatrixRank[F] - MatrixRank[Join[ME, F]]`."
+    ],
+    "explain": "`{3, 4, 1}`: E + G tiene dimensión 3, al añadir F se llena R⁴, y `dim(E ∩ F) = 2 + 2 - 3 = 1`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e15",
+    "kind": "code",
+    "title": "Prueba real · base unitaria de (E+G)∩F",
+    "prompt": "Con los mismos `ME`, `F`, `G` (ya definidos), halla el vector de **norma 1** que genera `(E + G) ∩ F` y guárdalo en `u` (en decimales).\n\nMétodo: iguala un vector genérico de `E + G` (parámetros `x, y, z`) a uno genérico de `F` (parámetros `p, q`), resuelve, sustituye y normaliza.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "Normalize",
+     "Join"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P3 (ej2c)",
+    "setup": "ME = {{1, 0, 0, 1}, {0, 0, 1, 1}}; F = {{1, 0, 0, 0}, {0, 0, 1, 0}}; G = {{2, 1, 1, 2}};",
+    "solution": "EplusG = Join[ME, G];\nsol = Solve[x EplusG[[1]] + y EplusG[[2]] + z EplusG[[3]] == p F[[1]] + q F[[2]], {y, z, p, q}];\nvec = p F[[1]] + q F[[2]] /. Flatten[sol] /. x -> 1;\nu = Normalize[vec] // N",
+    "check": {
+     "type": "satisfies",
+     "test": "VectorQ[u, NumericQ] && Length[u] == 4 && Abs[Norm[u] - 1] < 10^-5 && Abs[Abs[u.{1, 0, -1, 0}] - Sqrt[2]] < 10^-5",
+     "msg": "`u` debe ser un vector de norma 1 proporcional a (1, 0, -1, 0)."
+    },
+    "requires": [
+     "Normalize"
+    ],
+    "hints": [
+     "`Solve[x EplusG[[1]] + y EplusG[[2]] + z EplusG[[3]] == p F[[1]] + q F[[2]], {y, z, p, q}]` deja `x` libre.",
+     "Sustituye en el lado de F: `p F[[1]] + q F[[2]] /. Flatten[sol]` → sale `{x, 0, -x, 0}`.",
+     "Da un valor a `x` (por ejemplo `/. x -> 1`) y aplica `Normalize[…] // N`."
+    ],
+    "explain": "La intersección es la recta generada por (1, 0, -1, 0); normalizado, `(0.707107, 0, -0.707107, 0)`. Vale también el opuesto."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e16",
+    "kind": "code",
+    "title": "Prueba real · matriz de cambio de B2 a B1",
+    "prompt": "Están definidas las bases de R⁴ (vectores por filas):\n\n`B1 = ((1,3,4,1), (-1,0,1,-2), (1,-1,2,-1), (-1,0,-1,-1))`\n\n`B2 = ((0,-1,2,1), (1,1,-1,1), (1,0,1,3), (-1,2,1,1))`\n\nCalcula la matriz `M21` de cambio de coordenadas **de B2 a B1**, en decimales, y guárdala en `M21`.",
+    "difficulty": 4,
+    "cmds": [
+     "Transpose",
+     "Inverse",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P4 (ej3a)",
+    "setup": "B1 = {{1, 3, 4, 1}, {-1, 0, 1, -2}, {1, -1, 2, -1}, {-1, 0, -1, -1}}; B2 = {{0, -1, 2, 1}, {1, 1, -1, 1}, {1, 0, 1, 3}, {-1, 2, 1, 1}};",
+    "solution": "B1C = Transpose[B1]; B2C = Transpose[B2];\nM21 = Inverse[B1C].B2C // N",
+    "check": {
+     "type": "value",
+     "expr": "M21",
+     "expected": "Inverse[Transpose[B1]].Transpose[B2]",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`M21` no es la matriz de cambio de B2 a B1. Recuerda: B2 → canónica (`Transpose[B2]`) y luego canónica → B1 (`Inverse[Transpose[B1]]`)."
+    },
+    "requires": [
+     "Transpose",
+     "Inverse"
+    ],
+    "hints": [
+     "Pon los vectores en columnas: `B1C = Transpose[B1]; B2C = Transpose[B2];`",
+     "De B2 a B1: `M21 = Inverse[B1C].B2C // N`.",
+     "No escribas `M21 = … // MatrixForm`: guardarías un dibujo, no una matriz."
+    ],
+    "explain": "Primera fila de `M21`: `(-1.16667, 0.833333, -0.666667, 0)`. Para verla bonita usa `M21 // MatrixForm` en una línea aparte, sin asignar."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p16-e17",
+    "kind": "code",
+    "title": "Prueba real · coordenadas en B2 y en B1",
+    "prompt": "Con las mismas bases `B1` y `B2` (ya definidas) y el vector `vC = (-1, 0, 7, 3)` en la base canónica:\n\n- calcula `vB2`, las coordenadas de `vC` en `B2`;\n- calcula `vB1` **multiplicando `M21` por `vB2`**.\n\nDeja definidos `vB2` y `vB1` (en decimales).",
+    "difficulty": 4,
+    "cmds": [
+     "Transpose",
+     "Inverse",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 16 · P4 (ej3b-c)",
+    "setup": "B1 = {{1, 3, 4, 1}, {-1, 0, 1, -2}, {1, -1, 2, -1}, {-1, 0, -1, -1}}; B2 = {{0, -1, 2, 1}, {1, 1, -1, 1}, {1, 0, 1, 3}, {-1, 2, 1, 1}};",
+    "solution": "vC = {-1, 0, 7, 3};\nB1C = Transpose[B1]; B2C = Transpose[B2];\nM21 = Inverse[B1C].B2C;\nvB2 = Inverse[B2C].vC // N\nvB1 = M21.vB2",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "vB2",
+       "expected": "{14/3, 2, -5/3, 4/3}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "`vB2` debe ser `Inverse[Transpose[B2]].vC`."
+      },
+      {
+       "type": "value",
+       "expr": "vB1",
+       "expected": "{-8/3, 12, -8, -65/3}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "`vB1` debe ser `M21.vB2`."
+      }
+     ]
+    },
+    "hints": [
+     "Canónica → B2: `vB2 = Inverse[Transpose[B2]].vC // N`.",
+     "`vB1 = M21.vB2` con `M21 = Inverse[Transpose[B1]].Transpose[B2]`.",
+     "Comprobación: `Inverse[Transpose[B1]].vC` debe dar lo mismo que `vB1`."
+    ],
+    "explain": "`vB2 = (4.66667, 2, -1.66667, 1.33333)` y `vB1 = (-2.66667, 12, -8, -21.6667)`. Ir directo de la canónica a B1 da el mismo `vB1`: es la comprobación que hacían en clase. El otro grupo tenía otras bases y otro vector: el guion es idéntico."
+   }
+  }
+ ]
+}

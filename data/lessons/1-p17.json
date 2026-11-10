@@ -1,0 +1,785 @@
+{
+ "id": "1-p17",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Álgebra",
+ "order": 17,
+ "title": "Espacios vectoriales II: distancias, ángulos, Gram-Schmidt y mínimos cuadrados",
+ "summary": "Mides distancias y ángulos entre vectores, construyes bases ortonormales, proyectas sobre un subespacio y ajustas rectas y parábolas a datos por mínimos cuadrados.",
+ "minutes": 45,
+ "commands": [
+  "Norm",
+  "EuclideanDistance",
+  "VectorAngle",
+  "Orthogonalize",
+  "Projection",
+  "Fit"
+ ],
+ "uses": [
+  "Normalize",
+  "Transpose",
+  "Solve",
+  "Flatten",
+  "ReplaceAll",
+  "Part",
+  "ListPlot",
+  "Plot",
+  "Show",
+  "N",
+  "Simplify"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Norma, producto escalar y distancia",
+   "md": "En el túnel de viento mides la resistencia de un perfil para varios ángulos de ataque y obtienes una nube de puntos con ruido. ¿Qué parábola es «la que mejor pasa» por ellos? La respuesta (mínimos cuadrados) es geometría de vectores: distancias, ángulos y proyecciones. Eso es esta práctica.\n\nLo básico:\n\n- `Norm[v]` → longitud (módulo) del vector.\n- `v.w` → producto escalar (el punto es el producto).\n- `EuclideanDistance[v, w]` → distancia entre los dos vectores. Es lo mismo que `Norm[v - w]`.\n\nMathematica responde **exacto** (`Sqrt[13]`). Si quieres decimales añade `// N` al final.",
+   "cells": [
+    {
+     "code": "v = {3, 4}; w = {1, 1};\nNorm[v]",
+     "note": "raíz de 3² + 4²"
+    },
+    {
+     "code": "v.w",
+     "note": "3·1 + 4·1"
+    },
+    {
+     "code": "EuclideanDistance[v, w]",
+     "note": "exacto"
+    },
+    {
+     "code": "Norm[v - w] // N",
+     "note": "lo mismo, en decimales"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e01",
+    "kind": "predict",
+    "title": "Norma a ojo",
+    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "difficulty": 1,
+    "cmds": [
+     "Norm"
+    ],
+    "real": false,
+    "source": null,
+    "code": "Norm[{1, 2, 2}]",
+    "options": [
+     "5",
+     "3",
+     "9",
+     "Sqrt[5]"
+    ],
+    "answer": 1,
+    "explain": "`Sqrt[1 + 4 + 4] = Sqrt[9] = 3`. `Norm` no suma las componentes: suma sus cuadrados y hace la raíz."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e02",
+    "kind": "code",
+    "title": "Distancia entre dos vectores",
+    "prompt": "Calcula, **en decimales**, la distancia entre `p = {1, 2, 3}` y `q = {4, 0, -1}` (ya definidos).",
+    "difficulty": 1,
+    "cmds": [
+     "EuclideanDistance",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "p = {1, 2, 3}; q = {4, 0, -1};",
+    "solution": "EuclideanDistance[p, q] // N",
+    "check": {
+     "type": "expr",
+     "expected": "Sqrt[29]",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "`EuclideanDistance[p, q]` (o `Norm[p - q]`).",
+     "Añade `// N` para pasar a decimales."
+    ],
+    "explain": "`Sqrt[29] ≈ 5.38516`. `EuclideanDistance[p, q]` y `Norm[p - q]` son intercambiables."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "VectorAngle: el ángulo, en radianes",
+   "md": "`VectorAngle[v, w]` devuelve el ángulo entre dos vectores **en radianes**.\n\n- Para verlo en grados divide entre `Degree`.\n- Si sale `Pi/2`, los vectores son perpendiculares (su producto escalar es 0).\n- Los exámenes piden radianes con 6 cifras: `VectorAngle[v, w] // N`.",
+   "cells": [
+    {
+     "code": "VectorAngle[{1, 0}, {1, 1}]",
+     "note": "45°, en radianes"
+    },
+    {
+     "code": "VectorAngle[{1, 0}, {1, 1}]/Degree",
+     "note": "en grados"
+    },
+    {
+     "code": "VectorAngle[{1, 2, 2}, {2, -2, 1}]",
+     "note": "perpendiculares"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e03",
+    "kind": "fix",
+    "title": "Arregla la celda",
+    "prompt": "Esta celda debería dar, en decimales, el ángulo en radianes entre `a = {1, 1, 0}` y `b = {0, 1, 1}` (ya definidos). Tiene tres errores típicos. Corrígela.",
+    "difficulty": 1,
+    "cmds": [
+     "VectorAngle",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "a = {1, 1, 0}; b = {0, 1, 1};",
+    "broken": "vectorangle(a, b) // n",
+    "solution": "VectorAngle[a, b] // N",
+    "check": {
+     "type": "expr",
+     "expected": "Pi/3",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "VectorAngle"
+    ],
+    "hints": [
+     "Cada palabra del nombre empieza por mayúscula: `VectorAngle`.",
+     "Argumentos entre corchetes, y `N` también es mayúscula."
+    ],
+    "explain": "`VectorAngle[a, b] // N` → 1.0472 (60°). Mayúsculas en `VectorAngle` y `N`, y corchetes en vez de paréntesis."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Orthogonalize: base ortonormal (Gram-Schmidt)",
+   "md": "Una base **ortonormal** tiene los vectores perpendiculares entre sí y de norma 1. Es la base cómoda: con ella proyectar es trivial.\n\n`Orthogonalize[{v1, v2, …}]` aplica Gram-Schmidt a la lista de vectores y devuelve una base ortonormal **del mismo subespacio**:\n\n- el primer vector de la salida es `v1` normalizado;\n- el segundo es perpendicular al primero, y así sucesivamente.\n\nEl argumento es **una lista de vectores** (dobles llaves). Comprobación: si `S` es ortonormal, `S.Transpose[S]` es la identidad.",
+   "cells": [
+    {
+     "code": "S = Orthogonalize[{{1, 1, 0}, {1, 0, 1}}]",
+     "note": "base ortonormal del plano que generan"
+    },
+    {
+     "code": "S.Transpose[S]",
+     "note": "identidad 2×2 → son ortonormales"
+    },
+    {
+     "code": "S // N",
+     "note": "en decimales"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e04",
+    "kind": "code",
+    "title": "Tu primera base ortonormal",
+    "prompt": "Construye una base ortonormal del subespacio generado por `{3, 4, 0}` y `{1, 0, 1}` (en ese orden) y guárdala en `S`, **en decimales**.",
+    "difficulty": 2,
+    "cmds": [
+     "Orthogonalize",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "S = Orthogonalize[{{3, 4, 0}, {1, 0, 1}}] // N",
+    "check": {
+     "type": "value",
+     "expr": "S",
+     "expected": "Orthogonalize[{{3, 4, 0}, {1, 0, 1}}]",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`S` debe ser la salida de `Orthogonalize` aplicada a los dos vectores, en ese orden."
+    },
+    "requires": [
+     "Orthogonalize"
+    ],
+    "hints": [
+     "`Orthogonalize[{{3, 4, 0}, {1, 0, 1}}]`: una lista con los dos vectores.",
+     "Asigna y pasa a decimales: `S = Orthogonalize[…] // N`."
+    ],
+    "explain": "El primer vector es `(0.6, 0.8, 0)`: el `{3, 4, 0}` normalizado. El segundo es perpendicular a él dentro del mismo plano."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Projection: el vector más cercano",
+   "md": "`Projection[v, u]` es la proyección de `v` sobre la **dirección** de `u` (la «sombra» de `v` sobre `u`).\n\nPara proyectar sobre un **subespacio** `S` (un plano, por ejemplo):\n\n1. Base ortonormal: `S = Orthogonalize[{v1, v2}]`.\n2. Suma de proyecciones sobre cada vector de esa base: `w = Projection[v, S[[1]]] + Projection[v, S[[2]]]`.\n\nEse `w` es **el vector de S más próximo a v**, y `EuclideanDistance[v, w]` es la distancia de `v` al subespacio.\n\nError que quita puntos: sumar proyecciones sobre vectores que **no** son perpendiculares. Pasa siempre antes por `Orthogonalize`.",
+   "cells": [
+    {
+     "code": "Projection[{2, 3}, {1, 0}]",
+     "note": "sombra de (2,3) sobre el eje x"
+    },
+    {
+     "code": "S = Orthogonalize[{{1, 0, 1}, {0, 1, 0}}];\nv = {1, 2, 3};\nw = Projection[v, S[[1]]] + Projection[v, S[[2]]]",
+     "note": "el vector del plano más próximo a v"
+    },
+    {
+     "code": "EuclideanDistance[v, w]",
+     "note": "distancia de v al plano"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e05",
+    "kind": "fill",
+    "title": "Proyecta sobre el plano",
+    "prompt": "`S` ya es una base ortonormal de un plano (dos vectores) y `v = {1, 2, 3}`. Completa la celda para obtener el vector del plano más próximo a `v`.",
+    "difficulty": 2,
+    "cmds": [
+     "Projection",
+     "Part"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "S = Orthogonalize[{{1, 1, 0}, {0, 1, 1}}]; v = {1, 2, 3};",
+    "template": "__1__[v, S[[1]]] + Projection[v, S[[__2__]]]",
+    "blanks": [
+     [
+      "Projection"
+     ],
+     [
+      "2"
+     ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{1/3, 8/3, 7/3}"
+    },
+    "explain": "Una proyección por cada vector de la base ortonormal: `S[[1]]` y `S[[2]]`. El resultado `(1/3, 8/3, 7/3)` está en el plano y `v` menos él es perpendicular al plano."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e06",
+    "kind": "code",
+    "title": "Distancia de un vector a un subespacio",
+    "prompt": "Sea `T` el subespacio de R³ generado por `{1, 2, 0}` y `{0, 1, 1}`. Calcula, en decimales, la **distancia** del vector `v = {3, 0, 2}` a `T`.",
+    "difficulty": 3,
+    "cmds": [
+     "Orthogonalize",
+     "Projection",
+     "EuclideanDistance"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "S = Orthogonalize[{{1, 2, 0}, {0, 1, 1}}];\nv = {3, 0, 2};\nw = Projection[v, S[[1]]] + Projection[v, S[[2]]];\nEuclideanDistance[v, w] // N",
+    "check": {
+     "type": "expr",
+     "expected": "8/Sqrt[6]",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Orthogonalize",
+     "Projection"
+    ],
+    "hints": [
+     "Tres pasos: `Orthogonalize`, suma de dos `Projection`, `EuclideanDistance`.",
+     "`w = Projection[v, S[[1]]] + Projection[v, S[[2]]]` con `S = Orthogonalize[{{1, 2, 0}, {0, 1, 1}}]`.",
+     "Última línea: `EuclideanDistance[v, w] // N`."
+    ],
+    "explain": "≈ 3.26599. La distancia de un vector a un subespacio es siempre la distancia a su proyección."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Sistemas incompatibles: mínimos cuadrados",
+   "md": "Si `A.x == b` no tiene solución (más ecuaciones que incógnitas, datos con ruido…), se busca el `x` que deja `A.x` **lo más cerca posible** de `b`. Ese `x` cumple las **ecuaciones normales**:\n\n`Transpose[A].A.x == Transpose[A].b`\n\nEn Mathematica:\n\n- `A` es la matriz de coeficientes y `b` el vector de términos independientes.\n- `{x, y}` es el vector de incógnitas; `A.{x, y}` es el lado izquierdo del sistema.\n- `Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}]` resuelve las ecuaciones normales.\n- El **error** es lo que falta para cumplir el sistema: `Norm[b - A.{x, y} /. Flatten[sol]]`.\n\n`Flatten[sol]` quita un nivel de llaves a la salida de `Solve` para que `/.` sustituya limpio.",
+   "cells": [
+    {
+     "code": "A = {{1, 1}, {1, 2}, {1, 3}}; b = {1, 2, 2};\nSolve[A.{x, y} == b, {x, y}]",
+     "note": "3 ecuaciones, 2 incógnitas: {} = sin solución"
+    },
+    {
+     "code": "sol = Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}]",
+     "note": "solución de mínimos cuadrados"
+    },
+    {
+     "code": "Norm[b - A.{x, y} /. Flatten[sol]]",
+     "note": "error cuadrático"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e07",
+    "kind": "code",
+    "title": "Tu primer sistema por mínimos cuadrados",
+    "prompt": "El sistema `x + y = 3`, `x - y = 0`, `2x + y = 3` es incompatible. Ya están definidos `A = {{1, 1}, {1, -1}, {2, 1}}` y `b = {3, 0, 3}`.\n\nResuélvelo por mínimos cuadrados (ecuaciones normales) y devuelve la salida de `Solve`.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "A = {{1, 1}, {1, -1}, {2, 1}}; b = {3, 0, 3};",
+    "solution": "Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{x -> 15/14, y -> 9/7}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Transpose",
+     "Solve"
+    ],
+    "hints": [
+     "Ecuaciones normales: `Transpose[A].A.{x, y} == Transpose[A].b`.",
+     "`Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}]`"
+    ],
+    "explain": "`x = 15/14`, `y = 9/7`. No cumple exactamente ninguna de las tres ecuaciones, pero es el punto que menos se equivoca en conjunto."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e08",
+    "kind": "order",
+    "title": "Solución y error, en orden",
+    "prompt": "Ordena las líneas para resolver por mínimos cuadrados el sistema `A.{x, y} == b` y calcular el error cuadrático en decimales.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "Norm",
+     "Transpose"
+    ],
+    "real": false,
+    "source": null,
+    "lines": [
+     "A = {{1, 0}, {0, 1}, {1, 1}}; b = {1, 1, 0};",
+     "sol = Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}];",
+     "Axsol = A.{x, y} /. Flatten[sol];",
+     "error = Norm[b - Axsol] // N"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "2/Sqrt[3]",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "explain": "Datos → ecuaciones normales → `A.x` con la solución sustituida → norma de la diferencia con `b`. Cada línea usa lo definido en la anterior."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Fit: ajustar una curva a datos",
+   "md": "Ajustar una recta o una parábola a una nube de puntos **es** un problema de mínimos cuadrados, y Mathematica lo trae hecho:\n\n`Fit[datos, {1, x}, x]`\n\n- `datos` = lista de puntos `{{x1, y1}, {x2, y2}, …}`.\n- `{1, x}` = las funciones que se combinan: `1` y `x` → recta `a + b x`. Con `{1, x, x^2}` → parábola.\n- `x` = el nombre de la variable.\n\nPara el **error** del ajuste compara las ordenadas reales con las del modelo:\n\n- `datos[[All, 1]]` = todas las abscisas; `datos[[All, 2]]` = todas las ordenadas.\n- `modelo /. x -> datos[[All, 1]]` evalúa el modelo en todas las abscisas de golpe.\n- `Norm[datos[[All, 2]] - (modelo /. x -> datos[[All, 1]])]`.\n\nY para verlo: `Show[Plot[modelo, {x, a, b}], ListPlot[datos]]`.",
+   "cells": [
+    {
+     "code": "datos = {{0, 1.1}, {1, 2.9}, {2, 5.2}, {3, 6.8}, {4, 9.1}};\nrecta = Fit[datos, {1, x}, x]",
+     "note": "recta de mínimos cuadrados"
+    },
+    {
+     "code": "Norm[datos[[All, 2]] - (recta /. x -> datos[[All, 1]])]",
+     "note": "error del ajuste"
+    },
+    {
+     "code": "Show[Plot[recta, {x, 0, 4}], ListPlot[datos]]",
+     "note": "recta y puntos juntos"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e09",
+    "kind": "code",
+    "title": "Polar de un perfil",
+    "prompt": "Medidas de túnel de viento de un perfil: coeficiente de sustentación `cl` frente a coeficiente de resistencia `cd`. Los puntos `{cl, cd}` están en la lista `polar` (ya definida, 7 puntos).\n\nAjusta por mínimos cuadrados una parábola `cd = t + s·x + r·x^2` (con `x` = cl). Devuelve la salida de `Fit`.",
+    "difficulty": 2,
+    "cmds": [
+     "Fit"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "polar = {{-0.2, 0.0102}, {0., 0.0081}, {0.2, 0.0098}, {0.4, 0.0152}, {0.6, 0.0239}, {0.8, 0.0371}, {1., 0.0530}};",
+    "solution": "Fit[polar, {1, x, x^2}, x]",
+    "check": {
+     "type": "expr",
+     "expected": "Fit[polar, {1, x, x^2}, x]",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Fit"
+    ],
+    "hints": [
+     "Parábola = combinación de `1`, `x` y `x^2`.",
+     "`Fit[polar, {1, x, x^2}, x]`"
+    ],
+    "explain": "Sale aproximadamente `0.00815 - 0.00089 x + 0.0459 x^2`: la clásica polar parabólica, resistencia parásita más un término que crece con el cuadrado de la sustentación."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e10",
+    "kind": "code",
+    "title": "Prueba real · distancia y ángulo",
+    "prompt": "Sea S el subespacio de R³ generado por `v1 = (2, 1, 0)` y `v2 = (3, -2, 1)` (ya definidos).\n\nDevuelve la lista `{d(v1, v2), ang(v1, v2)}`: distancia y ángulo en radianes, en decimales.",
+    "difficulty": 3,
+    "cmds": [
+     "EuclideanDistance",
+     "VectorAngle",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P2 (ej1a)",
+    "setup": "v1 = {2, 1, 0}; v2 = {3, -2, 1};",
+    "solution": "{EuclideanDistance[v1, v2], VectorAngle[v1, v2]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{Sqrt[11], ArcCos[4/Sqrt[70]]}",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "VectorAngle"
+    ],
+    "hints": [
+     "`EuclideanDistance[v1, v2]` y `VectorAngle[v1, v2]`.",
+     "Los dos en una lista y `// N` al final: `{…, …} // N`."
+    ],
+    "explain": "`{3.31662, 1.07232}`. En el examen se escriben con 6 cifras significativas."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e11",
+    "kind": "code",
+    "title": "Prueba real · base ortonormal de S",
+    "prompt": "Con los mismos `v1 = (2, 1, 0)` y `v2 = (3, -2, 1)` (ya definidos), construye una base ortonormal de S a partir de ellos y guárdala en `S`, en decimales.",
+    "difficulty": 3,
+    "cmds": [
+     "Orthogonalize",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P2 (ej1b)",
+    "setup": "v1 = {2, 1, 0}; v2 = {3, -2, 1};",
+    "solution": "S = Orthogonalize[{v1, v2}] // N",
+    "check": {
+     "type": "value",
+     "expr": "S",
+     "expected": "Orthogonalize[{{2, 1, 0}, {3, -2, 1}}]",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`S` debe ser `Orthogonalize[{v1, v2}]` (en ese orden)."
+    },
+    "requires": [
+     "Orthogonalize"
+    ],
+    "hints": [
+     "`Orthogonalize[{v1, v2}]`: ojo a las llaves, es una lista de vectores.",
+     "`S = Orthogonalize[{v1, v2}] // N`"
+    ],
+    "explain": "`S = <(0.894427, 0.447214, 0), (0.426006, -0.852013, 0.304290)>`. En clase lo hacían en dos celdas: `Orthogonalize[{v1, v2}]` y luego `S = % // N`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e12",
+    "kind": "code",
+    "title": "Prueba real · el vector más próximo y su distancia",
+    "prompt": "Con `v1`, `v2` (ya definidos) y `v = (1, 5, -1)`:\n\n- halla el vector `w` de S más próximo a `v` y guárdalo en `w`;\n- en la última línea calcula la distancia entre `w` y `v`.",
+    "difficulty": 4,
+    "cmds": [
+     "Projection",
+     "Orthogonalize",
+     "EuclideanDistance"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P2 (ej1c-d)",
+    "setup": "v1 = {2, 1, 0}; v2 = {3, -2, 1};",
+    "solution": "S = Orthogonalize[{v1, v2}] // N;\nv = {1, 5, -1};\nw = Projection[v, S[[1]]] + Projection[v, S[[2]]]\nEuclideanDistance[w, v]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "w",
+       "expected": "{28/27, 133/27, -34/27}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "`w` no es la proyección de `v` sobre S. ¿Has ortonormalizado antes de proyectar?"
+      },
+      {
+       "type": "expr",
+       "expected": "Sqrt[2/27]",
+       "compare": "numeric",
+       "tol": 0.0001,
+       "msg": "La última línea debe ser la distancia entre `w` y `v`."
+      }
+     ]
+    },
+    "requires": [
+     "Projection"
+    ],
+    "hints": [
+     "Base ortonormal primero: `S = Orthogonalize[{v1, v2}] // N;`",
+     "`w = Projection[v, S[[1]]] + Projection[v, S[[2]]]`",
+     "Última línea: `EuclideanDistance[w, v]`."
+    ],
+    "explain": "`w = (1.03704, 4.92593, -1.25926)` y `d(w, v) = 0.272166`. `v` está casi dentro del plano S, por eso la distancia es pequeña."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e13",
+    "kind": "code",
+    "title": "Prueba real · sistema por mínimos cuadrados",
+    "prompt": "Considera el sistema\n\n`2x - y - z = 1`, `3x + 2y + 5z = -3`, `5x + y + 4z = 1`\n\n(ya definidos `A` y `b`). Resuélvelo por mínimos cuadrados, con cálculo exacto, dejando `z` como parámetro: `x = _ + _·z`, `y = _ + _·z`. Guarda la salida de `Solve` en `sol`.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "Transpose"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P3 (ej2a)",
+    "setup": "A = {{2, -1, -1}, {3, 2, 5}, {5, 1, 4}}; b = {1, -3, 1};",
+    "solution": "sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}]",
+    "check": {
+     "type": "satisfies",
+     "test": "ListQ[sol] && Length[sol] == 1 && Length[First[sol]] == 2 && Max[Abs[(Transpose[A].A.({x, y, z} /. First[sol]) - Transpose[A].b) /. {x -> 0.3, y -> 0.7, z -> 1.1}]] < 10^-6",
+     "msg": "`sol` debe ser la solución de las ecuaciones normales `Transpose[A].A.{x, y, z} == Transpose[A].b`, con dos incógnitas despejadas en función de la tercera."
+    },
+    "requires": [
+     "Solve",
+     "Transpose"
+    ],
+    "hints": [
+     "Ecuaciones normales con tres incógnitas: `Transpose[A].A.{x, y, z} == Transpose[A].b`.",
+     "Para que `z` quede como parámetro, pide a `Solve` solo `{x, y}`.",
+     "`sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}]`"
+    ],
+    "explain": "`x = 2/7 - (3/7) z ≈ 0.285714 - 0.428571 z`, `y = -10/7 - (13/7) z ≈ -1.42857 - 1.85714 z`. Sale un parámetro porque `A` tiene rango 2. En clase escribían `Solve[…, {z, y, x}]`: Mathematica deja libre la primera incógnita de la lista."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e14",
+    "kind": "code",
+    "title": "Prueba real · el error del sistema",
+    "prompt": "Con los mismos `A` y `b` (ya definidos), calcula el **error** de la solución de mínimos cuadrados, `Norm[b - A.x]`, primero exacto y al final en decimales.",
+    "difficulty": 4,
+    "cmds": [
+     "Norm",
+     "Solve",
+     "Flatten",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P3 (ej2b)",
+    "setup": "A = {{2, -1, -1}, {3, 2, 5}, {5, 1, 4}}; b = {1, -3, 1};",
+    "solution": "sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}];\nAxsol = A.{x, y, z} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
+    "check": {
+     "type": "expr",
+     "expected": "Sqrt[3]",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Norm"
+    ],
+    "hints": [
+     "Sustituye la solución en `A.{x, y, z}`: `Axsol = A.{x, y, z} /. Flatten[sol] // Simplify` (la `z` desaparece).",
+     "`Norm[b - Axsol] // N`"
+    ],
+    "explain": "`Axsol = {2, -2, 0}` y el error es `Sqrt[3] ≈ 1.73205`. Aunque haya infinitas soluciones (una por cada `z`), todas dan el mismo `A.x` y el mismo error."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e15",
+    "kind": "code",
+    "title": "Prueba real · la parábola que mejor ajusta",
+    "prompt": "Halla la parábola `y = r·x^2 + s·x + t` que mejor se ajusta por mínimos cuadrados a los 11 puntos de la lista `data` (ya definida):\n\n(0.5, 5.75), (0.65, 5.6), (0.75, 5.94), (1, 6), (1.1, 5.98), (1.4, 6.1), (1.52, 5.8), (1.75, 5.6), (1.9, 5.1), (2.1, 5), (2.6, 3.2).\n\nGuárdala en `para`.",
+    "difficulty": 3,
+    "cmds": [
+     "Fit"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P4 (ej3a)",
+    "setup": "data = {{0.5, 5.75}, {0.65, 5.6}, {0.75, 5.94}, {1, 6}, {1.1, 5.98}, {1.4, 6.1}, {1.52, 5.8}, {1.75, 5.6}, {1.9, 5.1}, {2.1, 5}, {2.6, 3.2}};",
+    "solution": "para = Fit[data, {1, x, x^2}, x]",
+    "check": {
+     "type": "value",
+     "expr": "para",
+     "expected": "Fit[data, {1, x, x^2}, x]",
+     "tol": 1e-05,
+     "msg": "`para` debe ser la parábola de ajuste en la variable `x`."
+    },
+    "hints": [
+     "`Fit[data, {1, x, x^2}, x]`",
+     "No olvides asignar: `para = Fit[…]`."
+    ],
+    "explain": "`para ≈ 4.50142 + 2.80680 x - 1.26401 x^2`, es decir r = -1.26401, s = 2.80680, t = 4.50142."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e16",
+    "kind": "code",
+    "title": "Prueba real · error del ajuste",
+    "prompt": "Con `data` (ya definida), calcula el error cuadrático del ajuste parabólico: la norma de (ordenadas reales − ordenadas del modelo).",
+    "difficulty": 4,
+    "cmds": [
+     "Fit",
+     "Norm",
+     "Part",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P4 (ej3b)",
+    "setup": "data = {{0.5, 5.75}, {0.65, 5.6}, {0.75, 5.94}, {1, 6}, {1.1, 5.98}, {1.4, 6.1}, {1.52, 5.8}, {1.75, 5.6}, {1.9, 5.1}, {2.1, 5}, {2.6, 3.2}};",
+    "solution": "para = Fit[data, {1, x, x^2}, x];\nAxsol = para /. x -> data[[All, 1]];\nb = data[[All, 2]];\nNorm[b - Axsol]",
+    "check": {
+     "type": "expr",
+     "expected": "0.405262",
+     "compare": "numeric",
+     "tol": 0.0002
+    },
+    "requires": [
+     "Norm"
+    ],
+    "hints": [
+     "Abscisas: `data[[All, 1]]`; ordenadas: `data[[All, 2]]`.",
+     "Modelo evaluado en todas las abscisas: `para /. x -> data[[All, 1]]`.",
+     "`Norm[data[[All, 2]] - (para /. x -> data[[All, 1]])]`"
+    ],
+    "explain": "`Ec = 0.405262`. Es la misma idea que en el sistema incompatible: `Norm[b - A.x]`, donde `A.x` son las ordenadas que predice el modelo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e17",
+    "kind": "code",
+    "title": "Prueba real · comprobación por el otro camino",
+    "prompt": "«Puedes hacer los cálculos de dos maneras para comprobar.» Hazlo con las ecuaciones normales: con `data` (ya definida), monta la matriz `A` de columnas `x^2`, `x`, `1` y el vector `b` de ordenadas, y resuelve para `{r, s, t}`. Devuelve la salida de `Solve`.",
+    "difficulty": 5,
+    "cmds": [
+     "Solve",
+     "Transpose",
+     "Table",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P4 (ej3c)",
+    "setup": "data = {{0.5, 5.75}, {0.65, 5.6}, {0.75, 5.94}, {1, 6}, {1.1, 5.98}, {1.4, 6.1}, {1.52, 5.8}, {1.75, 5.6}, {1.9, 5.1}, {2.1, 5}, {2.6, 3.2}};",
+    "solution": "xs = data[[All, 1]];\nA = Transpose[{xs^2, xs, Table[1, {k, 1, Length[data]}]}];\nb = data[[All, 2]];\nSolve[Transpose[A].A.{r, s, t} == Transpose[A].b, {r, s, t}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{r -> -1.264009, s -> 2.806798, t -> 4.501419}}",
+     "compare": "set",
+     "tol": 0.0001
+    },
+    "requires": [
+     "Solve",
+     "Transpose"
+    ],
+    "hints": [
+     "Columnas de `A`: `xs^2`, `xs` y una lista de unos, con `xs = data[[All, 1]]`.",
+     "`A = Transpose[{xs^2, xs, Table[1, {k, 1, Length[data]}]}]`",
+     "`Solve[Transpose[A].A.{r, s, t} == Transpose[A].b, {r, s, t}]`"
+    ],
+    "explain": "Salen los mismos `r, s, t` que con `Fit`. `Fit` hace exactamente esto por dentro: cada fila de `A` es `(x², x, 1)` de un punto."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e18",
+    "kind": "code",
+    "title": "Prueba real · nube y parábola juntas",
+    "prompt": "Representa juntas la parábola de ajuste (para `x` entre 0 y 3) y la nube de puntos `data` (ya definida), con el rango vertical de 0 a 7. Usa `Show[Plot[…], ListPlot[…], PlotRange -> {0, 7}]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Show",
+     "Plot",
+     "ListPlot",
+     "Fit"
+    ],
+    "real": true,
+    "source": "Práctica 17 · P4 (ej3d)",
+    "setup": "data = {{0.5, 5.75}, {0.65, 5.6}, {0.75, 5.94}, {1, 6}, {1.1, 5.98}, {1.4, 6.1}, {1.52, 5.8}, {1.75, 5.6}, {1.9, 5.1}, {2.1, 5}, {2.6, 3.2}};",
+    "solution": "para = Fit[data, {1, x, x^2}, x];\nShow[Plot[para, {x, 0, 3}], ListPlot[data], PlotRange -> {0, 7}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "like": "Show[Plot[Evaluate[Fit[data, {1, x, x^2}, x]], {x, 0, 3}], ListPlot[data], PlotRange -> {0, 7}]",
+     "has": [
+      "line",
+      "points"
+     ],
+     "tol": 0.05
+    },
+    "requires": [
+     "Show",
+     "ListPlot"
+    ],
+    "hints": [
+     "Primero `para = Fit[data, {1, x, x^2}, x];`",
+     "`Show[Plot[para, {x, 0, 3}], ListPlot[data], PlotRange -> {0, 7}]`"
+    ],
+    "explain": "Los puntos se reparten a un lado y otro de la parábola: buen ajuste. `PlotRange -> {0, 7}` fija el eje vertical para que no se corte nada."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p17-e19",
+    "kind": "code",
+    "title": "Examen PL2 · mínimos cuadrados 4×4",
+    "prompt": "Examen real (junio 2022). Sistema:\n\n`2x - 3y + 5z + 6w = -15`, `-5x + 4y - 3z - 2w = 7`, `3x - 3y + 5z + w = -9`, `-3x + y + 2z + 4w = 4`\n\nYa están definidos `A` (4×4) y `b`. Resuélvelo por mínimos cuadrados **tomando `y` como parámetro** y devuelve el error `Ec` en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "Solve",
+     "Norm",
+     "Transpose",
+     "Flatten"
+    ],
+    "real": true,
+    "source": "Examen PL2 2022 · Álgebra P3",
+    "setup": "A = {{2, -3, 5, 6}, {-5, 4, -3, -2}, {3, -3, 5, 1}, {-3, 1, 2, 4}}; b = {-15, 7, -9, 4};",
+    "solution": "sol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}];\nAxsol = A.{x, y, z, w} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
+    "check": {
+     "type": "expr",
+     "expected": "4 Sqrt[3]",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Solve",
+     "Norm"
+    ],
+    "hints": [
+     "`y` parámetro → despeja solo `{x, z, w}`.",
+     "`sol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}]`",
+     "`Norm[b - A.{x, y, z, w} /. Flatten[sol]] // Simplify // N`"
+    ],
+    "explain": "`x = -1.44828 + 0.632184 y`, `z = -0.793103 + 0.195402 y`, `w = -0.689655 + 0.126437 y` y `Ec = 4 Sqrt[3] ≈ 6.9282`. Idéntico a la práctica, con una incógnita más."
+   }
+  }
+ ]
+}
