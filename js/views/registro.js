@@ -1,7 +1,7 @@
 // Vista: registro de prácticas y ejercicios (#/registro) — una tabla sobria: qué hay en su Drive y qué lleva hecho aquí.
-import { store, dayKey } from '../store.js?v=1794352003';
-import { loadCourse, loadLesson, loadAllLessons, safe, flatUnits, lessonHref, STATUS_LABEL } from '../data.js?v=1794352003';
-import { h, icon, yearBadge, emptyState, skeleton, timeAgo, fmtDate, toast } from '../fx.js?v=1794352003';
+import { store, dayKey } from '../store.js?v=1794352036';
+import { loadCourse, loadLesson, loadAllLessons, safe, flatUnits, lessonHref, STATUS_LABEL } from '../data.js?v=1794352036';
+import { h, icon, yearBadge, emptyState, skeleton, timeAgo, fmtDate, toast } from '../fx.js?v=1794352036';
 
 let alive = false;
 const S = { year: 0, status: '', q: '', open: new Set() };
