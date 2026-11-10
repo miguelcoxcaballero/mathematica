@@ -3,16 +3,17 @@
 //   #/practica/comando/<Nombre>     exercises (from every lesson) that use that command, easy → hard, unsolved first
 //   #/practica/tema/<lessonId>      exercises of one lesson
 //   #/practica/aleatoria[?n=10]     N exercises sampled from what the student has already studied (weak/stale first)
-import { store } from '../store.js?v=1794354055';
-import * as data from '../data.js?v=1794354055';
-import * as fx from '../fx.js?v=1794354055';
+import { store } from '../store.js?v=1794354103';
+import * as data from '../data.js?v=1794354103';
+import * as fx from '../fx.js?v=1794354103';
 import {
   mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
-} from '../exercise.js?v=1794354055';
+} from '../exercise.js?v=1794354103';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];
 const KERNEL_KINDS = new Set(['code', 'fix', 'fill', 'order']);
+const ROUND = 10; // exercises per round in the by-command / by-tema sessions
 
 let V = null; // mounted view state
 let indexP = null;
@@ -397,7 +398,12 @@ function runSession(me, cfg) {
   };
   const newRound = (items) => {
     S.round++;
-    S.queue = items || cfg.build();
+    // SPEC §13: short sessions. By command / by tema the list can be long (dozens of exercises): it is served in
+    // rounds of ROUND exercises; build() puts the not-yet-solved first, so each new round continues where he left off.
+    const all = items || cfg.build();
+    S.poolSize = all.length;
+    S.pending = items ? 0 : all.filter((it) => exStatus(it.ex.id) !== 'ok').length;
+    S.queue = cfg.endless && !items ? all.slice(0, ROUND) : all;
     S.queue.forEach(snap);
     S.pos = -1;
     S.roundStart = S.results.length;
@@ -486,7 +492,7 @@ function runSession(me, cfg) {
       h('div', { class: 'lp-end-txt' },
         h('div', { class: 'lp-kicker' }, cfg.endless ? `Ronda ${S.round} terminada` : 'Sesión terminada'),
         h('h2', null, `${ok} de ${n} ${n === 1 ? 'ejercicio resuelto' : 'ejercicios resueltos'}`),
-        h('p', { class: 'muted' }, msg),
+        h('p', { class: 'muted' }, cfg.endless && S.poolSize > ROUND ? `${msg} ${left > 0 ? `Quedan ${left} de ${S.poolSize} por resolver.` : `Los ${S.poolSize} resueltos.`}` : msg),
         h('div', { class: 'lp-end-stats' }, stat(`${first}`, 'a la primera'), stat(`+${S.xp}`, 'XP ganado'), stat(`${mins} min`, 'de práctica')))));
     if (improved.length) {
       wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, 'Comandos que han subido de nivel'),
@@ -504,13 +510,15 @@ function runSession(me, cfg) {
       }
       wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, 'Para repetir'), list));
     }
+    // how many of this command / tema are still unsolved (after this round)
+    const left = cfg.endless ? cfg.build().filter((it) => exStatus(it.ex.id) !== 'ok').length : 0;
     const actions = h('div', { class: 'lp-end-actions' });
     if (failed.length) {
       const ids = new Set();
       const items = failed.map((r) => r.it).filter((it) => !ids.has(it.ex.id) && ids.add(it.ex.id));
       actions.appendChild(h('button', { class: 'btn primary', type: 'button', onclick: () => restart(items, true) }, `Repetir las falladas (${items.length})`));
     }
-    actions.appendChild(h('button', { class: `btn${failed.length ? '' : ' primary'}`, type: 'button', onclick: () => restart(null, false) }, cfg.endless ? 'Otra ronda (nuevas variantes) →' : 'Otra sesión →'));
+    actions.appendChild(h('button', { class: `btn${failed.length ? '' : ' primary'}`, type: 'button', onclick: () => restart(null, false) }, cfg.endless ? (left > 0 ? `Seguir: ${Math.min(ROUND, left)} más →` : 'Otra ronda (nuevas variantes) →') : 'Otra sesión →'));
     if (cfg.lessonId) actions.appendChild(h('a', { class: 'btn ghost', href: `#/leccion/${encodeURIComponent(cfg.lessonId)}` }, 'Ir a la lección'));
     if (cfg.cmd) actions.appendChild(h('a', { class: 'btn ghost', href: `#/comandos/${encodeURIComponent(cfg.cmd)}` }, 'Ficha del comando'));
     actions.appendChild(h('a', { class: 'btn ghost', href: '#/practica' }, 'Volver a práctica'));

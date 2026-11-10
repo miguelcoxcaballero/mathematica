@@ -2564,11 +2564,16 @@ class IntQ(XB):
             SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             return SymbolFalse
         t_start = time.time()
+        self._converted = False
         try:
             with budget(10.0):
                 r = self._go(f, spec, assum, evaluation)
             if r is None:
                 _INT_SPENT[0] += time.time() - t_start
+                if self._converted:
+                    # SymPy could not do it: Mathics' own attempt (same SymPy, weaker bridge) only adds time and
+                    # half-evaluated garbage, so the integral stays unevaluated as in Mathematica
+                    SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             if r is not None and is_free_of(E("List", f, spec), "System`I") and \
                     not _has_head(E("List", f, spec), ("System`Complex",)) and \
                     (not is_free_of(r, "System`I") or _has_head(r, ("System`Complex",))):
@@ -2609,6 +2614,8 @@ class IntQ(XB):
         xs = c.sym(xn)
         if fs.atoms(sp.core.function.AppliedUndef) or fs.has(sp.Derivative, sp.Subs):
             return None
+        self._converted = True
+        self._conv = c
         from . import calc
 
         if fs.has(sp.tan, sp.cot, sp.sec, sp.csc) and fs.has(sp.sin, sp.cos, sp.exp):
@@ -2723,7 +2730,54 @@ class IntQ(XB):
         if fs.has(sp.I) and not (fs.free_symbols - {xs}) and not a.free_symbols and not b.free_symbols:
             # complex integrand: SymPy can take the wrong branch of a logarithm (closed contours give 0)
             r = self._branch_check(r, fs, xs, a, b)
+        elif (fs.free_symbols - {xs}) or a.free_symbols or b.free_symbols:
+            if not self._probe_ok(r, fs, xs, a, b, c):
+                return None
         return c.back(r).evaluate(ev)
+
+    @staticmethod
+    def _probe_ok(r, fs, xs, a, b, c):
+        """Definite integral with parameters from SymPy's general machinery: compare with quadrature at two
+        parameter values (SymPy sometimes returns a wrong branch, e.g. complex logs for a real area).
+        True unless both probes clearly disagree."""
+        from . import numeric
+
+        if not (fs.has(sp.Pow) or fs.has(sp.log)) or r.has(sp.Piecewise) and False:
+            pass
+        syms = sorted((fs.free_symbols | a.free_symbols | b.free_symbols | r.free_symbols) - {xs}, key=str)
+        if not syms or len(syms) > 4:
+            return True
+        bad = 0
+        for trial in range(2):
+            sub = {}
+            for i, s_ in enumerate(syms):
+                nm = s_.name
+                if nm in c.integer:
+                    v = sp.Integer(2 + i + 3 * trial)
+                elif nm in c.negative:
+                    v = -sp.Rational(37 + 11 * i + 24 * trial, 100)
+                else:
+                    v = sp.Rational(37 + 11 * i + 24 * trial, 100)
+                sub[s_] = v
+            try:
+                lo, hi = a.subs(sub), b.subs(sub)
+                if not (lo.is_real and hi.is_real) and lo not in (sp.oo, -sp.oo) and hi not in (sp.oo, -sp.oo):
+                    return True
+                nv = numeric.quick_numeric(fs.subs(sub), xs, lo, hi)
+                if nv is None:
+                    return True
+                sv = complex(sp.N(r.subs(sub)))
+                if sv != sv:
+                    return True
+                if abs(nv - sv) > 1e-5 * (1 + abs(nv)):
+                    bad += 1
+                else:
+                    return True
+            except SympyTimeout:
+                raise
+            except Exception:
+                return True
+        return bad < 2
 
     @staticmethod
     def _branch_check(r, fs, xs, a, b):
