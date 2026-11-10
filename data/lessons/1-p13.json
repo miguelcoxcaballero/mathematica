@@ -1,0 +1,726 @@
+{
+ "id": "1-p13",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo I",
+ "order": 13,
+ "title": "Resolución gráfica de ecuaciones: cortes de curvas, longitudes y áreas",
+ "summary": "Localizas el punto de corte de dos curvas haciendo zoom con PlotRange y GridLines, lo afinas con FindRoot, y con él calculas longitudes de arco y áreas de curvas paramétricas (astroide y cicloide) y polares (cardioide con parábola).",
+ "minutes": 55,
+ "commands": [
+  "GridLines",
+  "PlotRange",
+  "Show",
+  "Arg"
+ ],
+ "uses": [
+  "Plot",
+  "ParametricPlot",
+  "PolarPlot",
+  "FindRoot",
+  "NIntegrate",
+  "Integrate",
+  "D",
+  "Abs",
+  "Part",
+  "ReplaceAll",
+  "SetDelayed"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Cuando no hay fórmula: mirar la gráfica",
+   "md": "¿En qué punto se cruzan dos trayectorias? Casi nunca hay una fórmula para ese punto: ecuaciones como cos(x) = x no se pueden despejar. La salida de ingeniero es **dibujar y mirar**: el punto de corte se lee en la gráfica y, acercándose lo suficiente, se lee con los decimales que hagan falta. En la prueba de esta práctica la frase es «variando PlotRange, halla las coordenadas del punto con tres decimales». Al terminar sabrás hacerlo, afinarlo con `FindRoot` y usar ese punto para calcular longitudes y áreas.\n\nDos opciones de dibujo hacen todo el trabajo:\n\n- `GridLines -> Automatic` pinta una **rejilla** para leer coordenadas.\n- `PlotRange -> {{x1, x2}, {y1, y2}}` fija la **ventana**: primero el rango horizontal, después el vertical. Estrecharla es hacer zoom.\n\nEn las celdas: la gráfica entera, y dos zooms sobre el corte de `Cos[x]` con `x`. En el último se lee x ≈ 0.739.",
+   "cells": [
+    {
+     "code": "Plot[{Cos[x], x}, {x, 0, 2}]",
+     "note": "se cortan cerca de x = 0.7"
+    },
+    {
+     "code": "Plot[{Cos[x], x}, {x, 0, 2}, GridLines -> Automatic, PlotRange -> {{0.7, 0.8}, {0.7, 0.8}}]",
+     "note": "primer zoom: entre 0.73 y 0.74"
+    },
+    {
+     "code": "Plot[{Cos[x], x}, {x, 0, 2}, GridLines -> Automatic, PlotRange -> {{0.738, 0.74}, {0.738, 0.74}}]",
+     "note": "segundo zoom: 0.739"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e01",
+    "kind": "code",
+    "title": "Tu primer zoom",
+    "prompt": "Dibuja juntas las funciones `Exp[-x]` y `x^2` para x entre 0 y 2, con rejilla y con la ventana ajustada a x entre 0.6 y 0.8, y entre 0.4 y 0.6.",
+    "difficulty": 1,
+    "cmds": [
+     "Plot",
+     "PlotRange",
+     "GridLines"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Plot[{Exp[-x], x^2}, {x, 0, 2}, GridLines -> Automatic, PlotRange -> {{0.6, 0.8}, {0.4, 0.6}}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "like": "Plot[{Exp[-x], x^2}, {x, 0, 2}]",
+     "opts": [
+      "grid"
+     ]
+    },
+    "requires": [
+     "Plot",
+     "PlotRange",
+     "GridLines"
+    ],
+    "hints": [
+     "Las dos funciones van en una lista: `Plot[{Exp[-x], x^2}, {x, 0, 2}, opciones]`.",
+     "Opciones: `GridLines -> Automatic, PlotRange -> {{0.6, 0.8}, {0.4, 0.6}}`."
+    ],
+    "explain": "En esa ventana se ve el corte cerca de x = 0.70. El intervalo `{x, 0, 2}` no hace falta tocarlo: la ventana la manda `PlotRange`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e02",
+    "kind": "code",
+    "title": "Afinar con FindRoot",
+    "prompt": "La gráfica anterior dice que `Exp[-x]` y `x^2` se cortan cerca de x = 0.7. Calcula ese valor con precisión usando `FindRoot` y guárdalo en `xc`.",
+    "difficulty": 2,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "xc = x /. FindRoot[Exp[-x] == x^2, {x, 0.7}]",
+    "check": {
+     "type": "value",
+     "expr": "xc",
+     "expected": "0.7034674225",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "`xc` no es el punto de corte. `FindRoot[Exp[-x] == x^2, {x, 0.7}]` da una regla; saca el número con `x /. …`."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`FindRoot[ecuación, {x, semilla}]`: la semilla es lo que has leído en la gráfica, 0.7.",
+     "`xc = x /. FindRoot[Exp[-x] == x^2, {x, 0.7}]`"
+    ],
+    "explain": "`FindRoot` devuelve una regla `{x -> 0.703467}`; con `x /. …` te quedas con el número. La gráfica da la semilla y `FindRoot` los decimales: ese es el método de toda la práctica."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e03",
+    "kind": "code",
+    "title": "Solo con la gráfica",
+    "prompt": "Ahora sin `FindRoot`, como pide la prueba. Las curvas `Sin[x]` y `x^2 - 1` se cortan en un punto con x entre 1 y 2. Haz zoom con `PlotRange` las veces que necesites hasta leer la abscisa del corte **con tres decimales** y guárdala en `xg`.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot",
+     "PlotRange",
+     "GridLines"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Plot[{Sin[x], x^2 - 1}, {x, 0, 2}, GridLines -> Automatic, PlotRange -> {{1.40, 1.42}, {0.98, 1.0}}]\nxg = 1.410",
+    "check": {
+     "type": "satisfies",
+     "test": "NumberQ[xg] && Abs[xg - 1.409624] < 0.0012",
+     "msg": "`xg` todavía no tiene tres decimales correctos. Sigue estrechando la ventana alrededor del corte."
+    },
+    "requires": [
+     "PlotRange"
+    ],
+    "forbids": [
+     "FindRoot",
+     "NSolve",
+     "Solve"
+    ],
+    "hints": [
+     "Empieza con `PlotRange -> {{1, 2}, {0, 2}}` y ve cerrando la ventana alrededor del cruce.",
+     "Con `PlotRange -> {{1.40, 1.42}, {0.98, 1.0}}` se lee x ≈ 1.410. Termina con `xg = 1.410`."
+    ],
+    "explain": "El corte está en x = 1.4096…: con tres decimales, 1.410 (o 1.409). Cada zoom gana uno o dos decimales; hay que mover los cuatro números de la ventana a la vez."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Curvas paramétricas como funciones",
+   "md": "Las curvas de esta práctica vienen en **paramétricas**: el punto (x, y) depende de un parámetro t. Lo cómodo es guardar cada curva como una función que devuelve una **lista de dos componentes**:\n\n`r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}`\n\n- `r1[Pi/2]` da el punto de la curva para ese valor del parámetro.\n- `r1[t][[1]]` es la componente x y `r1[t][[2]]` la componente y.\n- `ParametricPlot[r1[t], {t, 0, 2 Pi}]` la dibuja. Para dibujar dos curvas a la vez se pasa una lista: `ParametricPlot[{r1[t], r2[t]}, {t, 0, 2 Pi}]`.\n\nLa de las celdas es la **astroide** de la prueba.",
+   "cells": [
+    {
+     "code": "r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}",
+     "note": "la astroide"
+    },
+    {
+     "code": "r1[Pi/2]",
+     "note": "su vértice superior"
+    },
+    {
+     "code": "ParametricPlot[r1[t], {t, 0, 2 Pi}]"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e04",
+    "kind": "code",
+    "title": "Astroide y cicloide juntas",
+    "prompt": "Considera, para 0 ≤ t ≤ 2π, las curvas paramétricas\n\n- r1(t) = (6·cos³t, 6·sen³t), la astroide\n- r2(t) = (2t − 2·sen t, 2 − 2·cos t), la cicloide\n\na) Defínelas como funciones `r1` y `r2` y represéntalas juntas.\n\nb) Añade las opciones `GridLines -> Automatic` y `PlotRange -> {{-6, 14}, {-6, 6}}`.",
+    "difficulty": 3,
+    "cmds": [
+     "ParametricPlot",
+     "GridLines",
+     "PlotRange",
+     "SetDelayed"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 a) y b)",
+    "solution": "r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}\nr2[t_] := {2 t - 2 Sin[t], 2 - 2 Cos[t]}\nParametricPlot[{r1[t], r2[t]}, {t, 0, 2 Pi}, GridLines -> Automatic, PlotRange -> {{-6, 14}, {-6, 6}}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{r1[1.], r2[1.]}",
+       "expected": "{{6 Cos[1.]^3, 6 Sin[1.]^3}, {2 - 2 Sin[1.], 2 - 2 Cos[1.]}}",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "`r1` o `r2` no están bien definidas. Cada una debe devolver una lista `{x(t), y(t)}`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "opts": [
+        "grid"
+       ]
+      }
+     ]
+    },
+    "requires": [
+     "ParametricPlot",
+     "GridLines",
+     "PlotRange"
+    ],
+    "hints": [
+     "`r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}` y `r2[t_] := {2 t - 2 Sin[t], 2 - 2 Cos[t]}`. El cubo va fuera del corchete: `Cos[t]^3`.",
+     "`ParametricPlot[{r1[t], r2[t]}, {t, 0, 2 Pi}, GridLines -> Automatic, PlotRange -> {{-6, 14}, {-6, 6}}]`"
+    ],
+    "explain": "La astroide es la estrella de cuatro puntas y la cicloide el arco. En el primer cuadrante se cortan en un punto: es el que hay que localizar."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e05",
+    "kind": "code",
+    "title": "El punto de corte, a ojo",
+    "prompt": "Ya están definidas `r1` (astroide) y `r2` (cicloide). Variando `PlotRange`, halla las coordenadas del punto del primer cuadrante donde se cortan, **con tres decimales**, y guárdalas en la lista `P`.",
+    "difficulty": 3,
+    "cmds": [
+     "ParametricPlot",
+     "PlotRange",
+     "GridLines"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 c)",
+    "setup": "r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}\nr2[t_] := {2 t - 2 Sin[t], 2 - 2 Cos[t]}",
+    "solution": "ParametricPlot[{r1[t], r2[t]}, {t, 0, 2 Pi}, GridLines -> Automatic, PlotRange -> {{1.74, 1.75}, {2.52, 2.53}}]\nP = {1.742, 2.524}",
+    "check": {
+     "type": "satisfies",
+     "test": "VectorQ[P, NumberQ] && Length[P] == 2 && 1.7405 <= P[[1]] <= 1.7455 && 2.5205 <= P[[2]] <= 2.5265",
+     "msg": "`P` debe ser una lista `{x, y}` con tres decimales correctos. Sigue haciendo zoom alrededor del cruce (cerca de x = 1.74, y = 2.52)."
+    },
+    "requires": [
+     "PlotRange"
+    ],
+    "hints": [
+     "Empieza con `PlotRange -> {{1, 3}, {2, 3}}` y ve cerrando la ventana sobre el cruce.",
+     "Con `PlotRange -> {{1.74, 1.75}, {2.52, 2.53}}` se lee P ≈ (1.742, 2.524). Termina con `P = {1.742, 2.524}`."
+    ],
+    "explain": "El corte exacto es (1.7423, 2.5245). La clave oficial de la prueba daba por buenos x entre 1.744 y 1.745 e y entre 2.521 y 2.523: leer una gráfica siempre tiene un pequeño margen, y por eso después se afina con `FindRoot`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Cada curva con su parámetro",
+   "md": "Dos curvas paramétricas pasan por el punto de corte en **momentos distintos**: la astroide con un valor de su parámetro (lo llamaremos `ta`) y la cicloide con otro (`tc`). No busques un mismo `t` para las dos.\n\nMétodo de la prueba, con el punto P ya leído en la gráfica:\n\n- El parámetro de una curva en P sale de **una** ecuación: «su coordenada x vale la x de P». Se resuelve con `FindRoot` y una semilla.\n- La semilla también se lee a ojo: aproximadamente a qué valor de t corresponde esa zona de la curva.\n\nEn las celdas: una circunferencia `c1` y una parábola `c2` que se cortan cerca de (1.25, 1.56). La última celda halla el parámetro de la circunferencia en ese punto.\n\nEn Mathematica de escritorio se pueden pedir los dos parámetros de golpe con un **sistema**: dos ecuaciones y una semilla por incógnita, `FindRoot[{2 Cos[t] == s, 2 Sin[t] == s^2}, {t, 0.9}, {s, 1.2}]`, que devuelve `{t -> 0.895907, s -> 1.24962}`. Para la prueba real ese sistema es `FindRoot[{6 Cos[t]^3 == 2 x - 2 Sin[x], 6 Sin[t]^3 == 2 - 2 Cos[x]}, {t, 1}, {x, 1}]`. Fíjate en que a cada curva se le da una letra distinta.",
+   "cells": [
+    {
+     "code": "c1[t_] := {2 Cos[t], 2 Sin[t]}\nc2[s_] := {s, s^2}",
+     "note": "circunferencia y parábola"
+    },
+    {
+     "code": "ParametricPlot[{c1[t], c2[t]}, {t, -2, 2 Pi}, GridLines -> Automatic, PlotRange -> {{0, 2}, {0, 2}}]",
+     "note": "se cortan cerca de (1.25, 1.56)"
+    },
+    {
+     "code": "FindRoot[2 Cos[t] == 1.25, {t, 0.9}]",
+     "note": "parámetro de la circunferencia en el corte"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e06",
+    "kind": "code",
+    "title": "El parámetro a partir de la otra coordenada",
+    "prompt": "Ya está definida la circunferencia `c1[t_] := {2 Cos[t], 2 Sin[t]}`. Su corte con la parábola está en el punto (1.25, 1.56) aproximadamente.\n\nHalla el parámetro de la circunferencia en ese punto usando ahora la coordenada **y** (su segunda componente vale 1.56). Guarda el número en `t0`.",
+    "difficulty": 2,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "c1[t_] := {2 Cos[t], 2 Sin[t]}",
+    "solution": "t0 = t /. FindRoot[c1[t][[2]] == 1.56, {t, 0.9}]",
+    "check": {
+     "type": "value",
+     "expr": "t0",
+     "expected": "0.8946658",
+     "compare": "numeric",
+     "tol": 0.0005,
+     "msg": "`t0` no es el parámetro buscado: resuelve `2 Sin[t] == 1.56` con semilla 0.9 y saca el número con `t /. …`."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "La segunda componente es `c1[t][[2]]`, o directamente `2 Sin[t]`.",
+     "`t0 = t /. FindRoot[2 Sin[t] == 1.56, {t, 0.9}]`"
+    ],
+    "explain": "Sale t0 ≈ 0.8947, casi lo mismo que con la x (0.8957). La pequeña diferencia viene de que 1.25 y 1.56 son lecturas redondeadas del punto."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e07",
+    "kind": "fix",
+    "title": "FindRoot mal escrito",
+    "prompt": "Esta celda debería hallar el parámetro t de la astroide para el que su coordenada x vale 1.744, con semilla 0.8. Tiene dos errores. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "FindRoot"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "FindRoot[6 Cos[t]^3 = 1.744, t, 0.8]",
+    "solution": "FindRoot[6 Cos[t]^3 == 1.744, {t, 0.8}]",
+    "check": {
+     "type": "expr",
+     "expected": "{t -> 0.846755205}",
+     "compare": "set",
+     "tol": 1e-05
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "Una ecuación lleva doble igual: `==`.",
+     "La variable y su semilla van juntas entre llaves: `{t, 0.8}`."
+    ],
+    "explain": "`==` para la ecuación y `{t, 0.8}` para «variable, semilla». Con un solo `=` Mathematica intenta asignar un valor en vez de plantear una ecuación."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e08",
+    "kind": "code",
+    "title": "Los parámetros ta y tc",
+    "prompt": "Ya están definidas `r1` (astroide) y `r2` (cicloide). El punto de corte leído en la gráfica es P = (1.744, 2.522).\n\nd) Con esas coordenadas, halla el parámetro `ta` para el que la astroide pasa por P.\n\nf) Halla el parámetro `tc` en el que la cicloide corta a la astroide.\n\nGuarda los dos números en `ta` y `tc`. Semillas razonables: 0.8 para la astroide y 1.8 para la cicloide.",
+    "difficulty": 4,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 d) y f)",
+    "setup": "r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}\nr2[t_] := {2 t - 2 Sin[t], 2 - 2 Cos[t]}",
+    "solution": "ta = t /. FindRoot[r1[t][[1]] == 1.744, {t, 0.8}]\ntc = t /. FindRoot[r2[t][[1]] == 1.744, {t, 1.8}]",
+    "check": {
+     "type": "satisfies",
+     "test": "NumberQ[ta] && NumberQ[tc] && 0.846 <= ta <= 0.8472 && 1.833 <= tc <= 1.838",
+     "msg": "`ta` debe quedar entre 0.846 y 0.8471 y `tc` entre 1.833 y 1.838. Iguala la coordenada x de cada curva a 1.744 y usa `FindRoot` con las semillas indicadas."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "Astroide: `ta = t /. FindRoot[6 Cos[t]^3 == 1.744, {t, 0.8}]`.",
+     "Cicloide: `tc = t /. FindRoot[2 t - 2 Sin[t] == 1.744, {t, 1.8}]`."
+    ],
+    "explain": "ta ≈ 0.847 y tc ≈ 1.836 (las casillas admitían 0.846–0.8471 y 1.833–1.838). Con el sistema de dos ecuaciones en Mathematica salen los valores finos: ta = 0.847049 y tc = 1.836134."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Longitud de un arco y área bajo una curva paramétrica",
+   "md": "Con los parámetros del punto de corte ya se pueden medir cosas. Dos fórmulas (las viste en la práctica de aplicaciones de la integral), ahora con extremos que salen del corte:\n\n- **Longitud** del arco entre dos valores del parámetro: integral de `Sqrt[x'(t)^2 + y'(t)^2]`. Las derivadas se escriben con `D[componente, t]`. Se calcula con `NIntegrate`.\n- **Área** bajo la curva (hasta el eje X): integral de `y(t)` por `x'(t)`. Los extremos se ponen en el sentido en que **x crece**; si no, el área sale negativa.\n\nEn las celdas, un arco completo de la cicloide `{t - Sin[t], 1 - Cos[t]}`: mide 8 y encierra un área de 3π.",
+   "cells": [
+    {
+     "code": "NIntegrate[Sqrt[D[t - Sin[t], t]^2 + D[1 - Cos[t], t]^2], {t, 0, 2 Pi}]",
+     "note": "longitud del arco"
+    },
+    {
+     "code": "Integrate[(1 - Cos[t]) D[t - Sin[t], t], {t, 0, 2 Pi}]",
+     "note": "área bajo el arco: y por x'"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e09",
+    "kind": "code",
+    "title": "Longitud del arco de astroide",
+    "prompt": "Ya están definidos los parámetros finos del corte, `ta = 0.847049` (astroide) y `tc = 1.836134` (cicloide).\n\nCalcula la longitud del arco de la astroide (6·cos³t, 6·sen³t) desde el punto de corte con la cicloide hasta su vértice superior, que corresponde a t = π/2. Guárdala en `long`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate",
+     "D",
+     "Sqrt"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 e)",
+    "setup": "ta = 0.8470493823198697; tc = 1.8361338979917563;",
+    "solution": "long = NIntegrate[Sqrt[D[6 Cos[t]^3, t]^2 + D[6 Sin[t]^3, t]^2], {t, ta, Pi/2}]",
+    "check": {
+     "type": "value",
+     "expr": "long",
+     "expected": "3.946543932",
+     "compare": "numeric",
+     "tol": 0.002,
+     "msg": "`long` no es la longitud pedida: integra `Sqrt[x'^2 + y'^2]` de la astroide entre `ta` y `Pi/2`."
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "El integrando es `Sqrt[D[6 Cos[t]^3, t]^2 + D[6 Sin[t]^3, t]^2]`.",
+     "`long = NIntegrate[Sqrt[D[6 Cos[t]^3, t]^2 + D[6 Sin[t]^3, t]^2], {t, ta, Pi/2}]`"
+    ],
+    "explain": "Longitud ≈ 3.9465 (la casilla admitía de 3.93 a 3.96). El arco va del corte (t = ta) al vértice (t = π/2): los extremos de la integral son valores del parámetro, no coordenadas."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e10",
+    "kind": "code",
+    "title": "Área bajo la menor de las dos curvas",
+    "prompt": "Siguen definidos `ta` y `tc`. Calcula el área de la superficie limitada por abajo por el eje OX y por arriba por la **menor** de las dos curvas, entre las abscisas 0 y 6. Guárdala en `area`.\n\nPlan: hasta el punto de corte la curva más baja es la cicloide (2t − 2·sen t, 2 − 2·cos t), con t de 0 a `tc`; desde el corte hasta x = 6 la más baja es la astroide (6·cos³t, 6·sen³t), con t de `ta` a 0 (en ese sentido x crece de 1.74 a 6). Suma las dos áreas, cada una como integral de y por x′.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "D"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 g)",
+    "setup": "ta = 0.8470493823198697; tc = 1.8361338979917563;",
+    "solution": "A1 = Integrate[(2 - 2 Cos[t]) D[2 t - 2 Sin[t], t], {t, 0, tc}];\nA2 = Integrate[(6 Sin[t]^3) D[6 Cos[t]^3, t], {t, ta, 0}];\narea = A1 + A2",
+    "check": {
+     "type": "value",
+     "expr": "area",
+     "expected": "6.721038053",
+     "compare": "numeric",
+     "tol": 0.004,
+     "msg": "`area` no coincide. Revisa: cicloide de 0 a `tc`, astroide de `ta` a 0, y en cada integral y(t) por la derivada de x(t)."
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "Cicloide: `A1 = Integrate[(2 - 2 Cos[t]) D[2 t - 2 Sin[t], t], {t, 0, tc}]`.",
+     "Astroide: `A2 = Integrate[(6 Sin[t]^3) D[6 Cos[t]^3, t], {t, ta, 0}]`. Luego `area = A1 + A2`."
+    ],
+    "explain": "A1 = 2.7907 y A2 = 3.9304: área = 6.7210 (la casilla admitía de 6.6 a 6.8). En la astroide los extremos van de `ta` a 0, «al revés», porque al bajar t la x aumenta; con el orden contrario A2 saldría negativa."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Polares y cartesianas en el mismo dibujo: Show",
+   "md": "La segunda parte de la prueba cruza una curva en **polares** (una cardioide, con `PolarPlot`) con una en **cartesianas** (una parábola, con `Plot`). Son comandos distintos, así que no caben en la misma orden. Solución:\n\n- Guarda cada gráfica en una variable: `p = PolarPlot[...]`, `q = Plot[...]`.\n- Superponlas con `Show[p, q, opciones]`.\n\nLas opciones de rejilla y ventana se ponen en el `Show`. Como la ventana la fija `PlotRange`, para hacer zoom solo hay que repetir el `Show` cambiando esos números: no hace falta redibujar `p` y `q`.",
+   "cells": [
+    {
+     "code": "p = PolarPlot[2 + 2 Cos[a], {a, 0, 2 Pi}]",
+     "note": "una cardioide, guardada en p"
+    },
+    {
+     "code": "q = Plot[x^2 - 1, {x, -2, 4}]",
+     "note": "una parábola, guardada en q"
+    },
+    {
+     "code": "Show[p, q, GridLines -> Automatic, PlotRange -> {{-2, 5}, {-3, 3}}]",
+     "note": "las dos juntas"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e11",
+    "kind": "code",
+    "title": "Cardioide y parábola con Show",
+    "prompt": "a) Representa la curva de expresión polar ρ = 4 + 4·sen(α) para −π ≤ α ≤ π y llámala `p`.\n\nb) Representa la curva cartesiana y = 4x − 2x² para −6 ≤ x ≤ 6 y llámala `q`.\n\nc) Usa `Show` para representar `p` y `q` juntas.\n\nd) Añade a ese comando las opciones `GridLines -> Automatic` y `PlotRange -> {{-6, 6}, {-2, 8}}`.",
+    "difficulty": 3,
+    "cmds": [
+     "PolarPlot",
+     "Plot",
+     "Show",
+     "GridLines",
+     "PlotRange"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P3 a)–d)",
+    "solution": "p = PolarPlot[4 + 4 Sin[a], {a, -Pi, Pi}];\nq = Plot[4 x - 2 x^2, {x, -6, 6}];\nShow[p, q, GridLines -> Automatic, PlotRange -> {{-6, 6}, {-2, 8}}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Head[p] === Graphics && Head[q] === Graphics",
+       "msg": "`p` y `q` deben ser las dos gráficas: `p = PolarPlot[...]` y `q = Plot[...]`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "opts": [
+        "grid"
+       ]
+      }
+     ]
+    },
+    "requires": [
+     "PolarPlot",
+     "Show",
+     "PlotRange",
+     "GridLines"
+    ],
+    "hints": [
+     "`p = PolarPlot[4 + 4 Sin[a], {a, -Pi, Pi}]` y `q = Plot[4 x - 2 x^2, {x, -6, 6}]`.",
+     "`Show[p, q, GridLines -> Automatic, PlotRange -> {{-6, 6}, {-2, 8}}]`"
+    ],
+    "explain": "La cardioide tiene su pico en el origen y la parábola la atraviesa. Se cortan en el origen y en un punto M del cuarto cuadrante (x positiva, y negativa)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "De cartesianas a polares con un número complejo",
+   "md": "El punto de corte se lee en la gráfica en cartesianas (x, y), pero para integrar sobre la cardioide hace falta en **polares** (r, α). Truco de la prueba: mirar el punto como el número complejo z = x + i·y.\n\n- `Abs[z]` es su módulo: la distancia al origen, r.\n- `Arg[z]` es su argumento: el ángulo α, en radianes entre −π y π.\n\nLa unidad imaginaria se escribe `I`, con mayúscula. En la celda, el punto (2.5, −1.2): al estar en el cuarto cuadrante, el ángulo sale negativo.",
+   "cells": [
+    {
+     "code": "z = 2.5 - 1.2 I;\n{Abs[z], Arg[z]}",
+     "note": "{r, α} del punto (2.5, −1.2)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e12",
+    "kind": "code",
+    "title": "El punto M, en cartesianas y en polares",
+    "prompt": "Ya están definidas las gráficas `p` (cardioide ρ = 4 + 4·sen α) y `q` (parábola y = 4x − 2x²).\n\ne) Variando `PlotRange` en un `Show`, halla las coordenadas cartesianas del punto de corte del **cuarto cuadrante**, M, con tres decimales. Guárdalas en la lista `M`.\n\nf) Con `Abs` y `Arg` sobre un número complejo, calcula sus coordenadas polares y guárdalas en la lista `Mpolar` (primero r, después α).",
+    "difficulty": 4,
+    "cmds": [
+     "Show",
+     "PlotRange",
+     "Abs",
+     "Arg"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P3 e) y f)",
+    "setup": "p = PolarPlot[4 + 4 Sin[a], {a, -Pi, Pi}];\nq = Plot[4 x - 2 x^2, {x, -6, 6}];",
+    "solution": "Show[p, q, GridLines -> Automatic, PlotRange -> {{2.21, 2.22}, {-0.96, -0.95}}]\nM = {2.216, -0.957};\nz = M[[1]] + I M[[2]];\nMpolar = {Abs[z], Arg[z]}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "VectorQ[M, NumberQ] && Length[M] == 2 && 2.2145 <= M[[1]] <= 2.2175 && -0.9585 <= M[[2]] <= -0.9560",
+       "msg": "`M` debe ser `{x, y}` con tres decimales correctos: haz zoom cerca de x = 2.2, y = −0.96."
+      },
+      {
+       "type": "satisfies",
+       "test": "VectorQ[Mpolar, NumberQ] && Length[Mpolar] == 2 && Abs[Mpolar[[1]] - Abs[M[[1]] + I M[[2]]]] < 10^-6 && Abs[Mpolar[[2]] - Arg[M[[1]] + I M[[2]]]] < 10^-6",
+       "msg": "`Mpolar` debe ser `{Abs[z], Arg[z]}` con `z = M[[1]] + I M[[2]]`."
+      }
+     ]
+    },
+    "requires": [
+     "Abs",
+     "Arg"
+    ],
+    "hints": [
+     "Zoom: `Show[p, q, GridLines -> Automatic, PlotRange -> {{2.21, 2.22}, {-0.96, -0.95}}]`. Se lee M ≈ (2.216, −0.957).",
+     "`z = M[[1]] + I M[[2]];` y `Mpolar = {Abs[z], Arg[z]}`."
+    ],
+    "explain": "M ≈ (2.215, −0.957) y en polares (2.413, −0.408). Las casillas admitían x entre 2.215 y 2.216, y entre −0.958 y −0.957, r entre 2.412 y 2.415 y α entre −0.409 y −0.407."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Áreas en polares y recintos mixtos",
+   "md": "El área que barre una curva polar ρ(α) entre dos ángulos es\n\n(1/2) · integral de `ρ(α)^2` entre los dos ángulos.\n\nLa celda calcula así el área de la cardioide completa `2 + 2 Cos[a]`.\n\nCuando el recinto está limitado por una curva polar **y** una cartesiana (el último apartado de la prueba), se parte en dos trozos con la recta que une el origen O con el punto de corte M, y cada trozo se calcula en sus coordenadas:\n\n- el trozo entre la parábola y la recta OM, en **cartesianas**: integral de (parábola − recta) en x;\n- el sector de la cardioide entre el origen y M, en **polares**: (1/2) · integral de ρ² entre los dos ángulos.\n\nLa recta OM pasa por el origen y por M = (xM, yM): es y = (yM/xM)·x.",
+   "cells": [
+    {
+     "code": "(1/2) Integrate[(2 + 2 Cos[a])^2, {a, 0, 2 Pi}]",
+     "note": "área de una cardioide entera"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e13",
+    "kind": "code",
+    "title": "Un sector de la cardioide",
+    "prompt": "Ya está definida la cardioide `ro[a_] := 4 + 4 Sin[a]`. En α = −π/2 la curva pasa por el origen (ρ = 0) y en α = −0.40783 pasa por el punto M.\n\nCalcula el área del sector que barre la cardioide entre esos dos ángulos y guárdala en `sector`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "ro[a_] := 4 + 4 Sin[a]",
+    "solution": "sector = (1/2) Integrate[ro[a]^2, {a, -Pi/2, -0.40783}]",
+    "check": {
+     "type": "value",
+     "expr": "sector",
+     "expected": "0.7242138269",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`sector` no coincide: es (1/2) por la integral de `ro[a]^2` entre −π/2 y −0.40783."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Fórmula: `(1/2) Integrate[ro[a]^2, {a, ángulo1, ángulo2}]`.",
+     "`sector = (1/2) Integrate[ro[a]^2, {a, -Pi/2, -0.40783}]`"
+    ],
+    "explain": "Sale 0.7242. No olvides el 1/2 ni el cuadrado: son los dos despistes de las áreas en polares."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e14",
+    "kind": "code",
+    "title": "El área entre la cardioide y la parábola",
+    "prompt": "Ya están definidas la cardioide `ro[a_] := 4 + 4 Sin[a]`, la parábola `par[x_] := 4 x - 2 x^2` y el punto de corte `M = {2.215, -0.957}`, cuyo ángulo polar es `alfaM = -0.40783`.\n\ng) Calcula el área encerrada por las dos curvas y guárdala en `area`. Divide el recinto con la recta OM:\n\n- trozo 1 (cartesianas): entre la parábola y la recta OM, para x entre 0 y la x de M;\n- trozo 2 (polares): sector de la cardioide entre α = −π/2 y `alfaM`.",
+    "difficulty": 5,
+    "cmds": [
+     "Integrate",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P3 g)",
+    "setup": "ro[a_] := 4 + 4 Sin[a]\npar[x_] := 4 x - 2 x^2\nM = {2.215, -0.957}; alfaM = -0.40783;",
+    "solution": "m = M[[2]]/M[[1]];\nA1 = Integrate[par[x] - m x, {x, 0, M[[1]]}];\nA2 = (1/2) Integrate[ro[a]^2, {a, -Pi/2, alfaM}];\narea = A1 + A2",
+    "check": {
+     "type": "value",
+     "expr": "area",
+     "expected": "4.351682",
+     "compare": "numeric",
+     "tol": 0.004,
+     "msg": "`area` no coincide. Trozo 1: integral de `par[x] - m x` entre 0 y `M[[1]]`, con `m = M[[2]]/M[[1]]`. Trozo 2: `(1/2) Integrate[ro[a]^2, {a, -Pi/2, alfaM}]`."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Pendiente de la recta OM: `m = M[[2]]/M[[1]]`. Trozo 1: `A1 = Integrate[par[x] - m x, {x, 0, M[[1]]}]`.",
+     "Trozo 2: `A2 = (1/2) Integrate[ro[a]^2, {a, -Pi/2, alfaM}]`. Y `area = A1 + A2`."
+    ],
+    "explain": "A1 = 3.6275 y A2 = 0.7242: área ≈ 4.352 (la casilla admitía de 4.33 a 4.38). La recta OM separa lo que es cómodo en cartesianas de lo que es cómodo en polares: esa era la pista del enunciado."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e15",
+    "kind": "code",
+    "title": "El otro modelo: astroide y cicloide",
+    "prompt": "Segundo modelo de la prueba, con otros datos: astroide r1(t) = (3·cos³t, 3·sen³t) y cicloide r2(t) = (t − sen t, 1 − cos t). Los parámetros del corte son los mismos que antes y ya están definidos: `ta = 0.847049`, `tc = 1.836134`.\n\nCalcula la longitud del arco de astroide entre el corte y el vértice superior (t = π/2) y el área bajo la menor de las dos curvas hasta el eje OX (cicloide de 0 a `tc`, astroide de `ta` a 0). Devuelve la lista `{longitud, área}`.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate",
+     "Integrate",
+     "D"
+    ],
+    "real": true,
+    "source": "Práctica 13 (modelo 2) · P2 e) y g)",
+    "setup": "ta = 0.8470493823198697; tc = 1.8361338979917563;",
+    "solution": "long = NIntegrate[Sqrt[D[3 Cos[t]^3, t]^2 + D[3 Sin[t]^3, t]^2], {t, ta, Pi/2}];\nA1 = Integrate[(1 - Cos[t]) D[t - Sin[t], t], {t, 0, tc}];\nA2 = Integrate[(3 Sin[t]^3) D[3 Cos[t]^3, t], {t, ta, 0}];\n{long, A1 + A2}",
+    "check": {
+     "type": "expr",
+     "expected": "{1.973271966, 1.680259513}",
+     "compare": "numeric",
+     "tol": 0.0015
+    },
+    "requires": [
+     "NIntegrate",
+     "D"
+    ],
+    "hints": [
+     "Longitud: `NIntegrate[Sqrt[D[3 Cos[t]^3, t]^2 + D[3 Sin[t]^3, t]^2], {t, ta, Pi/2}]`.",
+     "Áreas: `Integrate[(1 - Cos[t]) D[t - Sin[t], t], {t, 0, tc}]` más `Integrate[(3 Sin[t]^3) D[3 Cos[t]^3, t], {t, ta, 0}]`."
+    ],
+    "explain": "Longitud = 1.9733 y área = 1.6803. Todo es la mitad de grande que en el modelo 1: la longitud se divide entre 2 y el área entre 4. Por eso los parámetros `ta` y `tc` no cambian."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e16",
+    "kind": "code",
+    "title": "El otro modelo: cardioide y parábola",
+    "prompt": "Segundo modelo: cardioide ρ = 3 + 3·sen(α) y parábola y = 9x − 4x². En la gráfica se lee el punto de corte del cuarto cuadrante M = (2.302, −0.505).\n\nCalcula las coordenadas polares de M y el área encerrada por las dos curvas (trozo cartesiano entre la parábola y la recta OM, más sector polar de la cardioide desde α = −π/2 hasta el ángulo de M). Devuelve la lista `{r, α, área}`.",
+    "difficulty": 5,
+    "cmds": [
+     "Abs",
+     "Arg",
+     "Integrate"
+    ],
+    "real": true,
+    "source": "Práctica 13 (modelo 2) · P3 f) y g)",
+    "solution": "z = 2.302 - 0.505 I;\nm = -0.505/2.302;\nA1 = Integrate[9 x - 4 x^2 - m x, {x, 0, 2.302}];\nA2 = (1/2) Integrate[(3 + 3 Sin[a])^2, {a, -Pi/2, Arg[z]}];\n{Abs[z], Arg[z], A1 + A2}",
+    "check": {
+     "type": "expr",
+     "expected": "{2.356741182, -0.2159535623, 8.987814592}",
+     "compare": "numeric",
+     "tol": 0.0006
+    },
+    "requires": [
+     "Abs",
+     "Arg",
+     "Integrate"
+    ],
+    "hints": [
+     "Polares: `z = 2.302 - 0.505 I` y `{Abs[z], Arg[z]}`. Recta OM: pendiente `m = -0.505/2.302`.",
+     "`A1 = Integrate[9 x - 4 x^2 - m x, {x, 0, 2.302}]`, `A2 = (1/2) Integrate[(3 + 3 Sin[a])^2, {a, -Pi/2, Arg[z]}]` y la lista `{Abs[z], Arg[z], A1 + A2}`."
+    ],
+    "explain": "M en polares: (2.3567, −0.2160); área ≈ 8.988 (la casilla admitía de 8.975 a 8.999). Mismo guion que el modelo 1: leer M, pasarlo a polares con un complejo, partir por la recta OM y sumar los dos trozos."
+   }
+  }
+ ]
+}

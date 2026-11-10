@@ -89,8 +89,16 @@ FromPolarCoordinates[{r_, t_}] := {r Cos[t], r Sin[t]};
 Convolve[f_, g_, x_, y_] := Integrate[(f /. x -> WLX`u) (g /. x -> y - WLX`u), {WLX`u, -Infinity, Infinity}];
 
 (* ---- calculus fixes ---- *)
-Solve[a_List == b_List, v_, o___] := Solve[Thread[a == b], v, o] /; Length[a] == Length[b];
-Solve[{a_List == b_List}, v_, o___] := Solve[Thread[a == b], v, o] /; Length[a] == Length[b];
+SetAttributes[C, NHoldAll];
+Unprotect[D];
+D[a_ == b_, x__] := D[a, x] == D[b, x];
+D[f_List, {v_List}] := Table[D[fi, vj], {fi, f}, {vj, v}] /; VectorQ[f, !ListQ[#] &];
+D[HoldPattern[Sum[f_, it__List]], x_Symbol] := Sum[D[f, x], it] /; FreeQ[{it}, x];
+D[HoldPattern[Sum[f_, it__List]], {x_Symbol, n_Integer}] := Sum[D[f, {x, n}], it] /; FreeQ[{it}, x];
+D[HoldPattern[Integrate[f_, {t_, a_, b_}]], x_Symbol] := (f /. t -> b) D[b, x] - (f /. t -> a) D[a, x] + Integrate[D[f, x], {t, a, b}] /; t =!= x;
+D[Erfi[u_], x_Symbol] := 2 E^(u^2)/Sqrt[Pi] D[u, x];
+Derivative[1][Erfi] = (2 E^(#^2)/Sqrt[Pi]) &;
+Protect[D];
 Series[f_, {x_Symbol, x0_, n_Integer}] /; WLX`SeriesQ[f, x, x0, n] := WLX`SeriesGet[];
 Integrate[f_, a_List, b__List] := Integrate[Integrate[f, b], a];
 Integrate[f_List, a__] := Integrate[#, a] & /@ f;

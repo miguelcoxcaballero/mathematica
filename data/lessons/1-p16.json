@@ -51,24 +51,28 @@
    "type": "exercise",
    "ex": {
     "id": "1-p16-e01",
-    "kind": "predict",
-    "title": "Rango a ojo",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "kind": "code",
+    "title": "Rango de dos vectores",
+    "prompt": "Calcula el rango de la familia formada por los vectores `(1, 2)` y `(2, 4)`.",
     "difficulty": 1,
     "cmds": [
      "MatrixRank"
     ],
     "real": false,
     "source": null,
-    "code": "MatrixRank[{{1, 2}, {2, 4}}]",
-    "options": [
-     "2",
-     "1",
-     "0",
-     "{1, 2}"
+    "solution": "MatrixRank[{{1, 2}, {2, 4}}]",
+    "check": {
+     "type": "expr",
+     "expected": "1"
+    },
+    "requires": [
+     "MatrixRank"
     ],
-    "answer": 1,
-    "explain": "La segunda fila es el doble de la primera: solo hay **un** vector independiente, así que el rango es 1."
+    "hints": [
+     "Una familia es una lista de listas: `{{1, 2}, {2, 4}}`.",
+     "`MatrixRank[{{1, 2}, {2, 4}}]`"
+    ],
+    "explain": "Sale 1: el segundo vector es el doble del primero, así que solo hay **un** vector independiente."
    }
   },
   {
@@ -110,10 +114,6 @@
      "note": "4 vectores de R³: rango 3"
     },
     {
-     "code": "Drop[G, {4}]",
-     "note": "G sin el 4º vector"
-    },
-    {
      "code": "MatrixRank[Drop[G, {4}]]",
      "note": "baja a 2: el 4º era imprescindible"
     },
@@ -127,9 +127,9 @@
    "type": "exercise",
    "ex": {
     "id": "1-p16-e03",
-    "kind": "fill",
+    "kind": "code",
     "title": "Quita el segundo",
-    "prompt": "`G` es la matriz de la celda anterior (4 vectores de R³). Completa para calcular el rango de la familia que queda al quitar **solo el 2º vector**.",
+    "prompt": "`G` ya está definida (los 4 vectores de R³ de la explicación). Calcula el rango de la familia que queda al quitar **solo el 2º vector**.",
     "difficulty": 1,
     "cmds": [
      "Drop",
@@ -138,20 +138,20 @@
     "real": false,
     "source": null,
     "setup": "G = {{1, 2, 3}, {0, 1, 1}, {1, 3, 4}, {0, 0, 1}};",
-    "template": "MatrixRank[__1__[G, __2__]]",
-    "blanks": [
-     [
-      "Drop"
-     ],
-     [
-      "{2}"
-     ]
-    ],
+    "solution": "MatrixRank[Drop[G, {2}]]",
     "check": {
      "type": "expr",
      "expected": "3"
     },
-    "explain": "`Drop[G, {2}]` quita solo el 2º. El rango sigue siendo 3: el 2º vector también era prescindible (se obtiene con el 1º y el 3º)."
+    "requires": [
+     "Drop",
+     "MatrixRank"
+    ],
+    "hints": [
+     "`Drop[G, {2}]` quita solo el 2º (con llaves).",
+     "`MatrixRank[Drop[G, {2}]]`"
+    ],
+    "explain": "El rango sigue siendo 3: el 2º vector también era prescindible (se obtiene con el 1º y el 3º)."
    }
   },
   {
@@ -422,28 +422,47 @@
    "type": "exercise",
    "ex": {
     "id": "1-p16-e09",
-    "kind": "order",
-    "title": "Receta del cambio de base",
-    "prompt": "Ordena las líneas para: definir las dos bases, calcular la matriz `M21` de cambio de coordenadas de `B2` a `B1` y aplicarla al vector `vB2` (coordenadas en `B2`).",
-    "difficulty": 2,
+    "kind": "code",
+    "title": "De una base a otra",
+    "prompt": "Están definidas las bases de R² `B1 = {{1, 1}, {1, -1}}` y `B2 = {{2, 1}, {1, 1}}` (vectores por filas).\n\nGuarda en `M21` la matriz de cambio de coordenadas de `B2` a `B1` y, en la última línea, aplícala al vector de coordenadas `{1, 2}` (coordenadas en `B2`).",
+    "difficulty": 3,
     "cmds": [
      "Transpose",
      "Inverse"
     ],
     "real": false,
     "source": null,
-    "lines": [
-     "B1 = {{1, 1}, {1, -1}}; B2 = {{2, 1}, {1, 1}};",
-     "B1C = Transpose[B1]; B2C = Transpose[B2];",
-     "M21 = Inverse[B1C].B2C;",
-     "vB2 = {1, 2};",
-     "vB1 = M21.vB2"
-    ],
+    "setup": "B1 = {{1, 1}, {1, -1}}; B2 = {{2, 1}, {1, 1}};",
+    "solution": "M21 = Inverse[Transpose[B1]].Transpose[B2];\nM21.{1, 2}",
     "check": {
-     "type": "expr",
-     "expected": "{7/2, 1/2}"
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "M21",
+       "expected": "{{3/2, 1}, {1/2, 0}}",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "`M21` debe ser `Inverse[Transpose[B1]].Transpose[B2]`."
+      },
+      {
+       "type": "expr",
+       "expected": "{7/2, 1/2}",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
     },
-    "explain": "Primero las bases, luego sus traspuestas (vectores en columnas), después `M21 = Inverse[B1C].B2C` y por último se aplica al vector. No puedes usar `B1C` antes de definirla."
+    "requires": [
+     "Transpose",
+     "Inverse"
+    ],
+    "hints": [
+     "B2 → canónica es `Transpose[B2]`; canónica → B1 es `Inverse[Transpose[B1]]`.",
+     "`M21 = Inverse[Transpose[B1]].Transpose[B2];`",
+     "Última línea: `M21.{1, 2}`."
+    ],
+    "explain": "`M21 = {{3/2, 1}, {1/2, 0}}` y el vector pasa a `(7/2, 1/2)`. Se lee de derecha a izquierda: primero B2 → canónica, luego canónica → B1."
    }
   },
   {
@@ -491,23 +510,29 @@
    "type": "exercise",
    "ex": {
     "id": "1-p16-e11",
-    "kind": "mcq",
-    "title": "Prueba real · elige la terna",
-    "prompt": "Con los rangos anteriores (`{3, 3, 3, 2}` al quitar a, b, c, d respectivamente), ¿cuál de estas ternas es linealmente **independiente**?",
+    "kind": "code",
+    "title": "Prueba real · comprueba dos ternas",
+    "prompt": "Con los mismos `a`, `b`, `c`, `d` (ya definidos), confirma la respuesta: devuelve la lista `{rango de {a, c, d}, rango de {a, b, c}}`.",
     "difficulty": 2,
     "cmds": [
      "MatrixRank"
     ],
     "real": true,
     "source": "Práctica 16 · P2 (ej1a)",
-    "options": [
-     "a, b, c",
-     "a, c, d",
-     "Ninguna: el rango de los cuatro es 3",
-     "Todas las ternas lo son"
+    "setup": "a = {-2, -1, 1, 3}; b = {4, -1, 3, 2}; c = {14, 1, 3, -5}; d = {1, 5, -2, 3};",
+    "solution": "{MatrixRank[{a, c, d}], MatrixRank[{a, b, c}]}",
+    "check": {
+     "type": "expr",
+     "expected": "{3, 2}"
+    },
+    "requires": [
+     "MatrixRank"
     ],
-    "answer": 1,
-    "explain": "`MatrixRank[Drop[G, {4}]]` = 2 dice que `a, b, c` solo generan dimensión 2. Cualquier terna con `d` y dos de los otros (como `a, c, d`) tiene rango 3."
+    "hints": [
+     "Cada terna es una matriz de tres filas: `{a, c, d}`.",
+     "`{MatrixRank[{a, c, d}], MatrixRank[{a, b, c}]}`"
+    ],
+    "explain": "`{3, 2}`: `a, c, d` son independientes; `a, b, c` no. Cualquier terna con `d` y dos de los otros vale como respuesta del examen."
    }
   },
   {

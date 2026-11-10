@@ -56,10 +56,20 @@ def _patch_builtin_errors():
     soft = (AttributeError, TypeError, KeyError, IndexError, NotImplementedError, ZeroDivisionError,
             AssertionError, OverflowError, ValueError)
 
+    from . import ext
+
+    budgets = ext.BUILTIN_BUDGETS
+
     def apply_function(self, expression, vars, options, evaluation):
         prev = evaluation.current_expression
         try:
-            return orig(self, expression, vars, options, evaluation)
+            b = budgets.get(self.name)
+            if b is None:
+                return orig(self, expression, vars, options, evaluation)
+            if ext.SKIP_ONCE.pop(self.name, None):
+                return expression       # our own attempt already ran out of time
+            with ext.budget(b):
+                return orig(self, expression, vars, options, evaluation)
         except soft as exc:
             if isinstance(exc, ValueError) and "outrageous" in str(exc):
                 raise
@@ -73,6 +83,69 @@ def _patch_builtin_errors():
             raise
 
     FunctionApplyRule.apply_function = apply_function
+    _patch_symbol_iteration()
+    _patch_nvalues()
+
+
+def _patch_nvalues():
+    """N[x^2] must stay x^2 (Mathics gives x^2. and then Coefficient/Exponent/patterns fail):
+    integer exponents of non-numeric bases are not numericized, as in Mathematica."""
+    import sys
+
+    import mathics.eval.nevaluator as nev
+    from mathics.core.atoms import Integer
+    from mathics.core.expression import Expression
+    from mathics.core.systemsymbols import SymbolPower
+
+    orig = nev.eval_NValues
+    if getattr(orig, "_wlx", False):
+        return
+
+    def eval_NValues(expr, prec, evaluation):
+        if isinstance(expr, Expression) and expr.head is SymbolPower and len(expr.elements) == 2:
+            base, expo = expr.elements
+            if isinstance(expo, Integer) and not base.is_numeric(evaluation):
+                nb = eval_NValues(base, prec, evaluation)
+                return Expression(SymbolPower, base if nb is None else nb, expo)
+        return orig(expr, prec, evaluation)
+
+    eval_NValues._wlx = True
+    for mod in list(sys.modules.values()):
+        try:
+            if mod is not None and getattr(mod, "eval_NValues", None) is orig:
+                mod.eval_NValues = eval_NValues
+        except Exception:
+            pass
+
+
+def _patch_symbol_iteration():
+    """Mathics counts EVERY evaluation of a symbol with a non-literal value against $IterationLimit,
+    cumulatively for the whole line, so any long Table/Sum/Do using such a variable aborted silently
+    after 4096 uses. Count nesting depth instead (what the limit is meant to catch: x = x + 1)."""
+    import sys
+
+    from mathics.core.symbols import Symbol
+    from mathics.core.systemsymbols import SymbolAborted
+
+    def evaluate(self, evaluation):
+        rules = evaluation.definitions.get_ownvalues(self.name)
+        for rule in rules:
+            result = rule.apply(self, evaluation, fully=True)
+            if result is not None and not result.sameQ(self):
+                if result.is_literal:
+                    return result
+                limit = evaluation.definitions.get_config_value("$IterationLimit") or sys.maxsize
+                if limit != sys.maxsize and evaluation.iteration_count > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    return SymbolAborted
+                evaluation.iteration_count += 1
+                try:
+                    return result.evaluate(evaluation)
+                finally:
+                    evaluation.iteration_count -= 1
+        return self
+
+    Symbol.evaluate = evaluate
 
 
 class Kernel:
@@ -92,6 +165,9 @@ class Kernel:
 
         ext.install(self)
         self._guard_lookup()
+        self._clear_history()
+        self._snapshot_system()
+        self.ev.predetermined_out = None
 
     def _guard_lookup(self):
         """Mathics sometimes leaks stray System` symbols (e.g. evaluating y''[t] creates System`t),
@@ -124,7 +200,6 @@ class Kernel:
 
         def check_stopped():
             if kernel._deadline is not None and time.time() > kernel._deadline:
-                kernel._deadline = None
                 raise Deadline()
             if ev.stopped:
                 from mathics.core.interrupt import TimeoutInterrupt
@@ -150,7 +225,10 @@ class Kernel:
         if e is None:
             return None
         self.ev.stopped = False
-        return e.evaluate(self.ev)
+        try:
+            return e.evaluate(self.ev)
+        finally:
+            self.ev.predetermined_out = None
 
     def to_text(self, expr, form="InputForm"):
         from mathics.core.expression import Expression
@@ -202,6 +280,37 @@ class Kernel:
         self.ev.out = []
         return msgs
 
+    def _begin_eval(self):
+        from . import ext
+
+        ext.SKIP_ONCE.clear()
+        ext._BUDGET[0] = None
+        # Mathics bug: ANY nested `a; b;` (function bodies, prelude, checker code...) leaves
+        # evaluation.predetermined_out set and the next line stores it as its Out[n].
+        self.ev.predetermined_out = None
+
+    def _fix_out(self, query, res, line):
+        """Out[n] must be the value of line n (Mathics may have stored a stale `predetermined_out`).
+        Only a top-level `a; b;` keeps Mathematica's rule (Out[n] = value of b)."""
+        from mathics.core.expression import Expression
+        from mathics.core.atoms import Integer
+        from mathics.core.rules import Rule
+        from mathics.core.symbols import Symbol, SymbolNull
+
+        self.ev.predetermined_out = None
+        try:
+            last = res.last_eval if res is not None else None
+            if last is None:
+                return
+            top_compound = query.get_head_name() == "System`CompoundExpression" and query.elements and \
+                query.elements[-1] is SymbolNull
+            if top_compound and last is SymbolNull:
+                return
+            stored = self.ev.get_stored_result(last, self.defs.outputforms)
+            self.defs.add_rule("Out", Rule(Expression(Symbol("System`Out"), Integer(line)), stored))
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------- run
     def run_cell(self, code):
         """Evaluate a notebook cell. Returns dict with a list of items in order."""
@@ -226,10 +335,15 @@ class Kernel:
                 continue
             self._deadline = time.time() + self.time_limit
             try:
+                self._begin_eval()
                 res = self.ev.evaluate(query, format="unformatted")
                 self.ev.stopped = False
+                if res is not None and getattr(res, "out", None):
+                    # Mathics hands the messages/prints of the line over to the Result object
+                    self.ev.out = list(res.out) + list(self.ev.out or [])
                 items.extend(self._drain_messages())
                 line = self.defs.get_line_no()
+                self._fix_out(query, res, line)
                 if first_line is None:
                     first_line = line
                 last_line = line
@@ -240,6 +354,7 @@ class Kernel:
                     item["line"] = line
                     items.append(item)
             except Deadline:
+                self._deadline = None
                 items.extend(self._drain_messages())
                 items.append({"kind": "message", "symbol": "General", "tag": "time",
                               "text": "Cálculo abortado: superó %d s." % int(self.time_limit)})
@@ -268,6 +383,9 @@ class Kernel:
 
         try:
             return json.dumps(checker.check(self, json.loads(spec_json)))
+        except Deadline:
+            self._deadline = None
+            return json.dumps({"ok": False, "feedback": "La comprobación tardó demasiado.", "items": []})
         except Exception as exc:
             return json.dumps({"ok": False, "error": "%s: %s" % (type(exc).__name__, exc),
                                "trace": traceback.format_exc()[-1200:]})
@@ -277,11 +395,70 @@ class Kernel:
 
         try:
             return json.dumps(gfx.manipulate_eval(self, int(mid), json.loads(values_json)))
+        except Deadline:
+            self._deadline = None
+            return json.dumps({"items": [{"kind": "message", "symbol": "Manipulate", "tag": "time",
+                                          "text": "Evaluación demasiado lenta."}]})
         except Exception as exc:
             return json.dumps({"items": [{"kind": "message", "symbol": "Manipulate", "tag": "err",
                                           "text": "%s: %s" % (type(exc).__name__, exc)}]})
 
+    def _snapshot_system(self):
+        """Remember the user-level rules that the prelude attached to System`/WLX` symbols."""
+        import copy
+
+        snap = {}
+        for name, d in self.defs.user.items():
+            if not name.startswith("Global`"):
+                snap[name] = copy.copy(d.__dict__)
+                for key, val in list(snap[name].items()):
+                    if isinstance(val, (list, dict, set)):
+                        snap[name][key] = copy.copy(val)
+        self._sys_snapshot = snap
+
+    def _restore_system(self):
+        """Undo what the user attached to System` symbols (y'[x] = ..., Unprotect[Sin]; Sin[7] = 2 ...)."""
+        import copy
+
+        snap = getattr(self, "_sys_snapshot", None)
+        if snap is None:
+            return
+        user = self.defs.user
+        changed = False
+        for name in list(user.keys()):
+            if name.startswith("Global`") or name in ("System`Out", "System`In", "System`$Line"):
+                continue
+            if name not in snap:
+                if name.startswith("System`") or name.startswith("WLX`"):
+                    del user[name]
+                    changed = True
+                continue
+            d = user[name]
+            for key, val in snap[name].items():
+                cur = d.__dict__.get(key)
+                if isinstance(val, (list, dict, set)):
+                    if cur != val:
+                        d.__dict__[key] = copy.copy(val)
+                        changed = True
+                elif cur is not val and cur != val:
+                    d.__dict__[key] = val
+                    changed = True
+        if changed:
+            self.defs.clear_cache()
+
     def reset_user(self):
         """Clear all Global` definitions (like Quit kernel but fast)."""
         self.eval_code('ClearAll["Global`*"]')
+        self._restore_system()
+        self._clear_history()
+        self.ev.predetermined_out = None
+
+    def _clear_history(self):
+        """Forget In/Out so that % and Out[n] never return values from before a reset (or from the prelude)."""
+        try:
+            self.eval_code('Unprotect[Out, In]; Clear[Out, In]; Protect[Out, In];')
+        except Exception:
+            pass
+        self.ev.out = []
+        self.ev.stopped = False
         self.defs.set_line_no(0)

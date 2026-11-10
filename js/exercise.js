@@ -1,13 +1,17 @@
 // exercise.js (LEARN) — the exercise widget used by lessons, practice sessions and command pages.
-//   mountExercise(container, ex, {onDone(result), mode:'lesson'|'practice'|'exam', seed?, year?, lesson?, hotkeys?})
+//   mountExercise(container, ex, {onDone(result), mode:'lesson'|'practice'|'exam', seed?, year?, lesson?, noTitle?})
 //   → {destroy(), el, focus(), check()}
+// SPEC §11 (typing-only): the student always types the whole code. An exercise is an EMPTY cell + "Comprobar";
+// the old test-like kinds are converted at runtime (predict → ghost cell to type; fill/order → code exercise with the
+// template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
+//   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
 import { kernel } from './kernel-client.js';
-import { createCell, renderItems } from './notebook.js';
+import { createCell } from './notebook.js';
 import { store } from './store.js';
 import * as fx from './fx.js';
 
-const { sfx, confetti, toast, xpFloat } = fx;
+const { sfx, xpFloat } = fx;
 
 /* ============================================================ helpers (shared with the LEARN views) */
 export function ensureCss() {
@@ -272,9 +276,124 @@ export function diagnose(code, ex) {
   return tips.slice(0, 2);
 }
 
-const KIND_LABEL = { code: 'Escribe el código', fix: 'Arregla el error', fill: 'Rellena los huecos', order: 'Ordena las líneas', mcq: 'Elige la correcta', predict: 'Predice la salida' };
-const OK_MSGS = ['¡Correcto!', '¡Bien hecho!', '¡Eso es!', '¡Perfecto!', '¡Exacto!', '¡Lo tienes!'];
-const norm = (s) => String(s ?? '').replace(/\s+/g, '').replace(/\*/g, '');
+const KIND_LABEL = { code: 'Escribe el código', fix: 'Corrige y reescribe', fill: 'Escribe la línea completa', order: 'Escribe las líneas en orden', predict: 'Teclea y observa', mcq: 'Nota' };
+const OK_MSGS = ['Correcto.', 'Bien hecho.', 'Eso es.', 'Perfecto.', 'Exacto.'];
+const squash = (s) => String(s ?? '').replace(/\s+/g, '');
+
+/* ============================================================ ghost cells (SPEC §11: everything is typed) */
+/** Does notebook.js implement ghost mode (opts.ghost / cell.isComplete)? If not, a gray reference line is shown above an empty cell. */
+export function ghostSupported(cell) { return !!cell && typeof cell.isComplete === 'function'; }
+
+/**
+ * A cell whose code the student must type character by character.
+ *   mountGhost(host, code, { onDone(result), onTyped(), before(): Promise, evaluate(code): Promise<result> })
+ * `before` runs (inside the kernel lock) right before each evaluation; `evaluate` replaces the plain cell.run().
+ * → { cell, el, isDone(), isTyped(), run(), focus(), destroy() }
+ */
+export function mountGhost(host, code, opts = {}) {
+  ensureCss();
+  const wrap = h('div', { class: 'lx-ghost' });
+  host.appendChild(wrap);
+  const msg = h('div', { class: 'lx-ghost-msg', hidden: true, 'aria-live': 'polite' });
+  let done = false, destroyed = false, busy = false, cell = null, refEl = null;
+  const finish = (result) => {
+    if (done || destroyed) return;
+    done = true; wrap.classList.add('is-done');
+    safe(() => opts.onDone && opts.onDone(result));
+  };
+  const typed = () => { wrap.classList.add('is-typed'); msg.hidden = true; safe(() => opts.onTyped && opts.onTyped()); };
+  try {
+    cell = createCell(wrap, {
+      ghost: code, placeholder: '',
+      onProgress: (p) => safe(() => opts.onProgress && opts.onProgress(p)),
+      onComplete: typed,
+      onResult: (c, result) => { if (!opts.evaluate && matches()) finish(result); },
+    });
+  } catch (e) { console.error('[learn] createCell', e); wrap.appendChild(codeBlock(code)); }
+  const native = ghostSupported(cell);
+  const matches = () => (!cell ? false : native ? !!cell.isComplete() : squash(cell.getCode()) === squash(code));
+  if (cell && !native) {
+    // fallback while notebook.js has no ghost mode: the reference goes in gray right above, and darkens as it is typed
+    wrap.classList.add('lx-ghost--ref');
+    refEl = h('pre', { class: 'lx-ghostref', title: 'Teclea esta línea en la celda de abajo' });
+    const paint = () => {
+      const t = squash(cell.getCode()); let i = 0, k = 0;
+      while (k < code.length && i < t.length) { if (/\s/.test(code[k])) { k++; continue; } if (code[k] !== t[i]) break; i++; k++; }
+      refEl.replaceChildren(h('span', { class: 'is-typed' }, code.slice(0, k)), h('span', null, code.slice(k)));
+      if (squash(code) === t && !wrap.classList.contains('is-typed')) typed();
+      else if (squash(code) !== t) wrap.classList.remove('is-typed');
+    };
+    paint();
+    wrap.insertBefore(refEl, wrap.firstChild);
+    wrap.addEventListener('input', paint, true);
+    wrap.addEventListener('paste', (e) => e.preventDefault(), true);
+    wrap.addEventListener('drop', (e) => e.preventDefault(), true);
+  }
+  wrap.appendChild(msg);
+  const run = () => {
+    if (busy || destroyed || !cell) return Promise.resolve(null);
+    if (!matches()) {
+      msg.hidden = false;
+      msg.textContent = 'Todavía no está completa: teclea la línea tal como aparece en gris.';
+      wrap.classList.remove('lx-nudge'); void wrap.offsetWidth; wrap.classList.add('lx-nudge');
+      return Promise.resolve(null);
+    }
+    msg.hidden = true;
+    busy = true; wrap.classList.add('is-busy');
+    return exclusive(async () => {
+      if (destroyed) return null;
+      if (opts.before) await opts.before();
+      if (opts.evaluate) {
+        const result = await opts.evaluate(cell.getCode());
+        if (!destroyed && result) { safe(() => cell.showResult(result)); finish(result); }
+        return result;
+      }
+      return cell.run();
+    }).catch((e) => { console.warn('[learn] ghost run', e); return null; }).finally(() => { busy = false; wrap.classList.remove('is-busy'); });
+  };
+  // every evaluation request goes through run(): completeness check + kernel priming
+  wrap.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); run(); } }, true);
+  wrap.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('.wl-run')) { e.preventDefault(); e.stopPropagation(); run(); } }, true);
+  return {
+    cell, el: wrap, run,
+    isDone: () => done,
+    isTyped: matches,
+    focus: () => cell && safe(() => cell.focus()),
+    destroy() { destroyed = true; if (cell && cell.destroy) safe(() => cell.destroy()); wrap.remove(); },
+  };
+}
+
+/* ============================================================ runtime conversion of the old test-like kinds */
+/** What the student sees for each kind (SPEC §11): 'code' (empty cell + check), 'ghost' (type & observe) or 'note'. */
+export function exerciseMode(ex) {
+  const k = ex && ex.kind;
+  if (k === 'predict') return ex.code ? 'ghost' : 'note';
+  if (k === 'mcq') return 'note';
+  return 'code';
+}
+/** Is it a real exercise (something to solve and check)? Notes and type-and-observe steps are not. */
+export function isPractice(ex) { return exerciseMode(ex) === 'code'; }
+
+function fillBlanks(ex) { return (ex.blanks || []).map((b) => (Array.isArray(b) ? b : [b])); }
+function fillWith(ex, vals) { return String(ex.template || '').replace(/__(\d+)__/g, (m, n) => vals[+n - 1] ?? ''); }
+export function solutionOf(ex) {
+  if (ex.kind === 'order') return (ex.lines || []).join('\n');
+  if (ex.kind === 'fill') return ex.solution || fillWith(ex, fillBlanks(ex).map((b) => b[0]));
+  if (ex.kind === 'predict') return ex.code || '';
+  return ex.solution || '';
+}
+/** Accepts a typed answer without the kernel (only for fill/order exercises that have no `check`). */
+function localAccept(ex, code) {
+  const t = squash(code);
+  if (ex.kind === 'order') return t === squash((ex.lines || []).join('\n'));
+  if (ex.kind === 'fill') {
+    const blanks = fillBlanks(ex);
+    let combos = [[]];
+    for (const alts of blanks) { const next = []; for (const c of combos) for (const a of alts) { if (next.length < 256) next.push([...c, a]); } combos = next; }
+    return combos.some((vals) => squash(fillWith(ex, vals)) === t) || (!!ex.solution && squash(ex.solution) === t);
+  }
+  return t === squash(ex.solution || '');
+}
 
 /* ============================================================ the widget */
 export function mountExercise(container, exRaw, opts = {}) {
@@ -295,29 +414,29 @@ export function mountExercise(container, exRaw, opts = {}) {
     root.innerHTML = '';
     const ex = instantiate(exRaw, seed);
     const kind = ex.kind;
+    const view = exerciseMode(ex);
     const rnd = rng(seed ^ 0x5bd1e995);
     const yr = opts.year || yearOf(opts.lesson) || yearOf(ex);
     const prior = exStatus(ex.id);
     const st = { fails: 0, hints: 0, done: false, revealed: false, busy: false, t0: Date.now(), reported: false };
-    const needsKernel = kind === 'code' || kind === 'fix' || (kind === 'fill' && !!ex.check) || false;
 
-    root.className = `ex ex--${kind}${ex.real ? ' ex--real' : ''} ex--${mode}`;
+    root.className = `ex ex--${kind} ex--v-${view}${ex.real ? ' ex--real' : ''} ex--${mode}`;
     root.dataset.state = 'idle';
     root.dataset.exId = ex.id || '';
     if (yr) root.dataset.year = yr;
 
-    /* ---------- header ---------- */
+    /* ---------- header: one discreet meta line + title + prompt ---------- */
     const xpChip = h('span', { class: 'ex-xp', title: 'XP que ganarás si lo resuelves ahora' });
     const statusBadge = h('span', { class: 'ex-prior' });
     const setPrior = (s) => {
       statusBadge.className = 'ex-prior';
-      if (s === 'ok') { statusBadge.className = 'ex-prior badge ok'; statusBadge.textContent = '✓ resuelto'; }
-      else if (s === 'review') { statusBadge.className = 'ex-prior badge real'; statusBadge.textContent = '↻ repetir'; statusBadge.title = 'Viste la solución: resuélvelo tú para dominarlo'; }
+      if (s === 'ok') { statusBadge.className = 'ex-prior badge ok'; statusBadge.textContent = 'resuelto'; }
+      else if (s === 'review') { statusBadge.className = 'ex-prior badge real'; statusBadge.textContent = 'repetir'; statusBadge.title = 'Viste la solución: resuélvelo tú para dominarlo'; }
       else statusBadge.textContent = '';
     };
-    setPrior(prior);
+    setPrior(view === 'code' ? prior : 'todo');
     const updXp = () => {
-      if (isExam) { xpChip.hidden = true; return; }
+      if (isExam || view !== 'code') { xpChip.hidden = true; return; }
       const already = safe(() => store.exercise(ex.id), null);
       if (already && already.ok) { xpChip.textContent = 'repaso'; xpChip.classList.add('is-zero'); return; }
       xpChip.textContent = `+${xpFor(ex, st)} XP`;
@@ -325,171 +444,21 @@ export function mountExercise(container, exRaw, opts = {}) {
     updXp();
     const badges = h('div', { class: 'ex-badges' },
       yearBadge(yr),
-      ex.real ? h('span', { class: 'badge real', title: 'Ejercicio real de práctica o examen' }, ex.source ? `REAL · ${ex.source}` : 'REAL') : null,
       h('span', { class: 'ex-kind' }, KIND_LABEL[kind] || kind),
-      diffDots(ex.difficulty),
+      view === 'code' ? diffDots(ex.difficulty) : null,
+      ex.real ? h('span', { class: 'badge real', title: 'Ejercicio real de práctica o examen' }, ex.source ? `Real · ${ex.source}` : 'Real') : null,
       statusBadge,
       h('span', { class: 'ex-spacer' }),
       xpChip);
     const cmds = h('div', { class: 'ex-cmds' }, (ex.cmds || []).map(cmdChip));
-    root.appendChild(h('header', { class: 'ex-head' }, badges,
-      ex.title ? h('h3', { class: 'ex-title' }, ex.title) : null));
-    root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || '') }));
+    if (!opts.noHead) root.appendChild(h('header', { class: 'ex-head' }, badges, ex.title && !opts.noTitle ? h('h3', { class: 'ex-title' }, ex.title) : null));
+    else root.appendChild(h('header', { class: 'ex-head' }, badges));
 
     const body = h('div', { class: 'ex-body' });
     const actions = h('div', { class: 'ex-actions' });
     const hintsBox = h('div', { class: 'ex-hints' });
     const fb = h('div', { class: 'ex-feedback', 'aria-live': 'polite' });
-    root.append(body, actions, hintsBox, fb);
-    if ((ex.cmds || []).length) root.appendChild(h('footer', { class: 'ex-foot' }, h('span', { class: 'ex-foot-l' }, 'Practicas:'), cmds));
-
-    /* ---------- shared actions ---------- */
-    const btnCheck = h('button', { class: 'btn primary ex-check', type: 'button' }, 'Comprobar');
-    const btnHint = h('button', { class: 'btn ghost ex-hint', type: 'button' });
-    const btnSol = h('button', { class: 'btn ghost ex-sol', type: 'button', hidden: true }, 'Ver solución');
-    const btnReset = h('button', { class: 'btn ghost ex-reset', type: 'button', title: 'Volver al código inicial' }, '↺ Reiniciar');
-    const btnVariant = h('button', { class: 'btn ghost ex-variant', type: 'button', hidden: true, title: 'Mismos pasos, otros números' }, '↻ Otra variante');
-    const kbd = h('span', { class: 'ex-kbd muted' });
-    const hints = Array.isArray(ex.hints) ? ex.hints.filter(Boolean) : [];
-    const updHintBtn = () => {
-      if (isExam || !hints.length) { btnHint.hidden = true; return; }
-      const left = hints.length - st.hints;
-      btnHint.hidden = st.done;
-      btnHint.disabled = left <= 0;
-      btnHint.innerHTML = left > 0 ? `💡 Pista <small>${st.hints + 1}/${hints.length}</small>` : '💡 Sin más pistas';
-      btnHint.title = left > 0 ? 'Cada pista resta un poco de XP' : '';
-    };
-    updHintBtn();
-    btnHint.addEventListener('click', () => {
-      if (st.hints >= hints.length || st.done) return;
-      const i = st.hints++;
-      play('click');
-      const el = h('div', { class: 'ex-hintitem' }, h('span', { class: 'ex-hint-n' }, `Pista ${i + 1}`), h('div', { class: 'lx-md', html: md(hints[i]) }));
-      hintsBox.appendChild(el);
-      updHintBtn(); updXp();
-      // once every hint is spent, the solution becomes available (no dead ends)
-      if (st.hints >= hints.length && st.fails >= 1) offerSolution();
-    });
-    btnSol.addEventListener('click', () => reveal());
-    btnVariant.addEventListener('click', () => { seed = newSeed(); play('click'); build(); });
-
-    function offerSolution() {
-      if (isExam || st.done || st.revealed || !btnSol.hidden) return;
-      btnSol.hidden = false;
-      btnSol.classList.add('lx-pop');
-    }
-
-    /* ---------- feedback ---------- */
-    function showFail(res, code) {
-      st.fails++;
-      root.dataset.state = 'fail';
-      root.classList.remove('lx-shake'); void root.offsetWidth; root.classList.add('lx-shake');
-      play('fail');
-      if (!isExam) combo = 0;
-      safe(() => store.markExercise(ex.id, { ok: false, cmds: ex.cmds || [], xp: 0 }));
-      fb.innerHTML = '';
-      const box = h('div', { class: 'ex-fb ex-fb--bad' });
-      box.appendChild(h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✗'), h('div', { class: 'lx-md', html: mdInline((res && res.feedback) || 'Todavía no es correcto.') })));
-      if (!isExam && res && (res.got != null || res.expected != null) && (res.got || res.expected)) {
-        const diff = h('div', { class: 'ex-diff' });
-        if (res.got != null && res.got !== '') diff.append(h('span', { class: 'ex-diff-l' }, 'Tu resultado'), h('code', { class: 'ex-diff-v got' }, String(res.got)));
-        if (res.expected != null && res.expected !== '') diff.append(h('span', { class: 'ex-diff-l' }, 'Se esperaba'), h('code', { class: 'ex-diff-v exp' }, String(res.expected)));
-        box.appendChild(diff);
-      }
-      if (!isExam && code != null) {
-        const tips = diagnose(code, ex);
-        if (tips.length) box.appendChild(h('ul', { class: 'ex-tips' }, tips.map((t) => h('li', { html: '<b>Posible causa:</b> ' + mdInline(t) }))));
-      }
-      if (!isExam) {
-        const left = hints.length - st.hints;
-        const nudge = st.fails >= 3 ? 'Llevas varios intentos: puedes ver la solución y repetirlo más tarde.' : left > 0 ? `Intento ${st.fails}. Si te atascas, pide una pista.` : `Intento ${st.fails}. Revisa el enunciado con calma.`;
-        box.appendChild(h('div', { class: 'ex-fb-sub muted' }, nudge));
-      }
-      fb.appendChild(box);
-      if (st.fails >= 3 || (st.fails >= 1 && hints.length && st.hints >= hints.length)) offerSolution();
-      updXp();
-      if (isExam) report({ ok: false });
-    }
-
-    function showInfo(msg) {
-      fb.innerHTML = '';
-      fb.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, 'i'), h('div', { class: 'lx-md', html: mdInline(msg) }))));
-      root.classList.remove('lx-nudge'); void root.offsetWidth; root.classList.add('lx-nudge');
-    }
-
-    function showOk(extraNode) {
-      const dry = st.revealed;
-      st.done = true;
-      root.dataset.state = 'ok';
-      const firstTry = st.fails === 0 && st.hints === 0 && !dry;
-      let gained = 0, r = null;
-      if (!dry && !isExam) {
-        const xp = xpFor(ex, st);
-        r = safe(() => store.markExercise(ex.id, { ok: true, cmds: ex.cmds || [], xp }), null);
-        gained = r && typeof r.xp === 'number' ? r.xp : 0;
-        setReview(ex.id, false);
-        combo = firstTry ? combo + 1 : 0;
-      }
-      play('ok');
-      const big = (ex.difficulty || 1) >= 4 || !!ex.real;
-      if (!isExam) {
-        safe(() => confetti({ el: btnCheck.isConnected && !btnCheck.hidden ? btnCheck : root, count: big ? 150 : 36, power: big ? 1.1 : 0.7, spread: big ? Math.PI * 1.2 : Math.PI * 0.8 }));
-        if (gained > 0) safe(() => xpFloat(xpChip, gained));
-        if (combo >= 3 && firstTry) setTimeout(() => play('combo', { n: combo }), 260);
-      }
-      fb.innerHTML = '';
-      const box = h('div', { class: 'ex-fb ex-fb--ok' });
-      const head = h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'),
-        h('strong', null, dry ? 'Ahora sí. Volverá a salir en la práctica para que lo hagas sin mirar.' : OK_MSGS[Math.floor(Math.random() * OK_MSGS.length)]));
-      if (gained > 0) head.appendChild(h('span', { class: 'ex-gain' }, `+${gained} XP`));
-      if (!dry && !isExam && combo >= 2 && firstTry) head.appendChild(h('span', { class: 'ex-combo' }, `🔥 Combo ×${combo}`));
-      if (!dry && firstTry && !isExam) head.appendChild(h('span', { class: 'ex-first' }, 'a la primera'));
-      box.appendChild(head);
-      if (ex.explain && !isExam) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
-      if (extraNode) box.appendChild(extraNode);
-      fb.appendChild(box);
-      btnCheck.hidden = true; btnSol.hidden = true; btnHint.hidden = true;
-      if (exRaw.params && !isExam) btnVariant.hidden = false;
-      setPrior(dry ? 'review' : 'ok');
-      xpChip.classList.add('is-zero'); xpChip.textContent = gained > 0 ? `+${gained} XP` : dry ? 'sin XP' : 'repaso';
-      for (const c of cmds.querySelectorAll('.chip')) { const lv = safe(() => store.cmdLevel(c.dataset.cmd), 0) || 0; c.className = `chip l${lv}`; }
-      report({ ok: !dry, firstTry, xp: gained, leveledUp: !!(r && r.leveledUp), level: r && r.level });
-    }
-
-    function reveal() {
-      if (st.done || st.revealed || isExam) return;
-      st.revealed = true;
-      root.dataset.state = 'revealed';
-      play('click');
-      setReview(ex.id, true);
-      combo = 0;
-      btnSol.hidden = true; btnHint.hidden = true;
-      const box = h('div', { class: 'ex-fb ex-fb--sol' });
-      box.appendChild(h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '👁'), h('strong', null, 'Solución'), h('span', { class: 'badge real' }, 'visto · repetir más tarde')));
-      const sol = solutionText();
-      if (sol.code) {
-        const pre = codeBlock(sol.code, 'ex-solcode');
-        box.appendChild(pre);
-        if (api && api.applySolution) {
-          box.appendChild(h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => { api.applySolution(sol.code); play('click'); } }, kind === 'order' ? 'Colocar en orden' : 'Copiar a mi celda')));
-        }
-      } else if (sol.text) box.appendChild(h('div', { class: 'lx-md', html: md(sol.text) }));
-      if (ex.explain) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
-      box.appendChild(h('div', { class: 'ex-fb-sub muted' }, CHOICE.has(kind) ? 'No suma XP. Te volverá a salir en la práctica.' : 'No suma XP. Escríbela tú y compruébala: así se queda. Te volverá a salir en la práctica.'));
-      fb.innerHTML = ''; fb.appendChild(box);
-      setPrior('review');
-      xpChip.classList.add('is-zero'); xpChip.textContent = 'sin XP';
-      if (api && api.onReveal) api.onReveal();
-      report({ ok: false, revealed: true });
-    }
-
-    function solutionText() {
-      if (kind === 'mcq' || kind === 'predict') return { text: `La respuesta correcta es: ${(ex.options || [])[ex.answer] ?? '—'}` };
-      if (kind === 'order') return { code: (ex.lines || []).join('\n') };
-      if (kind === 'fill') return { code: ex.solution || fillTemplate((ex.blanks || []).map((b) => (Array.isArray(b) ? b[0] : b))) };
-      return { code: ex.solution || '' };
-    }
-    function fillTemplate(vals) { return String(ex.template || '').replace(/__(\d+)__/g, (m, n) => vals[+n - 1] ?? ''); }
+    const foot = (ex.cmds || []).length ? h('footer', { class: 'ex-foot' }, h('span', { class: 'ex-foot-l' }, 'Comandos:'), cmds) : null;
 
     function report(extra) {
       if (!isExam && st.reported) return;
@@ -497,28 +466,129 @@ export function mountExercise(container, exRaw, opts = {}) {
       const result = { id: ex.id, ok: false, revealed: false, firstTry: false, xp: 0, tries: st.fails + (extra.ok ? 1 : 0), fails: st.fails, hints: st.hints, ms: Date.now() - st.t0, cmds: ex.cmds || [], combo, ...extra };
       safe(() => opts.onDone && opts.onDone(result));
     }
-
-    /* ---------- kernel-backed check ---------- */
-    let pill = null;
-    function wireKernelGate(button, label) {
-      pill = kernelPill();
-      cleanup.push(pill.destroy);
-      const off = watchKernel((status) => {
-        if (st.done && button === btnCheck) return;
-        const ok = status === 'ready' || status === 'busy';
-        button.disabled = !ok || st.busy;
-        button.classList.toggle('is-waiting', !ok);
-        if (!st.busy) button.textContent = label;
-      });
-      cleanup.push(off);
+    // clean session + hidden setup, so that what the student evaluates sees the exercise's data
+    const prime = async () => { await kernel.reset(); if (ex.setup) await kernel.run(ex.setup); };
+    function primeWhenReady() {
+      const run = () => { if (destroyed || st.busy) return; exclusive(async () => { if (!destroyed) await prime(); }).catch(() => {}); };
+      if (kernelReady()) run();
+      else { let fired = false; const off = watchKernel((s) => { if (!fired && s === 'ready') { fired = true; setTimeout(() => { off(); run(); }, 0); } }); cleanup.push(off); }
       if (kernel.status === 'idle') startKernel();
-      return pill.el;
     }
-    async function kernelCheck(code, button, label) {
-      if (st.busy) return null;
+    const refBlock = (label, node, cls = '') => h('div', { class: `ex-ref ${cls}`.trim() }, h('div', { class: 'ex-ref-l' }, label), node);
+
+    /* ============================ note (old mcq): nothing to choose, just the idea ============================ */
+    if (view === 'note') {
+      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || '') }));
+      const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
+      if (ans) body.appendChild(h('div', { class: 'ex-note-a lx-md', html: mdInline(/`/.test(ans) || kind !== 'predict' ? ans : '`' + ans + '`') }));
+      if (ex.explain) body.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
+      root.append(body);
+      if (foot) root.appendChild(foot);
+      // a note is "done" by reading it: recorded without XP, combo or command mastery
+      const rec = safe(() => store.exercise(ex.id), null);
+      if (!isExam && !(rec && rec.ok)) safe(() => store.set(`ex.${ex.id}`, { ok: true, tries: 0, ts: Date.now(), note: true }));
+      api = { check: () => {}, focus: () => {} };
+      setTimeout(() => { if (!destroyed) report({ ok: true, note: true }); }, 0);
+      return;
+    }
+
+    /* ============================ ghost (old predict): type the cell and watch what it returns ============================ */
+    if (view === 'ghost') {
+      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || 'Teclea la celda y mira qué devuelve.') }));
+      const host = h('div', { class: 'ex-cell' });
+      const after = h('div', { class: 'ex-feedback' });
+      body.append(host);
+      root.append(body, h('div', { class: 'ex-typehint muted' }, 'Teclea la línea gris y evalúala con ', h('kbd', null, 'Shift'), '+', h('kbd', null, 'Enter'), '.'), after);
+      if (foot) root.appendChild(foot);
+      let primed = false;
+      const g = mountGhost(host, ex.code, {
+        before: async () => { if (!primed) { primed = true; await prime(); } },
+        onDone: () => {
+          st.done = true; root.dataset.state = 'ok';
+          play('ok');
+          const rec = safe(() => store.exercise(ex.id), null);
+          let gained = 0;
+          if (!isExam && !(rec && rec.ok)) { const r = safe(() => store.markExercise(ex.id, { ok: true, cmds: [], xp: 5 }), null); gained = r && r.xp ? r.xp : 0; }
+          for (const c of ex.cmds || []) safe(() => store.markSeen(c));
+          const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
+          const box = h('div', { class: 'ex-fb ex-fb--ok' }, h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'), h('strong', null, ans ? 'Devuelve ' : 'Evaluada.'), ans ? h('code', null, ans) : null, gained ? h('span', { class: 'ex-gain' }, `+${gained} XP`) : null));
+          if (ex.explain) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
+          after.replaceChildren(box);
+          if (gained) safe(() => xpFloat(xpChip.hidden ? root : xpChip, gained));
+          report({ ok: true, xp: gained, typed: true });
+        },
+      });
+      cleanup.push(() => g.destroy());
+      if (kernel.status === 'idle') startKernel();
+      api = { check: () => g.run(), focus: () => g.focus() };
+      return;
+    }
+
+    /* ============================ code: an empty cell, the student writes everything ============================ */
+    root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || '') }));
+    if (kind === 'fix' && ex.broken) body.appendChild(refBlock('Código con errores (no se edita: escribe abajo la versión corregida)', codeBlock(ex.broken), 'ex-ref--bad'));
+    else if (kind === 'fill' && ex.template) body.appendChild(refBlock('Forma de la línea (□ = lo que falta)', codeBlock(String(ex.template).replace(/__\d+__/g, '□'))));
+    else if (kind === 'order' && Array.isArray(ex.lines)) {
+      let lines = shuffled(ex.lines, rnd);
+      if (ex.lines.length > 1) { let guard = 0; while (lines.every((l, i) => l === ex.lines[i]) && guard++ < 20) lines = shuffled(lines, rnd); }
+      body.appendChild(refBlock('Líneas desordenadas (escríbelas en el orden correcto)', h('div', { class: 'ex-lines' }, lines.map((l) => codeBlock(l)))));
+    } else if (ex.starter) body.appendChild(refBlock('Punto de partida', codeBlock(ex.starter)));
+    if (ex.setup && !isExam) body.appendChild(h('details', { class: 'ex-setup' }, h('summary', null, 'Datos ya definidos'), codeBlock(ex.setup)));
+    const host = h('div', { class: 'ex-cell' });
+    body.appendChild(host);
+    root.append(body, actions, hintsBox, fb);
+    if (foot) root.appendChild(foot);
+
+    const needsKernel = !!ex.check || kind === 'code' || kind === 'fix';
+    const label = 'Comprobar';
+    const btnCheck = h('button', { class: 'btn primary ex-check', type: 'button', 'data-nosfx': '' }, label);
+    const btnHint = h('button', { class: 'lx-link ex-hint', type: 'button' });
+    const btnSol = h('button', { class: 'lx-link ex-sol', type: 'button', hidden: true }, 'Ver solución');
+    const btnVariant = h('button', { class: 'lx-link ex-variant', type: 'button', hidden: true, title: 'El mismo ejercicio con otros números' }, 'Otra variante');
+    const kbd = h('span', { class: 'ex-kbd' });
+    kbd.innerHTML = '<kbd>Shift</kbd>+<kbd>Enter</kbd> evalúa · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> comprueba';
+    const hints = Array.isArray(ex.hints) ? ex.hints.filter(Boolean) : [];
+    const updHintBtn = () => {
+      if (isExam || !hints.length) { btnHint.hidden = true; return; }
+      const left = hints.length - st.hints;
+      btnHint.hidden = st.done || st.revealed;
+      btnHint.disabled = left <= 0;
+      btnHint.textContent = left > 0 ? (st.hints ? `Otra pista (${st.hints + 1}/${hints.length})` : hints.length > 1 ? `Pista (1/${hints.length})` : 'Pista') : 'No hay más pistas';
+      btnHint.title = left > 0 ? 'Cada pista resta un poco de XP' : '';
+    };
+    updHintBtn();
+    const solutionDue = () => st.fails >= 3 || (st.fails >= 1 && hints.length > 0 && st.hints >= hints.length) || (st.fails >= 2 && !hints.length);
+    const offerSolution = () => { if (isExam || st.done || st.revealed || !btnSol.hidden || !solutionOf(ex)) return; btnSol.hidden = false; };
+    btnHint.addEventListener('click', () => {
+      if (st.hints >= hints.length || st.done) return;
+      const i = st.hints++;
+      hintsBox.appendChild(h('div', { class: 'ex-hintitem' }, h('span', { class: 'ex-hint-n' }, `Pista ${i + 1}`), h('div', { class: 'lx-md', html: md(hints[i]) })));
+      updHintBtn(); updXp();
+      if (solutionDue()) offerSolution();
+    });
+    btnVariant.addEventListener('click', () => { seed = newSeed(); build(); });
+
+    let cell = null;
+    try { cell = createCell(host, { code: '', placeholder: 'Escribe aquí tu código…' }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
+
+    /* ---------- kernel gate ---------- */
+    let pillEl = null;
+    if (needsKernel) {
+      const pill = kernelPill();
+      cleanup.push(pill.destroy);
+      pillEl = pill.el;
+      cleanup.push(watchKernel((status) => {
+        if (st.done) return;
+        const ok = status === 'ready' || status === 'busy';
+        btnCheck.disabled = !ok || st.busy;
+        btnCheck.classList.toggle('is-waiting', !ok);
+      }));
+      primeWhenReady();
+    }
+    async function kernelCheck(code) {
       st.busy = true; root.dataset.state = 'busy';
-      button.disabled = true;
-      button.innerHTML = '<i class="lx-spin"></i> Comprobando…';
+      btnCheck.disabled = true;
+      btnCheck.innerHTML = '<i class="lx-spin"></i> Comprobando…';
       const cancel = h('button', { class: 'lx-link ex-cancel', type: 'button', onclick: () => safe(() => kernel.abort()) }, 'Cancelar');
       const slow = setTimeout(() => { if (st.busy && !destroyed) actions.appendChild(cancel); }, 6000);
       let res;
@@ -527,14 +597,12 @@ export function mountExercise(container, exRaw, opts = {}) {
           await kernel.reset();
           return kernel.check({ code, setup: ex.setup || undefined, check: ex.check || { type: 'none' }, requires: ex.requires || [], forbids: ex.forbids || [] });
         });
-      } catch (e) {
-        res = { ok: false, error: String((e && e.message) || e) };
-      }
+      } catch (e) { res = { ok: false, error: String((e && e.message) || e) }; }
       clearTimeout(slow); cancel.remove();
       st.busy = false;
       if (destroyed) return null;
-      button.disabled = !kernelReady();
-      button.textContent = label;
+      btnCheck.disabled = !kernelReady();
+      btnCheck.textContent = label;
       if (!res || res.error) {
         root.dataset.state = 'idle';
         showInfo(`No se ha podido comprobar (${(res && res.error) || 'sin respuesta del motor'}). Inténtalo de nuevo.`);
@@ -542,320 +610,123 @@ export function mountExercise(container, exRaw, opts = {}) {
       }
       return res;
     }
-    // makes free experimentation (Shift+Enter) see the exercise's hidden setup
-    function primeSession() {
-      const run = () => { if (destroyed || st.busy) return; exclusive(async () => { if (destroyed) return; await kernel.reset(); if (ex.setup) await kernel.run(ex.setup); }).catch(() => {}); };
-      if (kernelReady()) run();
-      else { let done = false; const off = watchKernel((s) => { if (!done && s === 'ready') { done = true; setTimeout(() => { off(); run(); }, 0); } }); cleanup.push(off); }
+
+    /* ---------- feedback ---------- */
+    function showInfo(text) {
+      fb.replaceChildren(h('div', { class: 'ex-fb ex-fb--info' }, h('div', { class: 'ex-fb-title' }, h('div', { class: 'lx-md', html: mdInline(text) }))));
+    }
+    function showFail(res, code) {
+      st.fails++;
+      root.dataset.state = 'fail';
+      host.classList.remove('lx-shake'); void host.offsetWidth; host.classList.add('lx-shake');
+      play('fail');
+      if (!isExam) combo = 0;
+      safe(() => store.markExercise(ex.id, { ok: false, cmds: ex.cmds || [], xp: 0 }));
+      const box = h('div', { class: 'ex-fb ex-fb--bad' });
+      box.appendChild(h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✗'), h('div', { class: 'lx-md', html: mdInline((res && res.feedback) || 'Todavía no es correcto.') })));
+      if (!isExam && res && (res.got || res.expected)) {
+        const diff = h('div', { class: 'ex-diff' });
+        if (res.got) diff.append(h('span', { class: 'ex-diff-l' }, 'Tu resultado'), h('code', { class: 'ex-diff-v got' }, String(res.got)));
+        if (res.expected) diff.append(h('span', { class: 'ex-diff-l' }, 'Se esperaba'), h('code', { class: 'ex-diff-v exp' }, String(res.expected)));
+        box.appendChild(diff);
+      }
+      if (!isExam && code != null) {
+        const tips = diagnose(code, ex);
+        if (tips.length) box.appendChild(h('ul', { class: 'ex-tips' }, tips.map((t) => h('li', { html: '<b>Posible causa:</b> ' + mdInline(t) }))));
+      }
+      if (!isExam) {
+        const left = hints.length - st.hints;
+        box.appendChild(h('div', { class: 'ex-fb-sub muted' }, solutionDue() ? 'Llevas varios intentos: puedes ver la solución (la teclearás tú) y repetir el ejercicio otro día.' : left > 0 ? `Intento ${st.fails}. Si te atascas, pide una pista.` : `Intento ${st.fails}. Revisa el enunciado con calma.`));
+      }
+      fb.replaceChildren(box);
+      if (solutionDue()) offerSolution();
+      updXp();
+      if (isExam) report({ ok: false });
+    }
+    function showOk() {
+      const dry = st.revealed;
+      st.done = true;
+      root.dataset.state = 'ok';
+      const firstTry = st.fails === 0 && st.hints === 0 && !dry;
+      let gained = 0, r = null;
+      if (!dry && !isExam) {
+        r = safe(() => store.markExercise(ex.id, { ok: true, cmds: ex.cmds || [], xp: xpFor(ex, st) }), null);
+        gained = r && typeof r.xp === 'number' ? r.xp : 0;
+        setReview(ex.id, false);
+        combo = r && typeof r.combo === 'number' ? r.combo : firstTry ? combo + 1 : 0;
+      }
+      play('ok');
+      // sober feedback: a green mark and a short animation; confetti is reserved for milestones
+      if (!isExam && gained > 0) safe(() => xpFloat(xpChip, gained));
+      const box = h('div', { class: 'ex-fb ex-fb--ok' });
+      const head = h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'),
+        h('strong', null, dry ? 'Así funciona. Volverá a salir en la práctica para que lo escribas sin mirar.' : OK_MSGS[Math.floor(Math.random() * OK_MSGS.length)]));
+      if (gained > 0) head.appendChild(h('span', { class: 'ex-gain' }, `+${gained} XP`));
+      if (!dry && firstTry && !isExam) head.appendChild(h('span', { class: 'ex-first' }, 'a la primera'));
+      if (!dry && !isExam && combo >= 3) head.appendChild(h('span', { class: 'ex-combo' }, `${combo} seguidos`));
+      box.appendChild(head);
+      if (ex.explain && !isExam) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
+      fb.replaceChildren(box);
+      btnCheck.hidden = true; btnSol.hidden = true; btnHint.hidden = true; kbd.hidden = true;
+      if (exRaw.params && !isExam && !dry) btnVariant.hidden = false;
+      setPrior(dry ? 'review' : 'ok');
+      xpChip.classList.add('is-zero'); xpChip.textContent = gained > 0 ? `+${gained} XP` : dry ? 'sin XP' : 'repaso';
+      for (const c of cmds.querySelectorAll('.chip')) { const lv = safe(() => store.cmdLevel(c.dataset.cmd), 0) || 0; c.className = `chip l${lv}`; }
+      report({ ok: !dry, revealed: dry, firstTry, xp: gained, leveledUp: !!(r && r.leveledUp), level: r && r.level });
     }
 
-    /* ============================ kinds ============================ */
-    if (kind === 'code' || kind === 'fix') {
-      const initial = (kind === 'fix' ? ex.broken : ex.starter) || '';
-      const host = h('div', { class: 'ex-cell' });
-      body.appendChild(host);
-      if (ex.setup && !isExam) {
-        const det = h('details', { class: 'ex-setup' }, h('summary', null, 'Datos ya definidos (se cargan solos)'), codeBlock(ex.setup));
-        body.insertBefore(det, host);
-      }
-      let cell = null;
-      try {
-        cell = createCell(host, { code: initial, placeholder: kind === 'fix' ? '' : 'Escribe aquí tu código…' });
-      } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
-      const label = 'Comprobar';
-      const pillEl = wireKernelGate(btnCheck, label);
-      kbd.innerHTML = '<kbd>Shift</kbd>+<kbd>Enter</kbd> prueba · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> comprueba';
-      const doCheck = async () => {
-        if (!cell || st.busy || (st.done && !st.revealed)) return;
-        const code = cell.getCode();
-        if (!code.trim()) { showInfo('Escribe tu respuesta en la celda antes de comprobar.'); safe(() => cell.focus()); return; }
-        if (kind === 'fix' && code.trim() === String(ex.broken || '').trim()) { showInfo('Todavía no has cambiado nada: localiza el error y corrígelo en la celda.'); safe(() => cell.focus()); return; }
-        if (!kernelReady()) { showInfo('El motor de Mathematica aún se está cargando. En unos segundos podrás comprobar.'); return; }
-        const res = await kernelCheck(code, btnCheck, label);
-        if (!res) return;
-        safe(() => cell.showResult({ items: res.items || [], inLine: null, lastLine: null, ms: 0 }));
-        if (res.ok) showOk(); else showFail(res, code);
-      };
-      btnCheck.addEventListener('click', doCheck);
-      host.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); doCheck(); }
-      }, true);
-      btnReset.addEventListener('click', () => { if (cell) { cell.setCode(initial); safe(() => cell.clearOutput()); safe(() => cell.focus()); play('click'); } });
-      btnReset.hidden = !initial;
-      actions.append(btnCheck, btnHint, btnSol, btnReset, btnVariant, pillEl, kbd);
-      api = { check: doCheck, focus: () => cell && safe(() => cell.focus()), applySolution: (code) => { if (cell) { cell.setCode(code); safe(() => cell.focus()); } }, onReveal: () => { btnCheck.hidden = false; } };
-      primeSession();
-    } else if (kind === 'fill') {
-      const blanks = (ex.blanks || []).map((b) => (Array.isArray(b) ? b : [b]));
-      const tpl = String(ex.template || '');
-      const paper = h('div', { class: 'ex-fill lx-paper' });
-      const line = h('pre', { class: 'ex-fill-code' });
-      const inputs = [];
-      let last = 0, m;
-      const re = /__(\d+)__/g;
-      while ((m = re.exec(tpl))) {
-        if (m.index > last) line.appendChild(h('span', { html: hl(tpl.slice(last, m.index)) }));
-        const idx = +m[1] - 1;
-        const inp = h('input', { class: 'ex-blank', type: 'text', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': `Hueco ${idx + 1}`, placeholder: '···', dataset: { i: idx } });
-        inputs.push(inp);
-        line.appendChild(inp);
-        last = m.index + m[0].length;
-      }
-      if (last < tpl.length) line.appendChild(h('span', { html: hl(tpl.slice(last)) }));
-      const out = h('div', { class: 'ex-fill-out' });
-      paper.append(line, out);
-      body.appendChild(paper);
-      const size = (inp) => { inp.style.width = `${Math.max(3, inp.value.length + 1.5)}ch`; };
-      const hit = (inp) => { const acc = blanks[+inp.dataset.i] || []; return inp.value.trim() !== '' && acc.some((a) => norm(a) === norm(inp.value)); };
-      const values = () => { const v = []; for (const inp of inputs) v[+inp.dataset.i] = inp.value.trim(); return v; };
-      inputs.forEach((inp, k) => {
-        size(inp);
-        inp.addEventListener('input', () => {
-          for (const o of inputs) if (o !== inp && o.dataset.i === inp.dataset.i) { o.value = inp.value; size(o); o.classList.toggle('is-hit', hit(o)); }
-          size(inp);
-          inp.classList.toggle('is-hit', hit(inp));
-          inp.classList.remove('is-miss');
-        });
-        inp.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') { e.preventDefault(); const nxt = inputs.slice(k + 1).find((o) => !o.value.trim()); if (nxt) nxt.focus(); else doCheck(); }
-        });
-      });
-      const label = 'Comprobar';
-      let pillEl = null;
-      if (needsKernel) pillEl = wireKernelGate(btnCheck, label);
-      const doCheck = async () => {
-        if (st.busy || (st.done && !st.revealed)) return;
-        const vals = values();
-        const empty = inputs.find((o) => !o.value.trim());
-        if (empty) { showInfo('Rellena todos los huecos antes de comprobar.'); empty.focus(); return; }
-        const code = fillTemplate(vals);
-        if (!needsKernel) {
-          const ok = inputs.every(hit);
-          inputs.forEach((o) => o.classList.toggle('is-miss', !hit(o)));
-          if (ok) { lock(); showOk(); } else showFail({ feedback: 'Algún hueco no es correcto (marcado en rojo).' }, code);
-          return;
-        }
-        if (!kernelReady()) { showInfo('El motor de Mathematica aún se está cargando. En unos segundos podrás comprobar.'); return; }
-        const res = await kernelCheck(code, btnCheck, label);
-        if (!res) return;
-        out.innerHTML = '';
-        safe(() => renderItems(out, res.items || []));
-        if (res.ok) { lock(); showOk(); } else showFail(res, code);
-      };
-      const lock = () => inputs.forEach((o) => { o.readOnly = true; o.classList.add('is-hit'); });
-      btnCheck.addEventListener('click', doCheck);
-      actions.append(btnCheck, btnHint, btnSol, btnVariant);
-      if (pillEl) actions.append(pillEl);
-      api = {
-        check: doCheck, focus: () => inputs[0] && inputs[0].focus(),
-        applySolution: () => { inputs.forEach((o) => { o.value = (blanks[+o.dataset.i] || [''])[0]; size(o); o.classList.toggle('is-hit', hit(o)); }); },
-        onReveal: () => { btnCheck.hidden = false; },
-      };
-    } else if (kind === 'order') {
-      const correct = (ex.lines || []).slice();
-      let order = shuffled(correct.map((t, i) => ({ t, i })), rnd);
-      if (correct.length > 1) { let guard = 0; while (order.every((o, k) => o.t === correct[k]) && guard++ < 20) order = shuffled(order, rnd); }
-      const list = h('ol', { class: 'ex-order lx-paper' });
-      const out = h('div', { class: 'ex-fill-out lx-paper', hidden: true });
-      body.append(list, out);
-      let selected = null;
-      const rows = () => [...list.children];
-      const current = () => rows().map((r) => r._t);
-      const flip = (els, mutate) => {
-        const before = new Map(els.map((e) => [e, e.getBoundingClientRect().top]));
-        mutate();
-        for (const e of els) {
-          const dy = before.get(e) - e.getBoundingClientRect().top;
-          if (!dy || e.classList.contains('dragging')) continue;
-          e.style.transition = 'none'; e.style.transform = `translateY(${dy}px)`;
-          requestAnimationFrame(() => { e.style.transition = ''; e.style.transform = ''; });
-        }
-      };
-      const clearMarks = () => rows().forEach((r) => r.classList.remove('is-right', 'is-wrong'));
-      const move = (row, toIdx) => {
-        const rs = rows(); const from = rs.indexOf(row);
-        if (toIdx < 0 || toIdx >= rs.length || toIdx === from) return;
-        flip(rs, () => { if (toIdx > from) list.insertBefore(row, rs[toIdx].nextSibling); else list.insertBefore(row, rs[toIdx]); });
-        clearMarks(); play('click');
-      };
-      for (const o of order) {
-        const row = h('li', { class: 'ex-ord-row', tabindex: '0' },
-          h('span', { class: 'ex-ord-handle', 'aria-hidden': 'true', title: 'Arrastra para mover' }, '⠿'),
-          h('pre', { class: 'ex-ord-code', html: hl(o.t) }),
-          h('span', { class: 'ex-ord-btns' },
-            h('button', { type: 'button', class: 'ex-ord-up', 'aria-label': 'Subir línea', title: 'Subir' }, '▲'),
-            h('button', { type: 'button', class: 'ex-ord-down', 'aria-label': 'Bajar línea', title: 'Bajar' }, '▼')));
-        row._t = o.t;
-        list.appendChild(row);
-      }
-      list.addEventListener('click', (e) => {
-        if (st.done) return;
-        const row = e.target.closest('.ex-ord-row'); if (!row) return;
-        const rs = rows(); const i = rs.indexOf(row);
-        if (e.target.closest('.ex-ord-up')) { move(row, i - 1); return; }
-        if (e.target.closest('.ex-ord-down')) { move(row, i + 1); return; }
-        if (row._dragged) { row._dragged = false; return; }
-        // tap-to-move: tap a line, then tap where it should go
-        if (!selected) { selected = row; row.classList.add('is-sel'); }
-        else if (selected === row) { row.classList.remove('is-sel'); selected = null; }
-        else { const s = selected; s.classList.remove('is-sel'); selected = null; move(s, i); }
-      });
-      list.addEventListener('keydown', (e) => {
-        if (st.done) return;
-        const row = e.target.closest('.ex-ord-row'); if (!row) return;
-        const i = rows().indexOf(row);
-        if (e.key === 'ArrowUp' && (e.altKey || e.ctrlKey || e.shiftKey)) { e.preventDefault(); e.stopPropagation(); move(row, i - 1); row.focus(); }
-        else if (e.key === 'ArrowDown' && (e.altKey || e.ctrlKey || e.shiftKey)) { e.preventDefault(); e.stopPropagation(); move(row, i + 1); row.focus(); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); rows()[i - 1]?.focus(); }
-        else if (e.key === 'ArrowDown') { e.preventDefault(); rows()[i + 1]?.focus(); }
-      });
-      // pointer drag (mouse anywhere on the row; touch from the handle so the page can still scroll)
-      let drag = null;
-      list.addEventListener('pointerdown', (e) => {
-        if (st.done || e.target.closest('button')) return;
-        const row = e.target.closest('.ex-ord-row'); if (!row) return;
-        if (e.pointerType === 'mouse' ? e.button !== 0 : !e.target.closest('.ex-ord-handle')) return;
-        drag = { row, id: e.pointerId, y0: e.clientY, ty: 0, moved: false };
-      });
-      const onMove = (e) => {
-        if (!drag || e.pointerId !== drag.id) return;
-        const { row } = drag;
-        if (!drag.moved) {
-          if (Math.abs(e.clientY - drag.y0) < 6) return;
-          drag.moved = true; row.classList.add('dragging');
-          if (selected) { selected.classList.remove('is-sel'); selected = null; }
-          safe(() => row.setPointerCapture(e.pointerId));
-          const r = row.getBoundingClientRect();
-          drag.grab = drag.y0 - r.top;
-        }
-        e.preventDefault();
-        const rs = rows(); const i = rs.indexOf(row);
-        const prev = rs[i - 1], next = rs[i + 1];
-        if (prev) { const r = prev.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { flip(rs, () => list.insertBefore(row, prev)); clearMarks(); } }
-        if (next) { const r = next.getBoundingClientRect(); if (e.clientY > r.top + r.height / 2) { flip(rs, () => list.insertBefore(row, next.nextSibling)); clearMarks(); } }
-        const natural = row.getBoundingClientRect().top - drag.ty;
-        const lr = list.getBoundingClientRect();
-        const want = Math.max(lr.top - 6, Math.min(lr.bottom - row.offsetHeight + 6, e.clientY - drag.grab));
-        drag.ty = want - natural;
-        row.style.transform = `translateY(${drag.ty}px)`;
-      };
-      const onUp = (e) => {
-        if (!drag || (e.pointerId != null && e.pointerId !== drag.id)) return;
-        const { row, moved } = drag; drag = null;
-        if (!moved) return;
-        row._dragged = true; setTimeout(() => { row._dragged = false; }, 50);
-        row.style.transition = 'transform .16s'; row.style.transform = '';
-        setTimeout(() => { row.style.transition = ''; row.classList.remove('dragging'); }, 170);
-        play('click');
-      };
-      list.addEventListener('pointermove', onMove);
-      list.addEventListener('pointerup', onUp);
-      list.addEventListener('pointercancel', onUp);
+    /* ---------- check ---------- */
+    const doCheck = async () => {
+      if (!cell || st.busy || st.done || st.revealed) return;
+      const code = cell.getCode();
+      if (!code.trim()) { showInfo('Escribe tu solución en la celda antes de comprobar.'); safe(() => cell.focus()); return; }
+      if (!needsKernel) { if (localAccept(ex, code)) showOk(); else showFail({ feedback: kind === 'order' ? 'El orden o alguna línea no coincide todavía.' : 'La línea todavía no es correcta.' }, code); return; }
+      if (!kernelReady()) { showInfo('El motor de Mathematica aún se está cargando. En unos segundos podrás comprobar.'); return; }
+      const res = await kernelCheck(code);
+      if (!res) return;
+      safe(() => cell.showResult({ items: res.items || [], inLine: null, lastLine: null, ms: 0 }));
+      if (res.ok) showOk(); else showFail(res, code);
+    };
+    btnCheck.addEventListener('click', doCheck);
+    host.addEventListener('keydown', (e) => { if (!st.revealed && e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); doCheck(); } }, true);
+    // the whole answer is typed: no pasting (nor dropping) code into the cell
+    host.addEventListener('paste', (e) => e.preventDefault(), true);
+    host.addEventListener('drop', (e) => e.preventDefault(), true);
 
-      const label = 'Comprobar orden';
-      btnCheck.textContent = label;
-      const finish = (res) => {
-        rows().forEach((r) => r.classList.add('is-right'));
-        list.classList.add('is-locked');
-        if (res && (res.items || []).length) { out.hidden = false; safe(() => renderItems(out, res.items)); }
-        showOk();
-      };
-      const doCheck = async () => {
-        if (st.busy || (st.done && !st.revealed)) return;
-        const cur = current();
-        const match = cur.every((t, i) => t === correct[i]);
-        const code = cur.join('\n');
-        if (match) {
-          // order is right: success does not depend on the kernel; if it is up, run the code to show what it produces
-          if (ex.check && kernelReady()) { const res = await kernelCheck(code, btnCheck, label); if (destroyed) return; finish(res); } else finish(null);
-          return;
-        }
-        if (ex.check && kernelReady()) {
-          const res = await kernelCheck(code, btnCheck, label);
-          if (destroyed) return;
-          if (res && res.ok) { finish(res); return; } // a different but equally valid order
-        }
-        rows().forEach((r, i) => { r.classList.toggle('is-right', r._t === correct[i]); r.classList.toggle('is-wrong', r._t !== correct[i]); });
-        const n = cur.filter((t, i) => t === correct[i]).length;
-        showFail({ feedback: `El orden aún no es correcto: ${n} de ${correct.length} líneas están en su sitio (en verde).` }, null);
-      };
-      btnCheck.addEventListener('click', doCheck);
-      kbd.textContent = 'Arrastra las líneas, usa ▲▼ o toca una línea y luego su destino.';
-      actions.append(btnCheck, btnHint, btnSol, kbd);
-      if (ex.check && kernel.status === 'idle' && mode !== 'exam') startKernel();
-      api = {
-        check: doCheck, focus: () => rows()[0] && rows()[0].focus(),
-        applySolution: () => { const rs = rows(); const used = new Set(); const sorted = correct.map((t) => { const r = rs.find((x) => x._t === t && !used.has(x)); used.add(r); return r; }); flip(rs, () => sorted.forEach((r) => r && list.appendChild(r))); clearMarks(); },
-        onReveal: () => { btnCheck.hidden = false; },
-      };
-    } else if (kind === 'mcq' || kind === 'predict') {
-      let cell = null; let runBtn = null; let pillEl = null;
-      if (kind === 'predict' && ex.code) {
-        const host = h('div', { class: 'ex-cell ex-cell--ro' });
-        body.appendChild(host);
-        try { cell = createCell(host, { code: ex.code, readOnly: true }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(codeBlock(ex.code, 'lx-paper')); }
-      }
-      const optsEl = h('div', { class: 'ex-opts', role: 'group', 'aria-label': 'Opciones' });
-      let idxs = (ex.options || []).map((_, i) => i);
-      const positional = (ex.options || []).some((o) => /anterior|ambas|ninguna|todas|las dos|a\)|b\)/i.test(String(o)));
-      if (mode === 'practice' && !positional) idxs = shuffled(idxs, rnd);
-      const letters = 'ABCDEFGH';
-      const buttons = [];
-      idxs.forEach((oi, pos) => {
-        const txt = String(ex.options[oi]);
-        const isCode = kind === 'predict' && !/`/.test(txt);
-        const b = h('button', { class: 'ex-opt', type: 'button', dataset: { oi } },
-          h('span', { class: 'ex-opt-k' }, letters[pos] || String(pos + 1)),
-          isCode ? h('code', { class: 'ex-opt-t ex-opt-code' }, txt) : h('span', { class: 'ex-opt-t lx-md', html: mdInline(txt) }));
-        b.addEventListener('click', () => choose(b, oi));
-        buttons.push(b);
-        optsEl.appendChild(b);
+    /* ---------- "ver solución": shown as a ghost that the student types (never pasted) ---------- */
+    btnSol.addEventListener('click', () => {
+      if (st.done || st.revealed || isExam) return;
+      const sol = solutionOf(ex);
+      if (!sol) return;
+      st.revealed = true;
+      root.dataset.state = 'revealed';
+      setReview(ex.id, true);
+      combo = 0;
+      btnSol.hidden = true; btnHint.hidden = true; btnCheck.hidden = true; kbd.hidden = true;
+      if (pillEl) pillEl.remove();
+      setPrior('review');
+      xpChip.classList.add('is-zero'); xpChip.textContent = 'sin XP';
+      if (cell && cell.destroy) safe(() => cell.destroy());
+      cell = null;
+      host.replaceChildren(h('div', { class: 'ex-ref-l' }, 'Solución — tecléala (aparece en gris) y evalúala con Shift+Enter para ver cómo funciona'));
+      const g = mountGhost(host, sol, {
+        evaluate: async (code) => {
+          await kernel.reset();
+          const res = await kernel.check({ code, setup: ex.setup || undefined, check: ex.check || { type: 'none' }, requires: [], forbids: [] });
+          return res && !res.error ? { items: res.items || [], inLine: null, lastLine: null, ms: 0 } : { items: [], inLine: null, lastLine: null, ms: 0 };
+        },
+        onDone: () => { if (!destroyed) showOk(); },
       });
-      body.appendChild(optsEl);
-      const afterRun = () => {
-        if (kind !== 'predict' || !cell || runBtn) return;
-        runBtn = h('button', { class: 'btn ghost ex-run', type: 'button' }, '▶ Ejecútalo y compruébalo');
-        runBtn.addEventListener('click', async () => {
-          runBtn.disabled = true; runBtn.innerHTML = '<i class="lx-spin"></i> Ejecutando…';
-          if (!pillEl) { const p = kernelPill(); cleanup.push(p.destroy); pillEl = p.el; actions.appendChild(pillEl); }
-          try {
-            await exclusive(async () => { await kernel.reset(); if (ex.setup) await kernel.run(ex.setup); if (!destroyed) await cell.run(); });
-            if (!destroyed) runBtn.remove();
-          } catch (e) { if (!destroyed) { runBtn.disabled = false; runBtn.textContent = '▶ Reintentar'; } }
-        });
-        actions.appendChild(runBtn);
-      };
-      const choose = (b, oi) => {
-        if (st.done || st.revealed || b.disabled) return;
-        if (oi === ex.answer) {
-          b.classList.add('is-right');
-          buttons.forEach((x) => { x.disabled = true; });
-          showOk(); afterRun();
-        } else {
-          b.classList.add('is-wrong'); b.disabled = true;
-          showFail({ feedback: kind === 'predict' ? 'Eso no es lo que devuelve. Sigue el código paso a paso.' : 'No es esa. Piensa por qué y prueba otra.' }, null);
-        }
-      };
-      const onKey = (e) => {
-        if (st.done || st.revealed || e.ctrlKey || e.metaKey || e.altKey) return;
-        const t = e.target;
-        if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-        if (!root.isConnected) return;
-        let i = -1;
-        if (/^[1-9]$/.test(e.key)) i = +e.key - 1; else if (/^[a-h]$/i.test(e.key)) i = letters.indexOf(e.key.toUpperCase());
-        if (i >= 0 && buttons[i]) { e.preventDefault(); buttons[i].click(); }
-      };
-      if (opts.hotkeys) { document.addEventListener('keydown', onKey); cleanup.push(() => document.removeEventListener('keydown', onKey)); kbd.textContent = `Teclas ${letters.slice(0, buttons.length).split('').join(' · ')}`; }
-      actions.append(btnHint, btnSol, kbd);
-      api = {
-        check: () => {}, focus: () => buttons[0] && buttons[0].focus({ preventScroll: true }),
-        onReveal: () => { buttons.forEach((x) => { x.disabled = true; if (+x.dataset.oi === ex.answer) x.classList.add('is-right'); }); afterRun(); },
-      };
-    } else {
-      body.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, `Tipo de ejercicio desconocido: ${kind}`));
-      api = { check: () => {}, focus: () => {} };
-    }
+      cleanup.push(() => g.destroy());
+      fb.replaceChildren(h('div', { class: 'ex-fb ex-fb--sol' }, h('div', { class: 'ex-fb-sub muted' }, 'No suma XP y el ejercicio queda marcado para repetir: te volverá a salir en la práctica.')));
+      setTimeout(() => g.focus(), 30);
+    });
+
+    actions.append(btnCheck, btnHint, btnSol, btnVariant);
+    if (pillEl) actions.append(pillEl);
+    actions.append(kbd);
     if (isExam) { btnHint.hidden = true; btnSol.hidden = true; }
+    api = { check: doCheck, focus: () => cell && safe(() => cell.focus()) };
   }
 
   return {

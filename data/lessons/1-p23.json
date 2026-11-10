@@ -47,30 +47,6 @@
    "type": "exercise",
    "ex": {
     "id": "1-p23-e01",
-    "kind": "predict",
-    "title": "¿Qué devuelve?",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
-    "difficulty": 1,
-    "cmds": [
-     "Integrate"
-    ],
-    "real": false,
-    "source": null,
-    "code": "Integrate[1, {x, 0, 4}, {y, 0, 5}]",
-    "options": [
-     "9",
-     "20",
-     "1",
-     "{4, 5}"
-    ],
-    "answer": 1,
-    "explain": "Integrar `1` sobre una región da su **área**: un rectángulo de 4 por 5."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p23-e02",
     "kind": "code",
     "title": "Tu primera integral doble",
     "prompt": "Calcula la integral doble de `x^2 + y` sobre el rectángulo `0 <= x <= 1`, `0 <= y <= 2`.",
@@ -113,30 +89,35 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e03",
-    "kind": "mcq",
-    "title": "Elige el orden correcto",
-    "prompt": "La región es `0 <= x <= 1`, `x^2 <= y <= x`. ¿Qué celda calcula bien la integral de `f` sobre ella?",
-    "difficulty": 1,
+    "id": "1-p23-e02",
+    "kind": "code",
+    "title": "Límites variables",
+    "prompt": "Calcula la integral doble de `x + y` sobre la región `0 <= x <= 1`, `x^2 <= y <= x`. Cuidado con el orden de los iteradores.",
+    "difficulty": 2,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "`Integrate[f, {y, x^2, x}, {x, 0, 1}]`",
-     "`Integrate[f, {x, 0, 1}, {y, x^2, x}]`",
-     "`Integrate[f, {x, x^2, x}, {y, 0, 1}]`",
-     "`Integrate[f, {x, 0, 1}, {y, 0, 1}]`"
+    "solution": "Integrate[x + y, {x, 0, 1}, {y, x^2, x}]",
+    "check": {
+     "type": "expr",
+     "expected": "3/20"
+    },
+    "requires": [
+     "Integrate"
     ],
-    "answer": 1,
-    "explain": "Primero la variable con límites numéricos (`x` de 0 a 1) y después la que depende de ella (`y` entre `x^2` y `x`)."
+    "hints": [
+     "Primero la variable con límites numéricos: `{x, 0, 1}`.",
+     "Después la que depende de ella: `{y, x^2, x}`."
+    ],
+    "explain": "`Integrate[x + y, {x, 0, 1}, {y, x^2, x}]` da `3/20`. Si el resultado tuviera una `x`, los iteradores estarían al revés."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e04",
+    "id": "1-p23-e03",
     "kind": "code",
     "title": "Área entre una parábola y una recta",
     "prompt": "Calcula el área de la región comprendida entre `y = x^2` y `y = x` (para `x` entre `0` y `1`).",
@@ -179,7 +160,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e05",
+    "id": "1-p23-e04",
     "kind": "code",
     "title": "Dibuja la región",
     "prompt": "Dibuja con `RegionPlot` la región que queda por encima de la parábola `y = x^2` y por debajo de la recta `y = 2 x`. Usa la ventana `x` de `0` a `2`, `y` de `0` a `4`.",
@@ -194,8 +175,9 @@
      "type": "graphics",
      "dim": 2,
      "min": 1,
-     "like": "RegionPlot[x^2 <= y <= 2 x, {x, 0, 2}, {y, 0, 4}]",
-     "tol": 0.05
+     "has": [
+      "field"
+     ]
     },
     "requires": [
      "RegionPlot"
@@ -229,7 +211,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e06",
+    "id": "1-p23-e05",
     "kind": "code",
     "title": "Área de una elipse",
     "prompt": "Calcula el área encerrada por la elipse `x^2/9 + y^2/4 == 1` con una integral doble. Obtén los límites de `y` despejando con `Solve`.",
@@ -261,7 +243,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e07",
+    "id": "1-p23-e06",
     "kind": "fix",
     "title": "Arregla la integral",
     "prompt": "Esta celda quiere integrar `Exp[x + y]` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`, pero tiene **tres errores**. Corrígela.",
@@ -311,7 +293,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e08",
+    "id": "1-p23-e07",
     "kind": "code",
     "title": "Placa: área",
     "prompt": "Una placa tiene la forma de la región plana limitada por el eje de abscisas y la curva `y = 3 - Log[Pi x]`, entre las abscisas `x = 1/(2 E)` y `x = E`.\n\na) Calcula el **área** de la placa con 6 cifras significativas.",
@@ -341,7 +323,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e09",
+    "id": "1-p23-e08",
     "kind": "code",
     "title": "Placa: masa y densidad media",
     "prompt": "La misma placa (región entre el eje X y `y = 3 - Log[Pi x]`, con `x` entre `1/(2 E)` y `E`) tiene densidad `d(x, y) = Exp[2 x + y]/5`.\n\nb) Calcula su **masa**. c) Calcula su **densidad media**.\n\nDeja como última salida la lista `{masa, densidad media}`.",
@@ -371,24 +353,28 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e10",
-    "kind": "mcq",
+    "id": "1-p23-e09",
+    "kind": "code",
     "title": "¿Flota la placa?",
-    "prompt": "La placa anterior tiene densidad media 11.5166. Si se sumerge en un fluido de densidad 5, ¿flotará?",
-    "difficulty": 1,
+    "prompt": "La placa anterior tiene masa `M = 48.4446` y área `A = 4.20651` (ya definidas como `M` y `A`). Se sumerge en un fluido de densidad 5.\n\nc) Escribe la comparación que dice si flota: densidad media **menor que** 5. Mathematica responderá `True` (flota) o `False` (no flota).",
+    "difficulty": 2,
     "cmds": [
-     "Integrate"
+     "Less"
     ],
     "real": true,
     "source": "Práctica 23 · P2 c)",
-    "options": [
-     "Sí, porque su masa (48.44) es mayor que 5.",
-     "No: su densidad media (11.5166) es mayor que la del fluido.",
-     "Sí, porque su área (4.21) es menor que 5.",
-     "No se puede saber sin el volumen."
+    "setup": "M = 48.444633039339216; A = 4.206512431882395;",
+    "solution": "M/A < 5",
+    "check": {
+     "type": "expr",
+     "expected": "False",
+     "compare": "same"
+    },
+    "hints": [
+     "La densidad media es `M/A`.",
+     "Una comparación con `<` o `>` devuelve `True` o `False`: `M/A < 5`."
     ],
-    "answer": 1,
-    "explain": "Flota si la densidad media es **menor** que la del fluido. En el cuaderno se comprueba con `Density > 5`, que devuelve `True`: no flota (respuesta 0 en la prueba)."
+    "explain": "`False`: la densidad media (11.5166) es mayor que la del fluido, así que **no flota** (respuesta 0 en la prueba). En el cuaderno de clase se comprueba al revés, con `% > 5`, que da `True`."
    }
   },
   {
@@ -413,45 +399,35 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e11",
-    "kind": "fill",
-    "title": "Completa el cambio a polares",
-    "prompt": "Completa la celda para integrar `f(x, y) = x^2 + y^2` sobre el círculo completo de radio 3 usando polares (`x^2 + y^2` es `r^2`).",
+    "id": "1-p23-e10",
+    "kind": "code",
+    "title": "Un círculo en polares",
+    "prompt": "Calcula en coordenadas polares (variables `r` y `a`) la integral de `f(x, y) = x^2 + y^2` sobre el círculo completo de radio 3. Recuerda que `x^2 + y^2` es `r^2` y que falta el jacobiano.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "template": "Integrate[r^2 * __1__, {a, 0, __2__}, {r, 0, __3__}]",
-    "blanks": [
-     [
-      "r"
-     ],
-     [
-      "2 Pi",
-      "2Pi",
-      "2*Pi"
-     ],
-     [
-      "3"
-     ]
-    ],
+    "solution": "Integrate[r^2 r, {a, 0, 2 Pi}, {r, 0, 3}]",
     "check": {
      "type": "expr",
      "expected": "81 Pi/2"
     },
-    "hints": [
-     "Falta el jacobiano de las polares.",
-     "Círculo completo: el ángulo va de `0` a `2 Pi` y el radio de `0` a `3`."
+    "requires": [
+     "Integrate"
     ],
-    "explain": "El error típico es olvidar el jacobiano `r`. Sin él, el resultado sale mal y nadie avisa."
+    "hints": [
+     "Integrando: `r^2` por el jacobiano `r`.",
+     "Círculo completo: `{a, 0, 2 Pi}` y `{r, 0, 3}`."
+    ],
+    "explain": "`81 Pi/2`. El error típico es olvidar el jacobiano `r`: sin él sale `18 Pi` y nadie avisa."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e12",
+    "id": "1-p23-e11",
     "kind": "code",
     "title": "Una campana sobre un círculo",
     "prompt": "Calcula la integral doble de `Exp[-(x^2 + y^2)]` sobre el círculo de radio 1 centrado en el origen, usando coordenadas polares (variables `r` y `a`).",
@@ -480,7 +456,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e13",
+    "id": "1-p23-e12",
     "kind": "code",
     "title": "Integral en cartesianas",
     "prompt": "Sea `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` y la región `D`: `0 <= x <= 3`, `0 <= y <= x/Sqrt[3]` (un triángulo).\n\nb) Calcula la integral doble de `f` en `D` en **coordenadas cartesianas**, con 6 cifras.",
@@ -508,7 +484,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e14",
+    "id": "1-p23-e13",
     "kind": "code",
     "title": "La misma integral en polares",
     "prompt": "Misma función `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` y mismo triángulo `0 <= x <= 3`, `0 <= y <= x/Sqrt[3]`.\n\na) Calcula la integral en **coordenadas polares** (variables `r` y `a`) y comprueba que coincide con la cartesiana. Pistas del recinto: la recta `y = x/Sqrt[3]` es el ángulo `a = Pi/6` y la recta `x = 3` es `r = 3/Cos[a]`.",
@@ -559,7 +535,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e15",
+    "id": "1-p23-e14",
     "kind": "code",
     "title": "Paralelogramo: el jacobiano",
     "prompt": "Para el cambio `u = y - x`, `v = y + x/4`, calcula el valor absoluto del jacobiano de `(u, v)` respecto de `(x, y)`.",
@@ -592,7 +568,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e16",
+    "id": "1-p23-e15",
     "kind": "code",
     "title": "Paralelogramo: transformación inversa",
     "prompt": "Con `u = y - x`, `v = y + x/4`: despeja `x` e `y` en función de `u` y `v` con `Solve` y expresa `3 x + 2 y` en función de `u` y `v` (simplificado). Deja esa expresión como última salida.",
@@ -623,7 +599,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e17",
+    "id": "1-p23-e16",
     "kind": "code",
     "title": "Paralelogramo: la integral",
     "prompt": "Usa los resultados anteriores (`|J| = 1.25`, `3 x + 2 y = -2 u + 4 v`, `-3 <= u <= 1`, `7/9 <= v <= 5`) para calcular con 6 cifras la integral doble de `3 x + 2 y` sobre el paralelogramo.",
@@ -651,7 +627,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e18",
+    "id": "1-p23-e17",
     "kind": "code",
     "title": "Volumen bajo un paraboloide",
     "prompt": "Calcula el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `5 z = 2 x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 8` y cuyos puntos verifican `y > 0`.\n\nEl volumen es la integral doble de la altura `z(x, y)` sobre el semicírculo.",

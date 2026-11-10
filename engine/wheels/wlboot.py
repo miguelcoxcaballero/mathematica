@@ -120,7 +120,7 @@ def quad(func, a, b, args=(), full_output=0, epsabs=1.49e-8, epsrel=1.49e-8, lim
         a, b, sign = b, a, -1.0
     limit = max(int(limit), 50)
     if _strict:
-        epsabs, epsrel, limit = min(epsabs, 1e-10), min(epsrel, 1e-10), max(limit, 300)
+        limit = max(limit, 300)
     value, err = _gk15(f, a, b)
     heap = [(-err, a, b, value)]
     total, toterr, n = value, err, 1

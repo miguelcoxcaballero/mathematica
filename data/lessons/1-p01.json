@@ -1,0 +1,736 @@
+{
+ "id": "1-p01",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo I",
+ "order": 1,
+ "title": "Introducción a Mathematica",
+ "summary": "Tu primer contacto de verdad: cómo se escribe en una celda, por qué hay mayúsculas y corchetes, qué significa que un resultado sea exacto y cómo pedir decimales con N.",
+ "minutes": 40,
+ "commands": [
+  "N",
+  "Pi",
+  "E",
+  "I",
+  "Sqrt",
+  "Sin",
+  "Cos",
+  "Degree",
+  "FromDMS",
+  "Out",
+  "Equal",
+  "Factorial",
+  "Factorial2"
+ ],
+ "uses": [],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Tu primera celda",
+   "md": "Mathematica es una calculadora que **entiende las matemáticas**: trabaja con fracciones, raíces y π sin redondear, deriva, integra, resuelve ecuaciones y dibuja. Lo vas a usar en todas las prácticas y en el examen de ordenador.\n\nSolo tiene cuatro o cinco reglas de escritura, y casi todos los «no me sale» vienen de saltarse una. Aquí las vas a ver una a una, despacio, y **tecleándolo todo tú**.\n\nLo de abajo es una **celda**. El código de los ejemplos aparece en gris: escríbelo tú, carácter a carácter, y se irá poniendo negro. Cuando esté completo, evalúa con **Shift+Enter** (Enter a secas solo baja de línea). Mathematica contesta debajo: `In[n]:=` es lo que tú has escrito y `Out[n]=` es su respuesta.\n\nAl acabar sabrás evaluar celdas, escribir funciones sin errores, distinguir un resultado exacto de uno aproximado, pedir las cifras que quieras con `N`, y usar `Pi`, `E`, `I`, `%`, `;` y `==`.",
+   "cells": [
+    {
+     "code": "2 + 3",
+     "note": "Escríbelo y pulsa Shift+Enter"
+    },
+    {
+     "code": "2^100",
+     "note": "Un número enorme, exacto, con todas sus cifras"
+    }
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Operaciones y varias líneas",
+   "md": "Las operaciones se escriben como en cualquier calculadora:\n- `+` suma, `-` resta, `*` producto, `/` cociente, `^` potencia.\n- Los paréntesis `( )` sirven **solo** para agrupar: `(2 + 3) * 4`.\n- La prioridad es la de siempre: primero potencias, luego productos y cocientes, al final sumas y restas. Por eso `2 + 3 * 4^2` vale 50.\n\nUna celda puede tener varias líneas. Cada línea es un cálculo y da su propio `Out`.\n\nMira la última celda: `10 / 4` no da `2.5`, da `5/2`. No es un fallo. Es la idea más importante de Mathematica y la vemos dentro de un momento.",
+   "cells": [
+    {
+     "code": "(2 + 3) * 4"
+    },
+    {
+     "code": "7 * 6\n10 - 4",
+     "note": "Dos líneas: dos salidas"
+    },
+    {
+     "code": "10 / 4",
+     "note": "¿Por qué no da 2.5?"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e01",
+    "kind": "code",
+    "title": "Tu primer cálculo",
+    "prompt": "Calcula `(17 + 4) * 3^2`. Escríbelo en la celda y comprueba.",
+    "difficulty": 1,
+    "cmds": [
+     "Power"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "(17 + 4) * 3^2",
+    "check": {
+     "type": "expr",
+     "expected": "189"
+    },
+    "requires": [
+     "Power"
+    ],
+    "hints": [
+     "La potencia se escribe con el acento circunflejo: `3^2`.",
+     "Escribe tal cual `(17 + 4) * 3^2`."
+    ],
+    "explain": "Paréntesis para agrupar y `^` para la potencia: 21 · 9 = 189."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e02",
+    "kind": "code",
+    "title": "Cambia la prioridad",
+    "prompt": "La celda `2 + 3 * 4^2` vale 50, porque primero se hace la potencia, después el producto y al final la suma.\n\nEscribe la misma operación añadiendo unos paréntesis para que **primero se sume 2 + 3** y ese resultado se multiplique por 4². Debe dar 80.",
+    "difficulty": 1,
+    "cmds": [
+     "Power"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "(2 + 3) * 4^2",
+    "check": {
+     "type": "expr",
+     "expected": "80"
+    },
+    "requires": [
+     "Power"
+    ],
+    "hints": [
+     "Los paréntesis obligan a hacer antes lo que encierran.",
+     "`(2 + 3) * 4^2`"
+    ],
+    "explain": "`(2 + 3) * 4^2` es 5 · 16 = 80. Sin paréntesis manda la prioridad habitual; con ellos decides tú el orden."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Regla 1 · El espacio multiplica",
+   "md": "En Mathematica un **espacio** entre dos cosas significa **producto**. `3 4` es 12 y `2 x` es «2 por x». Entre un número y una letra puedes incluso quitar el espacio: `2x`.\n\nCuidado con las letras pegadas: `x y` es «x por y», pero `xy` es **otro símbolo distinto**, de nombre «xy». Y `x2` también es un nombre, no un producto.\n\nFíjate además en que `x` no tiene ningún valor y no pasa nada: Mathematica la trata como un símbolo y opera con ella, igual que harías tú en papel.",
+   "cells": [
+    {
+     "code": "3 4",
+     "note": "El espacio es el producto: tecléalo también"
+    },
+    {
+     "code": "2 x + 3 x",
+     "note": "Opera con letras sin valor"
+    },
+    {
+     "code": "x y + xy",
+     "note": "`x y` es un producto; `xy` es un símbolo nuevo. No los puede juntar"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e03",
+    "kind": "code",
+    "title": "Producto de letras",
+    "prompt": "Suma 3·a·b y 2·a·b. Mathematica debe simplificarlo y responder `5 a b`.\n\nSi te responde con un `ab` todo junto, es que ha entendido un símbolo nuevo en vez de un producto.",
+    "difficulty": 1,
+    "cmds": [
+     "Times"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "3 a b + 2 a b",
+    "check": {
+     "type": "expr",
+     "expected": "5 a b",
+     "msg": "No es `5 a b`. Entre `a` y `b` tiene que haber un espacio (o un `*`): `ab` pegado es otro símbolo."
+    },
+    "hints": [
+     "Para multiplicar dos letras hace falta un espacio o un `*` entre ellas.",
+     "`3 a b + 2 a b`"
+    ],
+    "explain": "Con espacios, `a b` es un producto y los dos términos se suman: `5 a b`. Con `3ab + 2ab` habrías obtenido `5 ab`, que es cinco veces un símbolo llamado «ab»."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Regla 2 · Funciones: mayúscula y corchetes",
+   "md": "Todas las funciones de Mathematica cumplen dos normas:\n- El nombre empieza por **mayúscula**: `Sqrt` (raíz cuadrada), `Sin`, `Cos`, `Log`…\n- Los argumentos van entre **corchetes**: `Sqrt[16]`, `Sin[Pi/2]`.\n\nCada tipo de paréntesis tiene un único trabajo:\n- `[ ]` argumentos de una función.\n- `( )` agrupar operaciones.\n- `{ }` listas (varias cosas juntas): `{1, 2, 3}`.\n\nLo traicionero es que, si te equivocas, **no siempre avisa**. Teclea las dos últimas celdas, que están mal a propósito. Con minúscula cree que `sin` es una función tuya que aún no has definido y te la devuelve tal cual. Con paréntesis entiende «el símbolo Sin multiplicado por π/2».\n\nSi una salida te devuelve lo mismo que escribiste, o algo absurdo, revisa mayúsculas y corchetes antes que nada.",
+   "cells": [
+    {
+     "code": "Sqrt[16]"
+    },
+    {
+     "code": "Sin[Pi/2]"
+    },
+    {
+     "code": "sin[Pi/2]",
+     "note": "Mal a propósito. Minúscula: no la reconoce y no hace nada"
+    },
+    {
+     "code": "Sin(Pi/2)",
+     "note": "Mal a propósito. Paréntesis: lo toma por un producto"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e04",
+    "kind": "fix",
+    "title": "Arregla la celda",
+    "prompt": "Esta celda debería calcular la raíz cuadrada de 144 más el coseno de 0 (resultado: 13). Tiene los dos errores más típicos. Escríbela bien.",
+    "difficulty": 1,
+    "cmds": [
+     "Sqrt",
+     "Cos"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "sqrt(144) + cos(0)",
+    "solution": "Sqrt[144] + Cos[0]",
+    "check": {
+     "type": "expr",
+     "expected": "13"
+    },
+    "requires": [
+     "Sqrt",
+     "Cos"
+    ],
+    "hints": [
+     "Las funciones de Mathematica empiezan por mayúscula: `Sqrt`, `Cos`.",
+     "Los argumentos van entre corchetes: `Sqrt[144] + Cos[0]`."
+    ],
+    "explain": "Mayúscula inicial y corchetes. Con `sqrt(144)` Mathematica entendía «el símbolo sqrt multiplicado por 144»."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Exacto frente a aproximado",
+   "md": "Mathematica **no redondea nunca por su cuenta**. Si le das números exactos (enteros, fracciones, `Pi`, raíces), contesta exacto: `1/3 + 1/6` es `1/2`, y `Sqrt[8]` es `2 Sqrt[2]`, no 2.828…\n\nEn cuanto aparece un **punto decimal**, el número pasa a ser aproximado y contagia a todo el cálculo. `0.5` y `1/2` valen lo mismo, pero para Mathematica son cosas distintas: el primero es un decimal con unas 16 cifras y el segundo una fracción exacta.\n\nPor eso `10 / 4` daba `5/2`: eran dos enteros.\n\nRegla práctica: escribe los datos exactos (`1/2`, no `0.5`) y decide **al final** si quieres decimales.",
+   "cells": [
+    {
+     "code": "1/3 + 1/6",
+     "note": "Fracciones: resultado exacto"
+    },
+    {
+     "code": "Sqrt[8]",
+     "note": "Simplifica, pero no redondea"
+    },
+    {
+     "code": "1/3 + 0.5",
+     "note": "Un solo decimal y todo el resultado es aproximado"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e05",
+    "kind": "code",
+    "title": "Un resultado exacto",
+    "prompt": "Calcula tres cuartos más cinco sextos. El resultado tiene que ser **exacto** (una fracción), no un decimal.",
+    "difficulty": 1,
+    "cmds": [
+     "Plus"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "3/4 + 5/6",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "19/12"
+      },
+      {
+       "type": "satisfies",
+       "test": "Head[%] === Rational || Head[Out[$Line]] === Rational",
+       "msg": "El valor es correcto, pero se pedía el resultado **exacto**: escribe los datos sin punto decimal y no uses `N`."
+      }
+     ]
+    },
+    "hints": [
+     "Escribe las fracciones con `/` y sin ningún punto decimal.",
+     "`3/4 + 5/6`"
+    ],
+    "explain": "`3/4 + 5/6` da `19/12`: Mathematica busca el denominador común y simplifica. Con `0.75 + 5/6` habría salido 1.58333, aproximado."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "N: pedir decimales",
+   "md": "`N` convierte un resultado exacto en decimal. Tiene tres formas:\n- `N[expr]` — aproximación normal. Por dentro guarda unas 16 cifras (en Mathematica verás 6 en pantalla).\n- `N[expr, n]` — con **n cifras significativas**. Primer argumento: qué aproximas. Segundo: cuántas cifras quieres.\n- `expr // N` — lo mismo que `N[expr]`, escrito al final. Muy cómodo para añadirlo a una línea ya hecha.\n\nLas cifras significativas se cuentan desde la primera que no es cero: `0.0932297` tiene 6.\n\nUn detalle que da guerra: `N[expr, 16]` solo puede darte 16 cifras buenas si dentro **todo es exacto**. Si has escrito un decimal (`0.5` en vez de `1/2`), ese dato ya era aproximado y `N` no puede inventarse cifras.",
+   "cells": [
+    {
+     "code": "N[1/3]"
+    },
+    {
+     "code": "N[Pi, 30]",
+     "note": "π con 30 cifras significativas"
+    },
+    {
+     "code": "Sqrt[2] // N",
+     "note": "Forma postfija: lo mismo que N[Sqrt[2]]"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e06",
+    "kind": "code",
+    "title": "π con 10 cifras",
+    "prompt": "Calcula π con 10 cifras significativas.",
+    "difficulty": 1,
+    "cmds": [
+     "N",
+     "Pi"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "N[Pi, 10]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "Pi",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
+       "msg": "El valor es correcto, pero no tiene exactamente 10 cifras significativas. Pídelas con el segundo argumento: `N[expr, 10]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "La forma es `N[qué, cuántas cifras]`.",
+     "π se escribe `Pi`, con mayúscula: `N[Pi, 10]`."
+    ],
+    "explain": "`N[Pi, 10]` da 3.141592654. Primer argumento: el valor exacto. Segundo: cuántas cifras significativas."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Constantes: Pi, E, I",
+   "md": "Las constantes también empiezan por mayúscula:\n- `Pi` es π.\n- `E` es el número e (2.71828…).\n- `I` es la unidad imaginaria: `I^2` da `-1`. Un complejo se escribe `3 + 4 I`.\n- `Infinity` es ∞.\n\nSon **exactas**: `Pi` no es 3.14159, es π con todas sus cifras. Por eso `Sin[Pi]` da exactamente `0`.\n\nEn minúscula no significan nada: `pi`, `e`, `i` son símbolos corrientes, sin valor. Es el fallo número uno al copiar una fórmula del enunciado. Teclea la última celda: `N` no puede hacer nada con `pi`.",
+   "cells": [
+    {
+     "code": "N[E, 10]"
+    },
+    {
+     "code": "E^(I Pi)",
+     "note": "La identidad de Euler, exacta"
+    },
+    {
+     "code": "N[pi]",
+     "note": "Mal a propósito. Minúscula: es un símbolo sin valor"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e07",
+    "kind": "fix",
+    "title": "Mayúsculas en las constantes",
+    "prompt": "Queremos π·e² con 8 cifras significativas, pero la celda devuelve letras en vez de un número. Escríbela bien.",
+    "difficulty": 2,
+    "cmds": [
+     "N",
+     "Pi",
+     "E"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "N[pi*e^2, 8]",
+    "solution": "N[Pi*E^2, 8]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "Pi E^2",
+       "compare": "numeric",
+       "tol": 1e-07
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
+       "msg": "El valor es correcto, pero no tiene exactamente 8 cifras significativas. Pídelas con el segundo argumento: `N[expr, 8]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "Pi",
+     "E"
+    ],
+    "hints": [
+     "`pi` y `e` en minúscula son símbolos sin valor.",
+     "Las constantes son `Pi` y `E`."
+    ],
+    "explain": "`Pi` y `E`, con mayúscula. Sale 23.213404."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e08",
+    "kind": "code",
+    "title": "Un cociente de complejos",
+    "prompt": "Calcula el cociente `(1 + 2i)/(3 − 4i)`. Recuerda cómo se escribe la unidad imaginaria en Mathematica.",
+    "difficulty": 2,
+    "cmds": [
+     "I"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "(1 + 2 I)/(3 - 4 I)",
+    "check": {
+     "type": "expr",
+     "expected": "-1/5 + 2 I/5"
+    },
+    "hints": [
+     "La unidad imaginaria es `I` mayúscula; `2 I` es «2 por I».",
+     "`(1 + 2 I)/(3 - 4 I)`. Los paréntesis del denominador son obligatorios."
+    ],
+    "explain": "Mathematica hace la división y deja el resultado en forma binómica exacta: −1/5 + (2/5) i."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Ángulos: siempre en radianes",
+   "md": "Las funciones trigonométricas trabajan en **radianes**. `Sin[30]` es el seno de 30 radianes, no de 30 grados.\n\nPara escribir grados, multiplica por `Degree`, que es la constante π/180: `Sin[30 Degree]`. Es lo mismo que escribir `30 Pi/180`.\n\nSi el ángulo viene en grados, minutos y segundos (5° 20' 30''), `FromDMS[{5, 20, 30}]` lo pasa a **grados** con decimales (DMS: degrees, minutes, seconds). El argumento es una lista entre llaves: `{grados, minutos, segundos}`. Después se multiplica por `Degree` (o por `Pi/180`) para tener radianes.",
+   "cells": [
+    {
+     "code": "Sin[30 Degree]",
+     "note": "30 grados"
+    },
+    {
+     "code": "FromDMS[{5, 20, 30}]",
+     "note": "5° 20' 30'' en grados, como fracción exacta"
+    },
+    {
+     "code": "N[FromDMS[{5, 20, 30}] Degree]",
+     "note": "Y ahora en radianes"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e09",
+    "kind": "code",
+    "title": "De grados y minutos a radianes",
+    "prompt": "Pasa el ángulo 12° 30' 0'' a **radianes**, con 8 cifras significativas.",
+    "difficulty": 2,
+    "cmds": [
+     "FromDMS",
+     "Degree",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "N[FromDMS[{12, 30, 0}] Degree, 8]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "25 Pi/360",
+       "compare": "numeric",
+       "tol": 1e-07
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
+       "msg": "El valor es correcto, pero no tiene exactamente 8 cifras significativas. Pídelas con el segundo argumento: `N[expr, 8]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "`FromDMS[{12, 30, 0}]` da los grados. Falta pasarlos a radianes.",
+     "Multiplica por `Degree` (o por `Pi/180`) y envuélvelo todo en `N[..., 8]`."
+    ],
+    "explain": "`FromDMS` da 25/2 grados; al multiplicar por `Degree` quedan radianes: 0.21816616."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "% (lo último), ; (silencio) y comentarios",
+   "md": "Tres ayudas para trabajar más cómodo:\n- `%` es **la última salida**. Sirve para seguir operando sin copiar el resultado.\n- Un `;` al final de una línea hace el cálculo pero **no muestra** la salida. También separa varias instrucciones escritas en la misma línea.\n- Lo que escribas entre `(*` y `*)` es un comentario: Mathematica lo ignora. Sirve para anotar qué hace cada cosa.\n\nOjo con `%`: es lo último que **se evaluó**, no lo que está escrito justo encima. Si vuelves a ejecutar celdas en otro orden, `%` cambia. Para algo importante es más seguro guardar el resultado con un nombre (lo vemos en la siguiente lección).",
+   "cells": [
+    {
+     "code": "12 * 3\n% + 1",
+     "note": "En la segunda línea, % vale 36"
+    },
+    {
+     "code": "2^10;\n%",
+     "note": "El ; oculta la salida, pero % la recuerda"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e10",
+    "kind": "code",
+    "title": "Seguir con %",
+    "prompt": "Dos líneas en la misma celda:\n\n1. Calcula `2^20` terminando la línea en punto y coma, para que no se muestre.\n2. Usa `%` para dividir ese resultado entre 1024.",
+    "difficulty": 2,
+    "cmds": [
+     "Out"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "2^20;\n% / 1024",
+    "check": {
+     "type": "expr",
+     "expected": "1024"
+    },
+    "requires": [
+     "Out",
+     "Power"
+    ],
+    "hints": [
+     "Primera línea: `2^20;`",
+     "Segunda línea: `% / 1024`."
+    ],
+    "explain": "`2^20;` calcula 1048576 sin mostrarlo. En la segunda línea `%` recupera ese valor: 1048576/1024 = 1024."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Comparar con ==, y factoriales",
+   "md": "`==` (dos signos igual) **pregunta** si dos cosas son iguales y contesta `True` o `False`. No lo confundas con `=` (uno solo), que sirve para guardar valores y es el tema de la siguiente lección. También existen `!=` (distinto), `<`, `>`, `<=` y `>=`.\n\nSi en la comparación hay un símbolo sin valor, Mathematica no puede decidir y devuelve la igualdad tal cual: `x == 5`. Eso es justo una **ecuación**; así se las daremos a `Solve` más adelante.\n\nDos operadores más que salen en la práctica:\n- `n!` es el factorial: `5!` es 5·4·3·2·1.\n- `n!!` es el doble factorial, que salta de dos en dos: `7!!` es 7·5·3·1 y `8!!` es 8·6·4·2.",
+   "cells": [
+    {
+     "code": "2 + 2 == 5"
+    },
+    {
+     "code": "x == 5",
+     "note": "x no tiene valor: queda como ecuación"
+    },
+    {
+     "code": "5!"
+    },
+    {
+     "code": "8!! == 8*6*4*2",
+     "note": "Comprobación del doble factorial"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e11",
+    "kind": "fix",
+    "title": "Tres errores en una línea",
+    "prompt": "Queremos el valor decimal de e²/3 (sale 2.46302). La celda tiene tres errores de escritura. Escríbela bien.",
+    "difficulty": 2,
+    "cmds": [
+     "N",
+     "E"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "n(e^2/3)",
+    "solution": "N[E^2/3]",
+    "check": {
+     "type": "expr",
+     "expected": "E^2/3",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "N",
+     "E"
+    ],
+    "hints": [
+     "Repasa las reglas: mayúscula en funciones y constantes, corchetes para los argumentos.",
+     "`N[E^2/3]`"
+    ],
+    "explain": "`N` con mayúscula, corchetes para su argumento y `E` con mayúscula. Tal como estaba, Mathematica multiplicaba dos símbolos desconocidos, `n` y `e^2/3`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e12",
+    "kind": "code",
+    "title": "Práctica 1 · un ángulo en radianes",
+    "prompt": "Ejercicio real de la práctica. Calcula el valor de **5° 20' 30'' en radianes** con 16 cifras significativas.",
+    "difficulty": 3,
+    "cmds": [
+     "FromDMS",
+     "N",
+     "Pi"
+    ],
+    "real": true,
+    "source": "Práctica 1 · Pregunta 2a",
+    "solution": "N[FromDMS[{5, 20, 30}] Pi/180, 16]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "FromDMS[{5, 20, 30}] Pi/180",
+       "compare": "numeric",
+       "tol": 1e-12
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "`FromDMS[{5, 20, 30}]` convierte grados, minutos y segundos a grados.",
+     "Para pasar a radianes multiplica por `Pi/180` (o por `Degree`).",
+     "`N[FromDMS[{5, 20, 30}] Pi/180, 16]`"
+    ],
+    "explain": "Resultado oficial: 0.09322967087736377. Tres piezas: `FromDMS` da los grados, `Pi/180` los pasa a radianes y `N[..., 16]` fija las cifras."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e13",
+    "kind": "code",
+    "title": "Práctica 1 · expresiones con π y e",
+    "prompt": "Calcula con 16 cifras significativas:\n\n- b) π·e² / 3\n- c) π·e² / (3 + π)\n\nDevuelve los dos valores a la vez, dentro de una lista: `N[{b, c}, 16]`.",
+    "difficulty": 3,
+    "cmds": [
+     "N",
+     "Pi",
+     "E"
+    ],
+    "real": true,
+    "source": "Práctica 1 · Pregunta 2b-c",
+    "solution": "N[{Pi E^2/3, Pi E^2/(3 + Pi)}, 16]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{Pi E^2/3, Pi E^2/(3 + Pi)}",
+       "compare": "numeric",
+       "tol": 1e-12
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "Una lista va entre llaves y separada por comas: `{expr1, expr2}`.",
+     "En c) el denominador entero va entre paréntesis: `Pi E^2/(3 + Pi)`.",
+     "`N[{Pi E^2/3, Pi E^2/(3 + Pi)}, 16]`"
+    ],
+    "explain": "Resultados oficiales: 7.737801452454462 y 3.779704331871478. En c) los paréntesis del denominador son obligatorios: sin ellos dividirías solo entre 3 y luego sumarías π."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e14",
+    "kind": "code",
+    "title": "Práctica 1 · cociente de complejos",
+    "prompt": "Calcula la aproximación numérica, con 6 cifras significativas, de la forma binómica del cociente\n\n(7 − 2i) / (e + πi)",
+    "difficulty": 3,
+    "cmds": [
+     "N",
+     "I",
+     "E",
+     "Pi"
+    ],
+    "real": true,
+    "source": "Práctica 1 · Pregunta 3a-b",
+    "solution": "N[(7 - 2 I)/(E + Pi I), 6]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "(7 - 2 I)/(E + Pi I)",
+       "compare": "numeric",
+       "tol": 0.0001
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 6 || Precision[Out[$Line]] == 6",
+       "msg": "El valor es correcto, pero no tiene exactamente 6 cifras significativas. Pídelas con el segundo argumento: `N[expr, 6]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "Numerador y denominador van cada uno entre paréntesis.",
+     "Unidad imaginaria `I`, número e `E`, π `Pi`: `(7 - 2 I)/(E + Pi I)`.",
+     "`N[(7 - 2 I)/(E + Pi I), 6]`"
+    ],
+    "explain": "Resultado oficial: 0.738458 − 1.58921 i. `N` hace la división y deja directamente parte real y parte imaginaria. El apartado b) pide lo mismo con 13 cifras: basta cambiar el 6 por 13 (0.7384575119268 − 1.589214425535 i)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p01-e15",
+    "kind": "code",
+    "title": "Práctica 1 · factorial y doble factorial",
+    "prompt": "Dos líneas en la misma celda:\n\n1. Calcula `16!`.\n2. Comprueba con `==` que `16!!` es igual a 16·14·12·10·8·6·4·2. La última salida debe ser `True`.",
+    "difficulty": 3,
+    "cmds": [
+     "Factorial",
+     "Factorial2",
+     "Equal"
+    ],
+    "real": true,
+    "source": "Práctica 1 · Pregunta 3c-d",
+    "solution": "16!\n16!! == 16*14*12*10*8*6*4*2",
+    "check": {
+     "type": "expr",
+     "expected": "True",
+     "compare": "same",
+     "msg": "La última línea debe ser la comparación `16!! == 16*14*...*2` y dar `True`."
+    },
+    "requires": [
+     "Factorial",
+     "Equal"
+    ],
+    "hints": [
+     "El factorial es `16!` y el doble factorial `16!!`.",
+     "Para comprobar una igualdad se usan dos signos igual: `16!! == 16*14*12*10*8*6*4*2`."
+    ],
+    "explain": "16! = 20922789888000 y 16!! = 10321920. El `==` no calcula nada nuevo: contesta `True` porque los dos lados valen lo mismo."
+   }
+  }
+ ]
+}

@@ -1,0 +1,750 @@
+{
+ "id": "2-m2-pl8",
+ "year": 2,
+ "subject": "Matemáticas II",
+ "block": "Ecuaciones en derivadas parciales",
+ "order": 8,
+ "title": "Primeras EDPs: primer orden, reducibles y d'Alembert",
+ "summary": "Derivadas parciales y DSolve con EDPs, la fórmula de las lineales de primer orden, el método iterativo y los coeficientes indeterminados para las reducibles, y la cuerda ilimitada con d'Alembert.",
+ "minutes": 70,
+ "commands": [
+  "Thread"
+ ],
+ "uses": [
+  "D",
+  "DSolve",
+  "Integrate",
+  "Simplify",
+  "Expand",
+  "Factor",
+  "Solve",
+  "CoefficientList",
+  "Flatten",
+  "Plot",
+  "Manipulate",
+  "Exp"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "De EDO a EDP: derivadas parciales",
+   "md": "En una **EDP** la incógnita depende de varias variables: `z(x, y)`, o `u(x, t)` (posición y tiempo). Así se describen una onda en una cuerda, el calor en una barra o la presión del aire sobre un ala.\n\nLo primero es saber derivar respecto de cada variable con `D`:\n\n- `D[f, x]` → derivada parcial respecto de `x` (la `y` cuenta como constante)\n- `D[f, {x, 2}]` → derivada segunda respecto de `x`\n- `D[f, x, y]` → derivada cruzada: primero `x`, luego `y`\n\nEl guion usa la notación de operadores: `Dx` es 'derivar respecto de x' y `Dy` 'derivar respecto de y'. Así `(Dx + Dy + 1) z = f` significa `z_x + z_y + z = f`, y `Dx*Dy` es la derivada cruzada.\n\nAl acabar sabrás resolver las EDPs lineales de primer orden con la fórmula del guion, las reducibles con el método iterativo y con coeficientes indeterminados, y el problema de la cuerda ilimitada.",
+   "cells": [
+    {
+     "code": "D[x^3 y^2, x]",
+     "note": "parcial respecto de x"
+    },
+    {
+     "code": "D[x^3 y^2, {x, 2}]",
+     "note": "segunda respecto de x"
+    },
+    {
+     "code": "D[x^3 y^2, x, y]",
+     "note": "cruzada: respecto de x y luego de y"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e01",
+    "kind": "code",
+    "title": "Comprobar una solución",
+    "prompt": "Define `z[x_, y_] = Sin[x - y]` y comprueba que cumple la EDP `z_x + z_y = 0`: calcula `D[z[x, y], x] + D[z[x, y], y]`. Debe ser la última salida.",
+    "difficulty": 1,
+    "cmds": [
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "z[x_, y_] = Sin[x - y];\nD[z[x, y], x] + D[z[x, y], y]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "z[1.2, 0.2]",
+       "expected": "Sin[1.]",
+       "compare": "numeric",
+       "msg": "Define `z[x_, y_] = Sin[x - y]` (con guiones bajos)."
+      },
+      {
+       "type": "expr",
+       "expected": "0"
+      }
+     ]
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "Con dos variables el patrón es `z[x_, y_] = ...`.",
+     "`D[z[x, y], x] + D[z[x, y], y]`"
+    ],
+    "explain": "Da 0. De hecho **cualquier** función de `x - y` cumple esa EDP: en las EDPs las 'constantes' de integración son funciones arbitrarias. Sustituir y ver que sale lo esperado es la forma de comprobar todo lo que hagas en esta práctica."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "DSolve también resuelve EDPs",
+   "md": "La sintaxis es la de siempre con dos variables: `DSolve[ecuación, z[x, y], {x, y}]`.\n\n- La ecuación se escribe con `==` y con las derivadas hechas con `D[z[x, y], ...]`.\n- La incógnita es `z[x, y]` y al final va la lista de variables `{x, y}`.\n\nEn la solución aparecen `C[1][...]`, `C[2][...]`: son **funciones arbitrarias**. `C[1][y]` es 'cualquier función de `y`'; `C[1][x - y]` es 'cualquier función de `x - y`'.\n\nDSolve es el 'método genérico' del guion. Funciona con las de primer orden y con algunas sencillas de orden 2, pero no con todas: por eso el resto de la práctica enseña métodos paso a paso.\n\nEl Ejemplo 8.1.1 del guion es una EDP no lineal, `DSolve[D[z[x, y], x] + D[z[x, y], y] == Exp[z[x, y]], z[x, y], {x, y}]`. Mathematica devuelve `z = -Log[-x - C[1][y - x]]`; este cuaderno web solo resuelve las lineales.",
+   "cells": [
+    {
+     "code": "DSolve[D[z[x, y], {x, 2}] == 6 x y, z[x, y], {x, y}]",
+     "note": "Ejemplo 8.1.2: integrar dos veces en x deja dos funciones arbitrarias de y"
+    },
+    {
+     "code": "DSolve[D[z[x, y], x] + D[z[x, y], y] == 0, z[x, y], {x, y}]",
+     "note": "cualquier función de x - y: en una EDO C[1] es un número; en una EDP C[1][...] es una función"
+    },
+    {
+     "code": "DSolve[D[z[x, y], x] - D[z[x, y], y] - 2 z[x, y] == 0, z[x, y], {x, y}]",
+     "note": "con término en z aparece una exponencial delante de la función arbitraria"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e02",
+    "kind": "code",
+    "title": "Tu primera EDP con DSolve",
+    "prompt": "Resuelve con `DSolve` la EDP `z_x + 2 z_y = 0` para `z(x, y)`. Guarda el resultado en `sol` (es decir, `sol = DSolve[...]`).",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "sol = DSolve[D[z[x, y], x] + 2 D[z[x, y], y] == 0, z[x, y], {x, y}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "defined",
+       "name": "sol",
+       "msg": "Guarda el resultado en `sol`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{r = z[x, y] /. Flatten[sol]}, Simplify[D[r, x] + 2 D[r, y]] === 0 && !FreeQ[r, C]]",
+       "msg": "`sol` debe ser la solución general: cumple la EDP y contiene una función arbitraria `C[1][...]`."
+      }
+     ]
+    },
+    "requires": [
+     "DSolve",
+     "D"
+    ],
+    "hints": [
+     "Las derivadas: `D[z[x, y], x]` y `D[z[x, y], y]`.",
+     "`sol = DSolve[D[z[x, y], x] + 2 D[z[x, y], y] == 0, z[x, y], {x, y}]`"
+    ],
+    "explain": "La solución es una función arbitraria de `2 x - y` (o de `y - 2 x`: es lo mismo). Esa combinación se llama **característica**: la solución es constante a lo largo de las rectas `y - 2 x = cte`. Para quedarte con la expresión: `z[x, y] /. Flatten[sol]`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Lineal de primer orden: la fórmula del guion",
+   "md": "Para `(a Dx + b Dy + c) z = f(x, y)` con `a`, `b`, `c` constantes, el guion programa una fórmula que da una **solución particular**. Son siempre las mismas tres líneas; solo cambian los datos de la primera:\n\n- `a = ...; b = ...; c = ...; f[x_, y_] = ...;` → los coeficientes del operador y el segundo miembro\n- `int[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];` → integra a lo largo de la característica `a y - b x = C1`\n- `int[x, a*y - b*x] // Simplify` → deshace el cambio: sustituye `C1` por `a y - b x`\n\nLa solución de la **homogénea** es `E^(-c x/a)` por una función arbitraria de `a y - b x`. La general es homogénea + particular.\n\nEjemplo 8.2.1: `(2 Dx + 3 Dy + 1) z = x^3 - x y + 3`. La última celda lo compara con `DSolve` (que puede escribir la parte arbitraria de otra forma equivalente).",
+   "cells": [
+    {
+     "code": "a = 2; b = 3; c = 1; f[x_, y_] = x^3 - x*y + 3;",
+     "note": "los datos: coeficientes del operador y segundo miembro"
+    },
+    {
+     "code": "int[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];",
+     "note": "la fórmula, siempre igual: integra a lo largo de la característica"
+    },
+    {
+     "code": "zp[x_, y_] = int[x, a*y - b*x] // Simplify",
+     "note": "deshacer el cambio: solución particular"
+    },
+    {
+     "code": "2 D[zp[x, y], x] + 3 D[zp[x, y], y] + zp[x, y] // Simplify",
+     "note": "comprobación: al sustituir sale el segundo miembro"
+    },
+    {
+     "code": "Clear[a, b, c, f, zp];\nDSolve[2 D[z[x, y], x] + 3 D[z[x, y], y] + z[x, y] == x^3 - x*y + 3, z[x, y], {x, y}] // Simplify",
+     "note": "con DSolve: la misma particular más la homogénea con C[1]"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e03",
+    "kind": "code",
+    "title": "Aplica la fórmula",
+    "prompt": "Halla una solución particular de `(Dx - Dy) u = 4 x E^(-2 y)` con la fórmula del guion (`a` multiplica a `Dx`, `b` a `Dy` y `c` es el término sin derivada). Define el resultado como `u[x_, y_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "a = 1; b = -1; c = 0; f[x_, y_] = 4 x Exp[-2 y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nu[x_, y_] = int[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "Simplify[D[u[x, y], x] - D[u[x, y], y] - 4 x E^(-2 y)]",
+     "expected": "0",
+     "msg": "Tu `u[x, y]` no cumple `u_x - u_y = 4 x E^(-2 y)`. Revisa `a`, `b`, `c`."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`Dx - Dy` es `1*Dx + (-1)*Dy + 0`: `a = 1; b = -1; c = 0;`",
+     "Después la línea de `int[x_, C1_] = ...` tal cual y `u[x_, y_] = int[x, a*y - b*x] // Simplify`."
+    ],
+    "explain": "Sale `u = E^(-2 y) (2 x - 1)`: es el primer paso del Ejemplo 8.3.1 del guion."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e04",
+    "kind": "fix",
+    "title": "Guion 1a, primer paso",
+    "prompt": "Se quiere una solución particular de `(Dx + Dy + 1) u = 3 x^2 + 2 y - 4` con la fórmula del guion, pero la celda tiene dos errores (uno en la primera línea y otro en la última). Corrígelos.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 1a",
+    "broken": "a = 1; b = 1; c = 1; f[x, y] = 3 x^2 + 2 y - 4;\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nint[x, y] // Simplify",
+    "solution": "a = 1; b = 1; c = 1; f[x_, y_] = 3 x^2 + 2 y - 4;\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nint[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "expr",
+     "expected": "3 x^2 - 6 x + 2 y"
+    },
+    "hints": [
+     "Para definir una función, los argumentos llevan guion bajo: `f[x_, y_] = ...`. Sin él, `f[x, (C1 + b*x)/a]` no se evalúa.",
+     "Al final hay que deshacer la característica: `int[x, a*y - b*x]`, no `int[x, y]`."
+    ],
+    "explain": "Sale `u = 3 x^2 - 6 x + 2 y`. Los dos fallos son los más frecuentes con esta fórmula: olvidar los `_` y olvidar sustituir `C1` por `a y - b x`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "EDPs reducibles: factorizar y repetir (método iterativo)",
+   "md": "Una EDP lineal de orden 2 con coeficientes constantes es **reducible** si su operador se factoriza en factores de primer orden. Se factoriza con `Factor`, tratando `Dx` y `Dy` como símbolos normales.\n\nEjemplo 8.3.1: `z_xx - 2 z_xy + z_yy - 2 z_x + 2 z_y = 4 x E^(-2 y)`, es decir `(Dx - Dy) (Dx - Dy - 2) z = 4 x E^(-2 y)`.\n\n**Homogénea**: cada factor `(a Dx + b Dy + c)` aporta `E^(-c x/a)` por una función arbitraria de `a y - b x`. Aquí: `E^(2 x) f1(x + y) + f2(x + y)`.\n\n**Particular (método iterativo)**: aplica la fórmula dos veces.\n\n1. Resuelve `(Dx - Dy) u = f` → sale `u`.\n2. Resuelve `(Dx - Dy - 2) z = u` → sale `zp`. Es la misma fórmula con el nuevo `a, b, c` y con `u` como segundo miembro.\n\nLa solución general es homogénea + `zp`. Compruébala siempre sustituyendo en la EDP completa.",
+   "cells": [
+    {
+     "code": "Factor[Dx^2 - 2 Dx*Dy + Dy^2 - 2 Dx + 2 Dy]",
+     "note": "el operador se parte en dos factores de primer orden"
+    },
+    {
+     "code": "a = 1; b = -1; c = 0; f[x_, y_] = 4 Exp[-2 y]*x;\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nu[x_, y_] = int[x, a*y - b*x] // Simplify",
+     "note": "primera pasada: (Dx - Dy) u = f"
+    },
+    {
+     "code": "a = 1; b = -1; c = -2; f[x_, y_] = u[x, y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nzp[x_, y_] = int[x, a*y - b*x] // Simplify",
+     "note": "segunda pasada: (Dx - Dy - 2) z = u"
+    },
+    {
+     "code": "D[zp[x, y], {x, 2}] - 2 D[zp[x, y], x, y] + D[zp[x, y], {y, 2}] - 2 D[zp[x, y], x] + 2 D[zp[x, y], y] // Simplify",
+     "note": "comprobación en la EDP completa: sale 4 x E^(-2 y)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e05",
+    "kind": "code",
+    "title": "Factoriza el operador",
+    "prompt": "Factoriza el operador `Dx^2 - Dy^2 + Dx - Dy` (es el de los ejercicios 1a y 1c del guion).",
+    "difficulty": 1,
+    "cmds": [
+     "Factor"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Factor[Dx^2 - Dy^2 + Dx - Dy]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "(Dx - Dy) (1 + Dx + Dy)"
+      },
+      {
+       "type": "satisfies",
+       "test": "Head[Factor[Dx^2 - Dy^2 + Dx - Dy]] === Times"
+      }
+     ]
+    },
+    "requires": [
+     "Factor"
+    ],
+    "hints": [
+     "`Dx` y `Dy` son símbolos normales para `Factor`. El producto se escribe con `*` o con un espacio."
+    ],
+    "explain": "`(Dx - Dy) (1 + Dx + Dy)`: `Dx^2 - Dy^2 = (Dx - Dy)(Dx + Dy)` y `Dx - Dy` es factor común."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e06",
+    "kind": "code",
+    "title": "Guion 1a, segundo paso",
+    "prompt": "Ejercicio 1a: `(Dx + Dy + 1)(Dx - Dy) z = 3 x^2 + 2 y - 4`. El primer paso ya está hecho: `u[x, y] = 3 x^2 - 6 x + 2 y` (definida).\n\nHaz la segunda pasada: resuelve `(Dx - Dy) z = u` con la fórmula y define la solución particular como `zp[x_, y_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 1a",
+    "setup": "u[x_, y_] = 3 x^2 - 6 x + 2 y;",
+    "solution": "a = 1; b = -1; c = 0; f[x_, y_] = u[x, y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nzp[x_, y_] = int[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Simplify[D[zp[x, y], x] - D[zp[x, y], y] - u[x, y]]",
+       "expected": "0",
+       "msg": "Tu `zp` no cumple `(Dx - Dy) zp = u`."
+      },
+      {
+       "type": "value",
+       "expr": "Simplify[D[zp[x, y], {x, 2}] - D[zp[x, y], {y, 2}] + D[zp[x, y], x] - D[zp[x, y], y] - (3 x^2 + 2 y - 4)]",
+       "expected": "0",
+       "msg": "Tu `zp` no cumple la EDP completa."
+      }
+     ]
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Para `Dx - Dy`: `a = 1; b = -1; c = 0;` y el segundo miembro es `f[x_, y_] = u[x, y];`",
+     "Después las dos líneas de siempre, acabando en `zp[x_, y_] = int[x, a*y - b*x] // Simplify`."
+    ],
+    "explain": "Sale `zp = x (x^2 - 2 x + 2 y)`. Sustituida en `z_xx - z_yy + z_x - z_y` da `3 x^2 + 2 y - 4`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e07",
+    "kind": "code",
+    "title": "Guion 1a: la parte homogénea",
+    "prompt": "Para escribir la solución general de 1a falta la homogénea. Resuelve con `DSolve` la ecuación del primer factor, `(Dx + Dy + 1) z = 0`, es decir `z_x + z_y + z = 0`. Guarda el resultado en `sol`.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "D"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 1a",
+    "solution": "sol = DSolve[D[z[x, y], x] + D[z[x, y], y] + z[x, y] == 0, z[x, y], {x, y}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "defined",
+       "name": "sol",
+       "msg": "Guarda el resultado en `sol`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{r = z[x, y] /. Flatten[sol]}, Simplify[D[r, x] + D[r, y] + r] === 0 && !FreeQ[r, C]]",
+       "msg": "`sol` debe ser la solución general de `z_x + z_y + z = 0` (con su función arbitraria)."
+      }
+     ]
+    },
+    "requires": [
+     "DSolve",
+     "D"
+    ],
+    "hints": [
+     "`sol = DSolve[D[z[x, y], x] + D[z[x, y], y] + z[x, y] == 0, z[x, y], {x, y}]`"
+    ],
+    "explain": "Con la regla del guion (`a = 1, b = 1, c = 1`): `E^(-x)` por una función arbitraria de `y - x`. DSolve puede escribirla de otra forma equivalente. El otro factor, `Dx - Dy` (`c = 0`), da una función arbitraria de `x + y` sin exponencial. Solución general de 1a: `E^(-x) f1[y - x] + f2[x + y] + x (x^2 - 2 x + 2 y)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e08",
+    "kind": "code",
+    "title": "Guion 1b",
+    "prompt": "Halla una solución particular de\n\n`(Dx^2 + Dx Dy - 2 Dy^2 + Dx - 4 Dy - 2) z = 3 x^2 + 2 y - 4`\n\ncon el método iterativo: factoriza el operador con `Factor`, haz las dos pasadas de la fórmula y define el resultado como `zp[x_, y_]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Factor",
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 1b",
+    "solution": "Factor[Dx^2 + Dx*Dy - 2 Dy^2 + Dx - 4 Dy - 2]\na = 1; b = -1; c = -1; f[x_, y_] = 3 x^2 + 2 y - 4;\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nu[x_, y_] = int[x, a*y - b*x] // Simplify;\na = 1; b = 2; c = 2; f[x_, y_] = u[x, y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nzp[x_, y_] = int[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "Simplify[D[zp[x, y], {x, 2}] + D[zp[x, y], x, y] - 2 D[zp[x, y], {y, 2}] + D[zp[x, y], x] - 4 D[zp[x, y], y] - 2 zp[x, y] - (3 x^2 + 2 y - 4)]",
+     "expected": "0",
+     "msg": "Tu `zp[x, y]` no cumple la EDP. Revisa los `a, b, c` de cada factor y que la segunda pasada use `u` como segundo miembro."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`Factor[Dx^2 + Dx*Dy - 2 Dy^2 + Dx - 4 Dy - 2]` da `(-1 + Dx - Dy) (2 + Dx + 2 Dy)`.",
+     "Primera pasada: `a = 1; b = -1; c = -1` con `f` el segundo miembro. Guarda el resultado en `u[x_, y_]`.",
+     "Segunda pasada: `a = 1; b = 2; c = 2; f[x_, y_] = u[x, y];` y guarda en `zp[x_, y_]`."
+    ],
+    "explain": "`u = -3 x^2 - 6 x - 2 y` y `zp = (7 - 6 x - 6 x^2 - 4 y)/4`. La homogénea es `E^x f1[x + y] + E^(-2 x) f2[y - 2 x]`. Da igual por qué factor empieces: el `zp` puede cambiar, pero también cumple la EDP."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e09",
+    "kind": "code",
+    "title": "Guion 1c",
+    "prompt": "Halla una solución particular de\n\n`(Dx^2 - Dy^2 + Dx - Dy) z = x^2 + 2 x y - 4`\n\ncon el método iterativo (el operador es `(Dx - Dy)(Dx + Dy + 1)`). Define el resultado como `zp[x_, y_]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 1c",
+    "solution": "a = 1; b = -1; c = 0; f[x_, y_] = x^2 + 2 x*y - 4;\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nu[x_, y_] = int[x, a*y - b*x] // Simplify;\na = 1; b = 1; c = 1; f[x_, y_] = u[x, y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nzp[x_, y_] = int[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "Simplify[D[zp[x, y], {x, 2}] - D[zp[x, y], {y, 2}] + D[zp[x, y], x] - D[zp[x, y], y] - (x^2 + 2 x*y - 4)]",
+     "expected": "0",
+     "msg": "Tu `zp[x, y]` no cumple la EDP. Revisa los `a, b, c` de cada factor."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Primera pasada con `Dx - Dy`: `a = 1; b = -1; c = 0`.",
+     "Segunda pasada con `Dx + Dy + 1`: `a = 1; b = 1; c = 1; f[x_, y_] = u[x, y];`"
+    ],
+    "explain": "`u = x (2 x^2/3 + x y - 4)` y `zp = 2 x^3/3 + x^2 (y - 3) - 2 x (y - 2) + 2 (y - 3)`. Solución general: `f1[x + y] + E^(-x) f2[y - x] + zp`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Coeficientes indeterminados",
+   "md": "Otra forma de hallar la particular: **probar una solución con la misma forma que el segundo miembro** y ajustar sus coeficientes. Si `f(x, y)` es un polinomio de grado 2, se prueba el polinomio general de grado 2:\n\n`zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g`\n\n(sin `f`, que suele ser el segundo miembro; y nunca `E`, `C`, `D`, `I`, `N`, que son de Mathematica). Aquí `zp` es una expresión, no una función: se deriva con `D[zp, x]`.\n\nEjemplo 8.3.2: `(Dx Dy - 2 Dx + 1) z = x^2 + y^2`.\n\n1. Sustituye y desarrolla: `Expand[D[zp, x, y] - 2 D[zp, x] + zp]`.\n2. Iguala coeficientes con los de `x^2 + y^2`, potencia a potencia, y resuelve con `Solve`.\n3. `zp /. First[sol]`.\n\nAtajo sin leer a ojo: `CoefficientList[lhs - f, {x, y}]` da todos los coeficientes; `Flatten` los pone en una lista y `Thread[lista == 0]` la convierte en lista de ecuaciones.\n\nSi `f` es una exponencial se prueba `C1*Exp[...]` (y si al sustituir da 0, se multiplica por `x` o por `y`); si es seno o coseno, `A*Sin[...] + B*Cos[...]`.",
+   "cells": [
+    {
+     "code": "zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g;\nlhs = Expand[D[zp, x, y] - 2 D[zp, x] + zp]",
+     "note": "paso 1: el lado izquierdo con el polinomio de prueba"
+    },
+    {
+     "code": "sol = Solve[{b - 2 d + g == 0, -4 a + d == 0, a == 1, -2 b + e == 0, b == 0, c == 1}, {a, b, c, d, e, g}]\nzp /. First[sol]",
+     "note": "paso 2: igualar coeficientes (término independiente, x, x^2, y, x y, y^2)"
+    },
+    {
+     "code": "Solve[Thread[Flatten[CoefficientList[lhs - (x^2 + y^2), {x, y}]] == 0], {a, b, c, d, e, g}]",
+     "note": "el atajo: mismas reglas sin leer coeficientes"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e10",
+    "kind": "code",
+    "title": "Guion 2a",
+    "prompt": "Halla una solución particular de\n\n`z_xx - z_xy - 2 z_x - 3 z_y + z = x^2 + 2 y^2 + x + 1`\n\npor coeficientes indeterminados, probando `zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g`. La última salida debe ser la solución particular (el polinomio con los coeficientes ya sustituidos).",
+    "difficulty": 3,
+    "cmds": [
+     "Expand",
+     "Solve",
+     "D"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 2a",
+    "solution": "zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g;\nExpand[D[zp, {x, 2}] - D[zp, x, y] - 2 D[zp, x] - 3 D[zp, y] + zp]\nsol = Solve[{2 a - b - 2 d - 3 e + g == 1, -4 a - 3 b + d == 1, a == 1, -2 b - 6 c + e == 0, b == 0, c == 2}, {a, b, c, d, e, g}];\nzp /. First[sol]",
+    "check": {
+     "type": "expr",
+     "expected": "45 + 5 x + x^2 + 12 y + 2 y^2"
+    },
+    "requires": [
+     "Solve",
+     "D"
+    ],
+    "hints": [
+     "El lado izquierdo: `Expand[D[zp, {x, 2}] - D[zp, x, y] - 2 D[zp, x] - 3 D[zp, y] + zp]`.",
+     "Iguala: término independiente a 1, coeficiente de `x` a 1, de `x^2` a 1, de `y` a 0, de `x y` a 0 y de `y^2` a 2.",
+     "Termina con `zp /. First[sol]`."
+    ],
+    "explain": "`zp = 45 + 5 x + x^2 + 12 y + 2 y^2`. Cada ecuación de `Solve` sale de comparar una potencia de los dos lados."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e11",
+    "kind": "code",
+    "title": "Guion 2b",
+    "prompt": "Misma EDP con otro segundo miembro:\n\n`(Dx^2 - Dx Dy - 2 Dx - 3 Dy + 1) z = x y`.\n\nYa están definidos el polinomio de prueba `zp` (coeficientes `a, b, c, d, e, g`) y `lhs`, el lado izquierdo desarrollado. Halla los coeficientes y devuelve la solución particular como última salida.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 2b",
+    "setup": "zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g;\nlhs = Expand[D[zp, {x, 2}] - D[zp, x, y] - 2 D[zp, x] - 3 D[zp, y] + zp];",
+    "solution": "lhs\nsol = Solve[{2 a - b - 2 d - 3 e + g == 0, -4 a - 3 b + d == 0, a == 0, -2 b - 6 c + e == 0, b == 1, c == 0}, {a, b, c, d, e, g}];\nzp /. First[sol]",
+    "check": {
+     "type": "expr",
+     "expected": "13 + 3 x + 2 y + x y"
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "Ejecuta `lhs` para ver los coeficientes. Ahora el único coeficiente no nulo del segundo miembro es el de `x y`, que vale 1.",
+     "Las ecuaciones son las de 2a cambiando los números de la derecha: `..., a == 0, ..., b == 1, c == 0`."
+    ],
+    "explain": "`zp = 13 + 3 x + 2 y + x y`. El lado izquierdo no cambia: solo cambia con qué se iguala cada coeficiente."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e12",
+    "kind": "code",
+    "title": "Guion 2c, con el atajo",
+    "prompt": "Ahora `(Dx^2 - Dx Dy - 2 Dx - 3 Dy + 1) z = x^2 + y`. Están definidos `zp` y `lhs` como en el ejercicio anterior.\n\nResuélvelo sin leer coeficientes a ojo: usa `CoefficientList`, `Flatten` y `Thread` para construir las ecuaciones. La última salida debe ser la solución particular.",
+    "difficulty": 3,
+    "cmds": [
+     "CoefficientList",
+     "Thread",
+     "Solve"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 2c",
+    "setup": "zp = a*x^2 + b*x*y + c*y^2 + d*x + e*y + g;\nlhs = Expand[D[zp, {x, 2}] - D[zp, x, y] - 2 D[zp, x] - 3 D[zp, y] + zp];",
+    "solution": "sol = Solve[Thread[Flatten[CoefficientList[lhs - (x^2 + y), {x, y}]] == 0], {a, b, c, d, e, g}];\nzp /. First[sol]",
+    "check": {
+     "type": "expr",
+     "expected": "9 + 4 x + x^2 + y"
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "La diferencia `lhs - (x^2 + y)` debe ser el polinomio nulo: todos sus coeficientes valen 0.",
+     "`Solve[Thread[Flatten[CoefficientList[lhs - (x^2 + y), {x, y}]] == 0], {a, b, c, d, e, g}]`"
+    ],
+    "explain": "`zp = 9 + 4 x + x^2 + y`. `Thread` reparte el `== 0` por toda la lista: `{p, q} == 0` pasa a `{p == 0, q == 0}`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e13",
+    "kind": "code",
+    "title": "Segundo miembro exponencial",
+    "prompt": "Halla una solución particular de `(4 Dx^2 + Dy^2 - 8 Dx) z = 3 E^(x + 2 y)`.\n\nLas pruebas `C1*Exp[x + 2 y]` y `C1*x*Exp[x + 2 y]` dan 0 al sustituir (no sirven). Prueba `zp = C1*y*Exp[x + 2 y]`: sustituye, halla `C1` con `Solve` y devuelve la solución particular como última salida.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Solve",
+     "Simplify"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "zp = C1*y*Exp[x + 2 y];\nSimplify[4 D[zp, {x, 2}] + D[zp, {y, 2}] - 8 D[zp, x]]\nsol = Solve[4 C1 == 3, C1];\nzp /. First[sol]",
+    "check": {
+     "type": "expr",
+     "expected": "3/4 y E^(x + 2 y)"
+    },
+    "requires": [
+     "D",
+     "Solve"
+    ],
+    "hints": [
+     "`Simplify[4 D[zp, {x, 2}] + D[zp, {y, 2}] - 8 D[zp, x]]` da `4 C1 E^(x + 2 y)`.",
+     "Eso debe ser `3 E^(x + 2 y)`: `Solve[4 C1 == 3, C1]`. Luego `zp /. First[sol]`."
+    ],
+    "explain": "`zp = (3/4) y E^(x + 2 y)`. Es un ejemplo del libro de la asignatura: cuando la prueba natural es solución de la homogénea (da 0), se multiplica por `x` o por `y`, igual que en las EDOs con resonancia."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e14",
+    "kind": "code",
+    "title": "Examen 2014 · P7",
+    "prompt": "Halla una solución particular de\n\n`(Dx - Dy + 1)(Dx - 2 Dy - 1) z = 4 x E^(-2 y)`\n\ncon el método iterativo (dos pasadas de la fórmula). Define el resultado como `zp[x_, y_]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 13/01/2014 · pregunta 7",
+    "solution": "a = 1; b = -1; c = 1; f[x_, y_] = 4 x E^(-2 y);\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nu[x_, y_] = int[x, a*y - b*x] // Simplify;\na = 1; b = -2; c = -1; f[x_, y_] = u[x, y];\nint[x_, C1_] = Exp[-c*x/a]/a*Integrate[Exp[c*x/a]*f[x, (C1 + b*x)/a], x];\nzp[x_, y_] = int[x, a*y - b*x] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "Simplify[D[zp[x, y], {x, 2}] - 3 D[zp[x, y], x, y] + 2 D[zp[x, y], {y, 2}] - D[zp[x, y], y] - zp[x, y] - 4 x E^(-2 y)]",
+     "expected": "0",
+     "msg": "Tu `zp[x, y]` no cumple la EDP. Revisa los `a, b, c` de cada factor."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Primer factor `Dx - Dy + 1`: `a = 1; b = -1; c = 1`. Guarda el resultado en `u[x_, y_]`.",
+     "Segundo factor `Dx - 2 Dy - 1`: `a = 1; b = -2; c = -1; f[x_, y_] = u[x, y];`"
+    ],
+    "explain": "Solución oficial: `u = (4/9) E^(-2 y) (3 x - 1)` y `zp = (4/27) E^(-2 y) (3 x - 2)`. El operador desarrollado es `Dx^2 - 3 Dx Dy + 2 Dy^2 - Dy - 1`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e15",
+    "kind": "code",
+    "title": "Examen 2021 · P7",
+    "prompt": "Halla una solución particular de `(Dy + 1)(Dx - 2 Dy - 1) z = y E^(-2 x)`.\n\nLa primera pasada ya está hecha: `u[x, y] = E^(-2 x) (2 - 3 y)/9` cumple `(Dx - 2 Dy - 1) u = y E^(-2 x)` (definida).\n\nFalta `(Dy + 1) z = u`. Ese factor no tiene `Dx` (`a = 0`), así que la fórmula se usa **cambiando los papeles de x e y**: `Exp[-c*y/b]/b*Integrate[Exp[c*y/b]*u[x, y], y]` con `b = 1`, `c = 1`. Define el resultado como `zp[x_, y_]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 15/01/2021 · P7",
+    "setup": "u[x_, y_] = E^(-2 x) (2 - 3 y)/9;",
+    "solution": "b = 1; c = 1;\nzp[x_, y_] = Exp[-c*y/b]/b*Integrate[Exp[c*y/b]*u[x, y], y] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Simplify[D[zp[x, y], y] + zp[x, y] - u[x, y]]",
+       "expected": "0",
+       "msg": "Tu `zp` no cumple `(Dy + 1) zp = u`."
+      },
+      {
+       "type": "value",
+       "expr": "Simplify[D[zp[x, y], x, y] - 2 D[zp[x, y], {y, 2}] + D[zp[x, y], x] - 3 D[zp[x, y], y] - zp[x, y] - y E^(-2 x)]",
+       "expected": "0",
+       "msg": "Tu `zp` no cumple la EDP completa."
+      }
+     ]
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`(Dy + 1) z = u` es una EDO lineal en `y` (la `x` hace de parámetro).",
+     "`zp[x_, y_] = Exp[-y]*Integrate[Exp[y]*u[x, y], y] // Simplify`"
+    ],
+    "explain": "`zp = E^(-2 x) (5 - 3 y)/9`. Cuando un factor solo tiene `Dy`, se integra respecto de `y` con `x` fija: no hay característica que deshacer."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "La cuerda ilimitada: fórmula de d'Alembert",
+   "md": "La ecuación de ondas `u_tt = v^2 u_xx` en toda la recta, con posición inicial `u(x, 0) = f0(x)` y velocidad inicial `u_t(x, 0) = f1(x)`, tiene solución explícita (d'Alembert):\n\n`u(x, t) = (f0(x - v t) + f0(x + v t))/2 + (1/(2 v))` por la integral de `f1(s)` entre `x - v t` y `x + v t`.\n\nEn Mathematica es una línea: defines `v`, `f0`, `f1` y escribes la fórmula con `Integrate[f1[s], {s, x - v*t, x + v*t}]` (`s` es la variable de integración; los límites dependen de `x` y `t`).\n\nEjemplo 8.4.1: `u_tt = u_xx`, cuerda en reposo (`f0 = 0`) que recibe un golpe `f1 = x^3 E^(-x^2)`.\n\nPara ver la onda moverse: `Manipulate[Plot[u[x, t], {x, -5, 5}, PlotRange -> {-0.6, 0.6}], {t, 0, 7}]`. `{t, 0, 7}` crea un deslizador para `t`, y `PlotRange` fijo evita que los ejes bailen.",
+   "cells": [
+    {
+     "code": "v = 1; f0[x_] = 0; f1[x_] = x^3*Exp[-x^2];",
+     "note": "los datos del Ejemplo 8.4.1"
+    },
+    {
+     "code": "u[x_, t_] = 1/2 (f0[x - v*t] + f0[x + v*t]) + 1/(2 v) Integrate[f1[s], {s, x - v*t, x + v*t}]",
+     "note": "la fórmula de d'Alembert"
+    },
+    {
+     "code": "Plot[{u[x, 1], u[x, 3]}, {x, -5, 5}, PlotRange -> {-0.6, 0.6}]",
+     "note": "la onda en t = 1 y t = 3: dos pulsos que se alejan"
+    },
+    {
+     "code": "Manipulate[Plot[u[x, t], {x, -5, 5}, PlotRange -> {-0.6, 0.6}], {t, 0, 7}]",
+     "note": "mueve el deslizador para ver la evolución"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e16",
+    "kind": "code",
+    "title": "Un pulso que se parte en dos",
+    "prompt": "Usa d'Alembert para `u_tt = 4 u_xx` (así que `v = 2`) con `u(x, 0) = E^(-x^2)` y velocidad inicial nula. Define la solución como `u[x_, t_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "v = 2; f0[x_] = Exp[-x^2]; f1[x_] = 0;\nu[x_, t_] = 1/2 (f0[x - v*t] + f0[x + v*t]) + 1/(2 v) Integrate[f1[s], {s, x - v*t, x + v*t}]",
+    "check": {
+     "type": "value",
+     "expr": "u[x, t]",
+     "expected": "(E^(-(x - 2 t)^2) + E^(-(x + 2 t)^2))/2",
+     "msg": "`u[x, t]` no coincide. Revisa `v = 2` (porque `v^2 = 4`) y la fórmula."
+    },
+    "hints": [
+     "`v^2 = 4`, luego `v = 2`. Define `f0[x_] = Exp[-x^2]` y `f1[x_] = 0`.",
+     "`u[x_, t_] = 1/2 (f0[x - v*t] + f0[x + v*t]) + 1/(2 v) Integrate[f1[s], {s, x - v*t, x + v*t}]`"
+    ],
+    "explain": "`u = (E^(-(x - 2 t)^2) + E^(-(x + 2 t)^2))/2`: el pulso inicial se divide en dos mitades que viajan a velocidad 2, una hacia cada lado."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl8-e17",
+    "kind": "code",
+    "title": "Guion 3: el tsunami",
+    "prompt": "Modelo de tsunami: `u_tt = 100 u_xx`, con `u(x, 0) = 0` y golpe inicial `u_t(x, 0) = 3 x E^(-2 x^2)`.\n\n1. Define la solución `u[x_, t_]` con d'Alembert.\n2. Dibuja la onda en los instantes `t = 0.2` y `t = 0.5` para `x` entre -7 y 7, con `PlotRange -> {-0.05, 0.05}`. El gráfico debe ser la última salida.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Plot",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL8 · ejercicio 3",
+    "solution": "v = 10; f0[x_] = 0; f1[x_] = 3 x*Exp[-2 x^2];\nu[x_, t_] = 1/2 (f0[x - v*t] + f0[x + v*t]) + 1/(2 v) Integrate[f1[s], {s, x - v*t, x + v*t}];\nPlot[{u[x, 0.2], u[x, 0.5]}, {x, -7, 7}, PlotRange -> {-0.05, 0.05}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "u[x, t]",
+       "expected": "3/80 (E^(-2 (x - 10 t)^2) - E^(-2 (x + 10 t)^2))",
+       "msg": "`u[x, t]` no coincide. Recuerda `v = 10` (porque `v^2 = 100`)."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "like": "Plot[{3/80 (E^(-2 (x - 2)^2) - E^(-2 (x + 2)^2)), 3/80 (E^(-2 (x - 5)^2) - E^(-2 (x + 5)^2))}, {x, -7, 7}, PlotRange -> {-0.05, 0.05}]"
+      }
+     ]
+    },
+    "requires": [
+     "Integrate",
+     "Plot"
+    ],
+    "hints": [
+     "`v = 10; f0[x_] = 0; f1[x_] = 3 x*Exp[-2 x^2];` y la fórmula de d'Alembert.",
+     "`Plot[{u[x, 0.2], u[x, 0.5]}, {x, -7, 7}, PlotRange -> {-0.05, 0.05}]`"
+    ],
+    "explain": "`u = (3/80) (E^(-2 (x - 10 t)^2) - E^(-2 (x + 10 t)^2))`: una cresta que viaja a la derecha y un valle a la izquierda, a velocidad 10. La amplitud es `3/80 = 0.0375`, por eso el `PlotRange` pequeño. Para la animación del guion: `Manipulate[Plot[u[x, t], {x, -7, 7}, PlotRange -> {-0.05, 0.05}], {t, 0, 1}]`."
+   }
+  }
+ ]
+}

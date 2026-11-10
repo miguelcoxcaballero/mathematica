@@ -1,0 +1,862 @@
+{
+ "id": "1-p21",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo II",
+ "order": 21,
+ "title": "Diferenciales, jacobianos y derivadas implícitas",
+ "summary": "Derivas funciones que no se pueden despejar: derivada total con Dt, derivadas implícitas de y(x) y z(x, y), recta tangente con FindRoot y derivadas de funciones definidas por un sistema mediante jacobianos.",
+ "minutes": 50,
+ "commands": [
+  "Dt",
+  "Constants"
+ ],
+ "uses": [
+  "FindRoot",
+  "Solve",
+  "Flatten",
+  "ReplaceAll",
+  "Grad",
+  "Det",
+  "D",
+  "ContourPlot",
+  "Simplify",
+  "N"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Dt: la derivada total",
+   "md": "La ecuación de Kepler `M = E - e Sin[E]` relaciona la posición de un satélite con el tiempo, y **no se puede despejar**. Aun así se puede derivar. Esta práctica va de eso: derivar funciones que solo conoces a través de una ecuación (funciones **implícitas**).\n\nLa herramienta es `Dt`, la derivada **total**. Compárala con `D`:\n\n- `D[x^2 + y^2, x]` → `2 x`. Para `D`, la `y` es una constante.\n- `Dt[x^2 + y^2, x]` → `2 x + 2 y Dt[y, x]`. Para `Dt`, **todo depende de `x`** mientras no digas lo contrario. `Dt[y, x]` es «la derivada de y respecto de x», todavía desconocida.\n\nCon un solo argumento, `Dt[f]` es la **diferencial total**: `Dt[x]` y `Dt[y]` son `dx` y `dy`.",
+   "cells": [
+    {
+     "code": "D[x^2 + y^2, x]",
+     "note": "parcial: y constante"
+    },
+    {
+     "code": "Dt[x^2 + y^2, x]",
+     "note": "total: y depende de x"
+    },
+    {
+     "code": "Dt[x^2 y]",
+     "note": "diferencial total: 2xy·dx + x²·dy"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e01",
+    "kind": "code",
+    "title": "Tu primera derivada total",
+    "prompt": "Calcula la derivada total de `x y` respecto de `x` (con `y` dependiente de `x`).",
+    "difficulty": 1,
+    "cmds": [
+     "Dt"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Dt[x y, x]",
+    "check": {
+     "type": "expr",
+     "expected": "y + x Dt[y, x]"
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "`Dt[expresión, variable]`",
+     "`Dt[x y, x]`"
+    ],
+    "explain": "Regla del producto con `y` dependiente de `x`: `y + x Dt[y, x]`. Con `D[x y, x]` habría salido solo `y`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e02",
+    "kind": "code",
+    "title": "Diferencial del volumen",
+    "prompt": "El volumen de un depósito cilíndrico es `Pi r^2 h`. Calcula su **diferencial total** (sirve para estimar cuánto cambia el volumen con pequeños errores en `r` y `h`).",
+    "difficulty": 1,
+    "cmds": [
+     "Dt"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Dt[Pi r^2 h]",
+    "check": {
+     "type": "expr",
+     "expected": "Pi r^2 Dt[h] + 2 Pi r h Dt[r]"
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "La diferencial total es `Dt` con un solo argumento.",
+     "`Dt[Pi r^2 h]`"
+    ],
+    "explain": "`2 Pi r h Dt[r] + Pi r^2 Dt[h]`, es decir dV = 2πrh·dr + πr²·dh. `Pi` es constante y `Dt` lo sabe."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Derivada implícita: Dt + Solve",
+   "md": "Una curva como `x^3 + y^3 == 9` define `y` como función de `x` sin despejarla. Para hallar `dy/dx`:\n\n1. Deriva **la ecuación entera** con `Dt[ecu, x]`. Queda otra ecuación en la que aparece `Dt[y, x]`.\n2. Despeja `Dt[y, x]` con `Solve`: la «incógnita» es la propia derivada.\n3. Extrae el resultado: `Dyx = Dt[y, x] /. Flatten[sol]`.\n4. Evalúa en el punto: `Dyx /. {x -> 1, y -> 2}`.\n\n`Flatten` quita un nivel de llaves a la salida de `Solve` para que `/.` devuelva la expresión limpia y no una lista.",
+   "cells": [
+    {
+     "code": "ecu = x^3 + y^3 == 9;\nDt[ecu, x]",
+     "note": "la ecuación derivada"
+    },
+    {
+     "code": "sol = Solve[Dt[ecu, x], Dt[y, x]]",
+     "note": "se despeja la derivada"
+    },
+    {
+     "code": "Dyx = Dt[y, x] /. Flatten[sol]\nDyx /. {x -> 1, y -> 2}",
+     "note": "dy/dx y su valor en el punto (1, 2)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e03",
+    "kind": "code",
+    "title": "Despeja la derivada",
+    "prompt": "Obtén `dy/dx` para la curva `x^2 + x y + y^2 == 7`. Devuelve la salida de `Solve`.",
+    "difficulty": 2,
+    "cmds": [
+     "Dt",
+     "Solve"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Solve[Dt[x^2 + x y + y^2 == 7, x], Dt[y, x]]",
+    "check": {
+     "type": "expr",
+     "expected": "{{Dt[y, x] -> (-2 x - y)/(x + 2 y)}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Dt",
+     "Solve"
+    ],
+    "hints": [
+     "Deriva la ecuación: `Dt[x^2 + x y + y^2 == 7, x]`.",
+     "La incógnita de `Solve` es la derivada: `Solve[Dt[…, x], Dt[y, x]]`."
+    ],
+    "explain": "`dy/dx = (-2 x - y)/(x + 2 y)`. Se deriva con `Dt` (no con `D`) y se despeja `Dt[y, x]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e04",
+    "kind": "code",
+    "title": "Pendiente de una circunferencia",
+    "prompt": "Para la circunferencia `x^2 + y^2 == 25`, guarda en `Dyx` la derivada `dy/dx` (expresión en `x`, `y`) y calcula en la última línea su valor en el punto (3, 4).",
+    "difficulty": 2,
+    "cmds": [
+     "Dt",
+     "Solve",
+     "Flatten",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "ecu = x^2 + y^2 == 25;\nsol = Solve[Dt[ecu, x], Dt[y, x]];\nDyx = Dt[y, x] /. Flatten[sol]\nDyx /. {x -> 3, y -> 4}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Dyx",
+       "expected": "-x/y",
+       "msg": "`Dyx` debe ser `Dt[y, x] /. Flatten[sol]`, una expresión en `x`, `y` (no una lista)."
+      },
+      {
+       "type": "expr",
+       "expected": "-3/4",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "`sol = Solve[Dt[x^2 + y^2 == 25, x], Dt[y, x]];`",
+     "`Dyx = Dt[y, x] /. Flatten[sol]`",
+     "Última línea: `Dyx /. {x -> 3, y -> 4}`."
+    ],
+    "explain": "`dy/dx = -x/y`, que en (3, 4) vale -3/4: la tangente es perpendicular al radio, como debe ser."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e05",
+    "kind": "fix",
+    "title": "Arregla la celda",
+    "prompt": "Esta celda quiere `dy/dx` para la curva `x^3 y^2 == 5`. Tiene tres errores típicos. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "Dt",
+     "Solve"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "solve[D[x^3 y^2 = 5, x], Dt[y, x]]",
+    "solution": "Solve[Dt[x^3 y^2 == 5, x], Dt[y, x]]",
+    "check": {
+     "type": "expr",
+     "expected": "{{Dt[y, x] -> -3 y/(2 x)}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "Dt"
+    ],
+    "hints": [
+     "`Solve` con mayúscula.",
+     "Una ecuación lleva `==`.",
+     "Con `D` la `y` sería constante y `Dt[y, x]` no aparecería: hay que derivar con `Dt`."
+    ],
+    "explain": "`Solve`, `==` y `Dt`. El error de concepto es el tercero: `D` trata la `y` como constante, y entonces no hay nada que despejar."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "El punto: FindRoot. Y la recta tangente",
+   "md": "Te dan `x0` y la ecuación, pero no `y0`. Si la ecuación no se deja resolver exactamente, se usa `FindRoot`, que busca una raíz **numérica** cerca de un valor inicial:\n\n`FindRoot[ecuación /. x -> x0, {y, inicio}]`\n\n- `/. x -> x0` fija la `x`: queda una ecuación solo en `y`.\n- `{y, inicio}`: la incógnita y por dónde empezar a buscar. Si piden «la solución con y > 1», empieza cerca de 1 o algo más arriba.\n- Devuelve una regla `{y -> …}`; el número se saca con `y0 = y /. %`.\n\nCon el punto `(x0, y0)` y la pendiente `m = dy/dx` en él, la **recta tangente** es `y = m x + n` con `n = y0 - m x0`.",
+   "cells": [
+    {
+     "code": "sol = FindRoot[x^2 + y^3 + Sin[y] == 3 /. x -> 1, {y, 1}]",
+     "note": "la y que corresponde a x = 1"
+    },
+    {
+     "code": "y0 = y /. sol",
+     "note": "el número, sin la regla"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e06",
+    "kind": "code",
+    "title": "Encuentra el punto de la curva",
+    "prompt": "La curva `y Exp[y] == x^2 + 1` define `y(x)`. Calcula `y(2)` con `FindRoot` empezando en `y = 1` y guarda el **número** en `y0`.",
+    "difficulty": 2,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "sol = FindRoot[y Exp[y] == x^2 + 1 /. x -> 2, {y, 1}];\ny0 = y /. sol",
+    "check": {
+     "type": "value",
+     "expr": "y0",
+     "expected": "1.3267246652422",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`y0` debe ser el número que cumple `y0 Exp[y0] == 5` (extráelo con `y /. sol`)."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`FindRoot[y Exp[y] == x^2 + 1 /. x -> 2, {y, 1}]`",
+     "La salida es una regla `{y -> 1.32…}`; el número es `y0 = y /. sol`."
+    ],
+    "explain": "`y0 ≈ 1.32672`. Si guardas directamente la salida de `FindRoot`, `y0` sería una regla y no podrías operar con ella."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Segunda derivada implícita",
+   "md": "Para `d²y/dx²` se deriva otra vez la primera derivada, recordando que `y` sigue dependiendo de `x`:\n\n`Dyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx`\n\n- `Dt[Dyx, x]` deriva `Dyx`; como dentro hay `y`, vuelve a aparecer `Dt[y, x]`.\n- La regla `Dt[y, x] -> Dyx` sustituye esa derivada por la que ya conoces.\n\nEn Mathematica existe además `Dt[ecu, {x, 2}]` (deriva dos veces la ecuación y luego despejas `Dt[y, {x, 2}]`); es el camino que se usó en clase. Los dos dan lo mismo.",
+   "cells": [
+    {
+     "code": "ecu = x^3 + y^3 == 9;\nDyx = Dt[y, x] /. Flatten[Solve[Dt[ecu, x], Dt[y, x]]]",
+     "note": "primera derivada"
+    },
+    {
+     "code": "Dyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx // Simplify",
+     "note": "segunda derivada, solo en x, y"
+    },
+    {
+     "code": "Dyx2 /. {x -> 1, y -> 2}",
+     "note": "en el punto (1, 2)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e07",
+    "kind": "code",
+    "title": "Curvatura de la circunferencia",
+    "prompt": "Para `x^2 + y^2 == 25`, calcula `d²y/dx²` en el punto (3, 4).",
+    "difficulty": 3,
+    "cmds": [
+     "Dt",
+     "Solve",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "ecu = x^2 + y^2 == 25;\nDyx = Dt[y, x] /. Flatten[Solve[Dt[ecu, x], Dt[y, x]]];\nDyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx;\nDyx2 /. {x -> 3, y -> 4}",
+    "check": {
+     "type": "expr",
+     "expected": "-25/64",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "Primero `Dyx`, como en el ejercicio de la pendiente.",
+     "`Dyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx;`",
+     "Última línea: `Dyx2 /. {x -> 3, y -> 4}`."
+    ],
+    "explain": "`-25/64`. Negativa: en (3, 4) la circunferencia es cóncava hacia abajo."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Constants y funciones z(x, y) implícitas",
+   "md": "`Dt` supone que todo depende de todo. Para decirle que algo **es constante** está la opción `Constants`:\n\n- `Dt[m v^2/2, v]` arrastra un `Dt[m, v]`.\n- `Dt[m v^2/2, v, Constants -> m]` ya no: `m` es constante.\n\nCaso de examen: `F(x, y, z) == 0` define `z(x, y)` y piden las **parciales** de `z`. Al derivar respecto de `x`, la `y` es independiente (constante) y la `z` depende de `x`. Dos formas equivalentes de decirlo:\n\n- `Dt[ecu, x] /. Dt[y, x] -> 0` → derivas todo y luego anulas la derivada de `y`. La incógnita es `Dt[z, x]`.\n- `Dt[ecu, x, Constants -> y]` → lo mismo con la opción. Así se hizo en clase; Mathematica llama entonces a la incógnita `Dt[z, x, Constants -> {y}]` y hay que escribirla así dentro de `Solve`.\n\nDespués, igual que antes: `Solve` y `/. Flatten[…]`.",
+   "cells": [
+    {
+     "code": "Dt[m v^2/2, v]\nDt[m v^2/2, v, Constants -> m]",
+     "note": "sin la opción, m también «depende» de v; con ella, m es constante"
+    },
+    {
+     "code": "ecu = x^2 + y^2 + z^2 == 14;\nDt[ecu, x] /. Dt[y, x] -> 0",
+     "note": "derivada respecto de x con y constante"
+    },
+    {
+     "code": "Dzx = Dt[z, x] /. Flatten[Solve[Dt[ecu, x] /. Dt[y, x] -> 0, Dt[z, x]]]",
+     "note": "∂z/∂x"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e08",
+    "kind": "code",
+    "title": "Un parámetro constante",
+    "prompt": "La energía de un muelle es `k x^2/2`. Calcula su derivada total respecto de `x` indicando con la opción `Constants` que `k` es constante.",
+    "difficulty": 1,
+    "cmds": [
+     "Dt",
+     "Constants"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Dt[k x^2/2, x, Constants -> k]",
+    "check": {
+     "type": "expr",
+     "expected": "k x"
+    },
+    "requires": [
+     "Dt",
+     "Constants"
+    ],
+    "hints": [
+     "La opción va al final: `Constants -> k`.",
+     "`Dt[k x^2/2, x, Constants -> k]`"
+    ],
+    "explain": "`k x`. Sin la opción habría salido además `x^2 Dt[k, x]/2`, porque `Dt` no sabe que `k` es un parámetro."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e09",
+    "kind": "code",
+    "title": "Parciales de una z implícita",
+    "prompt": "La esfera `x^2 + y^2 + z^2 == 14` define `z(x, y)` cerca del punto (1, 2, 3). Guarda en `Dzy` la parcial `∂z/∂y` (expresión en `x`, `y`, `z`) y evalúala en ese punto en la última línea.",
+    "difficulty": 3,
+    "cmds": [
+     "Dt",
+     "Solve",
+     "Flatten"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "ecu = x^2 + y^2 + z^2 == 14;\nsol = Solve[Dt[ecu, y] /. Dt[x, y] -> 0, Dt[z, y]];\nDzy = Dt[z, y] /. Flatten[sol]\nDzy /. {x -> 1, y -> 2, z -> 3}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Dzy",
+       "expected": "-y/z",
+       "msg": "`Dzy` debe ser la parcial de z respecto de y: una expresión en `y`, `z`."
+      },
+      {
+       "type": "expr",
+       "expected": "-2/3",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "hints": [
+     "Ahora derivas respecto de `y` y la constante es `x`: `Dt[ecu, y] /. Dt[x, y] -> 0`.",
+     "`sol = Solve[Dt[ecu, y] /. Dt[x, y] -> 0, Dt[z, y]];` y `Dzy = Dt[z, y] /. Flatten[sol]`.",
+     "Última línea: `Dzy /. {x -> 1, y -> 2, z -> 3}`."
+    ],
+    "explain": "`∂z/∂y = -y/z`, que en (1, 2, 3) vale -2/3. El papel de cada variable cambia según respecto de cuál derivas: aquí la constante es `x`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Sistemas implícitos: jacobianos",
+   "md": "Dos ecuaciones `F1 == 0`, `F2 == 0` con tres variables definen dos funciones, por ejemplo `x(z)`, `y(z)`. Sus derivadas salen con **jacobianos** (regla de Cramer):\n\n`dx/dz = -Det[∂(F1,F2)/∂(z,y)] / Det[∂(F1,F2)/∂(x,y)]`\n\n`dy/dz = -Det[∂(F1,F2)/∂(x,z)] / Det[∂(F1,F2)/∂(x,y)]`\n\nRegla para acordarse: el denominador es el jacobiano respecto de las funciones `(x, y)`; en el numerador se **cambia** la función que derivas por la variable independiente `z`, en su misma posición.\n\nLa matriz jacobiana es `Grad[{F1, F2}, {x, y}]`: una fila por función, una columna por variable. `Det` la convierte en el jacobiano.",
+   "cells": [
+    {
+     "code": "Grad[{r Cos[t], r Sin[t]}, {r, t}]",
+     "note": "matriz jacobiana del cambio a polares"
+    },
+    {
+     "code": "Det[Grad[{r Cos[t], r Sin[t]}, {r, t}]] // Simplify",
+     "note": "su jacobiano: r"
+    },
+    {
+     "code": "F1 = x^2 + y^2 - z; F2 = x + y - 1;\nden = Det[Grad[{F1, F2}, {x, y}]];\nDxz = -Det[Grad[{F1, F2}, {z, y}]]/den",
+     "note": "dx/dz para el sistema F1 = F2 = 0"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e10",
+    "kind": "code",
+    "title": "La otra derivada del sistema",
+    "prompt": "Para el sistema de la explicación, `F1 = x^2 + y^2 - z` y `F2 = x + y - 1` (ya definidos), calcula con jacobianos `dy/dz` y guárdala en `Dyz`.",
+    "difficulty": 3,
+    "cmds": [
+     "Grad",
+     "Det"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "F1 = x^2 + y^2 - z; F2 = x + y - 1;",
+    "solution": "den = Det[Grad[{F1, F2}, {x, y}]];\nDyz = -Det[Grad[{F1, F2}, {x, z}]]/den",
+    "check": {
+     "type": "value",
+     "expr": "Dyz",
+     "expected": "1/(2 y - 2 x)",
+     "msg": "`Dyz = -Det[Grad[{F1, F2}, {x, z}]]/Det[Grad[{F1, F2}, {x, y}]]`. Revisa la lista de variables del numerador y el signo."
+    },
+    "requires": [
+     "Det",
+     "Grad"
+    ],
+    "hints": [
+     "Denominador: `Det[Grad[{F1, F2}, {x, y}]]`.",
+     "Numerador: se cambia la `y` por `z` en su misma posición → `{x, z}`. Y un signo menos delante."
+    ],
+    "explain": "`dy/dz = 1/(2 y - 2 x)`. Se sustituye la función que derivas (`y`) por la variable independiente (`z`) en su posición; con `{z, y}` habrías obtenido `dx/dz`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e11",
+    "kind": "code",
+    "title": "Prueba real · el punto de tangencia",
+    "prompt": "La función `y(x)` viene dada implícitamente por\n\n`Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]`.\n\nYa está definida `f[x_, y_] := Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]` (la curva es `f = 0`). Halla `y0 = y(1)` sabiendo que `y(1) > 1` y guarda el número en `y0`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P2 (ej1 a.1)",
+    "setup": "f[x_, y_] := Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]",
+    "solution": "sol = FindRoot[f[x, y] == 0 /. x -> 1, {y, 1}];\ny0 = y /. sol",
+    "check": {
+     "type": "value",
+     "expr": "y0",
+     "expected": "1.0923436569562697",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`y0` debe ser el número ≈ 1.09 que cumple `f[1, y0] == 0`."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`FindRoot[f[x, y] == 0 /. x -> 1, {y, 1}]`",
+     "`y0 = y /. sol` para quedarte con el número."
+    ],
+    "explain": "`y0 = 1.09234`. `Solve` no puede con una ecuación que mezcla logaritmo y arcotangente; `FindRoot` sí, numéricamente."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e12",
+    "kind": "code",
+    "title": "Prueba real · pendiente y ordenada en el origen",
+    "prompt": "Misma curva (`f` ya definida; `y0 = 1.0923436569562697` también). Calcula la recta tangente `y = m x + n` en `(1, y0)`:\n\n- `Dyx`: la derivada `dy/dx` por derivación implícita (expresión en `x`, `y`);\n- `m`: su valor en `(1, y0)`;\n- `n`: la ordenada en el origen.\n\nDeja definidos `Dyx`, `m` y `n`.",
+    "difficulty": 4,
+    "cmds": [
+     "Dt",
+     "Solve",
+     "Flatten",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P2 (ej1 a.2, a.3)",
+    "setup": "f[x_, y_] := Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]\ny0 = 1.0923436569562697;",
+    "solution": "sol = Solve[Dt[f[x, y], x] == 0, Dt[y, x]];\nDyx = Dt[y, x] /. Flatten[sol];\nm = Dyx /. {x -> 1, y -> y0}\nn = y0 - m*1",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Dyx",
+       "expected": "(4 x^3 + 5 x^2 y + 25 x y^2 + 10 y^3)/(5 x^3 - 8 x^2 y + 10 x y^2 - 50 y^3)",
+       "msg": "`Dyx` debe ser `Dt[y, x]` despejada de `Dt[f[x, y], x] == 0`."
+      },
+      {
+       "type": "value",
+       "expr": "m",
+       "expected": "-0.9183781694647154",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "`m` es `Dyx` evaluada en `{x -> 1, y -> y0}`."
+      },
+      {
+       "type": "value",
+       "expr": "n",
+       "expected": "2.010721826420985",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "La recta pasa por (1, y0): `n = y0 - m`."
+      }
+     ]
+    },
+    "requires": [
+     "Dt",
+     "Solve"
+    ],
+    "hints": [
+     "`f` es una expresión, no una ecuación: `Solve[Dt[f[x, y], x] == 0, Dt[y, x]]`.",
+     "`Dyx = Dt[y, x] /. Flatten[sol]` y `m = Dyx /. {x -> 1, y -> y0}`.",
+     "La tangente pasa por (1, y0): `y0 == m*1 + n` → `n = y0 - m`."
+    ],
+    "explain": "`m = -0.918378` y `n = 2.01072`. En clase despejaron `n` con `Solve[y0 == m*1 + n, n]`; restar a mano es lo mismo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e13",
+    "kind": "code",
+    "title": "Prueba real · curva y tangente juntas",
+    "prompt": "Comprueba el resultado: representa juntas la curva implícita `Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]` y la recta tangente `y == m x + n` (ya definidos `m = -0.918378` y `n = 2.01072`), para `x` e `y` entre 0.1 y 2.",
+    "difficulty": 3,
+    "cmds": [
+     "ContourPlot"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P2 (ej1 a.4)",
+    "setup": "m = -0.9183781694647154; n = 2.010721826420985;",
+    "solution": "ContourPlot[{y == m x + n, Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]}, {x, 0.1, 2}, {y, 0.1, 2}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "msg": "Deben aparecer dos curvas: la implícita y la recta, las dos como ecuaciones con `==` dentro de una lista."
+    },
+    "requires": [
+     "ContourPlot",
+     "Equal",
+     "Log",
+     "ArcTan"
+    ],
+    "hints": [
+     "`ContourPlot` admite una lista de ecuaciones: `{ec1, ec2}`.",
+     "`ContourPlot[{y == m x + n, Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]}, {x, 0.1, 2}, {y, 0.1, 2}]`"
+    ],
+    "explain": "La recta toca a la curva en (1, 1.09) sin cruzarla: es tangente. Se empieza en 0.1 y no en 0 porque la ecuación tiene `x` en un denominador."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e14",
+    "kind": "code",
+    "title": "Prueba real · la segunda derivada",
+    "prompt": "Misma curva (`f` y `y0` ya definidos). Halla `d²y/dx²` y evalúala en `(1, y0)`.",
+    "difficulty": 4,
+    "cmds": [
+     "Dt",
+     "Solve",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P2 (ej1 b)",
+    "setup": "f[x_, y_] := Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]\ny0 = 1.0923436569562697;",
+    "solution": "Dyx = Dt[y, x] /. Flatten[Solve[Dt[f[x, y], x] == 0, Dt[y, x]]];\nDyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx;\nDyx2 /. {x -> 1, y -> y0}",
+    "check": {
+     "type": "expr",
+     "expected": "-1.984833926999945",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "Primero `Dyx`, como en el apartado anterior.",
+     "`Dyx2 = Dt[Dyx, x] /. Dt[y, x] -> Dyx;`",
+     "Última línea: `Dyx2 /. {x -> 1, y -> y0}`."
+    ],
+    "explain": "`d²y/dx² = -1.98483`. En clase: `Dt[f[x, y], {x, 2}]`, despejar `Dt[y, {x, 2}]` y sustituir `Dt[y, x] -> Dyx`. Mismo número."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e15",
+    "kind": "code",
+    "title": "Prueba real · z implícita: el punto y las parciales",
+    "prompt": "La función `z(x, y)` está definida implícitamente por `z^3 - 2 x z^2 - 2 y == 0` (ya guardada en `ecu`).\n\n- Halla `z0 > 0` tal que `z0 = z(3, 0)` y guárdalo en `z0`.\n- Guarda en `Dzx` y `Dzy` las parciales de `z` respecto de `x` e `y` (expresiones en `x`, `y`, `z`).\n- En la última línea, evalúa `{Dzx, Dzy}` en `P0 = (3, 0, z0)`, en decimales.",
+    "difficulty": 4,
+    "cmds": [
+     "Dt",
+     "Constants",
+     "Solve",
+     "Flatten"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P3 (ej2 a, b)",
+    "setup": "ecu = z^3 - 2 x z^2 - 2 y == 0;",
+    "solution": "Solve[ecu /. {x -> 3, y -> 0}, z]\nz0 = 6;\nDzx = Dt[z, x] /. Flatten[Solve[Dt[ecu, x] /. Dt[y, x] -> 0, Dt[z, x]]]\nDzy = Dt[z, y] /. Flatten[Solve[Dt[ecu, y] /. Dt[x, y] -> 0, Dt[z, y]]]\n{Dzx, Dzy} /. {x -> 3, y -> 0, z -> z0} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "z0",
+       "expected": "6",
+       "compare": "numeric",
+       "msg": "`z0` es la raíz positiva de `ecu /. {x -> 3, y -> 0}`."
+      },
+      {
+       "type": "value",
+       "expr": "Dzx",
+       "expected": "2 z/(3 z - 4 x)",
+       "msg": "`Dzx` debe ser la parcial de z respecto de x (con `y` constante)."
+      },
+      {
+       "type": "value",
+       "expr": "Dzy",
+       "expected": "2/(z (3 z - 4 x))",
+       "msg": "`Dzy` debe ser la parcial de z respecto de y (con `x` constante)."
+      },
+      {
+       "type": "expr",
+       "expected": "{2, 1/18}",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "Dt",
+     "Solve"
+    ],
+    "hints": [
+     "`Solve[ecu /. {x -> 3, y -> 0}, z]` da z = 0 y z = 6: `z0 = 6;`",
+     "`Dzx = Dt[z, x] /. Flatten[Solve[Dt[ecu, x] /. Dt[y, x] -> 0, Dt[z, x]]]` y lo análogo para `Dzy` cambiando los papeles de `x` e `y`.",
+     "Última línea: `{Dzx, Dzy} /. {x -> 3, y -> 0, z -> z0} // N`."
+    ],
+    "explain": "`z0 = 6`, `∂z/∂x = 2 z/(3 z - 4 x) → 2` y `∂z/∂y = 2/(z (3 z - 4 x)) → 0.0555556`. En clase: `Solve[Dt[ecu, x, Constants -> y], Dt[z, x, Constants -> y]]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e16",
+    "kind": "code",
+    "title": "Prueba real · la derivada cruzada",
+    "prompt": "Con `ecu` y las parciales ya definidas (`Dzx = 2 z/(3 z - 4 x)`, `Dzy = 2/(z (3 z - 4 x))`), calcula `∂²z/∂y∂x` en `P0 = (3, 0, 6)`, en decimales.\n\nIdea: deriva `Dzx` respecto de `y` (con `x` constante y `z` dependiente) y sustituye la derivada de `z` por `Dzy`.",
+    "difficulty": 4,
+    "cmds": [
+     "Dt",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P3 (ej2 c)",
+    "setup": "ecu = z^3 - 2 x z^2 - 2 y == 0;\nDzx = 2 z/(3 z - 4 x); Dzy = 2/(z (3 z - 4 x));",
+    "solution": "Dz2 = Dt[Dzx, y] /. {Dt[x, y] -> 0, Dt[z, y] -> Dzy} // Simplify\nDz2 /. {x -> 3, y -> 0, z -> 6} // N",
+    "check": {
+     "type": "expr",
+     "expected": "-1/27",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "`Dt[Dzx, y]` hace aparecer `Dt[x, y]` y `Dt[z, y]`.",
+     "Sustituye: `/. {Dt[x, y] -> 0, Dt[z, y] -> Dzy}`.",
+     "Evalúa: `/. {x -> 3, y -> 0, z -> 6} // N`."
+    ],
+    "explain": "`∂²z/∂y∂x = 16 x/(z (4 x - 3 z)^3)`, que en P0 vale `-0.037037`. Es el mismo truco de la segunda derivada: derivar otra vez y sustituir lo que ya conoces."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e17",
+    "kind": "code",
+    "title": "Prueba real · sistema: puntos y primeras derivadas",
+    "prompt": "Las funciones `x(z)`, `y(z)` están definidas por el sistema `x^2 + y^2 = z^2/2`, `x + y + z = 2`. Ya están definidas `f1[x, y, z] = x^2 + y^2 - z^2/2` y `f2[x, y, z] = x + y + z - 2`.\n\n- Halla los puntos con `z = 10` (salen `P1 = (-7, -1)` y `P2 = (-1, -7)`).\n- Guarda en `Dxz` y `Dyz` las derivadas `dx/dz`, `dy/dz` calculadas con jacobianos.\n- En la última línea devuelve `{{Dxz, Dyz} en P1, {Dxz, Dyz} en P2}` en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "Grad",
+     "Det",
+     "Solve"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P4 (ej3 a, b)",
+    "setup": "f1[x_, y_, z_] := x^2 + y^2 - z^2/2\nf2[x_, y_, z_] := x + y + z - 2",
+    "solution": "Solve[{f1[x, y, 10] == 0, f2[x, y, 10] == 0}, {x, y}]\nP1 = {x -> -7, y -> -1, z -> 10}; P2 = {x -> -1, y -> -7, z -> 10};\nden = Det[Grad[{f1[x, y, z], f2[x, y, z]}, {x, y}]];\nDxz = -Det[Grad[{f1[x, y, z], f2[x, y, z]}, {z, y}]]/den\nDyz = -Det[Grad[{f1[x, y, z], f2[x, y, z]}, {x, z}]]/den\n{{Dxz, Dyz} /. P1, {Dxz, Dyz} /. P2} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Dxz",
+       "expected": "(2 y + z)/(2 x - 2 y)",
+       "msg": "`Dxz = -Det[∂(f1,f2)/∂(z,y)]/Det[∂(f1,f2)/∂(x,y)]`."
+      },
+      {
+       "type": "value",
+       "expr": "Dyz",
+       "expected": "(-2 x - z)/(2 x - 2 y)",
+       "msg": "`Dyz = -Det[∂(f1,f2)/∂(x,z)]/Det[∂(f1,f2)/∂(x,y)]`."
+      },
+      {
+       "type": "expr",
+       "expected": "{{-2/3, -1/3}, {-1/3, -2/3}}",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "Det"
+    ],
+    "hints": [
+     "Puntos: `Solve[{f1[x, y, 10] == 0, f2[x, y, 10] == 0}, {x, y}]`.",
+     "`den = Det[Grad[{f1[x, y, z], f2[x, y, z]}, {x, y}]]`; para `Dxz` cambia la `x` por `z` en la lista de variables: `{z, y}`. Para `Dyz`: `{x, z}`. Y un signo menos delante.",
+     "Última línea: `{{Dxz, Dyz} /. P1, {Dxz, Dyz} /. P2} // N` con `P1 = {x -> -7, y -> -1, z -> 10}` y `P2 = {x -> -1, y -> -7, z -> 10}`."
+    ],
+    "explain": "`dx/dz = (2 y + z)/(2 x - 2 y)`, `dy/dz = (-2 x - z)/(2 x - 2 y)`. En P1: (-0.666667, -0.333333); en P2: (-0.333333, -0.666667)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e18",
+    "kind": "code",
+    "title": "Prueba real · sistema: la segunda derivada",
+    "prompt": "Con el mismo sistema y sus derivadas ya definidas (`Dxz = (2 y + z)/(2 x - 2 y)`, `Dyz = (-2 x - z)/(2 x - 2 y)`), calcula `d²y/dz²` y devuelve sus valores en `P1 = (-7, -1, 10)` y `P2 = (-1, -7, 10)` en una lista, en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "Dt",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Práctica 21 · P4 (ej3 c)",
+    "setup": "f1[x_, y_, z_] := x^2 + y^2 - z^2/2\nf2[x_, y_, z_] := x + y + z - 2\nDxz = (2 y + z)/(2 x - 2 y); Dyz = (-2 x - z)/(2 x - 2 y);",
+    "solution": "Dyz2 = Dt[Dyz, z] /. {Dt[x, z] -> Dxz, Dt[y, z] -> Dyz} // Simplify;\n{Dyz2 /. {x -> -7, y -> -1, z -> 10}, Dyz2 /. {x -> -1, y -> -7, z -> 10}} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{-1/108, 1/108}",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Dt"
+    ],
+    "hints": [
+     "`Dt[Dyz, z]` hace aparecer `Dt[x, z]` y `Dt[y, z]`: tanto `x` como `y` dependen de `z`.",
+     "`Dyz2 = Dt[Dyz, z] /. {Dt[x, z] -> Dxz, Dt[y, z] -> Dyz} // Simplify;`",
+     "Evalúa en los dos puntos y pasa a decimales."
+    ],
+    "explain": "`d²y/dz² = (x + y + z)^2/(2 (x - y)^3)`: `-0.00925926` en P1 y `0.00925926` en P2. Ojo: aquí **no** hay constantes; las dos funciones dependen de `z`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p21-e19",
+    "kind": "code",
+    "title": "Prueba real · extra: x(u, v), y(u, v)",
+    "prompt": "El sistema `2u - v + x^2 + x y = 0`, `u + 2v + x y - y^2 = 0` define `x(u, v)`, `y(u, v)`. Ya están definidas `F1[x, y, u, v]` y `F2[x, y, u, v]` (los lados izquierdos).\n\nCon jacobianos, guarda en `Dxu` la parcial `∂x/∂u` y en `Dxv` la parcial `∂x/∂v`. En la última línea evalúa `Dxv` en `x = 0`, `y = Sqrt[5]`, en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "Grad",
+     "Det",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 21 · Extra",
+    "setup": "F1[x_, y_, u_, v_] := 2 u - v + x^2 + x y\nF2[x_, y_, u_, v_] := u + 2 v + x y - y^2",
+    "solution": "den = Det[Grad[{F1[x, y, u, v], F2[x, y, u, v]}, {x, y}]];\nDxu = -Det[Grad[{F1[x, y, u, v], F2[x, y, u, v]}, {u, y}]]/den\nDxv = -Det[Grad[{F1[x, y, u, v], F2[x, y, u, v]}, {v, y}]]/den\nDxv /. {x -> 0, y -> Sqrt[5]} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Dxu",
+       "expected": "(-x + 4 y)/(2 x^2 - 4 x y - 2 y^2)",
+       "msg": "`Dxu = -Det[∂(F1,F2)/∂(u,y)]/Det[∂(F1,F2)/∂(x,y)]`."
+      },
+      {
+       "type": "value",
+       "expr": "Dxv",
+       "expected": "(3 x - 2 y)/(2 x^2 - 4 x y - 2 y^2)",
+       "msg": "`Dxv = -Det[∂(F1,F2)/∂(v,y)]/Det[∂(F1,F2)/∂(x,y)]`."
+      },
+      {
+       "type": "expr",
+       "expected": "1/Sqrt[5]",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "Det"
+    ],
+    "hints": [
+     "Denominador: `den = Det[Grad[{F1[x, y, u, v], F2[x, y, u, v]}, {x, y}]]`.",
+     "Para `∂x/∂u`, sustituye la `x` por `u` en la lista de variables: `{u, y}`. Para `∂x/∂v`: `{v, y}`.",
+     "Última línea: `Dxv /. {x -> 0, y -> Sqrt[5]} // N`."
+    ],
+    "explain": "`∂x/∂u = (-x + 4 y)/(2 x^2 - 4 x y - 2 y^2)` (los coeficientes -1 y 4 del examen) y `∂x/∂v (0, √5) = 0.447214`. Misma regla de Cramer con dos variables independientes: la que no interviene se queda quieta."
+   }
+  }
+ ]
+}

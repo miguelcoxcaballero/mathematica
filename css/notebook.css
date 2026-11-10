@@ -1,0 +1,170 @@
+/* notebook.css — the Mathematica-like notebook (NOTEBOOK). Uses the tokens of css/tokens.css only.
+   Anatomy:  .wl-nb > .wl-nb-bar + .wl-nb-cells > .wl-nb-slot > .wl-cell
+             .wl-cell > .wl-in [label | editor | tools | bracket] + .wl-status + .wl-outs > .wl-item [label | body | bracket] */
+.wl-nb, .wl-cell, .wl-item { --wl-labelw: 66px; --wl-fs: 15px; --wl-teal: #3c7d91; --wl-magenta: #d4008c; --wl-bracket-on: #7f8ea8; }
+
+/* ------------------------------------------------------------------ notebook frame */
+.wl-nb { background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.wl-nb-bar { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 8px 12px; border-bottom: 1px solid var(--line); font: 13px/1.3 var(--font); }
+.wl-nb-title { font-weight: 600; color: var(--text); margin-right: auto; }
+.wl-nb-actions { display: flex; gap: 6px; margin-left: auto; }
+.wl-nb-title + .wl-pill + .wl-nb-actions { margin-left: 0; }
+.wl-tbtn { font: 500 12.5px/1 var(--font); color: var(--text); background: #fff; border: 1px solid #cfcfcf; border-radius: var(--radius-s); padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.wl-tbtn:hover { background: var(--panel-2); border-color: #bdbdbd; }
+.wl-tbtn:focus-visible, .wl-run:focus-visible, .wl-del:focus-visible, .wl-add:focus-visible, .wl-copy:focus-visible, .wl-more:focus-visible, .wl-link:focus-visible { outline: none; box-shadow: var(--glow); }
+.wl-pill { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12.5px; min-width: 0; }
+.wl-pill-word { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); flex: none; }
+.wl-pill.is-ready .wl-dot { background: var(--ok); }
+.wl-pill.is-loading .wl-dot, .wl-pill.is-busy .wl-dot { background: var(--accent-2); animation: wl-blink 1s ease-in-out infinite; }
+.wl-pill.is-error .wl-dot { background: var(--bad); }
+.wl-pill.is-error { color: var(--bad); }
+.wl-bar { height: 3px; background: #ececec; border-radius: 2px; overflow: hidden; }
+.wl-bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s linear; }
+.wl-nb-bar-progress { border-radius: 0; margin-top: -1px; }
+.wl-nb-cells { padding: 6px 0 2px; }
+.wl-nb--compact .wl-nb-cells { padding: 4px 0; }
+.wl-nb-slot { position: relative; }
+.wl-nb-note { margin: 6px 12px 0 calc(var(--wl-labelw) + 8px); color: var(--ink-muted); font: 13px/1.4 var(--font); }
+.wl-add { font: 500 12.5px/1 var(--font); color: var(--muted); background: none; border: 0; cursor: pointer; }
+.wl-add--tail { display: block; margin: 0 0 8px calc(var(--wl-labelw) + 2px); padding: 6px 6px; border-radius: var(--radius-s); }
+.wl-add--tail:hover { color: var(--accent); }
+.wl-add--between { display: block; width: 100%; height: 10px; padding: 0; position: relative; color: transparent; font-size: 11px; line-height: 10px; text-align: left; }
+.wl-add--between::before { content: ""; position: absolute; left: 30px; right: 10px; top: 4.5px; border-top: 1px solid transparent; }
+.wl-add--between:hover, .wl-add--between:focus-visible { color: var(--muted); box-shadow: none; }
+.wl-add--between:hover::before, .wl-add--between:focus-visible::before { border-top-color: #b9c0cc; }
+.wl-add--between { padding-left: 14px; }
+@media (hover: none) { .wl-add--between { color: var(--dim); height: 14px; line-height: 14px; } }
+
+/* ------------------------------------------------------------------ cell */
+.wl-cell { position: relative; background: var(--paper); color: var(--ink); padding: 3px 10px 3px 0; min-width: 0; }
+.wl-in, .wl-item { display: grid; grid-template-columns: var(--wl-labelw) minmax(0, 1fr) auto 7px; align-items: start; column-gap: 0; }
+.wl-item { grid-template-columns: var(--wl-labelw) minmax(0, 1fr) 7px; padding-right: 0; }
+.wl-outs > .wl-item { margin-right: 0; }
+.wl-cell > .wl-in, .wl-outs > .wl-item { padding-right: 10px; }
+.wl-label { font: 400 10.5px/1 var(--font); color: var(--wl-label); text-align: right; padding: 0 8px 0 2px; white-space: nowrap; overflow: hidden; -webkit-user-select: none; user-select: none; }
+.wl-in > .wl-label { padding-top: calc((var(--wl-fs) * 1.45 - 10.5px) / 2 + 4px); }
+.wl-item > .wl-label { padding-top: 9px; }
+.wl-bracket { align-self: stretch; margin: 3px 0; border: 1px solid var(--wl-bracket); border-left: 0; min-height: 12px; transition: border-color .15s; }
+.wl-bracket--group { position: absolute; right: 3px; top: 4px; bottom: 4px; width: 6px; margin: 0; display: none; }
+.wl-cell.has-out > .wl-bracket--group { display: block; }
+.wl-cell:hover .wl-bracket, .wl-cell:focus-within .wl-bracket { border-color: var(--wl-bracket-on); }
+.wl-cell.is-running .wl-in > .wl-bracket, .wl-cell.is-running > .wl-bracket--group { border-color: var(--ink); border-width: 2px 2px 2px 0; animation: wl-blink .9s ease-in-out infinite; }
+@keyframes wl-blink { 50% { opacity: .35; } }
+
+/* ------------------------------------------------------------------ editor: transparent textarea over a highlighted <pre> */
+.wl-editor { display: grid; position: relative; min-width: 0; padding: 4px 0; cursor: text; }
+.wl-editor > .wl-hl, .wl-editor > .wl-ta {
+  grid-area: 1 / 1; margin: 0; padding: 0; border: 0; min-width: 0; width: 100%; box-sizing: border-box;
+  font: 600 var(--wl-fs)/1.45 var(--mono); letter-spacing: 0; tab-size: 4; -moz-tab-size: 4;
+  white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; text-align: left; text-indent: 0; text-transform: none;
+  font-variant-ligatures: none; font-kerning: none;
+}
+.wl-editor > .wl-hl { color: var(--ink); background: none; pointer-events: none; overflow: hidden; min-height: calc(var(--wl-fs) * 1.45); }
+.wl-editor > .wl-ta { display: block; height: 100%; resize: none; overflow: hidden; outline: none; background: transparent; border-radius: 0;
+  color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--ink); -webkit-appearance: none; appearance: none; }
+.wl-editor > .wl-ta::placeholder { color: var(--dim); -webkit-text-fill-color: var(--dim); font-weight: 400; opacity: 1; }
+.wl-editor > .wl-ta::selection { background: rgba(95, 127, 168, .3); }
+.wl-editor.is-readonly > .wl-ta { caret-color: transparent; }
+@media (pointer: coarse) { .wl-nb, .wl-cell { --wl-fs: 16px; } }   /* iOS zooms into inputs below 16px */
+.wl-hl .wl-u { color: var(--wl-sym-undef); }
+.wl-hl .wl-l, .wl-hl .wl-p { color: var(--wl-local); font-style: italic; }
+.wl-hl .wl-i { color: var(--wl-teal); font-style: italic; }
+.wl-hl .wl-s { color: var(--wl-string); }
+.wl-hl .wl-c { color: var(--wl-comment); }
+.wl-hl .wl-bad { color: var(--wl-magenta); }
+.wl-hl .wl-match { background: #dfe7f3; border-radius: 2px; }
+
+/* ghost typing (SPEC §11): the reference code is gray until typed; char-grid wrapping keeps the caret glued to it */
+.wl-editor.is-ghost > .wl-hl, .wl-editor.is-ghost > .wl-ta { white-space: break-spaces; word-break: break-all; line-break: anywhere; }
+.wl-hl .wl-ghost { color: #b9b9b9; }
+.wl-hl .wl-wrong { color: var(--bad); background: var(--bad-bg); text-decoration: underline; text-decoration-color: var(--bad); text-decoration-thickness: 2px; text-underline-offset: 3px; border-radius: 2px; }
+.wl-editor.wl-shake { animation: wl-shake .22s linear; }
+@keyframes wl-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.wl-hint { margin: 0 24px 4px var(--wl-labelw); font: 12px/1.3 var(--font); color: var(--muted); }
+.wl-cell.is-ghost-complete .wl-run { color: var(--accent); }
+.wl-cell--ghost:not(.is-ghost-complete) .wl-run { opacity: .45; }
+
+.wl-tools { position: relative; display: flex; align-items: flex-start; padding: 3px 3px 0 4px; }
+.wl-run, .wl-del { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--radius-s); background: none; color: var(--dim); cursor: pointer; }
+.wl-run:hover { color: var(--accent); background: var(--panel-2); }
+.wl-run[disabled] { opacity: .4; cursor: default; }
+/* delete sits just left of ▶, only while the cell is hovered or focused */
+.wl-del { position: absolute; right: 100%; top: 3px; font: 400 17px/1 var(--font); background: var(--paper); visibility: hidden; }
+.wl-cell:hover .wl-del, .wl-cell:focus-within .wl-del { visibility: visible; }
+.wl-del:hover { color: var(--bad); background: var(--panel-2); }
+@media (hover: none) { .wl-run, .wl-del { width: 32px; height: 30px; } .wl-run { color: var(--muted); } .wl-cell:hover .wl-del { visibility: hidden; } .wl-cell:focus-within .wl-del { visibility: visible; } }
+
+/* ------------------------------------------------------------------ status line (kernel loading / long evaluation) */
+.wl-status { margin: 2px 24px 6px var(--wl-labelw); font: 12.5px/1.4 var(--font); color: var(--muted); }
+.wl-status .wl-bar { margin-top: 4px; max-width: 360px; }
+.wl-status.is-error, .wl-status.is-stuck .wl-status-text { color: var(--bad); }
+.wl-link { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; border-radius: 2px; }
+
+/* ------------------------------------------------------------------ outputs */
+.wl-outs { min-width: 0; }
+.wl-out-wrap { position: relative; min-width: 0; }
+.wl-body { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 5px 0; scrollbar-width: thin; }
+.wl-item:not(.wl-out) > .wl-body:only-child, .wl-item > .wl-out-wrap:only-child { grid-column: 1 / -1; }
+.wl-expr { font: 400 var(--wl-fs)/1.5 var(--mono); color: var(--ink); padding-right: 4px; }
+.wl-expr math { font-family: var(--mono); font-size: var(--wl-fs); math-style: normal; line-height: 1.5; }
+.wl-expr math mi, .wl-expr math mn, .wl-expr math mo, .wl-expr math mtext, .wl-expr math ms { font-family: var(--mono); font-style: normal; text-transform: none; }
+.wl-expr math mo { margin: 0; }
+.wl-expr math mfrac { margin: 0 2px; padding: 0 1px; }
+.wl-expr math mtext.wl-oper { margin: 0 .3em; }
+.wl-expr math mtable { margin: 2px 0; }
+.wl-expr math mtd { padding: .3em .55em; }
+.wl-expr math msqrt, .wl-expr math mroot { margin: 0 1px; }
+.wl-plain { margin: 0; font: 400 var(--wl-fs)/1.45 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); background: none; }
+.wl-body.is-collapsed { max-height: 300px; overflow-y: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.wl-more { display: inline-block; margin: 0 0 4px; font: 12.5px/1 var(--font); color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+.wl-more:hover { text-decoration: underline; }
+.wl-copy { position: absolute; top: 2px; right: 2px; font: 11px/1 var(--font); color: var(--muted); background: rgba(255, 255, 255, .92); border: 1px solid var(--line); border-radius: 3px; padding: 3px 6px; cursor: pointer; opacity: 0; transition: opacity .12s; }
+.wl-out:hover .wl-copy, .wl-copy:focus-visible, .wl-copy.is-done { opacity: 1; }
+.wl-copy:hover { color: var(--text); border-color: #bdbdbd; }
+.wl-copy.is-done { color: var(--ok); }
+@media (hover: none) { .wl-copy { opacity: .75; } }
+.wl-msg > .wl-body { font: 12.5px/1.45 var(--font); color: var(--wl-msg); white-space: pre-wrap; overflow-wrap: anywhere; padding: 3px 0; }
+.wl-msg-name { font-weight: 600; }
+.wl-print > .wl-body { padding: 2px 0; }
+.wl-gfx-host, .wl-manip-host { line-height: 0; }
+.wl-gfx-host > *, .wl-manip-host > * { line-height: normal; }
+.wl-gallery { display: flex; flex-direction: column; gap: 8px; overflow-x: auto; }
+.wl-gallery-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; }
+.wl-gallery-cell { min-width: 0; max-width: 100%; }
+.wl-gallery-cell > .wl-body { padding: 0; }
+.wl-placeholder { font: 12.5px/1.4 var(--font); color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius-s); padding: 8px 10px; display: inline-block; }
+/* items rendered without labels (inside exercises, Manipulate panels…) */
+.wl-item:not(:has(> .wl-label)) { display: block; }
+
+/* ------------------------------------------------------------------ help card (F1 / ?Name) and autocomplete */
+.wl-help-slot:empty { display: none; }
+.wl-help { position: relative; margin: 2px 24px 6px var(--wl-labelw); padding: 8px 30px 8px 10px; background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-s); font: 13px/1.45 var(--font); color: var(--text); }
+.wl-help-name { font: 600 13.5px/1.3 var(--mono); margin-bottom: 3px; }
+.wl-help-syn { display: block; font: 12.5px/1.5 var(--mono); color: var(--ink); background: none; border: 0; padding: 0; }
+.wl-help-desc { margin-top: 3px; color: var(--muted); }
+.wl-help-ex { margin-top: 3px; color: var(--muted); }
+.wl-help-ex code { font: 12.5px var(--mono); color: var(--ink); background: none; border: 0; padding: 0; }
+.wl-help-link { display: inline-block; margin-top: 4px; font-size: 12.5px; }
+.wl-help-x { position: absolute; top: 4px; right: 6px; border: 0; background: none; font: 17px/1 var(--font); color: var(--dim); cursor: pointer; padding: 2px 4px; }
+.wl-help-x:hover { color: var(--text); }
+.wl-ac { position: fixed; z-index: 1000; background: #fff; border: 1px solid #cfcfcf; border-radius: var(--radius-s); box-shadow: 0 4px 14px rgba(0, 0, 0, .12); color: var(--ink); overflow: hidden; }
+.wl-ac-list { max-height: 188px; overflow-y: auto; padding: 3px 0; }
+.wl-ac-item { font: 400 13px/1.5 var(--mono); padding: 1px 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-ac-item b { font-weight: 700; }
+.wl-ac-item.is-sel { background: #e7edf6; }
+.wl-ac-desc { border-top: 1px solid var(--line); padding: 5px 10px 6px; font: 12px/1.4 var(--font); color: var(--muted); background: var(--paper-2); }
+.wl-ac-desc code { font: 12px var(--mono); color: var(--ink); background: none; border: 0; padding: 0; }
+
+/* ------------------------------------------------------------------ small screens */
+@media (max-width: 520px) {
+  .wl-nb, .wl-cell, .wl-item { --wl-labelw: 46px; }
+  .wl-label { font-size: 9px; padding-right: 5px; padding-left: 0; }
+  .wl-cell { padding-right: 7px; }
+  .wl-cell > .wl-in, .wl-outs > .wl-item { padding-right: 9px; }
+  .wl-status, .wl-help { margin-right: 14px; }
+  .wl-nb-bar { padding: 7px 8px; }
+  .wl-nb-title { flex: 1 1 100%; }
+  .wl-nb-actions { margin-left: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .wl-cell.is-running .wl-bracket, .wl-dot { animation: none !important; } }

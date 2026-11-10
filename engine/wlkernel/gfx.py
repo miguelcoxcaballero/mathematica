@@ -10,7 +10,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, SymbolFalse
 
-from .conv import Conv, ConvError, S
+from .conv import Conv, ConvError, FUNCS, S
 from . import ext
 from .ext import E, L, Rule, XB, pyval, short
 
@@ -26,13 +26,13 @@ NAMED = {"Red": "#ff0000", "Green": "#00ff00", "Blue": "#0000ff", "Black": "#000
 
 GOPTS = {
     "PlotRange": "Automatic", "PlotStyle": "Automatic", "AxesLabel": "None", "PlotLabel": "None", "Axes": "Automatic",
-    "Frame": "Automatic", "FrameLabel": "None", "AspectRatio": "Automatic", "PlotLegends": "None", "Filling": "None",
+    "Frame": "Automatic", "FrameLabel": "None", "AspectRatio": "WLX`Unset", "PlotLegends": "None", "Filling": "None",
     "FillingStyle": "Automatic", "GridLines": "None", "ImageSize": "Automatic", "PlotPoints": "Automatic",
     "MaxRecursion": "Automatic", "Epilog": "{}", "Prolog": "{}", "AxesOrigin": "Automatic", "Ticks": "Automatic",
     "Exclusions": "Automatic", "PlotTheme": "Automatic", "ColorFunction": "Automatic", "Mesh": "Automatic",
     "Contours": "Automatic", "ContourShading": "Automatic", "ContourStyle": "Automatic", "ContourLabels": "None",
     "BoundaryStyle": "Automatic", "VectorScale": "Automatic", "VectorPoints": "Automatic",
-    "VectorStyle": "Automatic", "StreamPoints": "Automatic", "StreamStyle": "Automatic", "BoxRatios": "Automatic",
+    "VectorStyle": "Automatic", "StreamPoints": "Automatic", "StreamStyle": "Automatic", "BoxRatios": "WLX`Unset",
     "Boxed": "True", "ViewPoint": "Automatic", "PlotRangePadding": "Automatic", "Background": "None",
     "LabelStyle": "{}", "AxesStyle": "{}", "FrameTicks": "Automatic", "PlotMarkers": "None", "Joined": "False",
     "DataRange": "Automatic", "RegionFunction": "Automatic", "MeshStyle": "Automatic", "PerformanceGoal": "Automatic",
@@ -251,6 +251,31 @@ def styles_for(options, n, ev, key="PlotStyle"):
     return base
 
 
+_TRAD_FN = {"Sin": "sin", "Cos": "cos", "Tan": "tan", "Cot": "cot", "Sec": "sec", "Csc": "csc", "Sinh": "sinh",
+            "Cosh": "cosh", "Tanh": "tanh", "Log": "log", "Exp": "exp", "ArcSin": "arcsin", "ArcCos": "arccos",
+            "ArcTan": "arctan", "ArcSinh": "arcsinh", "ArcCosh": "arccosh", "ArcTanh": "arctanh", "Abs": "abs",
+            "Max": "max", "Min": "min", "Re": "Re", "Im": "Im", "Arg": "arg", "Sign": "sgn", "Floor": "floor",
+            "Ceiling": "ceil", "Gamma": "Γ", "Erf": "erf"}
+
+
+def traditional(t):
+    """Cheap TraditionalForm look for labels: Sin[x] -> sin(x), f[x] -> f(x), == -> =, Sqrt[x] -> √x, Pi -> π."""
+    import re
+
+    if not t or len(t) > 400:
+        return t
+    t = t.replace("[[", "⟦").replace("]]", "⟧")
+    t = re.sub(r"\bSqrt\[([A-Za-z0-9.α-ωΑ-Ω]+)\]", "√\\1", t)
+    t = re.sub(r"\bSqrt\[", "√[", t)
+    t = re.sub(r"\b([A-Z][A-Za-z0-9]*)\[", lambda m: _TRAD_FN.get(m.group(1), m.group(1)) + "[", t)
+    t = t.replace("[", "(").replace("]", ")").replace("⟦", "[[").replace("⟧", "]]")
+    t = t.replace("==", "=").replace(" * ", " ")
+    t = re.sub(r"\bPi\b", "π", t)
+    t = re.sub(r"\bE\^", "e^", t)
+    t = re.sub(r"\bInfinity\b", "∞", t)
+    return t
+
+
 def label_text(e, ev):
     if e is None:
         return None
@@ -259,27 +284,64 @@ def label_text(e, ev):
     if isinstance(e, Symbol) and short(e) in ("None", "Null", "Automatic"):
         return None
     if isinstance(e, Expression) and e.get_head_name() in ("System`Style", "System`HoldForm", "System`Text",
-                                                           "System`Placed", "System`Tooltip", "System`Framed"):
-        return label_text(e.elements[0], ev)
-    if isinstance(e, Expression) and e.get_head_name() == "System`Row":
+                                                           "System`Placed", "System`Tooltip", "System`Framed",
+                                                           "System`TraditionalForm", "System`StandardForm",
+                                                           "System`Subscript", "System`DisplayForm"):
+        if e.get_head_name() == "System`Subscript" and len(e.elements) == 2:
+            return (label_text(e.elements[0], ev) or "") + "_" + (label_text(e.elements[1], ev) or "")
+        return label_text(e.elements[0], ev) if e.elements else None
+    if isinstance(e, Expression) and e.get_head_name() == "System`Row" and e.elements and \
+            e.elements[0].has_form("List", None):
         return "".join(label_text(x, ev) or "" for x in e.elements[0].elements)
+    if isinstance(e, Expression) and e.get_head_name() == "System`StringJoin":
+        return "".join(label_text(x, ev) or "" for x in e.elements)
     try:
-        t = K.to_text(e, "OutputForm")
-        return t.replace(" ^ ", "^")
+        t = K.to_text(E("HoldForm", e), "OutputForm")
+        return traditional(t.replace(" ^ ", "^"))
     except Exception:
         return str(e)
 
 
 # ------------------------------------------------------- numeric sampling
-def hold_eval(body, vars, ev):
+_HE = {"timeout_at": 0.0, "bodies": {}}
+
+
+def hold_eval(body, vars, ev, limit=1.6):
+    """Evaluate the plot body symbolically with the plot variables blocked (as Plot does after localising them).
+    Gives up after `limit` seconds (some symbolic rewrites explode) and returns the body untouched: it is then
+    sampled numerically point by point."""
+    import time as _t
+
+    key = None
+    try:
+        key = str(body)[:600]
+        if key in _HE["bodies"]:
+            _HE["timeout_at"] = _t.time()
+            return body
+    except Exception:
+        key = None
+    old = getattr(K, "_deadline", None)
+    mine = _t.time() + limit
+    shortened = old is None or mine < old
+    if shortened:
+        K._deadline = mine
     try:
         r = E("Block", L(*vars), E("Hold", E("Evaluate", body))).evaluate(ev)
         if r.get_head_name() == "System`Hold" and len(r.elements) == 1:
             return r.elements[0]
     except ext_Deadline():
-        raise
+        if not shortened or (old is not None and _t.time() > old):
+            raise
+        ev.stopped = False
+        _HE["timeout_at"] = _t.time()
+        if key is not None:
+            if len(_HE["bodies"]) > 40:
+                _HE["bodies"].clear()
+            _HE["bodies"][key] = True
     except Exception:
         pass
+    finally:
+        K._deadline = old
     return body
 
 
@@ -328,6 +390,10 @@ class PConv(Conv):
                 return super().to(e)
             hn = e.get_head_name()
             sh = hn[7:] if hn.startswith("System`") else None
+            if sh is None and hn.startswith("Global`") and (hn[7:] in EXTRA_HEADS or hn[7:] in FUNCS):
+                sh = hn[7:]
+                e = Expression(Symbol("System`" + sh), *el)
+                hn = "System`" + sh
             if sh in ("Max", "Min") and el:
                 args = []
                 for x in el:
@@ -380,8 +446,22 @@ class PConv(Conv):
                 return self.fn("WLXSaw", lambda a: n.mod(a, 1.0), self.to(el[0]))
             if sh == "TriangleWave" and len(el) == 1:
                 return self.fn("WLXTriW", lambda a: 4 * n.abs(n.mod(a - 0.25, 1.0) - 0.5) - 1, self.to(el[0]))
-            if sh == "Sinc" and len(el) == 1:
-                return self.fn("WLXSinc", lambda a: n.sinc(n.asarray(a) / n.pi), self.to(el[0]))
+            if sh in ("AiryAi", "AiryBi") and len(el) == 1:
+                return (sp.airyai if sh == "AiryAi" else sp.airybi)(self.to(el[0]))
+            if sh in ("SinhIntegral", "CoshIntegral") and len(el) == 1:
+                return (sp.Shi if sh == "SinhIntegral" else sp.Chi)(self.to(el[0]))
+            if sh == "LogIntegral" and len(el) == 1:
+                return sp.li(self.to(el[0]))
+            if sh == "ChebyshevU" and len(el) == 2:
+                return sp.chebyshevu(self.to(el[0]), self.to(el[1]))
+            if sh == "Ramp" and len(el) == 1:
+                return self.fn("WLXRamp", lambda a: n.maximum(a, 0.0), self.to(el[0]))
+            if sh in ("RealAbs", "RealSign") and len(el) == 1:
+                return (sp.Abs if sh == "RealAbs" else sp.sign)(self.to(el[0]))
+            if sh == "Haversine" and len(el) == 1:
+                return (1 - sp.cos(self.to(el[0]))) / 2
+            if sh == "LogisticSigmoid" and len(el) == 1:
+                return 1 / (1 + sp.exp(-self.to(el[0])))
             if sh == "FractionalPart" and len(el) == 1:
                 return self.fn("WLXFrac", lambda a: n.asarray(a) - n.trunc(a), self.to(el[0]))
             if sh == "IntegerPart" and len(el) == 1:
@@ -396,8 +476,75 @@ class PConv(Conv):
         return super().to(e)
 
 
+GFX_NUMPY = {}
+
+
+def _init_numeric():
+    """Robust (nan instead of exceptions, complex-aware) element-wise special functions."""
+    if GFX_NUMPY:
+        return
+    n = np()
+    import math as _m
+
+    def wrap(fn, real_fn=None):
+        def one(*a):
+            try:
+                if real_fn is not None and not any(isinstance(v, complex) and v.imag != 0 for v in a):
+                    try:
+                        return complex(real_fn(*[float(v.real) if isinstance(v, complex) else float(v) for v in a]))
+                    except (ValueError, OverflowError):
+                        if fn is None:
+                            return complex("nan")
+                v = fn(*[(complex(v) if (isinstance(v, complex) and v.imag != 0) else float(v.real if isinstance(v, complex) else v))
+                         for v in a])
+                return complex(v)
+            except Exception:
+                return complex("nan")
+        vec = n.vectorize(one, otypes=[complex])
+
+        def call(*a):
+            r = vec(*[n.asarray(v) for v in a])
+            if not n.any(n.nan_to_num(n.abs(r.imag)) > 0):
+                r = r.real
+            return r
+        return call
+    GFX_NUMPY.update({
+        "Max": lambda *a: _reduce(n.fmax, a), "Min": lambda *a: _reduce(n.fmin, a),
+        "KroneckerDelta": lambda *a: ((a[0] == (a[1] if len(a) > 1 else 0)) * 1.0),
+        "sinc": lambda x: n.sinc(n.asarray(x) / n.pi),
+    })
+    try:
+        import mpmath as mp
+    except Exception:
+        return
+    GFX_NUMPY.update({
+        "gamma": wrap(mp.gamma, _m.gamma), "loggamma": wrap(mp.loggamma, _m.lgamma),
+        "factorial": wrap(lambda x: mp.gamma(x + 1), lambda x: _m.gamma(x + 1)),
+        "erf": wrap(mp.erf, _m.erf), "erfc": wrap(mp.erfc, _m.erfc), "erfi": wrap(mp.erfi),
+        "besselj": wrap(mp.besselj), "bessely": wrap(mp.bessely), "besseli": wrap(mp.besseli),
+        "besselk": wrap(mp.besselk), "Si": wrap(mp.si), "Ci": wrap(mp.ci), "Ei": wrap(mp.ei), "Shi": wrap(mp.shi),
+        "Chi": wrap(mp.chi), "fresnels": wrap(mp.fresnels), "fresnelc": wrap(mp.fresnelc), "zeta": wrap(mp.zeta),
+        "LambertW": wrap(mp.lambertw), "legendre": wrap(mp.legendre), "hermite": wrap(mp.hermite),
+        "chebyshevt": wrap(mp.chebyt), "chebyshevu": wrap(mp.chebyu), "laguerre": wrap(mp.laguerre),
+        "elliptic_k": wrap(mp.ellipk), "elliptic_e": wrap(mp.ellipe), "airyai": wrap(mp.airyai),
+        "airybi": wrap(mp.airybi), "beta": wrap(mp.beta), "binomial": wrap(mp.binomial),
+        "polygamma": wrap(mp.polygamma), "digamma": wrap(mp.digamma), "expint": wrap(mp.expint),
+        "fibonacci": wrap(mp.fibonacci), "factorial2": wrap(mp.fac2), "li": wrap(mp.li),
+        "uppergamma": wrap(lambda a, x: mp.gammainc(a, x)), "lowergamma": wrap(lambda a, x: mp.gammainc(a, 0, x)),
+    })
+
+
+# heads that this Mathics build does not know (they stay in Global`) but we can sample numerically
+EXTRA_HEADS = {"Sinc", "Clip", "Surd", "CubeRoot", "SquareWave", "TriangleWave", "SawtoothWave", "RealAbs", "UnitBox",
+               "UnitTriangle", "HeavisidePi", "HeavisideLambda", "Log10", "Log2", "Boole", "FractionalPart",
+               "IntegerPart", "AiryAi", "AiryBi", "SinhIntegral", "CoshIntegral", "Ramp", "RealSign", "LogIntegral",
+               "ChebyshevU", "Haversine", "LogisticSigmoid", "Subtract", "Minus", "Divide", "Round", "Norm", "Total",
+               "Dot", "Max", "Min"}
+
+
 def _lambdify(c, syms, s):
-    return sp.lambdify(syms, s, modules=[c.extra, ext.NUMPY_EXTRA, "numpy"])
+    _init_numeric()
+    return sp.lambdify(syms, s, modules=[c.extra, GFX_NUMPY, ext.NUMPY_EXTRA, "numpy"])
 
 
 def _bad_sympy(s, syms):
@@ -414,9 +561,13 @@ FN_STATS = {"fast": 0, "slow": 0}
 
 def _candidates(expr, vars, ev, raw):
     """Expressions to try for vectorised conversion: evaluated body, raw body, re-evaluated body."""
+    import time as _t
+
     yield expr
     if raw is not None and raw is not expr:
         yield raw
+    if _t.time() - _HE["timeout_at"] < 6:
+        return                      # the symbolic evaluation of this plot body just blew up: go numeric
     try:
         e2 = hold_eval(expr, vars, ev)
     except ext_Deadline():
@@ -664,9 +815,11 @@ def num(e, ev, default=None):
     return v
 
 
-def robust_range(ys):
+def robust_range(ys, ordered=False):
+    """Automatic y-range: full data range unless far outliers are poles (isolated spikes), which are cropped."""
     n = np()
-    y = ys[n.isfinite(ys)]
+    fin = n.isfinite(ys)
+    y = ys[fin]
     if y.size == 0:
         return [-1.0, 1.0]
     lo, hi = float(y.min()), float(y.max())
@@ -674,13 +827,36 @@ def robust_range(ys):
         q1, q3 = n.percentile(y, [10, 90])
         iqr = q3 - q1
         if iqr > 0 and (hi - lo) > 12 * iqr:
-            lo2, hi2 = q1 - 2.2 * iqr, q3 + 2.2 * iqr
-            lo, hi = max(lo, float(lo2)), min(hi, float(hi2))
-    if hi - lo < 1e-12:
+            crop_lo = crop_hi = True
+            if ordered:
+                # a smooth finite peak is resolved by its neighbours; a pole is an isolated spike
+                med = float(n.median(y))
+
+                def isolated(k):
+                    v = abs(ys[k] - med)
+                    if v == 0:
+                        return False
+                    for kk in (k - 1, k + 1):
+                        if 0 <= kk < len(ys):
+                            if not fin[kk] or (ys[kk] - med) * (ys[k] - med) < 0 or abs(ys[kk] - med) < 0.5 * v:
+                                return True
+                    return False
+                yy = n.where(fin, ys, med)
+                crop_hi = isolated(int(n.argmax(yy)))
+                crop_lo = isolated(int(n.argmin(yy)))
+            if crop_lo:
+                lo = max(lo, float(q1 - 0.5 * iqr))
+            if crop_hi:
+                hi = min(hi, float(q3 + 0.5 * iqr))
+    if hi - lo < 1e-12 * (abs(hi) + abs(lo) + 1e-300):
         d = abs(lo) * 0.1 or 1.0
         lo, hi = lo - d, hi + d
     pad = (hi - lo) * 0.04
     return [lo - pad, hi + pad]
+
+
+def union_range(rs):
+    return [min(r[0] for r in rs), max(r[1] for r in rs)]
 
 
 def parse_range(pr, ev, dims=2):
@@ -694,8 +870,8 @@ def parse_range(pr, ev, dims=2):
         return res, nm in ("All", "Full")
     v = num(pr, ev)
     if v is not None:
-        res[dims - 1] = [-v, v] if dims == 2 else [-v, v]
-        return res, allflag
+        # PlotRange -> s : from -s to s in every direction
+        return [[-abs(v), abs(v)] for _ in range(dims)], allflag
     if pr.has_form("List", 2) and not pr.elements[0].has_form("List", None) and \
             num(pr.elements[0], ev) is not None and num(pr.elements[1], ev) is not None:
         res[dims - 1] = [num(pr.elements[0], ev), num(pr.elements[1], ev)]
@@ -705,14 +881,34 @@ def parse_range(pr, ev, dims=2):
             if e.has_form("List", 2):
                 a, b = num(e.elements[0], ev), num(e.elements[1], ev)
                 if a is not None and b is not None:
-                    res[i] = [a, b]
+                    res[i] = [min(a, b), max(a, b)]
             elif isinstance(e, Symbol) and short(e) in ("All", "Full"):
                 allflag = True
             else:
                 v = num(e, ev)
                 if v is not None:
-                    res[i] = [-v, v]
+                    res[i] = [-abs(v), abs(v)]
+    for i, r in enumerate(res):
+        if r is not None and not (r[1] > r[0]):
+            res[i] = None
     return res, allflag
+
+
+def is_default(name, v):
+    """Is v the default value of option `name` (i.e. the user did not give it)?"""
+    d = GOPTS.get(name)
+    if d is None:
+        return False
+    if isinstance(v, Symbol):
+        return v.get_name().split("`")[-1] == d.split("`")[-1]
+    if d == "{}":
+        return isinstance(v, Expression) and v.has_form("List", 0)
+    if d == "0":
+        return isinstance(v, Integer) and v.value == 0
+    return False
+
+
+_KEEP_AUTOMATIC = ("AspectRatio", "GridLines", "BoxRatios")
 
 
 def gopts(options, defaults=None, exclude=()):
@@ -723,14 +919,15 @@ def gopts(options, defaults=None, exclude=()):
         if name in exclude:
             continue
         v = opt(options, name)
-        if v is not None and not is_sym(v, "Automatic"):
-            if name in ("Epilog", "Prolog") and v.has_form("List", 0):
-                continue
-            rules.append(Rule(S(name), v))
-            seen.add(name)
+        if v is None or is_default(name, v):
+            continue
+        if is_sym(v, "Automatic") and name not in _KEEP_AUTOMATIC:
+            continue
+        rules.append(Rule(S(name), v))
+        seen.add(name)
     for name, v in (defaults or {}).items():
         if name not in seen:
-            rules.append(Rule(S(name), v))
+            rules.append(Rule(S(name) if "`" not in name else Symbol(name), v))
     return rules
 
 
@@ -748,7 +945,7 @@ def G3(prims, rules):
     return E("Graphics3D", L(E(Symbol("WLX`G"), Integer(pid))), *rules)
 
 
-def legend_prim(options, exprs, styles, ev):
+def legend_prim(options, exprs, styles, ev, kind=None):
     pl = opt(options, "PlotLegends")
     if pl is None or is_sym(pl, "None"):
         return None
@@ -760,12 +957,29 @@ def legend_prim(options, exprs, styles, ev):
         labels = [label_text(e, ev) for e in exprs]
     elif isinstance(pl, Expression) and pl.has_form("List", None):
         labels = [label_text(e, ev) for e in pl.elements]
+    elif is_sym(pl, "Automatic"):
+        labels = [label_text(e, ev) if not isinstance(e, String) else e.value for e in exprs]
     else:
         labels = [str(i + 1) for i in range(len(exprs))]
     items = []
     for i, lab in enumerate(labels[:len(styles)]):
-        items.append({"label": lab or "", "color": styles[i].get("color"), "dash": styles[i].get("dash")})
+        it = {"label": lab or "", "color": styles[i].get("color"), "dash": styles[i].get("dash")}
+        if styles[i].get("width"):
+            it["width"] = styles[i]["width"]
+        if kind:
+            it["kind"] = kind
+            if kind == "swatch" and "opacity" in styles[i]:
+                it["opacity"] = styles[i]["opacity"]
+        items.append(it)
     return {"t": "legend", "items": items} if items else None
+
+
+def bar_legend(options, cf, lo=None, hi=None):
+    """PlotLegends -> Automatic on Density/ContourPlot: colour bar (limits filled in by the renderer if None)."""
+    pl = opt(options, "PlotLegends")
+    if pl is None or is_sym(pl, "None"):
+        return None
+    return {"t": "legend", "items": [], "bar": {"cf": cf, "lo": lo, "hi": hi}}
 
 
 def held_list(f, vars, ev):
@@ -790,20 +1004,87 @@ def held_list(f, vars, ev):
     return [he], False, [orig[0] if orig else f]
 
 
-def break_jumps(xs, ys, yr):
-    """Insert NaN where the curve jumps across an asymptote."""
+def raw_of(orig, exprs, i):
+    """Unevaluated version of curve i (only meaningful when it differs from the evaluated one)."""
+    if orig is None or i >= len(orig) or orig[i] is exprs[i]:
+        return None
+    return orig[i]
+
+
+def exclusions(options, x, ev):
+    """Exclusions option -> None (never break), or list of explicit x positions (possibly empty = automatic)."""
+    ex = opt(options, "Exclusions")
+    if ex is None or is_sym(ex, "Automatic"):
+        return []
+    if is_sym(ex, "None") or ex is SymbolFalse:
+        return None
+    items = ex.elements if ex.has_form("List", None) else [ex]
+    out = []
+    for it in items:
+        if it.get_head_name() == "System`Equal" and len(it.elements) == 2:
+            v = num(it.elements[1], ev)
+            if v is None:
+                v = num(it.elements[0], ev)
+        else:
+            v = num(it, ev)
+        if v is not None:
+            out.append(v)
+    return out
+
+
+def refine_curve(fn, xs, ys, yr, passes=2, per=6, cap=3000):
+    """Insert samples where the curve jumps / leaves its domain so asymptotes and end points look sharp."""
     n = np()
-    ys = ys.copy()
+    if fn.slow:
+        return xs, ys
     span = (yr[1] - yr[0]) or 1.0
-    d = n.abs(n.diff(ys))
-    big = n.where((d > 0.9 * span) | ~n.isfinite(d))[0]
-    for i in big:
-        if n.isfinite(ys[i]) and n.isfinite(ys[i + 1]) and (ys[i] > yr[1] or ys[i] < yr[0] or ys[i + 1] > yr[1]
-                                                            or ys[i + 1] < yr[0] or ys[i] * ys[i + 1] < 0):
-            ys[i + 1 if abs(ys[i + 1]) > abs(ys[i]) else i] = n.nan if d[i] > 3 * span else ys[i + 1 if abs(ys[i + 1]) > abs(ys[i]) else i]
-            if d[i] > 3 * span:
-                ys[i] = n.nan if abs(ys[i]) > abs(ys[i + 1]) else ys[i]
-    return ys
+    for _ in range(passes):
+        fin = n.isfinite(ys)
+        d = n.abs(n.diff(n.where(fin, ys, 0.0)))
+        edge = fin[1:] != fin[:-1]
+        inview = (n.minimum(ys[1:], ys[:-1]) < yr[1] + 25 * span) & (n.maximum(ys[1:], ys[:-1]) > yr[0] - 25 * span)
+        idx = n.nonzero(edge | ((d > 0.08 * span) & fin[1:] & fin[:-1] & inview))[0]
+        if idx.size == 0:
+            break
+        if idx.size * per > cap:
+            idx = idx[:cap // per]
+        t = (n.arange(1, per + 1) / (per + 1.0))[None, :]
+        nx = (xs[idx][:, None] + (xs[idx + 1] - xs[idx])[:, None] * t).ravel()
+        ny = fn(nx)
+        xs = n.concatenate([xs, nx])
+        ys = n.concatenate([ys, ny])
+        o = n.argsort(xs, kind="stable")
+        xs, ys = xs[o], ys[o]
+    return xs, ys
+
+
+def break_jumps(xs, ys, yr, forced=()):
+    """Insert NaN (pen up) across poles and jump discontinuities. Returns new (xs, ys)."""
+    n = np()
+    span = (yr[1] - yr[0]) or 1.0
+    fin = n.isfinite(ys)
+    y0 = n.where(fin, ys, 0.0)
+    d = n.abs(n.diff(y0))
+    both = fin[1:] & fin[:-1]
+    a, b = y0[:-1], y0[1:]
+    pole = both & (((a > yr[1]) & (b < yr[0])) | ((a < yr[0]) & (b > yr[1])) |
+                   ((d > 2.5 * span) & (a * b < 0)))
+    # isolated big step between two flat neighbours = jump discontinuity
+    dl = n.concatenate([[0.0], d[:-1]])
+    dr = n.concatenate([d[1:], [0.0]])
+    jump = both & (d > 0.06 * span) & (d > 12 * n.maximum(dl, dr))
+    cut = n.nonzero(pole | jump)[0]
+    pos = list(cut + 1)
+    for v in forced or ():
+        k = int(n.searchsorted(xs, v))
+        if 0 < k < len(xs):
+            pos.append(k)
+    if not pos:
+        return xs, ys
+    pos = sorted(set(pos))
+    xs2 = n.insert(xs, pos, [(xs[k - 1] + xs[k]) / 2 for k in pos])
+    ys2 = n.insert(ys, pos, n.nan)
+    return xs2, ys2
 
 
 class GB(XB):
@@ -815,54 +1096,77 @@ class GB(XB):
 class Plot(GB):
     def eval(self, f, x, a, b, evaluation, options):
         "Plot[f_, {x_Symbol, a_, b_}, OptionsPattern[Plot]]"
-        return plot_curves(f, x, a, b, evaluation, options, mode="plot")
+        sf = opt(options, "ScalingFunctions")
+        mode = "log" if isinstance(sf, String) and sf.value == "Log" else "plot"
+        return plot_curves(f, x, a, b, evaluation, options, mode=mode)
 
 
 class LogPlot(GB):
     def eval(self, f, x, a, b, evaluation, options):
         "LogPlot[f_, {x_Symbol, a_, b_}, OptionsPattern[LogPlot]]"
-        return plot_curves(E("Log", S("10"), f) if False else f, x, a, b, evaluation, options, mode="log")
+        return plot_curves(f, x, a, b, evaluation, options, mode="log")
 
 
 def plot_curves(f, x, a, b, ev, options, mode="plot"):
     n = np()
     a_v, b_v = num(a.evaluate(ev), ev), num(b.evaluate(ev), ev)
-    if a_v is None or b_v is None:
+    if a_v is None or b_v is None or a_v == b_v:
         return None
+    if a_v > b_v:
+        a_v, b_v = b_v, a_v
     exprs, was_list, orig = held_list(f, [x], ev)
     pp = num(opt(options, "PlotPoints"), ev)
     styles = styles_for(options, len(exprs), ev)
+    excl = exclusions(options, x, ev)
     prims = []
-    allys = []
     curves = []
+    slow_budget = 1.4 / max(1, len(exprs))
     for i, ex in enumerate(exprs):
-        fn = make_fn(ex, [x], ev)
-        npts = int(pp) if pp else (160 if fn.slow else 700)
+        fn = make_fn(ex, [x], ev, raw=raw_of(orig, exprs, i))
+        npts = budget(fn, 700, 160, seconds=slow_budget)
+        if pp and not fn.slow:
+            npts = int(max(50, min(4000, pp * 12)))
         xs = n.linspace(a_v, b_v, npts)
-        # avoid exact endpoint singularities
-        eps = (b_v - a_v) * 1e-9
+        eps = (b_v - a_v) * 1e-9          # avoid exact endpoint singularities
         xs[0] += eps
         xs[-1] -= eps
-        ys = fn(xs)
-        curves.append((xs, ys))
-        allys.append(ys)
-    cat = n.concatenate(allys) if allys else n.array([0.0])
+        curves.append([fn, xs, fn(xs)])
+    cat = n.concatenate([c[2] for c in curves]) if curves else n.array([0.0])
     pr, allflag = parse_range(opt(options, "PlotRange"), ev)
-    if allflag:
-        fin = cat[n.isfinite(cat)]
-        yr = [float(fin.min()), float(fin.max())] if fin.size else [-1, 1]
-        pad = (yr[1] - yr[0]) * 0.04 or 1
-        yr = [yr[0] - pad, yr[1] + pad]
+    if mode == "log":
+        pos = cat[n.isfinite(cat) & (cat > 0)]
+        if pos.size:
+            hi = float(pos.max())
+            lo = max(float(pos.min()), hi * 1e-14)
+            if lo >= hi:
+                lo, hi = hi / 10, hi * 10
+            k = (hi / lo) ** 0.04
+            yr = [lo / k, hi * k]
+        else:
+            yr = [0.1, 10.0]
+        if pr[1] is not None and pr[1][0] > 0:
+            yr = pr[1]
+        elif pr[1] is not None and pr[1][1] > 0:
+            yr = [min(yr[0], pr[1][1] / 10), pr[1][1]]
     else:
-        yr = robust_range(cat)
-    if pr[1] is not None:
-        yr = pr[1]
+        if allflag:
+            fin = cat[n.isfinite(cat)]
+            yr = [float(fin.min()), float(fin.max())] if fin.size else [-1, 1]
+            pad = (yr[1] - yr[0]) * 0.04 or 1
+            yr = [yr[0] - pad, yr[1] + pad]
+        else:
+            yr = union_range([robust_range(c[2], ordered=True) for c in curves])
+        yr_auto = union_range([robust_range(c[2], ordered=True) for c in curves])
+        if pr[1] is not None:
+            yr = pr[1]
     xr = pr[0] if pr[0] is not None else [a_v, b_v]
     fill = opt(options, "Filling")
-    for i, (xs, ys) in enumerate(curves):
-        ys2 = break_jumps(xs, ys, yr)
+    has_fill = fill is not None and not is_sym(fill, "None")
+    base_ys = [c[2] for c in curves]
+    base_xs = [c[1] for c in curves]
+    for i, (fn, xs, ys) in enumerate(curves):
         st = styles[i]
-        if fill is not None and not is_sym(fill, "None"):
+        if has_fill:
             base = 0.0
             nm = short(fill) if isinstance(fill, Symbol) else None
             if nm == "Bottom":
@@ -878,22 +1182,50 @@ def plot_curves(f, x, a, b, ev, options, mode="plot"):
                         tgt = r.elements[1]
                         if tgt.has_form("List", 1):
                             j = int(num(tgt.elements[0], ev)) - 1
-                            if 0 <= j < len(curves):
-                                other = curves[j][1]
+                            if 0 <= j < len(curves) and len(base_ys[j]) == len(ys):
+                                other = base_ys[j]
                         elif isinstance(tgt, Symbol) and short(tgt) == "Axis":
                             other = n.zeros_like(ys)
+                        elif isinstance(tgt, Symbol) and short(tgt) in ("Bottom", "Top"):
+                            other = n.full_like(ys, yr[0] if short(tgt) == "Bottom" else yr[1])
+                        elif num(tgt, ev) is not None:
+                            other = n.full_like(ys, num(tgt, ev))
                 if other is None:
                     other = False
             if other is not False:
                 yb = other if other is not None else n.full_like(ys, base)
-                prims.append({"t": "fill", "x": nlist(xs), "y": nlist(n.clip(ys, yr[0], yr[1])),
-                              "y2": nlist(n.clip(yb, yr[0], yr[1])), "color": st["color"], "opacity": 0.2})
-        p = {"t": "line", "x": nlist(xs), "y": nlist(ys2)}
+                if mode == "log":
+                    yb = n.maximum(yb, yr[0])
+                fst = {}
+                fs = opt(options, "FillingStyle")
+                if fs is not None and not is_sym(fs, "Automatic"):
+                    apply_directive(fst, fs.evaluate(ev), ev)
+                prims.append({"t": "fill", "x": nlist(base_xs[i]), "y": nlist(n.clip(ys, yr[0], yr[1])),
+                              "y2": nlist(n.clip(yb, yr[0], yr[1])), "color": fst.get("color", st["color"]),
+                              "opacity": fst.get("opacity", 0.2)})
+        if mode != "log":
+            xs, ys = refine_curve(fn, xs, ys, yr_auto)
+            if excl is not None:
+                xs, ys = break_jumps(xs, ys, yr_auto, excl)
+            # nothing useful lives far outside the frame: keep the JSON small and the SVG sane
+            span = yr_auto[1] - yr_auto[0]
+            ys = n.clip(ys, yr_auto[0] - 60 * span, yr_auto[1] + 60 * span)
+        p = {"t": "line", "x": nlist(xs), "y": nlist(ys)}
         p.update(st)
         prims.append(p)
     leg = legend_prim(options, orig, styles, ev)
     if leg:
         prims.append(leg)
+    pls = opt(options, "PlotLabels")
+    if pls is not None and not is_sym(pls, "None"):
+        labs = [label_text(e, ev) for e in (pls.elements if pls.has_form("List", None) else orig)]
+        for i, (fn, xs, ys) in enumerate(curves):
+            if i < len(labs) and labs[i]:
+                ok = n.nonzero(n.isfinite(ys) & (ys >= yr[0]) & (ys <= yr[1]))[0]
+                if ok.size:
+                    k = int(ok[-1])
+                    prims.append({"t": "text", "x": float(xs[k]), "y": float(ys[k]), "text": labs[i],
+                                  "color": styles[i]["color"], "size": 11, "off": [1.2, -1.2]})
     defaults = {"AspectRatio": E("Power", S("GoldenRatio"), Integer(-1)), "Axes": SymbolTrue,
                 "PlotRange": rng_expr([xr, yr])}
     if mode == "log":
@@ -912,9 +1244,11 @@ def list_data(data, ev, options=None):
         return []
 
     def is_num(v):
-        return isinstance(v, (int, float))
+        return isinstance(v, (int, float)) and not isinstance(v, bool)
 
     def one(ds):
+        if len(ds) == 0:
+            return None
         if all(is_num(v) for v in ds):
             x0, dx = 1.0, 1.0
             if options is not None:
@@ -926,6 +1260,11 @@ def list_data(data, ev, options=None):
             return n.array([x0 + dx * i for i in range(len(ds))], dtype=float), n.array(ds, dtype=float)
         if all(isinstance(v, (list, tuple)) and len(v) == 2 and all(is_num(c) for c in v) for v in ds):
             arr = n.array(ds, dtype=float)
+            return arr[:, 0], arr[:, 1]
+        # tolerate a few non-numeric entries (e.g. Indeterminate): drop them
+        good = [v for v in ds if isinstance(v, (list, tuple)) and len(v) == 2 and all(is_num(c) for c in v)]
+        if len(good) >= max(2, len(ds) // 2):
+            arr = n.array(good, dtype=float)
             return arr[:, 0], arr[:, 1]
         return None
     single = one(py)
@@ -957,35 +1296,59 @@ class ListLinePlot(GB):
         return list_plot(data, evaluation, options, True)
 
 
+class ListLogPlot(GB):
+    attributes = A_PROTECTED
+
+    def eval(self, data, evaluation, options):
+        "ListLogPlot[data_, OptionsPattern[ListLogPlot]]"
+        joined = opt(options, "Joined") is SymbolTrue
+        return list_plot(data, evaluation, options, joined, log=True)
+
+
 class DiscretePlot(GB):
     def eval(self, f, spec, evaluation, options):
         "DiscretePlot[f_, spec_List, OptionsPattern[DiscretePlot]]"
+        if len(spec.elements) < 2:
+            return None
+        if len(spec.elements) == 2:
+            spec = L(spec.elements[0], Integer(1), spec.elements[1])
         tab = E("Table", L(spec.elements[0], f), spec).evaluate(evaluation)
         return list_plot(tab, evaluation, options, False, stems=True)
 
 
-def list_plot(data, ev, options, joined, stems=False):
+def list_plot(data, ev, options, joined, stems=False, log=False):
     n = np()
     sets = list_data(data, ev, options)
     if not sets:
         return None
     styles = styles_for(options, len(sets), ev)
+    fill = opt(options, "Filling")
+    has_fill = fill is not None and not is_sym(fill, "None")
     prims = []
     for i, (xs, ys) in enumerate(sets):
         st = dict(styles[i])
-        if stems:
+        if stems or (has_fill and not joined):
+            sx, sy = [], []
             for xv, yv in zip(xs.tolist(), ys.tolist()):
-                prims.append({"t": "line", "x": [xv, xv], "y": [0, yv], "color": st["color"], "width": 1.2,
-                              "opacity": 0.6})
+                sx.extend([xv, xv, None])
+                sy.extend([0, yv, None])
+            prims.append({"t": "line", "x": sx, "y": sy, "color": st["color"], "width": 1.1, "opacity": 0.55,
+                          "nohover": True})
         if joined:
+            if has_fill:
+                prims.append({"t": "fill", "x": nlist(xs), "y": nlist(ys), "y2": [0.0] * len(xs), "color": st["color"],
+                              "opacity": 0.2})
             p = {"t": "line", "x": nlist(xs), "y": nlist(ys)}
-            p.update(st)
+            p.update({k: v for k, v in st.items() if k != "psize"})
             prims.append(p)
-            if opt(options, "Mesh") is not None and short(opt(options, "Mesh")) in ("All", "Full"):
-                prims.append({"t": "points", "x": nlist(xs), "y": nlist(ys), "color": st["color"], "psize": 4})
+            m = opt(options, "Mesh")
+            if (m is not None and isinstance(m, Symbol) and short(m) in ("All", "Full")) or \
+                    (opt(options, "PlotMarkers") is not None and not is_sym(opt(options, "PlotMarkers"), "None")):
+                prims.append({"t": "points", "x": nlist(xs), "y": nlist(ys), "color": st["color"],
+                              "psize": st.get("psize", 4.5)})
         else:
             p = {"t": "points", "x": nlist(xs), "y": nlist(ys), "psize": st.get("psize", 4.5)}
-            p.update({k: v for k, v in st.items() if k != "width"})
+            p.update({k: v for k, v in st.items() if k not in ("width", "dash")})
             prims.append(p)
     allx = n.concatenate([s[0] for s in sets])
     ally = n.concatenate([s[1] for s in sets])
@@ -993,28 +1356,97 @@ def list_plot(data, ev, options, joined, stems=False):
     fx, fy = allx[n.isfinite(allx)], ally[n.isfinite(ally)]
     xr = [float(fx.min()), float(fx.max())] if fx.size else [0, 1]
     yr = [float(fy.min()), float(fy.max())] if fy.size else [0, 1]
-    if not allflag:
+    if log:
+        pos = fy[fy > 0]
+        lo, hi = (float(pos.min()), float(pos.max())) if pos.size else (0.1, 10.0)
+        k = (hi / lo) ** 0.05 if hi > lo else 2.0
+        yr = [lo / k, hi * k]
+    elif not allflag:
         yr = robust_range(ally)
+        if yr[0] > 0 and (yr[0] < 0.35 * yr[1] or stems or has_fill):
+            yr[0] = 0.0
+        if yr[1] < 0 and (stems or has_fill):
+            yr[1] = 0.0
     else:
         pad = (yr[1] - yr[0]) * 0.05 or 1
         yr = [yr[0] - pad, yr[1] + pad]
-    if yr[0] > 0 and yr[0] < 0.35 * yr[1]:
-        yr[0] = 0.0
     padx = (xr[1] - xr[0]) * 0.03 or 0.5
     xr = [xr[0] - padx, xr[1] + padx]
+    if xr[0] > 0 and xr[0] < 0.2 * xr[1]:
+        xr[0] = 0.0
     if pr[0] is not None:
         xr = pr[0]
-    if pr[1] is not None:
+    if pr[1] is not None and not (log and pr[1][0] <= 0):
         yr = pr[1]
-    leg = legend_prim(options, [String("%d" % (i + 1)) for i in range(len(sets))], styles, ev)
+    leg = legend_prim(options, [String("%d" % (i + 1)) for i in range(len(sets))], styles, ev,
+                      kind=None if joined else "point")
     if leg:
         prims.append(leg)
-    rules = gopts(options, {"AspectRatio": E("Power", S("GoldenRatio"), Integer(-1)), "Axes": SymbolTrue,
-                            "PlotRange": rng_expr([xr, yr])})
-    return G2(prims, rules)
+    defaults = {"AspectRatio": E("Power", S("GoldenRatio"), Integer(-1)), "Axes": SymbolTrue,
+                "PlotRange": rng_expr([xr, yr])}
+    if log:
+        defaults["WLX`LogY"] = SymbolTrue
+    return G2(prims, gopts(options, defaults))
 
 
 # ---------------------------------------------------- Parametric / Polar
+def _curve_list(he):
+    """{fx, fy} or {{fx, fy}, ...} -> list of 2-element lists (None if malformed)."""
+    if not (isinstance(he, Expression) and he.has_form("List", None)) or not he.elements:
+        return None
+    return [he] if not he.elements[0].has_form("List", None) else list(he.elements)
+
+
+def close_gaps(n, xs, ys, lim):
+    """Break a parametric polyline where consecutive points are absurdly far apart (poles)."""
+    d = n.hypot(n.diff(xs), n.diff(ys))
+    fin = n.isfinite(d)
+    if not fin.any():
+        return xs, ys
+    cut = n.nonzero(fin & (d > lim))[0]
+    if cut.size == 0:
+        return xs, ys
+    return n.insert(xs, cut + 1, n.nan), n.insert(ys, cut + 1, n.nan)
+
+
+def unthrough(e):
+    """Through[{f, g}[x]] left unevaluated -> {f[x], g[x]}."""
+    if isinstance(e, Expression) and e.get_head_name() == "System`Through" and len(e.elements) == 1:
+        inner = e.elements[0]
+        if isinstance(inner, Expression) and isinstance(inner.get_head(), Expression) and \
+                inner.get_head().has_form("List", None):
+            return L(*[Expression(h, *inner.elements) for h in inner.get_head().elements])
+    return e
+
+
+def pair_fns(ex, ey, vars, ev):
+    """Samplers for a coordinate pair. {Re[w], Im[w]} is sampled once as a complex function (half the work when
+    w can only be evaluated point by point)."""
+    n = np()
+    if isinstance(ex, Expression) and isinstance(ey, Expression) and ex.get_head_name() == "System`Re" and \
+            ey.get_head_name() == "System`Im" and len(ex.elements) == 1 and len(ey.elements) == 1 and \
+            ex.elements[0].sameQ(ey.elements[0]):
+        fc = make_cfn(ex.elements[0], vars, ev)
+        cache = {}
+
+        def both(*arrs):
+            key = tuple(id(a) for a in arrs)
+            if key not in cache:
+                cache.clear()
+                cache[key] = (fc(*arrs), arrs)       # keep arrs alive so ids stay unique
+            return cache[key][0]
+
+        def fx(*arrs):
+            return n.real(both(*arrs)).astype(float)
+
+        def fy(*arrs):
+            return n.imag(both(*arrs)).astype(float)
+        fx.slow = fy.slow = fc.slow
+        fx.cost = fy.cost = fc.cost / 2
+        return fx, fy
+    return make_fn(ex, vars, ev), make_fn(ey, vars, ev)
+
+
 class ParametricPlot(GB):
     def eval(self, f, t, a, b, evaluation, options):
         "ParametricPlot[f_, {t_Symbol, a_, b_}, OptionsPattern[ParametricPlot]]"
@@ -1023,68 +1455,99 @@ class ParametricPlot(GB):
         a_v, b_v = num(a.evaluate(ev), ev), num(b.evaluate(ev), ev)
         if a_v is None or b_v is None:
             return None
-        he = strip_wrappers(hold_eval(strip_wrappers(f), [t], ev))
-        if not (isinstance(he, Expression) and he.has_form("List", None)):
+        he = unthrough(strip_wrappers(hold_eval(strip_wrappers(f), [t], ev)))
+        curves = _curve_list(he)
+        if curves is None:
             return None
-        curves = [he] if not he.elements[0].has_form("List", None) else list(he.elements)
         styles = styles_for(options, len(curves), ev)
         prims, allx, ally = [], [], []
         for i, cv in enumerate(curves):
+            cv = unthrough(cv)
             if not cv.has_form("List", 2):
                 return None
-            fx, fy = make_fn(cv.elements[0], [t], ev), make_fn(cv.elements[1], [t], ev)
-            ts = n.linspace(a_v, b_v, 140 if (fx.slow or fy.slow) else 800)
+            fx, fy = pair_fns(cv.elements[0], cv.elements[1], [t], ev)
+            npts = min(budget(fx, 800, 140, seconds=0.6), budget(fy, 800, 140, seconds=0.6))
+            ts = n.linspace(a_v, b_v, npts)
             xs, ys = fx(ts), fy(ts)
+            allx.append(xs)
+            ally.append(ys)
             p = {"t": "line", "x": nlist(xs), "y": nlist(ys)}
             p.update(styles[i])
             prims.append(p)
-            allx.append(xs)
-            ally.append(ys)
-        return finish_xy(prims, allx, ally, options, ev, curves, styles)
+        return finish_xy(prims, allx, ally, options, ev, curves, styles, robust=True)
 
     def eval_region(self, f, u, a, b, v, c, d, evaluation, options):
         "ParametricPlot[f_, {u_Symbol, a_, b_}, {v_Symbol, c_, d_}, OptionsPattern[ParametricPlot]]"
         n = np()
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
-        he = strip_wrappers(hold_eval(strip_wrappers(f), [u, v], ev))
-        if not he.has_form("List", 2):
+        if None in (a_v, b_v, c_v, d_v):
             return None
-        fx, fy = make_fn(he.elements[0], [u, v], ev), make_fn(he.elements[1], [u, v], ev)
-        m = 12 if (fx.slow or fy.slow) else 30
+        he = unthrough(strip_wrappers(hold_eval(strip_wrappers(f), [u, v], ev)))
+        if not (isinstance(he, Expression) and he.has_form("List", 2)):
+            return None
+        fx, fy = pair_fns(he.elements[0], he.elements[1], [u, v], ev)
+        slow = fx.slow or fy.slow
+        ps = opt(options, "PlotStyle")
+        nofill = ps is not None and is_sym(ps, "None")
         st = styles_for(options, 1, ev)[0]
         prims, allx, ally = [], [], []
+        nm = 15                                   # mesh lines per direction (as Mathematica)
+        m = 13 if slow else 121
         us, vs = n.linspace(a_v, b_v, m), n.linspace(c_v, d_v, m)
-        U, V = n.meshgrid(us, vs)
-        X, Y = fx(U, V), fy(U, V)
-        for i in range(m - 1):
-            for j in range(m - 1):
-                px = [X[i, j], X[i, j + 1], X[i + 1, j + 1], X[i + 1, j]]
-                py = [Y[i, j], Y[i, j + 1], Y[i + 1, j + 1], Y[i + 1, j]]
-                if all(n.isfinite(px)) and all(n.isfinite(py)):
-                    prims.append({"t": "poly", "x": nlist(px), "y": nlist(py), "color": st["color"], "opacity": 0.35,
-                                  "edge": None})
-        for k in range(0, m, max(1, m // 10)):
-            prims.append({"t": "line", "x": nlist(X[k, :]), "y": nlist(Y[k, :]), "color": st["color"], "width": 0.8})
-            prims.append({"t": "line", "x": nlist(X[:, k]), "y": nlist(Y[:, k]), "color": st["color"], "width": 0.8})
-        allx.append(X.ravel())
-        ally.append(Y.ravel())
-        return finish_xy(prims, allx, ally, options, ev, [he], [st])
+        if slow:
+            U, V = n.meshgrid(us, vs)
+            X, Y = fx(U, V), fy(U, V)
+            rows = [(X[k, :], Y[k, :]) for k in range(m)] + [(X[:, k], Y[:, k]) for k in range(m)]
+            border = [(X[0, :], Y[0, :]), (X[:, -1], Y[:, -1]), (X[-1, ::-1], Y[-1, ::-1]), (X[::-1, 0], Y[::-1, 0])]
+        else:
+            rows = []
+            for k in range(nm + 2):
+                vv = c_v + (d_v - c_v) * k / (nm + 1)
+                rows.append((fx(us, n.full_like(us, vv)), fy(us, n.full_like(us, vv))))
+            for k in range(nm + 2):
+                uu = a_v + (b_v - a_v) * k / (nm + 1)
+                rows.append((fx(n.full_like(vs, uu), vs), fy(n.full_like(vs, uu), vs)))
+            lo_v, hi_v, lo_u, hi_u = rows[0], rows[nm + 1], rows[nm + 2], rows[2 * nm + 3]
+            border = [lo_v, hi_u, (hi_v[0][::-1], hi_v[1][::-1]), (lo_u[0][::-1], lo_u[1][::-1])]
+        if not nofill:
+            bx = n.concatenate([b_[0] for b_ in border])
+            by = n.concatenate([b_[1] for b_ in border])
+            ok = n.isfinite(bx) & n.isfinite(by)
+            if ok.sum() > 3:
+                prims.append({"t": "poly", "x": nlist(bx[ok]), "y": nlist(by[ok]), "color": st["color"],
+                              "opacity": st.get("opacity", 0.3), "edge": None})
+        mesh_col = "#444444" if nofill else st["color"]
+        edge = (0, nm + 1, nm + 2, 2 * nm + 3) if not slow else (0, m - 1, m, 2 * m - 1)
+        for k, (rx, ry) in enumerate(rows):
+            is_edge = k in edge
+            prims.append({"t": "line", "x": nlist(rx), "y": nlist(ry), "color": mesh_col,
+                          "width": 1.2 if is_edge else 0.6, "opacity": 1.0 if is_edge else 0.55, "nohover": not is_edge})
+            allx.append(rx)
+            ally.append(ry)
+        return finish_xy(prims, allx, ally, options, ev, [he], [st], extra={"Frame": SymbolTrue, "Axes": SymbolFalse})
 
 
-def finish_xy(prims, allx, ally, options, ev, exprs, styles, aspect="Automatic", extra=None):
+def finish_xy(prims, allx, ally, options, ev, exprs, styles, aspect="Automatic", extra=None, robust=False):
     n = np()
     X, Y = n.concatenate(allx), n.concatenate(ally)
-    fx, fy = X[n.isfinite(X)], Y[n.isfinite(Y)]
-    xr = [float(fx.min()), float(fx.max())] if fx.size else [-1, 1]
-    yr = [float(fy.min()), float(fy.max())] if fy.size else [-1, 1]
-    for r in (xr, yr):
-        pad = (r[1] - r[0]) * 0.04
-        if pad == 0:
-            pad = abs(r[0]) * 0.1 or 1.0
-        r[0] -= pad
-        r[1] += pad
     pr, allflag = parse_range(opt(options, "PlotRange"), ev)
+    rngs = []
+    for A in (X, Y):
+        fa = A[n.isfinite(A)]
+        if fa.size == 0:
+            rngs.append([-1.0, 1.0])
+            continue
+        if robust and not allflag:
+            r = robust_range(fa)
+        else:
+            r = [float(fa.min()), float(fa.max())]
+            pad = (r[1] - r[0]) * 0.04
+            if pad == 0:
+                pad = abs(r[0]) * 0.1 or 1.0
+            r = [r[0] - pad, r[1] + pad]
+        rngs.append(r)
+    xr, yr = rngs
     if pr[0] is not None:
         xr = pr[0]
     if pr[1] is not None:
@@ -1103,35 +1566,172 @@ class PolarPlot(GB):
         n = np()
         ev = evaluation
         a_v, b_v = num(a.evaluate(ev), ev), num(b.evaluate(ev), ev)
+        if a_v is None or b_v is None:
+            return None
         exprs, was_list, orig = held_list(f, [t], ev)
         styles = styles_for(options, len(exprs), ev)
         prims, allx, ally = [], [], []
         for i, ex in enumerate(exprs):
-            fn = make_fn(ex, [t], ev)
-            ts = n.linspace(a_v, b_v, 150 if fn.slow else 900)
+            fn = make_fn(ex, [t], ev, raw=raw_of(orig, exprs, i))
+            turns = max(1.0, abs(b_v - a_v) / (2 * math.pi))
+            ts = n.linspace(a_v, b_v, budget(fn, int(min(4000, 500 + 400 * turns)), 150))
             r = fn(ts)
             xs, ys = r * n.cos(ts), r * n.sin(ts)
+            allx.append(xs)
+            ally.append(ys)
             p = {"t": "line", "x": nlist(xs), "y": nlist(ys)}
             p.update(styles[i])
             prims.append(p)
-            allx.append(xs)
-            ally.append(ys)
-        return finish_xy(prims, allx, ally, options, ev, orig, styles)
+        return finish_xy(prims, allx, ally, options, ev, orig, styles, robust=True)
 
 
 # ------------------------------------------- Contour / Density / Region
-def grid_xy(a, b, c, d, m):
+def grid_xy(a, b, c, d, m, my=None):
     n = np()
-    xs, ys = n.linspace(a, b, m), n.linspace(c, d, m)
+    xs, ys = n.linspace(a, b, m), n.linspace(c, d, my or m)
     X, Y = n.meshgrid(xs, ys)
     return X, Y
 
 
-def field_prim(Z, a, b, c, d, **kw):
+def field_prim(Z, a, b, c, d, digits=4, **kw):
     p = {"t": "field", "x0": a, "x1": b, "y0": c, "y1": d, "nx": int(Z.shape[1]), "ny": int(Z.shape[0]),
-         "data": nlist(Z, 4)}
+         "data": nlist(Z, digits)}
     p.update(kw)
     return p
+
+
+_MS_CASES = {1: [(3, 0)], 2: [(0, 1)], 3: [(3, 1)], 4: [(1, 2)], 6: [(0, 2)], 7: [(3, 2)], 8: [(3, 2)], 9: [(0, 2)],
+             11: [(1, 2)], 12: [(3, 1)], 13: [(0, 1)], 14: [(3, 0)]}
+
+
+def implicit_lines(F, a, b, c, d, level=0.0, reject_poles=True):
+    """Marching squares on grid F[j, i] (rows = y). Returns list of (xs, ys) polylines in data coordinates."""
+    n = np()
+    ny, nx = F.shape
+    G = F - level
+    fin = n.isfinite(G)
+    S_ = (G > 0)
+    ok = fin[:-1, :-1] & fin[:-1, 1:] & fin[1:, 1:] & fin[1:, :-1]
+    case = (S_[:-1, :-1] * 1 + S_[:-1, 1:] * 2 + S_[1:, 1:] * 4 + S_[1:, :-1] * 8)
+    case = n.where(ok, case, 0)
+    jj, ii = n.nonzero((case > 0) & (case < 15))
+    if jj.size == 0:
+        return []
+    cs = case[jj, ii]
+    # edge ids: horizontal edge (j,i)-(j,i+1) -> j*nx+i ; vertical edge (j,i)-(j+1,i) -> nx*ny + j*nx+i
+    eid = [jj * nx + ii, nx * ny + jj * nx + ii + 1, (jj + 1) * nx + ii, nx * ny + jj * nx + ii]   # bottom,right,top,left
+    segs_a, segs_b = [], []
+    for cval, pairs_ in _MS_CASES.items():
+        m = cs == cval
+        if m.any():
+            for e0, e1 in pairs_:
+                segs_a.append(eid[e0][m])
+                segs_b.append(eid[e1][m])
+    for cval in (5, 10):
+        m = cs == cval
+        if m.any():
+            ctr = (G[jj[m], ii[m]] + G[jj[m], ii[m] + 1] + G[jj[m] + 1, ii[m] + 1] + G[jj[m] + 1, ii[m]]) / 4 > 0
+            first = ctr if cval == 5 else ~ctr
+            for sel, prs in ((first, [(3, 2), (0, 1)]), (~first, [(3, 0), (1, 2)])):
+                for e0, e1 in prs:
+                    segs_a.append(eid[e0][m][sel])
+                    segs_b.append(eid[e1][m][sel])
+    A, B = n.concatenate(segs_a), n.concatenate(segs_b)
+    # coordinates of every used edge crossing
+    used = n.unique(n.concatenate([A, B]))
+    hor = used < nx * ny
+    j0 = n.where(hor, used // nx, (used - nx * ny) // nx)
+    i0 = n.where(hor, used % nx, (used - nx * ny) % nx)
+    j1 = n.where(hor, j0, j0 + 1)
+    i1 = n.where(hor, i0 + 1, i0)
+    va, vb = G[j0, i0], G[j1, i1]
+    with n.errstate(all="ignore"):
+        t = va / (va - vb)
+    t = n.where(n.isfinite(t), n.clip(t, 0.0, 1.0), 0.5)
+    dx, dy = (b - a) / (nx - 1), (d - c) / (ny - 1)
+    px = a + (i0 + (i1 - i0) * t) * dx
+    py = c + (j0 + (j1 - j0) * t) * dy
+    if reject_poles and used.size > 8:
+        jump = n.abs(va - vb)
+        med = float(n.median(jump))
+        if med > 0:
+            badc = jump > 400 * med
+            if badc.any() and badc.sum() < 0.5 * used.size:
+                bad_ids = set(used[badc].tolist())
+                keep = n.array([(x_ not in bad_ids) and (y_ not in bad_ids) for x_, y_ in zip(A.tolist(), B.tolist())])
+                A, B = A[keep], B[keep]
+    pos = {int(e_): k for k, e_ in enumerate(used.tolist())}
+    adj = {}
+    Al, Bl = A.tolist(), B.tolist()
+    for k in range(len(Al)):
+        adj.setdefault(Al[k], []).append(k)
+        adj.setdefault(Bl[k], []).append(k)
+    done = [False] * len(Al)
+    lines = []
+
+    def walk(start, k):
+        ids = [start]
+        cur = start
+        while k is not None and not done[k]:
+            done[k] = True
+            cur = Bl[k] if Al[k] == cur else Al[k]
+            ids.append(cur)
+            k = None
+            for q in adj[cur]:
+                if not done[q]:
+                    k = q
+                    break
+        return ids
+    for e_, ks in adj.items():
+        if len(ks) == 1 and not done[ks[0]]:
+            lines.append(walk(e_, ks[0]))
+    for k in range(len(Al)):
+        if not done[k]:
+            lines.append(walk(Al[k], k))
+    out = []
+    for ids in lines:
+        idx = n.array([pos[i_] for i_ in ids])
+        out.append((px[idx], py[idx]))
+    return out
+
+
+def lines_to_prim(lines, st, digits=4):
+    """Several polylines -> one line prim (null-separated)."""
+    xs, ys = [], []
+    for lx, ly in lines:
+        if xs:
+            xs.append(None)
+            ys.append(None)
+        xs.extend(nlist(lx, digits))
+        ys.extend(nlist(ly, digits))
+    p = {"t": "line", "x": xs, "y": ys}
+    p.update(st)
+    return p
+
+
+def contour_opts(options, ev):
+    cont = opt(options, "Contours")
+    levels, nlev = None, None
+    if cont is not None and not is_sym(cont, "Automatic"):
+        cv = cont.evaluate(ev)
+        if cv.has_form("List", None):
+            levels = sorted(v for v in (num(x_, ev) for x_ in cv.elements) if v is not None)
+        elif num(cv, ev) is not None:
+            nlev = int(num(cv, ev))
+    return levels, nlev
+
+
+def apply_region(options, X, Y, Z, ev):
+    rf = opt(options, "RegionFunction")
+    if rf is None or is_sym(rf, "Automatic"):
+        return Z
+    try:
+        n = np()
+        return n.where(region_mask(rf, X, Y, Z, ev) > 0, Z, n.nan)
+    except ext_Deadline():
+        raise
+    except Exception:
+        return Z
 
 
 class ContourPlot(GB):
@@ -1149,37 +1749,53 @@ class ContourPlot(GB):
             styles = styles_for(options, len(exprs), ev, "ContourStyle")
             if opt(options, "ContourStyle") is None or is_sym(opt(options, "ContourStyle"), "Automatic"):
                 styles = styles_for(options, len(exprs), ev, "PlotStyle")
+            pp = num(opt(options, "PlotPoints"), ev)
             for i, e in enumerate(exprs):
-                if e.get_head_name() != "System`Equal":
+                if e.get_head_name() != "System`Equal" or len(e.elements) != 2:
                     continue
-                g = diff_expr(e.elements[0], e.elements[1])
-                fn = make_fn(g, [x, y], ev)
-                m = 26 if fn.slow else 121
+                fn = make_fn(diff_expr(e.elements[0], e.elements[1]), [x, y], ev)
+                m = int(max(10, min(40, math.sqrt(budget(fn, 1600, 1600, 100, seconds=1.2 / len(exprs))))))
+                if not fn.slow:
+                    m = 301 if len(exprs) <= 6 else 241
+                    if pp:
+                        m = int(max(m, min(601, pp * 8)))
                 X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
-                st = styles[i]
-                prims.append(field_prim(fn(X, Y), a_v, b_v, c_v, d_v, mode="implicit", color=st["color"],
-                                        width=st.get("width", 1.6), dash=st.get("dash")))
+                lines = implicit_lines(fn(X, Y), a_v, b_v, c_v, d_v)
+                st = dict(styles[i])
+                if lines:
+                    prims.append(lines_to_prim(lines, st))
             leg = legend_prim(options, orig, styles, ev)
             if leg:
                 prims.append(leg)
         else:
-            fn = make_fn(exprs[0], [x, y], ev)
-            m = 24 if fn.slow else 81
+            fn = make_fn(exprs[0], [x, y], ev, raw=raw_of(orig, exprs, 0))
+            m = int(max(8, min(26, math.sqrt(budget(fn, 676, 676, 64))))) if fn.slow else 91
             X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
-            Z = fn(X, Y)
-            cont = opt(options, "Contours")
-            levels = None
-            nlev = 10
-            if cont is not None and not is_sym(cont, "Automatic"):
-                cv = cont.evaluate(ev)
-                if cv.has_form("List", None):
-                    levels = [num(v, ev) for v in cv.elements if num(v, ev) is not None]
-                elif num(cv, ev) is not None:
-                    nlev = int(num(cv, ev))
+            Z = apply_region(options, X, Y, fn(X, Y), ev)
+            levels, nlev = contour_opts(options, ev)
             sh = opt(options, "ContourShading")
             shading = not (sh is not None and (sh is SymbolFalse or is_sym(sh, "None")))
-            prims.append(field_prim(Z, a_v, b_v, c_v, d_v, mode="contour", levels=levels, nlev=nlev,
-                                    shading=shading, cf=cf_name(options)))
+            kw = {"mode": "contour", "shading": shading}
+            if levels is not None:
+                kw["levels"] = levels
+            if nlev:
+                kw["nlev"] = nlev
+            if cf_name(options):
+                kw["cf"] = cf_name(options)
+            cs = opt(options, "ContourStyle")
+            if cs is not None and (is_sym(cs, "None") or cs is SymbolFalse):
+                kw["lines"] = False
+            elif cs is not None and not is_sym(cs, "Automatic"):
+                st = {}
+                apply_directive(st, cs.evaluate(ev), ev)
+                if "color" in st:
+                    kw["lineColor"] = st["color"]
+                if "width" in st:
+                    kw["lineWidth"] = st["width"]
+            prims.append(field_prim(Z, a_v, b_v, c_v, d_v, **kw))
+            bl = bar_legend(options, cf_name(options))
+            if bl:
+                prims.append(bl)
         defaults = {"AspectRatio": Integer(1), "Frame": SymbolTrue, "Axes": SymbolFalse,
                     "PlotRange": rng_expr([[a_v, b_v], [c_v, d_v]])}
         return G2(prims, gopts(options, defaults))
@@ -1189,6 +1805,13 @@ def cf_name(options):
     cf = opt(options, "ColorFunction")
     if isinstance(cf, String):
         return cf.value
+    if cf is not None and is_sym(cf, "Hue"):
+        return "Hue"
+    if cf is not None and is_sym(cf, "GrayLevel"):
+        return "GrayLevel"
+    if isinstance(cf, Expression) and cf.get_head_name() == "System`ColorData" and cf.elements \
+            and isinstance(cf.elements[0], String):
+        return cf.elements[0].value
     return None
 
 
@@ -1197,11 +1820,20 @@ class DensityPlot(GB):
         "DensityPlot[f_, {x_Symbol, a_, b_}, {y_Symbol, c_, d_}, OptionsPattern[DensityPlot]]"
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
-        he = hold_eval(strip_wrappers(f), [x, y], ev)
-        fn = make_fn(he, [x, y], ev)
-        m = 24 if fn.slow else 90
+        if None in (a_v, b_v, c_v, d_v):
+            return None
+        raw = strip_wrappers(f)
+        he = hold_eval(raw, [x, y], ev)
+        fn = make_fn(he, [x, y], ev, raw=raw)
+        m = int(max(8, min(26, math.sqrt(budget(fn, 676, 676, 64))))) if fn.slow else 101
         X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
-        prims = [field_prim(fn(X, Y), a_v, b_v, c_v, d_v, mode="density", cf=cf_name(options))]
+        kw = {"mode": "density"}
+        if cf_name(options):
+            kw["cf"] = cf_name(options)
+        prims = [field_prim(apply_region(options, X, Y, fn(X, Y), ev), a_v, b_v, c_v, d_v, **kw)]
+        bl = bar_legend(options, cf_name(options))
+        if bl:
+            prims.append(bl)
         defaults = {"AspectRatio": Integer(1), "Frame": SymbolTrue, "Axes": SymbolFalse,
                     "PlotRange": rng_expr([[a_v, b_v], [c_v, d_v]])}
         return G2(prims, gopts(options, defaults))
@@ -1212,21 +1844,49 @@ class RegionPlot(GB):
         "RegionPlot[f_, {x_Symbol, a_, b_}, {y_Symbol, c_, d_}, OptionsPattern[RegionPlot]]"
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
+        if None in (a_v, b_v, c_v, d_v):
+            return None
         exprs, was_list, orig = held_list(f, [x, y], ev)
         styles = styles_for(options, len(exprs), ev)
+        bs = opt(options, "BoundaryStyle")
+        no_bd = bs is not None and (is_sym(bs, "None") or bs is SymbolFalse)
+        bst = {}
+        if bs is not None and not no_bd and not is_sym(bs, "Automatic"):
+            apply_directive(bst, bs.evaluate(ev), ev)
         prims = []
         for i, e in enumerate(exprs):
             fn = make_cond_fn(e, [x, y], ev)
-            m = 28 if fn.slow else 141
+            st = styles[i]
+            if fn.slow:
+                X, Y = grid_xy(a_v, b_v, c_v, d_v, 30)
+                prims.append(field_prim(fn(X, Y), a_v, b_v, c_v, d_v, 2, mode="region", color=st["color"],
+                                        opacity=st.get("opacity", 0.4), boundary=not no_bd))
+                continue
+            m = 321
             X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
-            prims.append(field_prim(fn(X, Y), a_v, b_v, c_v, d_v, mode="region", color=styles[i]["color"],
-                                    opacity=styles[i].get("opacity", 0.45)))
-        leg = legend_prim(options, orig, styles, ev)
+            Fh = fn(X, Y)
+            prims.append(field_prim(Fh[::2, ::2], a_v, b_v, c_v, d_v, 2, mode="region", color=st["color"],
+                                    opacity=st.get("opacity", 0.4), boundary=False))
+            if not no_bd:
+                lines = implicit_lines(Fh, a_v, b_v, c_v, d_v, reject_poles=False)
+                if lines:
+                    col = bst.get("color") or darker_hex(st["color"], 0.3)
+                    prims.append(lines_to_prim(lines, {"color": col, "width": bst.get("width", 1.2),
+                                                       "nohover": True}))
+        leg = legend_prim(options, orig, [dict(s_, opacity=s_.get("opacity", 0.4)) for s_ in styles], ev, kind="swatch")
         if leg:
             prims.append(leg)
         defaults = {"AspectRatio": Integer(1), "Frame": SymbolTrue, "Axes": SymbolFalse,
                     "PlotRange": rng_expr([[a_v, b_v], [c_v, d_v]])}
         return G2(prims, gopts(options, defaults))
+
+
+def darker_hex(h, f=0.3):
+    try:
+        r, g, b = [int(h[i:i + 2], 16) for i in (1, 3, 5)]
+        return "#%02x%02x%02x" % (int(r * (1 - f)), int(g * (1 - f)), int(b * (1 - f)))
+    except Exception:
+        return h
 
 
 # ----------------------------------------------------- Vector / Stream
@@ -1236,41 +1896,49 @@ class VectorPlot(GB):
         n = np()
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
+        if None in (a_v, b_v, c_v, d_v):
+            return None
         he = hold_eval(strip_wrappers(f), [x, y], ev)
-        if not he.has_form("List", 2):
+        if not (isinstance(he, Expression) and he.has_form("List", 2)):
             return None
         fu, fv = make_fn(he.elements[0], [x, y], ev), make_fn(he.elements[1], [x, y], ev)
         vp = num(opt(options, "VectorPoints"), ev)
         m = int(vp) if vp else 15
         m = max(4, min(m, 30))
+        if fu.slow or fv.slow:
+            m = min(m, 10)
         xs = n.linspace(a_v, b_v, m + 2)[1:-1]
         ys = n.linspace(c_v, d_v, m + 2)[1:-1]
         X, Y = n.meshgrid(xs, ys)
         U, V = fu(X, Y), fv(X, Y)
         mag = n.sqrt(U ** 2 + V ** 2)
-        mx = float(n.nanmax(mag)) if n.isfinite(mag).any() else 1.0
+        okm = mag[n.isfinite(mag)]
+        mx = float(n.percentile(okm, 98)) if okm.size else 1.0
         mx = mx or 1.0
         vs = opt(options, "VectorScale")
         uniform = vs is not None and vs.has_form("List", 3) and is_sym(vs.elements[2], "None")
-        cell = min((b_v - a_v), (d_v - c_v) * 1.0) / (m + 1)
         sx, sy = (b_v - a_v) / (m + 1), (d_v - c_v) / (m + 1)
         segs, mags = [], []
         for i in range(m):
             for j in range(m):
-                u, v, g = U[i, j], V[i, j], mag[i, j]
-                if not (n.isfinite(u) and n.isfinite(v)) or g == 0:
+                u, v, g = float(U[i, j]), float(V[i, j]), float(mag[i, j])
+                if not (math.isfinite(u) and math.isfinite(v)) or g == 0:
                     continue
-                k = 0.85 if uniform else (0.35 + 0.65 * g / mx)
+                rel = min(1.0, g / mx)
+                k = 0.82 if uniform else (0.34 + 0.62 * rel)
                 # normalise in screen-like units (per-axis cell size)
                 ux, vy = u / g, v / g
                 nrm = math.hypot(ux / sx, vy / sy) or 1.0
                 dx, dy = ux / nrm * k * 0.5, vy / nrm * k * 0.5
                 segs.append([float(X[i, j] - dx), float(Y[i, j] - dy), float(X[i, j] + dx), float(Y[i, j] + dy)])
-                mags.append(float(g / mx))
+                mags.append(rel)
         st = {}
         s_opt = opt(options, "VectorStyle")
         if s_opt is not None and not is_sym(s_opt, "Automatic"):
             apply_directive(st, s_opt.evaluate(ev), ev)
+        vcf = opt(options, "VectorColorFunction")
+        if "color" not in st and vcf is not None and is_sym(vcf, "None"):
+            st["color"] = PALETTE[0]
         prims = [{"t": "arrows", "segs": [[float("%.5g" % v) for v in s] for s in segs],
                   "mags": [float("%.3g" % v) for v in mags], "color": st.get("color")}]
         defaults = {"AspectRatio": Integer(1), "Frame": SymbolTrue, "Axes": SymbolFalse,
@@ -1284,64 +1952,121 @@ class StreamPlot(GB):
         n = np()
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
+        if None in (a_v, b_v, c_v, d_v):
+            return None
         he = hold_eval(strip_wrappers(f), [x, y], ev)
-        if not he.has_form("List", 2):
+        if not (isinstance(he, Expression) and he.has_form("List", 2)):
             return None
         fu, fv = make_fn(he.elements[0], [x, y], ev), make_fn(he.elements[1], [x, y], ev)
-        m = 6 if (fu.slow or fv.slow) else 11
-        xs = n.linspace(a_v, b_v, m + 2)[1:-1]
-        ys = n.linspace(c_v, d_v, m + 2)[1:-1]
-        X0, Y0 = n.meshgrid(xs, ys)
-        steps = 30 if (fu.slow or fv.slow) else 90
-        L0 = max(b_v - a_v, d_v - c_v)
-        h = L0 / 160.0
-        sx, sy = (b_v - a_v), (d_v - c_v)
+        slow = fu.slow or fv.slow
+        w, h = (b_v - a_v), (d_v - c_v)
+        m = 7 if slow else 14
+        steps = 24 if slow else 110
+        hstep = 1.0 / 130          # in unit-square coordinates
+        gx = (n.arange(m) + 0.5) / m
+        # jittered seeds (deterministic) in the unit square
+        SX, SY = n.meshgrid(gx, gx)
+        SX = SX.ravel() + 0.21 / m * n.sin(n.arange(m * m) * 2.4)
+        SY = SY.ravel() + 0.21 / m * n.cos(n.arange(m * m) * 1.7)
 
-        def direction(X, Y):
-            U, V = fu(X, Y), fv(X, Y)
-            g = n.sqrt((U / sx) ** 2 + (V / sy) ** 2)
-            g = n.where(g == 0, n.nan, g)
-            return U / g / sx * sx * (1.0 / L0) * L0 / 1.0 * 0 + U / g, V / g
+        def direction(PX, PY):
+            U, V = fu(a_v + PX * w, c_v + PY * h), fv(a_v + PX * w, c_v + PY * h)
+            U, V = U / w, V / h
+            g = n.sqrt(U * U + V * V)
+            g = n.where((g == 0) | ~n.isfinite(g), n.nan, g)
+            return U / g, V / g
 
-        prims = []
-        col = PALETTE[0]
+        trails = []
+        for sgn in (1.0, -1.0):
+            PX, PY = SX.copy(), SY.copy()
+            tx, ty = [PX.copy()], [PY.copy()]
+            for _ in range(steps):
+                k1x, k1y = direction(PX, PY)
+                k2x, k2y = direction(PX + sgn * hstep / 2 * k1x, PY + sgn * hstep / 2 * k1y)
+                PX = PX + sgn * hstep * k2x
+                PY = PY + sgn * hstep * k2y
+                out = (PX < 0) | (PX > 1) | (PY < 0) | (PY > 1)
+                PX = n.where(out, n.nan, PX)
+                PY = n.where(out, n.nan, PY)
+                tx.append(PX.copy())
+                ty.append(PY.copy())
+            trails.append((n.array(tx), n.array(ty)))
+        (FX, FY), (BX, BY) = trails
+        # evenly spaced selection: a line stops when it enters a cell already used by another line
+        NG = 26
+        occ = {}
+        order = sorted(range(SX.size), key=lambda k: (abs(SX[k] - 0.5) + abs(SY[k] - 0.5)))
         st = {}
         s_opt = opt(options, "StreamStyle")
         if s_opt is not None and not is_sym(s_opt, "Automatic"):
             apply_directive(st, s_opt.evaluate(ev), ev)
-        lines = []
-        for sgn in (1.0, -1.0):
-            X, Y = X0.ravel().copy(), Y0.ravel().copy()
-            trail_x, trail_y = [X.copy()], [Y.copy()]
-            for _ in range(steps):
-                k1x, k1y = direction(X, Y)
-                k2x, k2y = direction(X + sgn * h / 2 * k1x * sx / L0, Y + sgn * h / 2 * k1y * sy / L0)
-                X = X + sgn * h * k2x * sx / L0
-                Y = Y + sgn * h * k2y * sy / L0
-                out = (X < a_v) | (X > b_v) | (Y < c_v) | (Y > d_v)
-                X = n.where(out, n.nan, X)
-                Y = n.where(out, n.nan, Y)
-                trail_x.append(X.copy())
-                trail_y.append(Y.copy())
-            TX, TY = n.array(trail_x), n.array(trail_y)
-            if sgn < 0:
-                TX, TY = TX[::-1], TY[::-1]
-            lines.append((TX, TY))
-        (FX, FY), (BX, BY) = lines
-        for k in range(FX.shape[1]):
-            lx = n.concatenate([BX[:, k], FX[1:, k]])
-            ly = n.concatenate([BY[:, k], FY[1:, k]])
-            prims.append({"t": "line", "x": nlist(lx, 4), "y": nlist(ly, 4), "color": st.get("color", col),
-                          "width": 1.1, "arrow": "mid", "opacity": 0.9})
+        col = st.get("color", PALETTE[0])
+        prims = []
+        for k in order:
+            c0 = (int(SX[k] * NG), int(SY[k] * NG))
+            if c0 in occ:
+                continue
+            halves = []
+            mine = set()
+            for TX, TY in ((FX, FY), (BX, BY)):
+                px, py = TX[:, k].tolist(), TY[:, k].tolist()
+                keep = 0
+                for q in range(len(px)):
+                    if px[q] != px[q] or py[q] != py[q]:
+                        break
+                    cell = (min(NG - 1, int(px[q] * NG)), min(NG - 1, int(py[q] * NG)))
+                    if cell in occ and occ[cell] != k:
+                        break
+                    mine.add(cell)
+                    keep = q + 1
+                halves.append((px[:keep], py[:keep]))
+            (fxs, fys), (bxs, bys) = halves
+            lx = bxs[::-1] + fxs[1:]
+            ly = bys[::-1] + fys[1:]
+            if len(lx) < 12:
+                continue
+            for cell in mine:
+                occ[cell] = k
+            lx = a_v + n.array(lx) * w
+            ly = c_v + n.array(ly) * h
+            prims.append({"t": "line", "x": nlist(lx, 4), "y": nlist(ly, 4), "color": col,
+                          "width": st.get("width", 1.1), "arrow": "mid", "opacity": 0.9})
         defaults = {"AspectRatio": Integer(1), "Frame": SymbolTrue, "Axes": SymbolFalse,
                     "PlotRange": rng_expr([[a_v, b_v], [c_v, d_v]])}
         return G2(prims, gopts(options, defaults))
 
 
 # ---------------------------------------------------------------------- 3D
-def surf_prim(X, Y, Z, st=None, idx=0, mesh=True):
+def mesh_spec(options, ev, default=True):
+    """Mesh option -> True (default 15 lines) | False | n | [nu, nv]."""
+    m = opt(options, "Mesh")
+    if m is None or is_sym(m, "Automatic"):
+        return default
+    if is_sym(m, "None") or m is SymbolFalse:
+        return False
+    if isinstance(m, Symbol) and short(m) in ("All", "Full"):
+        return True
+    v = num(m, ev)
+    if v is not None:
+        return int(max(0, v))
+    if m.has_form("List", 2):
+        a, b = num(m.elements[0], ev), num(m.elements[1], ev)
+        if a is not None and b is not None:
+            return [int(a), int(b)]
+    return default
+
+
+def surf_prim(X, Y, Z, st=None, idx=0, mesh=True, mask=None, cf=None, cv=None, bd=False):
     p = {"t": "surf", "nx": int(X.shape[1]), "ny": int(X.shape[0]), "x": nlist(X, 4), "y": nlist(Y, 4),
          "z": nlist(Z, 4), "mesh": mesh, "ci": idx}
+    if bd:
+        p["bd"] = True
+    if mask is not None:
+        p["m"] = nlist(mask, 2)
+    if cf:
+        p["cf"] = cf
+        if cv is not None:
+            p["cv"] = nlist(cv, 2)
     if st:
         if st.get("explicit"):
             p["color"] = st.get("color")
@@ -1350,13 +2075,15 @@ def surf_prim(X, Y, Z, st=None, idx=0, mesh=True):
     return p
 
 
-def styles3(options, k, ev):
-    ps = opt(options, "PlotStyle")
+def styles3(options, k, ev, key="PlotStyle"):
+    ps = opt(options, key)
     base = [{"color": None} for _ in range(k)]
     if ps is None or is_sym(ps, "Automatic") or is_sym(ps, "None"):
         return base
     ps = ps.evaluate(ev)
     items = list(ps.elements) if ps.has_form("List", None) and k > 1 else [ps]
+    if not items:
+        return base
     for i in range(k):
         st = {}
         apply_directive(st, items[i % len(items)], ev)
@@ -1373,17 +2100,54 @@ def range3(vals, pr):
         return pr
     if v.size == 0:
         return [-1.0, 1.0]
-    r = robust_range(v)
-    return r
-
-
-def mesh_flag(options):
-    m = opt(options, "Mesh")
-    return not (m is not None and (is_sym(m, "None") or m is SymbolFalse))
+    return robust_range(v)
 
 
 def rules3(options, defaults):
     return gopts(options, defaults)
+
+
+def color_field(options, vars3, X, Y, Z, ev):
+    """ColorFunction for surfaces -> (name, per-vertex scalar in [0,1] or None)."""
+    n = np()
+    cf = opt(options, "ColorFunction")
+    if cf is None or is_sym(cf, "Automatic") or is_sym(cf, "None"):
+        return None, None
+    name = cf_name(options)
+    if name:
+        return name, None                      # renderer uses scaled z
+    scaled = opt(options, "ColorFunctionScaling") is not SymbolFalse
+    try:
+        sx, sy, sz = Symbol("WLX`cx"), Symbol("WLX`cy"), Symbol("WLX`cz")
+        body = E(cf, sx, sy, sz).evaluate(ev)
+        nm = None
+        if isinstance(body, Expression) and body.get_head_name() in ("System`Hue", "System`GrayLevel") and body.elements:
+            nm, arg = short(body.get_head()), body.elements[0]
+        elif isinstance(body, Expression) and isinstance(body.get_head(), Expression) and \
+                body.get_head().get_head_name() == "System`ColorData" and body.elements:
+            h = body.get_head().elements[0]
+            nm, arg = (h.value if isinstance(h, String) else "def"), body.elements[0]
+        if nm is None:
+            return None, None
+        fn = make_fn(arg, [sx, sy, sz], ev)
+        if fn.slow:
+            return None, None
+
+        def sc(A):
+            if not scaled:
+                return A
+            f = A[n.isfinite(A)]
+            if f.size == 0 or f.max() == f.min():
+                return n.zeros_like(A)
+            return (A - f.min()) / (f.max() - f.min())
+        cv = fn(sc(X), sc(Y), sc(Z))
+        if nm == "Hue":
+            cv = n.mod(cv, 1.0)
+        return nm, n.clip(n.nan_to_num(cv), 0.0, 1.0)
+    except ext_Deadline():
+        raise
+    except Exception:
+        return None, None
 
 
 class Plot3D(GB):
@@ -1398,26 +2162,40 @@ class Plot3D(GB):
         sts = styles3(options, len(exprs), ev)
         prims, allz = [], []
         rf = opt(options, "RegionFunction")
+        mesh = mesh_spec(options, ev)
+        pp = num(opt(options, "PlotPoints"), ev)
         for i, e in enumerate(exprs):
-            fn = make_fn(e, [x, y], ev)
-            pp = num(opt(options, "PlotPoints"), ev)
-            m = int(pp) if pp else (16 if fn.slow else 46)
-            m = max(6, min(m, 80))
+            fn = make_fn(e, [x, y], ev, raw=raw_of(orig, exprs, i))
+            if fn.slow:
+                m = int(max(6, min(18, math.sqrt(budget(fn, 324, 324, 36, seconds=1.5 / len(exprs))))))
+            else:
+                m = int(pp) if pp else 51
+                m = max(8, min(m, 90))
             X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
             Z = fn(X, Y)
+            if not fn.slow:
+                X, Y, Z = snap_domain(fn, X, Y, Z)
+            mask = None
             if rf is not None and not is_sym(rf, "Automatic"):
                 try:
                     mask = region_mask(rf, X, Y, Z, ev)
-                    Z = n.where(mask, Z, n.nan)
+                    # normalise so that interpolation to zero gives a smooth cut
+                    sc_ = float(n.nanmax(n.abs(mask))) or 1.0
+                    mask = n.clip(mask / sc_, -1, 1)
+                except ext_Deadline():
+                    raise
                 except Exception:
-                    pass
-            prims.append(surf_prim(X, Y, Z, sts[i], i, mesh_flag(options)))
-            allz.append(Z.ravel())
+                    mask = None
+            cf, cv = color_field(options, None, X, Y, Z, ev)
+            prims.append(surf_prim(X, Y, Z, sts[i], i, mesh, mask=mask, cf=cf, cv=cv, bd=True))
+            allz.append((Z if mask is None else n.where(mask > 0, Z, n.nan)).ravel())
         pr, allflag = parse_range(opt(options, "PlotRange"), ev, 3)
         cat = n.concatenate(allz)
         if allflag:
             fin = cat[n.isfinite(cat)]
             zr = [float(fin.min()), float(fin.max())] if fin.size else [-1, 1]
+            if zr[1] - zr[0] < 1e-12:
+                zr = [zr[0] - 1, zr[1] + 1]
         else:
             zr = range3(cat, pr[2])
         defaults = {"PlotRange": rng_expr([pr[0] or [a_v, b_v], pr[1] or [c_v, d_v], zr]),
@@ -1425,12 +2203,50 @@ class Plot3D(GB):
         return G3(prims, rules3(options, defaults))
 
 
+def snap_domain(fn, X, Y, Z, iters=12):
+    """Move grid nodes where f is not real onto the boundary of the domain (smooth edge instead of a staircase)."""
+    n = np()
+    fin = n.isfinite(Z)
+    if fin.all() or not fin.any():
+        return X, Y, Z
+    X0, Y0 = X, Y
+    X, Y, Z = X.copy(), Y.copy(), Z.copy()
+    ny, nx = Z.shape
+    done = n.zeros_like(fin)
+    for dj, di in ((0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)):
+        nb = n.zeros_like(fin)
+        js = slice(max(0, -dj), ny - max(0, dj))
+        is_ = slice(max(0, -di), nx - max(0, di))
+        jn = slice(max(0, dj), ny - max(0, -dj))
+        in_ = slice(max(0, di), nx - max(0, -di))
+        nb[js, is_] = fin[jn, in_]
+        sel = (~fin) & nb & (~done)
+        if not sel.any():
+            continue
+        jj, ii = n.nonzero(sel)
+        ax, ay = X0[jj + dj, ii + di], Y0[jj + dj, ii + di]
+        bx, by = X0[jj, ii], Y0[jj, ii]
+        lo, hi = n.zeros(jj.size), n.ones(jj.size)
+        for _ in range(iters):
+            mid = (lo + hi) / 2
+            ok = n.isfinite(fn(ax + (bx - ax) * mid, ay + (by - ay) * mid))
+            lo = n.where(ok, mid, lo)
+            hi = n.where(ok, hi, mid)
+        px, py = ax + (bx - ax) * lo, ay + (by - ay) * lo
+        pz = fn(px, py)
+        good = n.isfinite(pz)
+        X[jj[good], ii[good]], Y[jj[good], ii[good]], Z[jj[good], ii[good]] = px[good], py[good], pz[good]
+        done[jj[good], ii[good]] = True
+    return X, Y, Z
+
+
 def region_mask(rf, X, Y, Z, ev):
+    """RegionFunction -> scalar field (> 0 inside)."""
     n = np()
     xs, ys, zs = Symbol("WLX`rx"), Symbol("WLX`ry"), Symbol("WLX`rz")
     body = E(rf, xs, ys, zs).evaluate(ev)
     fn = make_cond_fn(body, [xs, ys, zs], ev)
-    return fn(X, Y, n.where(n.isfinite(Z), Z, 0.0)) > 0
+    return fn(X, Y, n.where(n.isfinite(Z), Z, 0.0))
 
 
 class ParametricPlot3D(GB):
@@ -1439,20 +2255,26 @@ class ParametricPlot3D(GB):
         n = np()
         ev = evaluation
         a_v, b_v = num(a.evaluate(ev), ev), num(b.evaluate(ev), ev)
-        he = strip_wrappers(hold_eval(strip_wrappers(f), [t], ev))
-        if not he.has_form("List", None):
+        if a_v is None or b_v is None:
             return None
-        curves = [he] if not he.elements[0].has_form("List", None) else list(he.elements)
+        he = strip_wrappers(hold_eval(strip_wrappers(f), [t], ev))
+        curves = _curve_list(he)
+        if curves is None:
+            return None
         sts = styles_for(options, len(curves), ev)
         prims, pts = [], []
         for i, cv in enumerate(curves):
             if not cv.has_form("List", 3):
                 return None
             fs = [make_fn(c, [t], ev) for c in cv.elements]
-            ts = n.linspace(a_v, b_v, 120 if any(f_.slow for f_ in fs) else 500)
+            npts = min(budget(f_, 600, 120, seconds=0.4) for f_ in fs)
+            ts = n.linspace(a_v, b_v, npts)
             P = [fn(ts) for fn in fs]
-            prims.append({"t": "line3", "x": nlist(P[0], 4), "y": nlist(P[1], 4), "z": nlist(P[2], 4),
-                          "color": sts[i]["color"], "width": sts[i].get("width", 2)})
+            p = {"t": "line3", "x": nlist(P[0], 4), "y": nlist(P[1], 4), "z": nlist(P[2], 4),
+                 "color": sts[i]["color"], "width": sts[i].get("width", 2)}
+            if "opacity" in sts[i]:
+                p["opacity"] = sts[i]["opacity"]
+            prims.append(p)
             pts.append(n.array(P))
         return finish3(prims, pts, options, ev)
 
@@ -1461,20 +2283,28 @@ class ParametricPlot3D(GB):
         n = np()
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
-        he = strip_wrappers(hold_eval(strip_wrappers(f), [u, v], ev))
-        if not he.has_form("List", None):
+        if None in (a_v, b_v, c_v, d_v):
             return None
-        surfs = [he] if not he.elements[0].has_form("List", None) else list(he.elements)
+        he = strip_wrappers(hold_eval(strip_wrappers(f), [u, v], ev))
+        surfs = _curve_list(he)
+        if surfs is None:
+            return None
         sts = styles3(options, len(surfs), ev)
+        mesh = mesh_spec(options, ev)
+        pp = num(opt(options, "PlotPoints"), ev)
         prims, pts = [], []
         for i, sf in enumerate(surfs):
             if not sf.has_form("List", 3):
                 return None
             fs = [make_fn(c2, [u, v], ev) for c2 in sf.elements]
-            m = 14 if any(f_.slow for f_ in fs) else 40
+            if any(f_.slow for f_ in fs):
+                m = 12
+            else:
+                m = max(8, min(int(pp) if pp else 46, 80))
             U, V = grid_xy(a_v, b_v, c_v, d_v, m)
             P = [fn(U, V) for fn in fs]
-            prims.append(surf_prim(P[0], P[1], P[2], sts[i], i, mesh_flag(options)))
+            cf, cv = color_field(options, None, P[0], P[1], P[2], ev)
+            prims.append(surf_prim(P[0], P[1], P[2], sts[i], i, mesh, cf=cf, cv=cv, bd=True))
             pts.append(n.array([p.ravel() for p in P]))
         return finish3(prims, pts, options, ev)
 
@@ -1490,21 +2320,27 @@ def finish3(prims, pts, options, ev, box=None, extra=None):
             continue
         v = P[i][n.isfinite(P[i])]
         lo, hi = (float(v.min()), float(v.max())) if v.size else (-1.0, 1.0)
+        if not allflag and v.size > 50:
+            rr = robust_range(v)
+            lo, hi = max(lo, rr[0]), min(hi, rr[1])
         if hi - lo < 1e-12:
             lo, hi = lo - 1, hi + 1
         rng.append([lo, hi])
-    defaults = {"PlotRange": rng_expr(rng), "Axes": SymbolTrue,
-                "BoxRatios": box if box is not None else S("Automatic")}
+    defaults = {"PlotRange": rng_expr(rng), "Axes": SymbolTrue}
+    if box is not None:
+        defaults["BoxRatios"] = box
     defaults.update(extra or {})
     return G3(prims, rules3(options, defaults))
 
 
-def iso_prim(F, r, color=None, ci=0, opacity=None):
+def iso_prim(F, r, color=None, ci=0, opacity=None, mesh=False):
     p = {"t": "iso", "n": int(F.shape[0]), "r": [[float(a), float(b)] for a, b in r], "data": nlist(F, 3), "ci": ci}
     if color:
         p["color"] = color
     if opacity is not None:
         p["opacity"] = opacity
+    if mesh:
+        p["mesh"] = mesh
     return p
 
 
@@ -1516,42 +2352,65 @@ def grid3(r, m):
     return X, Y, Z
 
 
+def box3(r):
+    """Real proportions of a 3D range, tamed so that no side is thinner than 1/4 of the longest."""
+    spans = [abs(hi - lo) or 1.0 for lo, hi in r]
+    mx = max(spans)
+    return L(*[Real(max(0.25, s / mx)) for s in spans])
+
+
 class ContourPlot3D(GB):
     def eval(self, f, x, a, b, y, c, d, z, e, g, evaluation, options):
         "ContourPlot3D[f_, {x_Symbol, a_, b_}, {y_Symbol, c_, d_}, {z_Symbol, e_, g_}, OptionsPattern[ContourPlot3D]]"
-        n = np()
         ev = evaluation
         r = [[num(lo.evaluate(ev), ev), num(hi.evaluate(ev), ev)] for lo, hi in ((a, b), (c, d), (e, g))]
+        if any(v is None for rr in r for v in rr):
+            return None
         exprs, was_list, orig = held_list(f, [x, y, z], ev)
         sts = styles3(options, len(exprs), ev)
         cs = opt(options, "ContourStyle")
         if cs is not None and not is_sym(cs, "Automatic"):
-            sts = []
-            for i in range(len(exprs)):
-                st = {}
-                csv = cs.evaluate(ev)
-                item = csv.elements[i % len(csv.elements)] if csv.has_form("List", None) and len(exprs) > 1 else csv
-                apply_directive(st, item, ev)
-                st["explicit"] = "color" in st
-                sts.append(st)
+            sts = styles3(options, len(exprs), ev, "ContourStyle")
+        mesh = mesh_spec(options, ev)
+        if mesh is True:
+            mesh = 5
+        elif isinstance(mesh, list):
+            mesh = mesh[0]
+        pp = num(opt(options, "PlotPoints"), ev)
         prims = []
+        k = 0
         for i, ex in enumerate(exprs):
             levels = [0.0]
-            if ex.get_head_name() == "System`Equal":
+            if ex.get_head_name() == "System`Equal" and len(ex.elements) == 2:
                 ex = diff_expr(ex.elements[0], ex.elements[1])
             else:
+                levels = None
                 cont = opt(options, "Contours")
                 if cont is not None and not is_sym(cont, "Automatic"):
                     cv = cont.evaluate(ev)
                     if cv.has_form("List", None):
-                        levels = [num(v, ev) for v in cv.elements]
+                        levels = [v for v in (num(v_, ev) for v_ in cv.elements) if v is not None]
             fn = make_fn(ex, [x, y, z], ev)
-            m = 9 if fn.slow else 30
+            if fn.slow:
+                m = int(max(6, min(11, budget(fn, 1331, 1331, 216) ** (1 / 3.0))))
+            else:
+                m = 30 if len(exprs) > 1 else 34
+                if pp:
+                    m = int(max(16, min(44, pp * 2)))
             X, Y, Z = grid3(r, m)
             F = fn(X, Y, Z)
+            if levels is None:
+                n = np()
+                fin = F[n.isfinite(F)]
+                if fin.size == 0:
+                    continue
+                lo_, hi_ = float(fin.min()), float(fin.max())
+                levels = [lo_ + (hi_ - lo_) * q for q in (0.25, 0.5, 0.75)]
             for lv in levels:
-                prims.append(iso_prim(F - lv, r, sts[i].get("color") if sts[i].get("explicit") else None, i,
-                                      sts[i].get("opacity")))
+                st = sts[i] if len(levels) == 1 else {}
+                prims.append(iso_prim(F - lv, r, st.get("color") if st.get("explicit") else None,
+                                      i if len(levels) == 1 else k, st.get("opacity", sts[i].get("opacity")), mesh))
+                k += 1
         defaults = {"PlotRange": rng_expr(r), "Axes": SymbolTrue, "BoxRatios": L(Integer(1), Integer(1), Integer(1))}
         return G3(prims, rules3(options, defaults))
 
@@ -1562,19 +2421,30 @@ class RegionPlot3D(GB):
         n = np()
         ev = evaluation
         r = [[num(lo.evaluate(ev), ev), num(hi.evaluate(ev), ev)] for lo, hi in ((a, b), (c, d), (e, g))]
+        if any(v is None for rr in r for v in rr):
+            return None
         exprs, was_list, orig = held_list(f, [x, y, z], ev)
         sts = styles3(options, len(exprs), ev)
+        pp = num(opt(options, "PlotPoints"), ev)
+        mesh = mesh_spec(options, ev, default=False)
+        if mesh is True:
+            mesh = 5
+        elif isinstance(mesh, list):
+            mesh = mesh[0]
         prims = []
         for i, ex in enumerate(exprs):
             fn = make_cond_fn(ex, [x, y, z], ev)
-            m = 10 if fn.slow else 34
+            if fn.slow:
+                m = 10
+            else:
+                m = 36 if len(exprs) == 1 else 30
+                if pp:
+                    m = int(max(24, min(42, pp)))
             X, Y, Z = grid3(r, m)
             F = fn(X, Y, Z)
-            # close the solid at the box faces
+            # close the solid at the box faces: an extra outer layer just outside the box with negative values
             F2 = n.full((m + 2, m + 2, m + 2), -1.0)
-            scale = float(n.nanmax(n.abs(F))) or 1.0
             F2[1:-1, 1:-1, 1:-1] = F
-            F2[0], F2[-1] = -scale * 0 - n.abs(F2[1]) * 0 - 1e-6 * scale - n.maximum(F2[1], 0) * 0, F2[-1]
             F2[0, :, :] = -n.maximum(F2[1, :, :], 0) - 1e-9
             F2[-1, :, :] = -n.maximum(F2[-2, :, :], 0) - 1e-9
             F2[:, 0, :] = -n.maximum(F2[:, 1, :], 0) - 1e-9
@@ -1583,11 +2453,15 @@ class RegionPlot3D(GB):
             F2[:, :, -1] = -n.maximum(F2[:, :, -2], 0) - 1e-9
             h = [(hi - lo) / (m - 1) for lo, hi in r]
             r2 = [[lo - hh * 0.02, hi + hh * 0.02] for (lo, hi), hh in zip(r, h)]
-            # grid of m+2 samples: outer layer sits just outside the box
-            prims.append({"t": "iso", "n": m + 2, "r": [[float(a_), float(b_)] for a_, b_ in r2], "pad": True,
-                          "inner": [[float(a_), float(b_)] for a_, b_ in r], "data": nlist(F2, 3), "ci": i,
-                          "color": sts[i].get("color") if sts[i].get("explicit") else None,
-                          "opacity": sts[i].get("opacity")})
+            p = {"t": "iso", "n": m + 2, "r": [[float(a_), float(b_)] for a_, b_ in r2], "pad": True,
+                 "inner": [[float(a_), float(b_)] for a_, b_ in r], "data": nlist(F2, 3), "ci": i}
+            if sts[i].get("explicit"):
+                p["color"] = sts[i].get("color")
+            if sts[i].get("opacity") is not None:
+                p["opacity"] = sts[i].get("opacity")
+            if mesh:
+                p["mesh"] = mesh
+            prims.append(p)
         defaults = {"PlotRange": rng_expr(r), "Axes": SymbolTrue, "BoxRatios": L(Integer(1), Integer(1), Integer(1))}
         return G3(prims, rules3(options, defaults))
 
@@ -1604,18 +2478,30 @@ class RevolutionPlot3D(GB):
     def _go(self, f, t, a, b, c, d, ev, options):
         n = np()
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
+        if None in (a_v, b_v, c_v, d_v):
+            return None
         he = strip_wrappers(hold_eval(strip_wrappers(f), [t], ev))
-        if he.has_form("List", 2):
+        if isinstance(he, Expression) and he.has_form("List", 2):
             fr, fz = make_fn(he.elements[0], [t], ev), make_fn(he.elements[1], [t], ev)
+            slow = fr.slow or fz.slow
+        elif isinstance(he, Expression) and he.has_form("List", 1):
+            fr, fz = (lambda tt: tt), make_fn(he.elements[0], [t], ev)
+            slow = fz.slow
         else:
-            fr, fz = (lambda tt: tt), make_fn(he, [t], ev)
-        m = 44
-        T, TH = grid_xy(a_v, b_v, c_v, d_v, m)
-        R, Zv = fr(T), fz(T)
+            fr, fz = (lambda tt: tt), make_fn(he, [t], ev, raw=strip_wrappers(f))
+            slow = fz.slow
+        m = 16 if slow else 46
+        # sample the profile once per t (cheap even on the slow path), then revolve
+        ts = n.linspace(a_v, b_v, m)
+        ths = n.linspace(c_v, d_v, m)
+        R1, Z1 = n.asarray(fr(ts), dtype=float), n.asarray(fz(ts), dtype=float)
+        TH, _ = n.meshgrid(ths, ts)
+        R, Zv = n.repeat(R1[:, None], m, axis=1), n.repeat(Z1[:, None], m, axis=1)
         X, Y = R * n.cos(TH), R * n.sin(TH)
         st = styles3(options, 1, ev)[0]
-        return finish3([surf_prim(X, Y, Zv, st, 0, mesh_flag(options))], [n.array([X.ravel(), Y.ravel(), Zv.ravel()])],
-                       options, ev)
+        cf, cv = color_field(options, None, X, Y, Zv, ev)
+        return finish3([surf_prim(X, Y, Zv, st, 0, mesh_spec(options, ev), cf=cf, cv=cv, bd=True)],
+                       [n.array([X.ravel(), Y.ravel(), Zv.ravel()])], options, ev)
 
 
 class SphericalPlot3D(GB):
@@ -1624,15 +2510,21 @@ class SphericalPlot3D(GB):
         n = np()
         ev = evaluation
         a_v, b_v, c_v, d_v = [num(z.evaluate(ev), ev) for z in (a, b, c, d)]
-        he = hold_eval(strip_wrappers(f), [th, ph], ev)
-        fn = make_fn(he, [th, ph], ev)
-        m = 14 if fn.slow else 44
-        TH, PH = grid_xy(a_v, b_v, c_v, d_v, m)
-        R = fn(TH, PH)
-        X, Y, Zv = R * n.sin(TH) * n.cos(PH), R * n.sin(TH) * n.sin(PH), R * n.cos(TH)
-        st = styles3(options, 1, ev)[0]
-        return finish3([surf_prim(X, Y, Zv, st, 0, mesh_flag(options))], [n.array([X.ravel(), Y.ravel(), Zv.ravel()])],
-                       options, ev)
+        if None in (a_v, b_v, c_v, d_v):
+            return None
+        exprs, was_list, orig = held_list(f, [th, ph], ev)
+        sts = styles3(options, len(exprs), ev)
+        prims, pts = [], []
+        for i, ex in enumerate(exprs):
+            fn = make_fn(ex, [th, ph], ev, raw=raw_of(orig, exprs, i))
+            m = 13 if fn.slow else 46
+            TH, PH = grid_xy(a_v, b_v, c_v, d_v, m)
+            R = fn(TH, PH)
+            X, Y, Zv = R * n.sin(TH) * n.cos(PH), R * n.sin(TH) * n.sin(PH), R * n.cos(TH)
+            cf, cv = color_field(options, None, X, Y, Zv, ev)
+            prims.append(surf_prim(X, Y, Zv, sts[i], i, mesh_spec(options, ev), cf=cf, cv=cv, bd=True))
+            pts.append(n.array([X.ravel(), Y.ravel(), Zv.ravel()]))
+        return finish3(prims, pts, options, ev)
 
 
 class ListPointPlot3D(GB):
@@ -1651,7 +2543,7 @@ class ListPointPlot3D(GB):
         st = styles_for(options, 1, evaluation)[0]
         prims = [{"t": "pts3", "x": nlist(arr[:, 0]), "y": nlist(arr[:, 1]), "z": nlist(arr[:, 2]),
                   "color": st["color"], "psize": st.get("psize", 4)}]
-        return finish3(prims, [arr.T], options, evaluation)
+        return finish3(prims, [arr.T], options, evaluation, box=L(Integer(1), Integer(1), Real(0.4)))
 
 
 class ListPlot3D(GB):
@@ -1663,13 +2555,26 @@ class ListPlot3D(GB):
         py = E("N", data).evaluate(evaluation).to_python()
         try:
             arr = n.array(py, dtype=float)
-            if arr.ndim != 2 or arr.shape[1] == 3 and arr.shape[0] != 3:
+            if arr.ndim != 2 or arr.shape[0] < 2 or arr.shape[1] < 2:
                 return None
         except Exception:
             return None
-        ny, nx = arr.shape
-        X, Y = n.meshgrid(n.arange(1, nx + 1, dtype=float), n.arange(1, ny + 1, dtype=float))
-        return finish3([surf_prim(X, Y, arr, None, 0, True)], [n.array([X.ravel(), Y.ravel(), arr.ravel()])], options,
+        if arr.shape[1] == 3 and arr.shape[0] > 3:
+            # list of {x, y, z} triples: regular grid if possible
+            xs, ys = n.unique(arr[:, 0]), n.unique(arr[:, 1])
+            if xs.size * ys.size != arr.shape[0]:
+                return None
+            Zg = n.full((ys.size, xs.size), n.nan)
+            Zg[n.searchsorted(ys, arr[:, 1]), n.searchsorted(xs, arr[:, 0])] = arr[:, 2]
+            X, Y = n.meshgrid(xs, ys)
+            arr = Zg
+        else:
+            ny, nx = arr.shape
+            X, Y = n.meshgrid(n.arange(1, nx + 1, dtype=float), n.arange(1, ny + 1, dtype=float))
+        st = styles3(options, 1, evaluation)[0]
+        cf, cv = color_field(options, None, X, Y, arr, evaluation)
+        return finish3([surf_prim(X, Y, arr, st, 0, mesh_spec(options, evaluation), cf=cf, cv=cv, bd=True)],
+                       [n.array([X.ravel(), Y.ravel(), arr.ravel()])], options,
                        evaluation, box=L(Integer(1), Integer(1), Real(0.4)))
 
 
@@ -1679,29 +2584,55 @@ class VectorPlot3D(GB):
         n = np()
         ev = evaluation
         r = [[num(lo.evaluate(ev), ev), num(hi.evaluate(ev), ev)] for lo, hi in ((a, b), (c, d), (e, g))]
+        if any(v is None for rr in r for v in rr):
+            return None
         he = hold_eval(strip_wrappers(f), [x, y, z], ev)
-        if not he.has_form("List", 3):
+        if not (isinstance(he, Expression) and he.has_form("List", 3)):
             return None
         fs = [make_fn(c2, [x, y, z], ev) for c2 in he.elements]
-        m = 6
+        m = 4 if any(f_.slow for f_ in fs) else 7
         ax = [n.linspace(lo, hi, m + 2)[1:-1] for lo, hi in r]
         X, Y, Z = n.meshgrid(*ax, indexing="ij")
         U, V, W = [fn(X, Y, Z) for fn in fs]
         mag = n.sqrt(U ** 2 + V ** 2 + W ** 2)
-        mx = float(n.nanmax(mag)) or 1.0
-        cell = min(hi - lo for lo, hi in r) / (m + 1)
+        mx = float(n.nanmax(mag)) if n.isfinite(mag).any() else 1.0
+        mx = mx or 1.0
+        cells = [(hi - lo) / (m + 1) for lo, hi in r]
+        st = {}
+        s_opt = opt(options, "VectorStyle")
+        if s_opt is not None and not is_sym(s_opt, "Automatic"):
+            apply_directive(st, s_opt.evaluate(ev), ev)
         prims = []
         for idx in n.ndindex(X.shape):
-            g_ = mag[idx]
-            if not n.isfinite(g_) or g_ == 0:
+            g_ = float(mag[idx])
+            if not math.isfinite(g_) or g_ == 0:
                 continue
-            k = cell * (0.3 + 0.6 * g_ / mx) / g_
-            p0 = [X[idx], Y[idx], Z[idx]]
-            p1 = [X[idx] + U[idx] * k, Y[idx] + V[idx] * k, Z[idx] + W[idx] * k]
+            # direction in box units (each axis scaled by its cell), length by magnitude
+            dv = [float(U[idx]) / cells[0], float(V[idx]) / cells[1], float(W[idx]) / cells[2]]
+            nrm = math.sqrt(sum(v * v for v in dv)) or 1.0
+            k = (0.3 + 0.6 * g_ / mx) / nrm
+            p0 = [float(X[idx]), float(Y[idx]), float(Z[idx])]
+            p1 = [p0[j] + dv[j] * k * cells[j] for j in range(3)]
+            p0 = [p0[j] - (p1[j] - p0[j]) * 0.5 for j in range(3)]
+            p1 = [p1[j] - (p1[j] - p0[j]) / 3.0 for j in range(3)]
+            rel = g_ / mx
             prims.append({"t": "arrow3", "x": nlist([p0[0], p1[0]], 4), "y": nlist([p0[1], p1[1]], 4),
-                          "z": nlist([p0[2], p1[2]], 4), "color": PALETTE[0], "width": 1.3})
+                          "z": nlist([p0[2], p1[2]], 4), "color": st.get("color") or vec_color(rel), "width": 1.3})
         defaults = {"PlotRange": rng_expr(r), "Axes": SymbolTrue, "BoxRatios": L(Integer(1), Integer(1), Integer(1))}
         return G3(prims, rules3(options, defaults))
+
+
+_VEC_STOPS = [(0.0, (48, 66, 140)), (0.3, (78, 122, 188)), (0.55, (150, 150, 170)), (0.75, (226, 150, 70)),
+              (1.0, (226, 98, 38))]
+
+
+def vec_color(t):
+    t = max(0.0, min(1.0, t))
+    for (t0, c0), (t1, c1) in zip(_VEC_STOPS[:-1], _VEC_STOPS[1:]):
+        if t <= t1:
+            f = (t - t0) / ((t1 - t0) or 1)
+            return "#%02x%02x%02x" % tuple(int(round(c0[k] + (c1[k] - c0[k]) * f)) for k in range(3))
+    return "#e26226"
 
 
 # ------------------------------------------------------------- Show & co.
@@ -1726,7 +2657,7 @@ class Show(XB):
         given = {}
         for k, v in options.items():
             nm = k.split("`")[-1]
-            if nm in GOPTS and GOPTS[nm] == str(v).split("`")[-1]:
+            if nm in GOPTS and is_default(nm, v):
                 continue  # default value, i.e. not explicitly given
             given[nm] = v
         for nm, v in given.items():
@@ -2053,7 +2984,8 @@ def bool_or_pair(v, default):
     return default
 
 
-def labels_of(v, ev):
+def labels_of(v, ev, dims=2):
+    """AxesLabel -> [x, y(, z)] (a single label names the last axis, as in Mathematica)."""
     if v is None or is_sym(v, "None"):
         return None
     if v.has_form("List", None):
@@ -2063,8 +2995,26 @@ def labels_of(v, ev):
                 out.extend(label_text(y, ev) for y in x.elements)
             else:
                 out.append(label_text(x, ev))
-        return out
-    return [label_text(v, ev)]
+        return out if any(out) else None
+    t = label_text(v, ev)
+    return ([None] * (dims - 1) + [t]) if t else None
+
+
+def frame_labels(v, ev):
+    """FrameLabel -> [bottom, left, top, right]."""
+    if v is None or is_sym(v, "None"):
+        return None
+    if v.has_form("List", None):
+        el = v.elements
+        if len(el) == 2 and el[0].has_form("List", None) and el[1].has_form("List", None):
+            lr = [label_text(y, ev) for y in el[0].elements] + [None, None]
+            bt = [label_text(y, ev) for y in el[1].elements] + [None, None]
+            out = [bt[0], lr[0], bt[1], lr[1]]
+        else:
+            out = [label_text(x, ev) for x in el[:4]]
+        return out if any(out) else None
+    t = label_text(v, ev)
+    return [t] if t else None
 
 
 def grid_of(v, ev):
@@ -2132,7 +3082,7 @@ def graphics_json(g, ev):
     o = {
         "range": pr, "all": allflag, "aspect": aspect,
         "axes": bool_or_pair(d.get("Axes"), False), "frame": bool_or_pair(d.get("Frame"), False),
-        "axesLabel": labels_of(d.get("AxesLabel"), ev), "frameLabel": labels_of(d.get("FrameLabel"), ev),
+        "axesLabel": labels_of(d.get("AxesLabel"), ev), "frameLabel": frame_labels(d.get("FrameLabel"), ev),
         "plotLabel": label_text(d.get("PlotLabel"), ev), "grid": grid_of(d.get("GridLines"), ev),
         "size": size_of(d.get("ImageSize"), ev), "ticks": ticks_of(d.get("Ticks"), ev),
         "logy": d.get("LogY") is SymbolTrue,
@@ -2167,14 +3117,13 @@ def graphics3d_json(g, ev):
         view = {"Top": [0, 0, 3], "Front": [0, -3, 0], "Above": [0, 0, 3], "Right": [3, 0, 0], "Left": [-3, 0, 0],
                 "Back": [0, 3, 0], "Bottom": [0, 0, -3], "Below": [0, 0, -3]}.get(short(vp))
     o = {"range": pr, "all": allflag, "box": box, "axes": bool_or_pair(d.get("Axes"), False),
-         "boxed": not (d.get("Boxed") is SymbolFalse), "axesLabel": labels_of(d.get("AxesLabel"), ev),
+         "boxed": not (d.get("Boxed") is SymbolFalse), "axesLabel": labels_of(d.get("AxesLabel"), ev, 3),
          "plotLabel": label_text(d.get("PlotLabel"), ev), "size": size_of(d.get("ImageSize"), ev), "view": view}
     return {"dim": 3, "prims": prims, "opts": o}
 
 
-GALLERY_HEADS = {"System`GraphicsRow": "row", "System`GraphicsColumn": "col", "System`GraphicsGrid": "grid",
-                 "System`Row": "row", "System`Column": "col", "System`Grid": "grid", "System`List": "row",
-                 "System`TableForm": "grid", "System`MatrixForm": "grid"}
+GALLERY_HEADS = {"GraphicsRow": "row", "GraphicsColumn": "col", "GraphicsGrid": "grid", "Row": "row", "Column": "col",
+                 "Grid": "grid", "List": "row", "TableForm": "grid", "MatrixForm": "grid"}
 
 
 def is_graphic(e):
@@ -2195,19 +3144,34 @@ def format_special(kernel, expr):
         return {"type": "graphics", "g": graphics3d_json(e, ev)}
     if hn in ("System`Manipulate", "System`Animate"):
         return manipulate_json(kernel, e)
-    if hn in GALLERY_HEADS and e.elements:
-        first = e.elements[0] if hn != "System`List" else e
+    # GraphicsRow & co. are not builtins of this Mathics build (they stay in Global`): match by short name
+    sh = hn.split("`")[-1] if (hn.startswith("System`") or hn.startswith("Global`")) else None
+    if sh in GALLERY_HEADS and e.elements:
+        kind = GALLERY_HEADS[sh]
         rows = None
-        if hn == "System`List":
-            if all(is_graphic(x) for x in e.elements):
+
+        def all_g(lst):
+            return bool(lst) and all(is_graphic(x) for x in lst)
+
+        def flat(x):
+            return list(x.elements) if x.has_form("List", None) else [x]
+        if sh == "List":
+            if all_g(e.elements):
                 rows = [list(e.elements)]
-            elif all(x.has_form("List", None) and x.elements and all(is_graphic(y) for y in x.elements) for x in e.elements):
+            elif all(x.has_form("List", None) and all_g(x.elements) for x in e.elements):
                 rows = [list(x.elements) for x in e.elements]
-        elif first.has_form("List", None) and first.elements:
-            if all(is_graphic(x) for x in first.elements):
-                rows = [list(first.elements)] if GALLERY_HEADS[hn] != "col" else [[x] for x in first.elements]
-            elif all(x.has_form("List", None) and x.elements and all(is_graphic(y) for y in x.elements) for x in first.elements):
-                rows = [list(x.elements) for x in first.elements]
+        else:
+            first = e.elements[0]
+            if first.has_form("List", None) and first.elements:
+                if all_g(first.elements):
+                    rows = [list(first.elements)] if kind != "col" else [[x] for x in first.elements]
+                elif all(x.has_form("List", None) and all_g(x.elements) for x in first.elements):
+                    rows = [list(x.elements) for x in first.elements]
+                elif kind in ("row", "col") and all_g([y for x in first.elements for y in flat(x)]):
+                    items = [y for x in first.elements for y in flat(x)]
+                    rows = [items] if kind == "row" else [[x] for x in items]
+            elif is_graphic(first) and kind in ("row", "col") and all_g(e.elements):
+                rows = [list(e.elements)]
         if rows:
             return {"type": "gallery", "rows": [[format_special(kernel, x) for x in row] for row in rows]}
     return None
@@ -2268,8 +3232,22 @@ def parse_controls(specs, ev):
         rest = [x.evaluate(ev) for x in el[1:]]
         if len(rest) == 1 and rest[0].has_form("List", None):
             vals = list(rest[0].elements)
+            held = list(el[1].elements) if el[1].has_form("List", None) and len(el[1].elements) == len(vals) else vals
+            labels = []
+            for i_, v in enumerate(vals):
+                hv = held[i_]
+                if v.get_head_name() in ("System`Rule", "System`RuleDelayed") and len(v.elements) == 2:
+                    labels.append(label_text(v.elements[1], ev) or "")      # value -> label
+                    vals[i_] = v.elements[0]
+                elif isinstance(v, String):
+                    labels.append(v.value)
+                else:
+                    try:
+                        labels.append(K.to_text(E("HoldForm", hv), "InputForm"))
+                    except Exception:
+                        labels.append(label_text(v, ev) or "")
             c["type"] = "choice"
-            c["choices"] = [label_text(v, ev) if not isinstance(v, String) else v.value for v in vals]
+            c["choices"] = labels
             c["exprs"] = vals
             c["value"] = 0
             if init is not None:
@@ -2326,6 +3304,7 @@ def manipulate_eval(kernel, mid, values):
     ev.stopped = False
     kernel._deadline = _t.time() + 12
     items = []
+    first_id = kernel._next_id
     try:
         res = E("Block", L(*assigns), p["body"]).evaluate(ev)
         items.extend(kernel._drain_messages())
@@ -2333,6 +3312,12 @@ def manipulate_eval(kernel, mid, values):
             it = kernel.format(res)
             it["kind"] = "out"
             items.append(it)
+        # graphics payloads created by this frame are already serialised: do not let the registry grow
+        if not any(i_.get("type") in ("manipulate", "gallery") for i_ in items):
+            for k_ in range(first_id, kernel._next_id):
+                pl = kernel.registry.get(k_)
+                if isinstance(pl, dict) and pl.get("kind") == "g":
+                    kernel.registry.pop(k_, None)
     except Deadline:
         items.append({"kind": "message", "symbol": "Manipulate", "tag": "time", "text": "Evaluación demasiado lenta."})
     finally:
@@ -2357,7 +3342,7 @@ class Legended(XB):
         return None
 
 
-BUILTINS = [Plot, LogPlot, ListPlot, ListLinePlot, DiscretePlot, ParametricPlot, PolarPlot, ContourPlot, DensityPlot,
+BUILTINS = [Plot, LogPlot, ListLogPlot, ListPlot, ListLinePlot, DiscretePlot, ParametricPlot, PolarPlot, ContourPlot, DensityPlot,
             RegionPlot, VectorPlot, StreamPlot, Plot3D, ParametricPlot3D, ContourPlot3D, RegionPlot3D,
             RevolutionPlot3D, SphericalPlot3D, ListPointPlot3D, ListPlot3D, VectorPlot3D, Show, Manipulate, Animate,
             ColorDataX]

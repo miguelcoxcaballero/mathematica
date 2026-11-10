@@ -1,0 +1,281 @@
+{
+ "id": "1-sim-pl2",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "title": "Simulacro · examen PL2 de Mathematica (Álgebra y Cálculo en varias variables)",
+ "durationMin": 90,
+ "intro": "**Cómo es el examen real (ExPL2).** Son dos exámenes el mismo día en PoliformaT, con Mathematica: **Álgebra** (4,5 puntos: diagonalización, mínimos cuadrados y aplicación lineal) y **Cálculo en varias variables** (5,5 puntos: puntos críticos y hessiano, integral de línea, superficie–flujo–volumen–masa y Taylor). Las preguntas son de «completar los espacios en blanco»: tecleas números en casillas y se corrigen solos por rango. Varias preguntas se repiten de un año a otro con los mismos números: practicar con exámenes anteriores compensa.\n\n**Reglas de las casillas.** Solo números, con punto o coma decimal, signo y notación `E`. Casi siempre «6 dígitos». Los vectores y las filas de una matriz se dan componente a componente. En algunas preguntas la respuesta es un código (1 = punto de silla, 2 = mínimo local, 3 = máximo local).\n\n**Qué se permite.** Tu cuaderno de recetas («chuleta») con una plantilla por tipo. Algún año la primera pregunta adjunta un cuaderno con los datos ya tecleados. Cuando salta el aviso de los últimos cinco minutos hay que ir a la última pregunta y subir el `.nb`: si no se sube, se pierde el derecho a revisión y descuentan 0,5 puntos.\n\n**Cómo responder aquí.** Resuelve en el cuaderno de al lado y copia cada número en su casilla con 6 cifras significativas. Tolerancia: 0,1 % relativo.\n\n**Consejos de tiempo.**\n\n- La duración real no consta en el material; aquí tienes 90 min para las dos partes (unos 40 min para Álgebra y 50 para Cálculo).\n- `ClearAll[\"Global`*\"]` al empezar cada pregunta. En la de integral de línea se asignan `x`, `y`, `z`: si no limpias, la siguiente pregunta falla.\n- En Álgebra, haz los cálculos en exacto y pasa a decimal al final con `// N`.\n- La pregunta de superficie, flujo, volumen y masa vale 2 puntos y todo sale de la misma plantilla de límites: plantéala con calma una vez.\n\nLos enunciados siguen los exámenes del 7/06/2022 y del 1/06/2018 con **datos adaptados** (números nuevos, mismos tipos de pregunta y comandos).",
+ "source": "Estructura, tipos de pregunta y puntuación de los exámenes PL2 del 7/06/2022 y del 1/06/2018 (Álgebra 4,5 + Cálculo en varias variables 5,5) y recetas R15–R17, R20 y R23–R24 del recetario; todos los datos numéricos son adaptados.",
+ "questions": [
+  {
+   "title": "P1 · Álgebra: diagonalización",
+   "prompt": "Considera la matriz `A = {{21, -24, -24}, {32, -35, -32}, {-16, 16, 13}}`.\n\nTiene dos autovalores distintos, `K1 < K2`. `K1` es doble y su subespacio propio `E_K1` tiene dimensión 2, así que `A` es diagonalizable (pero no ortogonalmente, porque no es simétrica).",
+   "points": 2.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Autovalor `K1` (el menor).",
+     "answerType": "numeric",
+     "value": -3,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nA = {{21, -24, -24}, {32, -35, -32}, {-16, 16, 13}};\nEigenvalues[A]     (* un autovalor doble y otro simple *)\nEigenvectors[A]    (* en el mismo orden que los autovalores *)\nK1 = Min[Eigenvalues[A]]",
+     "explain": "`Eigenvalues[A]` da `{5, -3, -3}`: el `-3` aparece dos veces porque es doble. El enunciado ordena `K1 < K2`, así que `K1 = -3`. Fíjate siempre en qué orden pide los autovalores la pregunta, porque de eso depende el orden de las columnas de `P`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Autovalor `K2` (el mayor).",
+     "answerType": "numeric",
+     "value": 5,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nA = {{21, -24, -24}, {32, -35, -32}, {-16, 16, 13}};\nEigenvalues[A]     (* un autovalor doble y otro simple *)\nEigenvectors[A]    (* en el mismo orden que los autovalores *)\nK2 = Max[Eigenvalues[A]]",
+     "explain": "`K2 = 5`, simple. Comprobación rápida: la suma de autovalores, `-3 - 3 + 5 = -1`, coincide con la traza `21 - 35 + 13`."
+    },
+    {
+     "label": "c)",
+     "prompt": "El subespacio propio de `K2` está generado por un único vector. Tómalo con primera componente igual a 1 y da su tercera componente, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.6666667,
+     "tol": 0.001,
+     "points": 0.6,
+     "solution": "ClearAll[\"Global`*\"]\nA = {{21, -24, -24}, {32, -35, -32}, {-16, 16, 13}};\nEigenvalues[A]     (* un autovalor doble y otro simple *)\nEigenvectors[A]    (* en el mismo orden que los autovalores *)\nv = NullSpace[A - 5*IdentityMatrix[3]][[1]]   (* base del subespacio propio de K2 = 5 *)\nv = v/v[[1]]                                  (* se escala para que la primera componente sea 1 *)\nv[[3]] // N",
+     "explain": "El subespacio propio de `K` es el núcleo de `A - K I`: `NullSpace[A - K*IdentityMatrix[3]]`. Un autovector se puede multiplicar por cualquier número: se divide por su primera componente para normalizarlo como pide el enunciado. Sale `(1, 4/3, -2/3)`."
+    },
+    {
+     "label": "d)",
+     "prompt": "Los vectores `u1 = (1, 0, 1)` y `u2 = (2, 1, 1)` forman una base de `E_K1`. Ortonormalízala con Gram–Schmidt en ese orden (`Orthogonalize[{u1, u2}]`) y da la segunda componente del segundo vector, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.8164966,
+     "tol": 0.001,
+     "points": 0.6,
+     "solution": "ClearAll[\"Global`*\"]\nA = {{21, -24, -24}, {32, -35, -32}, {-16, 16, 13}};\nEigenvalues[A]     (* un autovalor doble y otro simple *)\nEigenvectors[A]    (* en el mismo orden que los autovalores *)\nu1 = {1, 0, 1}; u2 = {2, 1, 1};\n{A.u1 == -3 u1, A.u2 == -3 u2}   (* True, True: son autovectores de K1 *)\nbase = Orthogonalize[{u1, u2}] // N\nbase[[2, 2]]",
+     "explain": "`Orthogonalize` aplica Gram–Schmidt en el orden dado y normaliza: el primero es `u1/Norm[u1]` y el segundo es `u2` menos su proyección sobre el primero, normalizado. Sale `(0.408248, 0.816497, -0.408248)`. Cambiar el orden de `u1` y `u2` cambia el resultado."
+    }
+   ]
+  },
+  {
+   "title": "P2 · Álgebra: mínimos cuadrados",
+   "prompt": "Considera el sistema\n\n- `2 x + z = 5`\n- `-x - 2 y + 2 z + 3 w = -3`\n- `3 x + 2 y - w = 4`\n- `x + 7 y - 2 z + 2 w = 1`\n\nEs incompatible. Resuélvelo por mínimos cuadrados **tomando `y` como parámetro**: la solución tiene la forma `x = x0 + c1 y`, `z = z0 + c2 y`, `w = w0 + c3 y`. Haz los cálculos en exacto y da los resultados en decimal.\n\nLa matriz de coeficientes `A` y el vector `b` de términos independientes **ya están definidos** en el cuaderno (no hace falta teclearlos).",
+   "points": 0.8,
+   "setup": "A = {{2, 0, 1, 0}, {-1, -2, 2, 3}, {3, 2, 0, -1}, {1, 7, -2, 2}};\nb = {5, -3, 4, 1};",
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Término independiente `x0` de la expresión de `x`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 1.66065,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[x, y, z, w, sol]\n(* A y b ya están definidos. Ecuaciones normales: A^T A X = A^T b, con y como parámetro *)\nsol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}]\nx /. Flatten[sol] /. y -> 0 // N",
+     "explain": "La solución de mínimos cuadrados de `A X = b` es la solución de las ecuaciones normales `Transpose[A].A.X == Transpose[A].b`. Como `A` tiene rango 3, queda un parámetro libre: se resuelve para `{x, z, w}` y `y` queda dentro. Sale `x = 460/277 - y`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Error cometido, `Ec = Norm[b - A.X]`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 2.134046,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[x, y, z, w, sol]\n(* A y b ya están definidos. Ecuaciones normales: A^T A X = A^T b, con y como parámetro *)\nsol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}]\nAxsol = A.{x, y, z, w} /. Flatten[sol] // Simplify   (* no depende de y *)\nNorm[b - Axsol] // N",
+     "explain": "El error es la norma del residuo `b - A.X` evaluado en la solución. Al sustituir, el parámetro `y` desaparece: todas las soluciones de mínimos cuadrados dan el mismo `A.X` (la proyección de `b`). En exacto es `29 Sqrt[1662]/554`."
+    }
+   ]
+  },
+  {
+   "title": "P3 · Álgebra: aplicación lineal",
+   "prompt": "Considera la aplicación lineal `f: R^3 -> R^4`, `f(x, y, z) = (x - 2 y, 3 x + y + 7 z, 2 x + 3 y + 7 z, -x + y - z)`, y la base de `R^4` `U = {(1, 0, 1, -1), (2, 1, 0, 1), (0, 1, -1, 2), (1, 0, 2, 1)}`.",
+   "points": 1.7,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "El núcleo de `f` está generado por un único vector. Tómalo con segunda componente igual a 1 y da su primera componente.",
+     "answerType": "numeric",
+     "value": 2,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_, z_] := {x - 2 y, 3 x + y + 7 z, 2 x + 3 y + 7 z, -x + y - z}\n(* matriz en bases canónicas: sus columnas son las imágenes de la base canónica *)\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]; Mcc // MatrixForm\nker = NullSpace[Mcc]\nk = ker[[1]]/ker[[1, 2]]   (* se escala para que la 2ª componente sea 1 *)\nk[[1]]",
+     "explain": "El núcleo de `f` es `NullSpace` de su matriz canónica. Da un vector cualquiera de la recta; se divide por su segunda componente para que valga 1: `(2, 1, -1)`. Error típico: construir la matriz por filas en vez de por columnas (falta el `Transpose`)."
+    },
+    {
+     "label": "b)",
+     "prompt": "Una base de la imagen de `f` es `{(1, 0, p, q), (0, 1, r, s)}` (la que da `RowReduce` aplicada a la traspuesta de la matriz). Valor de `q`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.5714286,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_, z_] := {x - 2 y, 3 x + y + 7 z, 2 x + 3 y + 7 z, -x + y - z}\n(* matriz en bases canónicas: sus columnas son las imágenes de la base canónica *)\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]; Mcc // MatrixForm\nim = RowReduce[Transpose[Mcc]]   (* las filas no nulas son una base de la imagen *)\nim[[1, 4]] // N",
+     "explain": "La imagen está generada por las columnas de la matriz. Poniéndolas en filas (`Transpose`) y reduciendo con `RowReduce`, las filas no nulas son una base: `(1, 0, -1, -4/7)` y `(0, 1, 1, -1/7)`. Hay 2 porque `dim Im = 3 - dim Ker = 2`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Sea `C4U` la matriz de cambio de coordenadas de la base canónica `C4` a la base `U`. Elemento de su fila 2, columna 3, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.6666667,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_, z_] := {x - 2 y, 3 x + y + 7 z, 2 x + 3 y + 7 z, -x + y - z}\n(* matriz en bases canónicas: sus columnas son las imágenes de la base canónica *)\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]; Mcc // MatrixForm\nU = {{1, 0, 1, -1}, {2, 1, 0, 1}, {0, 1, -1, 2}, {1, 0, 2, 1}};\nUC = Transpose[U];    (* cambio de U a C4: los vectores de U en columnas *)\nCU = Inverse[UC];     (* cambio de C4 a U *)\nCU // MatrixForm\nCU[[2, 3]] // N",
+     "explain": "La matriz de cambio de `U` a la canónica tiene los vectores de `U` en **columnas** (`Transpose[U]`, porque se teclean por filas). La de la canónica a `U` es su inversa. `CU[[2, 3]]` es fila 2, columna 3."
+    },
+    {
+     "label": "d)",
+     "prompt": "Tercera coordenada de `f(1, -2, 3)` en la base `U`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 59.66667,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_, z_] := {x - 2 y, 3 x + y + 7 z, 2 x + 3 y + 7 z, -x + y - z}\n(* matriz en bases canónicas: sus columnas son las imágenes de la base canónica *)\nMcc = Transpose[{f[1, 0, 0], f[0, 1, 0], f[0, 0, 1]}]; Mcc // MatrixForm\nU = {{1, 0, 1, -1}, {2, 1, 0, 1}, {0, 1, -1, 2}, {1, 0, 2, 1}};\nUC = Transpose[U];    (* cambio de U a C4: los vectores de U en columnas *)\nCU = Inverse[UC];     (* cambio de C4 a U *)\nf[1, -2, 3]                 (* {5, 22, 17, -6} en la base canónica *)\ncoord = CU.f[1, -2, 3]\ncoord[[3]] // N",
+     "explain": "Primero la imagen en la base canónica, `f[1, -2, 3] = (5, 22, 17, -6)`, y luego se multiplica por la matriz de cambio de `C4` a `U`. Sale `(84, -113/3, 179/3, -11/3)`. El punto `.` es el producto matricial; con `*` multiplicaría elemento a elemento."
+    }
+   ]
+  },
+  {
+   "title": "P4 · Cálculo: puntos críticos y hessiano",
+   "prompt": "Considera la función `f(x, y) = 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5`.\n\nTiene dos puntos críticos. Llama `P1` al más cercano al origen de coordenadas y `P2` al otro. `Hf` es el hessiano (determinante de la matriz hessiana).",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Coordenada `x` de `P1`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.6113325,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP1[[1]]",
+     "explain": "Los puntos críticos anulan el gradiente: `Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}]`. Para saber cuál está más cerca del origen se calcula `Norm` de cada uno: `2.675` frente a `3.284`. Error típico: quedarse con el primero que devuelve `Solve` sin comprobar las distancias."
+    },
+    {
+     "label": "b)",
+     "prompt": "Coordenada `y` de `P2`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 2.930907,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP2[[2]]",
+     "explain": "`P2 = (1.48242, 2.93091)`. `{x, y} /. pc` convierte las reglas de `Solve` en una lista de puntos; `[[2]]` saca la segunda coordenada."
+    },
+    {
+     "label": "c)",
+     "prompt": "Valor del hessiano en `P1`, `Hf(P1)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -20.90604,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\nhes /. {x -> P1[[1]], y -> P1[[2]]}",
+     "explain": "La matriz hessiana es el gradiente del gradiente y el hessiano su determinante: `48 x - 201/4`. En `P1` es negativo, así que `P1` es un punto de silla, sin mirar nada más."
+    },
+    {
+     "label": "d)",
+     "prompt": "Clasifica `P2`: escribe `1` si es punto de silla, `2` si es mínimo local o `3` si es máximo local.",
+     "answerType": "numeric",
+     "value": 2,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\n{hes, h11} /. {x -> P2[[1]], y -> P2[[2]]}   (* {20.906, 5.789}: los dos positivos *)\ntipo = 2   (* hessiano > 0 y f_xx > 0: mínimo local *)",
+     "explain": "Criterio: hessiano negativo, punto de silla (1); hessiano positivo y `f_xx > 0`, mínimo local (2); hessiano positivo y `f_xx < 0`, máximo local (3). En `P2` salen `20.906` y `5.789`: mínimo."
+    }
+   ]
+  },
+  {
+   "title": "P5 · Cálculo: integral de línea (longitud y trabajo)",
+   "prompt": "Considera el campo de fuerzas `V = (2 x - y^2 + 3 z, x y z^2, x^2 y - z)` y el arco de curva `r(t) = (3 Cos[t/2], Sqrt[2^(t + 1)], Log[2 t + 3])` con `t` en `[1/Pi, 2 Pi]`.",
+   "points": 1.4,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Longitud del arco, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 13.22344,
+     "tol": 0.001,
+     "points": 0.7,
+     "solution": "ClearAll[\"Global`*\"]\nV[x_, y_, z_] := {2 x - y^2 + 3 z, x*y*z^2, x^2*y - z}\nx = 3 Cos[t/2]; y = Sqrt[2^(t + 1)]; z = Log[2 t + 3];   (* la curva *)\nt1 = 1/Pi; t2 = 2 Pi;\nL = NIntegrate[Norm[D[{x, y, z}, t]], {t, t1, t2}]",
+     "explain": "Longitud: integral de la norma del vector velocidad, `Norm[D[{x, y, z}, t]]`. `Log` es el logaritmo neperiano. Error típico: escribir `2^t + 1` en vez de `2^(t + 1)`, o no limpiar `x`, `y`, `z` antes de la pregunta siguiente."
+    },
+    {
+     "label": "b)",
+     "prompt": "Trabajo realizado por el campo `V` a lo largo del arco, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -971.8147,
+     "tol": 0.001,
+     "points": 0.7,
+     "solution": "ClearAll[\"Global`*\"]\nV[x_, y_, z_] := {2 x - y^2 + 3 z, x*y*z^2, x^2*y - z}\nx = 3 Cos[t/2]; y = Sqrt[2^(t + 1)]; z = Log[2 t + 3];   (* la curva *)\nt1 = 1/Pi; t2 = 2 Pi;\nW = NIntegrate[V[x, y, z].D[{x, y, z}, t], {t, t1, t2}]",
+     "explain": "Trabajo: integral del campo evaluado sobre la curva, producto escalar (`.`) con la velocidad. Como `x`, `y`, `z` ya son expresiones en `t`, `V[x, y, z]` queda directamente en función de `t`. Puede salir negativo: el campo se opone al movimiento."
+    }
+   ]
+  },
+  {
+   "title": "P6 · Cálculo: superficie, flujo, volumen y masa",
+   "prompt": "Considera el campo `W = (y - x z, 2 y + x^2, z^2 + x y)` y el trozo del paraboloide `x^2 + 3 y^2 + 2 z = 5` situado por encima del plano `z = -2`. El sólido limitado por el paraboloide y el plano tiene densidad `y^2 (x + 3) (z + 2)` en cada punto.",
+   "points": 2.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Área del trozo de superficie, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 48.83165,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\ndS = Sqrt[1 + D[zs[x, y], x]^2 + D[zs[x, y], y]^2];\n(* en Mathematica: NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]. Aquí, la integral interior exacta y la exterior numérica *)\ninterior[x_] = Integrate[dS, {y, y1, y2}];\nArea = NIntegrate[interior[x], {x, x1, x2}]",
+     "explain": "La proyección sobre el plano XY es la elipse `x^2 + 3 y^2 <= 9` (corte del paraboloide con `z = -2`). El elemento de área de `z = zs(x, y)` es `Sqrt[1 + zs_x^2 + zs_y^2]`. Los límites de `y` dependen de `x`: por eso `{x, ...}` va primero y `{y, ...}` después."
+    },
+    {
+     "label": "b)",
+     "prompt": "Flujo del campo `W` a través de ese trozo de paraboloide, tomando como positivo el que apunta hacia arriba, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 120.3909,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nn1 = {-D[zs[x, y], x], -D[zs[x, y], y], 1};   (* normal hacia arriba *)\n(* en Mathematica: NIntegrate[W[x, y, zs[x, y]].n1, {x, x1, x2}, {y, y1, y2}] *)\ninterior[x_] = Integrate[W[x, y, zs[x, y]].n1, {y, y1, y2}];\nFlujo = NIntegrate[interior[x], {x, x1, x2}]",
+     "explain": "Flujo a través de `z = zs(x, y)`: integral doble de `W` evaluado sobre la superficie por la normal `(-zs_x, -zs_y, 1)`, que apunta hacia arriba. Si el enunciado pidiera el flujo hacia abajo, se cambia el signo. Error típico: evaluar `W[x, y, z]` sin sustituir `z` por `zs[x, y]`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Volumen del sólido, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 36.72944,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nVol = Integrate[1, {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}] // N",
+     "explain": "Volumen: integral triple de 1, con `z` entre el plano (`z1 = -2`, abajo) y la superficie (`zs[x, y]`, arriba). La variable más interior es la última de la lista y puede depender de las anteriores. En exacto sale `27 Sqrt[3] Pi/4`."
+    },
+    {
+     "label": "d)",
+     "prompt": "Masa del sólido, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 61.98093,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nMasa = Integrate[dens[x, y, z], {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}] // N",
+     "explain": "Masa: la misma integral triple con la densidad como integrando. Si `Integrate` exacto tarda mucho, se cambia por `NIntegrate`: en el examen solo cuenta el número. No llames `z` a la superficie despejada: chocaría con la variable de integración."
+    }
+   ]
+  },
+  {
+   "title": "P7 · Cálculo: polinomio de Taylor",
+   "prompt": "Considera la función `f(x) = (3 + E^(-(x - 2)^2))/(2 x)`. Define `T5(x)` como su desarrollo de Taylor de orden 5 en potencias de `(x - 1)`.",
+   "points": 0.6,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `T5(1.4)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 1.316111,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := (3 + Exp[-(x - 2)^2])/(2 x)\nT5[x_] = Normal[Series[f[x], {x, 1, 5}]];   (* polinomio de Taylor de orden 5 en x = 1 *)\n{f[1.4], T5[1.4]}   (* se parecen: 1.4 está cerca del centro *)\nT5[1.4]",
+     "explain": "`Series[f[x], {x, 1, 5}]` desarrolla en potencias de `(x - 1)` hasta orden 5; `Normal` quita el resto `O[x - 1]^6` y deja un polinomio que se puede evaluar. «En potencias de `(x - 1)`» significa centro `x0 = 1`. Cerca del centro `T5` aproxima bien: `f(1.4) = 1.32060`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de `T5(-0.5)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 31.19889,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := (3 + Exp[-(x - 2)^2])/(2 x)\nT5[x_] = Normal[Series[f[x], {x, 1, 5}]];   (* polinomio de Taylor de orden 5 en x = 1 *)\n{f[-0.5], T5[-0.5]}   (* no se parecen en nada *)\nT5[-0.5]",
+     "explain": "`f(-0.5) = -3.00193` pero `T5(-0.5) = 31.1989`. `f` tiene una asíntota en `x = 0`, a distancia 1 del centro: el polinomio de Taylor solo aproxima dentro de ese radio, y `-0.5` queda fuera. Esa es la «razón de los resultados» que pide analizar el examen."
+    }
+   ]
+  }
+ ]
+}

@@ -47,23 +47,30 @@
    "type": "exercise",
    "ex": {
     "id": "1-p07-e01",
-    "kind": "mcq",
-    "title": "¿Qué curva es?",
-    "prompt": "¿Qué dibuja `ParametricPlot[{t, t^2}, {t, -2, 2}]`?",
+    "kind": "code",
+    "title": "Una parábola, en paramétricas",
+    "prompt": "La lista `{t, t^2}` es el punto `(x, y) = (t, t^2)`, es decir, la parábola `y = x^2`. Dibújala con `ParametricPlot` para `t` entre `-2` y `2`.",
     "difficulty": 1,
     "cmds": [
      "ParametricPlot"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "La parábola `y = x^2` entre x = −2 y x = 2",
-     "Dos curvas: la recta `y = t` y la parábola `y = t^2`",
-     "Una circunferencia",
-     "Nada: falta el intervalo de `y`"
+    "solution": "ParametricPlot[{t, t^2}, {t, -2, 2}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "ParametricPlot[{t, t^2}, {t, -2, 2}]"
+    },
+    "requires": [
+     "ParametricPlot"
     ],
-    "answer": 0,
-    "explain": "La lista `{t, t^2}` es **un** punto `(x, y) = (t, t^2)`, o sea `y = x^2`. Para dibujar dos funciones distintas usarías `Plot[{t, t^2}, {t, -2, 2}]`: mismo aspecto de lista, significado diferente."
+    "hints": [
+     "`ParametricPlot[{x(t), y(t)}, {t, desde, hasta}]`",
+     "`ParametricPlot[{t, t^2}, {t, -2, 2}]`"
+    ],
+    "explain": "Ojo con la lista: en `ParametricPlot`, `{t, t^2}` es **un** punto con dos coordenadas. En `Plot[{t, t^2}, {t, -2, 2}]` la misma lista serían dos funciones distintas (una recta y una parábola)."
    }
   },
   {
@@ -140,10 +147,6 @@
     {
      "code": "PolarPlot[Sin[3 t], {t, 0, Pi}]",
      "note": "rosa de tres pétalos"
-    },
-    {
-     "code": "PolarPlot[2, {t, 0, 2 Pi}]",
-     "note": "radio constante = circunferencia de radio 2"
     }
    ]
   },
@@ -187,12 +190,8 @@
      "note": "cuatro pétalos (dos vienen de radios negativos)"
     },
     {
-     "code": "PolarPlot[Max[Cos[2 t], 0], {t, 0, 2 Pi}]",
-     "note": "con Max: solo dos pétalos"
-    },
-    {
      "code": "PolarPlot[Max[3 Cos[2 (t - Pi/4)], 0], {t, 0, 2 Pi}]",
-     "note": "longitud 3 y girada 45°"
+     "note": "con Max: dos pétalos, de longitud 3 y girados 45°"
     },
     {
      "code": "{Abs[3 + 3 I], Arg[3 + 3 I]}",
@@ -243,8 +242,8 @@
      "note": "un punto solo (pequeño y sin ejes)"
     },
     {
-     "code": "Graphics[{Circle[{0, 0}, 1], Red, PointSize[Large], Point[{1, 0}], Blue, Line[{{0, 0}, {1, 0}}]}, Axes -> True]",
-     "note": "circunferencia negra, punto rojo grande y radio azul"
+     "code": "Graphics[{Circle[{0, 0}, 1], Red, PointSize[Large], Point[{1, 0}]}, Axes -> True]",
+     "note": "circunferencia negra y, después de Red, un punto rojo grande"
     }
    ]
   },
@@ -306,33 +305,51 @@
    "type": "exercise",
    "ex": {
     "id": "1-p07-e07",
-    "kind": "predict",
+    "kind": "code",
     "title": "¿Quién manda en Show?",
-    "prompt": "Sin ejecutarlo: ¿qué intervalo del eje X se ve en la gráfica final?",
+    "prompt": "Ya están definidas `g1 = Plot[Sin[x], {x, 0, Pi}]` y `g2 = Plot[Cos[x], {x, 0, 10}]`. Con `Show[g1, g2]` el coseno se ve cortado en π, porque manda `g1`.\n\nJunta las dos gráficas de modo que se vea el intervalo completo de 0 a 10.",
     "difficulty": 2,
     "cmds": [
      "Show"
     ],
     "real": false,
     "source": null,
-    "code": "g1 = Plot[Sin[x], {x, 0, Pi}];\ng2 = Plot[Cos[x], {x, 0, 10}];\nShow[g1, g2]",
-    "options": [
-     "De 0 a π",
-     "De 0 a 10",
-     "De π a 10",
-     "Da error: los intervalos no coinciden"
+    "setup": "g1 = Plot[Sin[x], {x, 0, Pi}];\ng2 = Plot[Cos[x], {x, 0, 10}];",
+    "solution": "Show[g2, g1]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "like": "Show[g2, g1]",
+       "msg": "En el `Show` deben estar las dos gráficas, `g1` y `g2`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && (MemberQ[r, All] || r[[1, 1, 2]] > 9)]",
+       "msg": "Todavía manda `g1`: pon `g2` la primera, o añade `PlotRange -> All`."
+      }
+     ]
+    },
+    "requires": [
+     "Show"
     ],
-    "answer": 0,
-    "explain": "`Show` usa el encuadre de la **primera** gráfica, `g1`, que va de 0 a π. El coseno se dibuja, pero solo se ve el trozo que cae dentro."
+    "hints": [
+     "El encuadre lo decide la primera gráfica de la lista.",
+     "`Show[g2, g1]` (o `Show[g1, g2, PlotRange -> All]`)."
+    ],
+    "explain": "`Show` usa el encuadre de la **primera** gráfica. Poniendo delante la de intervalo más grande, o forzando `PlotRange -> All`, se ve todo."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p07-e08",
-    "kind": "order",
+    "kind": "code",
     "title": "Circunferencia y punto",
-    "prompt": "Ordena las líneas para dibujar una circunferencia de radio `R = 2` junto con su punto `(R, 0)`.",
+    "prompt": "Guarda en `c` (con `;`) la circunferencia de radio 2 dibujada con `ParametricPlot`, y muéstrala con `Show` junto al punto `(2, 0)` en rojo y tamaño grande.",
     "difficulty": 2,
     "cmds": [
      "Show",
@@ -341,18 +358,33 @@
     ],
     "real": false,
     "source": null,
-    "lines": [
-     "R = 2;",
-     "c = ParametricPlot[{R Cos[t], R Sin[t]}, {t, 0, 2 Pi}];",
-     "Show[c, Graphics[{Red, PointSize[Large], Point[{R, 0}]}]]"
-    ],
+    "solution": "c = ParametricPlot[{2 Cos[t], 2 Sin[t]}, {t, 0, 2 Pi}];\nShow[c, Graphics[{Red, PointSize[Large], Point[{2, 0}]}]]",
     "check": {
-     "type": "graphics",
-     "dim": 2,
-     "min": 2,
-     "like": "Show[ParametricPlot[{2 Cos[t], 2 Sin[t]}, {t, 0, 2 Pi}], Graphics[Point[{2, 0}]]]"
+     "type": "all",
+     "checks": [
+      {
+       "type": "defined",
+       "name": "c"
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "like": "Show[ParametricPlot[{2 Cos[t], 2 Sin[t]}, {t, 0, 2 Pi}], Graphics[Point[{2, 0}]]]"
+      }
+     ]
     },
-    "explain": "Primero el dato `R`, después la gráfica `c` que lo usa (guardada con `;`) y al final el `Show` que junta `c` con el punto."
+    "requires": [
+     "Show",
+     "ParametricPlot",
+     "Graphics",
+     "Point"
+    ],
+    "hints": [
+     "`c = ParametricPlot[{2 Cos[t], 2 Sin[t]}, {t, 0, 2 Pi}];`",
+     "`Show[c, Graphics[{Red, PointSize[Large], Point[{2, 0}]}]]`"
+    ],
+    "explain": "Una gráfica guardada con nombre y otra creada directamente dentro del `Show`: se pueden mezclar sin problema."
    }
   },
   {
@@ -365,8 +397,8 @@
      "note": "mueve el deslizador: cambia la frecuencia"
     },
     {
-     "code": "Manipulate[Plot[A Sin[w x], {x, 0, 2 Pi}, PlotRange -> {-3, 3}], {{A, 1, \"amplitud\"}, 0, 3}, {{w, 2}, 1, 10, 1}]",
-     "note": "dos controles: valor inicial, etiqueta y paso entero"
+     "code": "Manipulate[Plot[A Sin[x], {x, 0, 2 Pi}, PlotRange -> {-3, 3}], {{A, 1, \"amplitud\"}, 0, 3}]",
+     "note": "valor inicial 1, etiqueta y encuadre fijo"
     }
    ]
   },
@@ -374,58 +406,50 @@
    "type": "exercise",
    "ex": {
     "id": "1-p07-e09",
-    "kind": "fill",
+    "kind": "code",
     "title": "Un control completo",
-    "prompt": "Completa el control para que `k` recorra los **enteros** de 1 a 8 y empiece valiendo 3.",
+    "prompt": "Crea un `Manipulate` de `Plot[Sin[k x], {x, 0, 2 Pi}]` en el que `k` recorra los **enteros** de 1 a 8 y empiece valiendo 3.",
     "difficulty": 2,
     "cmds": [
      "Manipulate"
     ],
     "real": false,
     "source": null,
-    "template": "Manipulate[Plot[Sin[k x], {x, 0, 2 Pi}], {{k, __1__}, __2__, __3__, __4__}]",
-    "blanks": [
-     [
-      "3"
-     ],
-     [
-      "1"
-     ],
-     [
-      "8"
-     ],
-     [
-      "1"
-     ]
-    ],
+    "solution": "Manipulate[Plot[Sin[k x], {x, 0, 2 Pi}], {{k, 3}, 1, 8, 1}]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "satisfies",
-       "test": "Head[Out[$Line]] === Manipulate",
+       "test": "Head[%] === Manipulate",
        "msg": "La salida debe ser un `Manipulate[...]`."
       },
       {
        "type": "satisfies",
-       "test": "Length[Out[$Line]] == 2",
+       "test": "Length[%] == 2",
        "msg": "Se esperaban 1 controles (uno por parámetro)."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{k, i_, ___}, lo_, hi_, st_} /; i == 3 && lo == 1 && hi == 8 && st == 1]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{k, i_, ___}, lo_, hi_, st_} /; i == 3 && lo == 1 && hi == 8 && st == 1]",
        "msg": "El control debe ser `{{k, 3}, 1, 8, 1}`: inicial 3, de 1 a 8, paso 1."
       },
       {
-       "type": "satisfies",
-       "test": "Head[Block[{k = 2}, Out[$Line][[1]]]] === Graphics",
-       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide."
+       "type": "graphics",
+       "dim": 2,
+       "controls": 1,
+       "like": "Plot[Sin[3 x], {x, 0, 2 Pi}]",
+       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide (revisa función e intervalo)."
       }
      ]
     },
+    "requires": [
+     "Manipulate",
+     "Plot"
+    ],
     "hints": [
-     "La pareja interior es `{variable, valor inicial}`.",
-     "Después van mínimo, máximo y paso: `1, 8, 1`."
+     "La pareja interior es `{variable, valor inicial}`: `{k, 3}`.",
+     "Después van mínimo, máximo y paso: `{{k, 3}, 1, 8, 1}`."
     ],
     "explain": "`{{k, 3}, 1, 8, 1}`: dentro, variable y valor inicial; fuera, mínimo, máximo y paso."
    }
@@ -450,28 +474,30 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "Head[Out[$Line]] === Manipulate",
+       "test": "Head[%] === Manipulate",
        "msg": "La salida debe ser un `Manipulate[...]`."
       },
       {
        "type": "satisfies",
-       "test": "Length[Out[$Line]] == 3",
+       "test": "Length[%] == 3",
        "msg": "Se esperaban 2 controles (uno por parámetro)."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{a, i_, ___}, lo_, hi_, st_} /; i == 3 && lo == 1 && hi == 6 && st == 1]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{a, i_, ___}, lo_, hi_, st_} /; i == 3 && lo == 1 && hi == 6 && st == 1]",
        "msg": "Revisa el control de `a`: `{{a, 3}, 1, 6, 1}`."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{b, i_, ___}, lo_, hi_, st_} /; i == 2 && lo == 1 && hi == 6 && st == 1]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{b, i_, ___}, lo_, hi_, st_} /; i == 2 && lo == 1 && hi == 6 && st == 1]",
        "msg": "Revisa el control de `b`: `{{b, 2}, 1, 6, 1}`."
       },
       {
-       "type": "satisfies",
-       "test": "Head[Block[{a = 3, b = 2}, Out[$Line][[1]]]] === Graphics",
-       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide."
+       "type": "graphics",
+       "dim": 2,
+       "controls": 2,
+       "like": "ParametricPlot[{Sin[3 t], Sin[2 t]}, {t, 0, 2 Pi}]",
+       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide (revisa función e intervalo)."
       }
      ]
     },
@@ -650,7 +676,7 @@
       },
       {
        "type": "satisfies",
-       "test": "With[{r = Cases[Out[$Line], (PlotRange -> q_) :> q, Infinity]}, r =!= {} && r[[1, 2, 2]] > 10]",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && r[[1, 2, 2]] > 10]",
        "msg": "El orden importa: la primera gráfica del `Show` debe ser `gpar`."
       }
      ]
@@ -694,7 +720,7 @@
       },
       {
        "type": "satisfies",
-       "test": "With[{r = Cases[Out[$Line], (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-4.1, 4.1}]] < 0.01]",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-4.1, 4.1}]] < 0.01]",
        "msg": "Ahora la primera gráfica debe ser `gpol`: así el encuadre es el suyo (`PlotRange -> 4.1`)."
       }
      ]
@@ -731,33 +757,35 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "Head[Out[$Line]] === Manipulate",
+       "test": "Head[%] === Manipulate",
        "msg": "La salida debe ser un `Manipulate[...]`."
       },
       {
        "type": "satisfies",
-       "test": "Length[Out[$Line]] == 4",
+       "test": "Length[%] == 4",
        "msg": "Se esperaban 3 controles (uno por parámetro)."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{h, i_, ___}, lo_, hi_} /; i == 2 && lo == 0 && hi == 4]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{h, i_, ___}, lo_, hi_} /; i == 2 && lo == 0 && hi == 4]",
        "msg": "Revisa el control de `h`: de 0 a 4 con valor inicial 2, `{{h, 2}, 0, 4}`."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{a, i_, ___}, lo_, hi_} /; i == 0 && lo == -4 && hi == 4]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{a, i_, ___}, lo_, hi_} /; i == 0 && lo == -4 && hi == 4]",
        "msg": "Revisa el control de `a`: de −4 a 4 con valor inicial 0, `{{a, 0}, -4, 4}`."
       },
       {
        "type": "satisfies",
-       "test": "MemberQ[Table[Out[$Line][[j]], {j, 2, Length[Out[$Line]]}], {{n, i_, _String}, lo_, hi_, st_} /; i == 1 && lo == 1 && hi == 10 && st == 1]",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{n, i_, _String}, lo_, hi_, st_} /; i == 1 && lo == 1 && hi == 10 && st == 1]",
        "msg": "Revisa el control de `n`: `{{n, 1, \"nº de lazos\"}, 1, 10, 1}` (valor inicial, etiqueta y paso 1)."
       },
       {
-       "type": "satisfies",
-       "test": "Head[Block[{h = 2, a = 1, n = 2}, Out[$Line][[1]]]] === Graphics",
-       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide."
+       "type": "graphics",
+       "dim": 2,
+       "controls": 3,
+       "like": "PolarPlot[2, {t, -Pi, Pi}]",
+       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide (revisa función e intervalo)."
       }
      ]
     },

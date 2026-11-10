@@ -49,29 +49,6 @@
    "type": "exercise",
    "ex": {
     "id": "1-p06-e01",
-    "kind": "mcq",
-    "title": "La forma de Plot",
-    "prompt": "¿Cuál de estas celdas dibuja `cos x` entre 0 y 2π?",
-    "difficulty": 1,
-    "cmds": [
-     "Plot"
-    ],
-    "real": false,
-    "source": null,
-    "options": [
-     "`Plot[Cos[x], {x, 0, 2 Pi}]`",
-     "`Plot[cos(x), {x, 0, 2 Pi}]`",
-     "`Plot[Cos[x], x, 0, 2 Pi]`",
-     "`Plot(Cos[x], [x, 0, 2 Pi])`"
-    ],
-    "answer": 0,
-    "explain": "Las funciones de Mathematica empiezan por mayúscula y llevan corchetes: `Cos[x]`. El intervalo va en una lista con llaves: `{x, 0, 2 Pi}`. Sin las llaves, `Plot` no sabe qué es la variable y devuelve la celda sin evaluar."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p06-e02",
     "kind": "code",
     "title": "Tu primera gráfica",
     "prompt": "Dibuja la función `x^3 - 3 x` para `x` entre `-2.5` y `2.5`.",
@@ -101,7 +78,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e03",
+    "id": "1-p06-e02",
     "kind": "fix",
     "title": "Tres errores de novato",
     "prompt": "Esta celda quería dibujar `sen(x)/x` entre −10 y 10, pero tiene **tres** errores típicos. Corrígela.",
@@ -137,11 +114,8 @@
    "md": "Para dibujar varias funciones en los mismos ejes, pásale a `Plot` una **lista**: `Plot[{f, g}, {x, a, b}]`. Cada curva sale de un color (azul, naranja, verde…).\n\nPara saber cuál es cuál, añade una **opción**. Las opciones van al final, separadas por comas, con la forma `Nombre -> valor` (la flecha se escribe con guion y mayor que):\n\n- `PlotLegends -> \"Expressions\"` pone como leyenda la propia expresión de cada curva.\n- `PlotLegends -> {\"seno\", \"coseno\"}` pone los textos que tú quieras, en el mismo orden que las funciones.",
    "cells": [
     {
-     "code": "Plot[{Sin[x], Cos[x]}, {x, 0, 2 Pi}]"
-    },
-    {
      "code": "Plot[{Sin[x], Cos[x]}, {x, 0, 2 Pi}, PlotLegends -> \"Expressions\"]",
-     "note": "leyenda automática"
+     "note": "dos curvas y leyenda automática"
     },
     {
      "code": "Plot[{Sin[x], Cos[x]}, {x, 0, 2 Pi}, PlotLegends -> {\"seno\", \"coseno\"}]",
@@ -152,7 +126,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e04",
+    "id": "1-p06-e03",
     "kind": "code",
     "title": "Tres potencias con leyenda",
     "prompt": "Dibuja en la misma gráfica `x`, `x^2` y `x^3` para `x` entre `-1` y `1`, con la leyenda automática de expresiones.",
@@ -189,12 +163,8 @@
   {
    "type": "explain",
    "title": "PlotRange: tú decides el encuadre",
-   "md": "`Plot` elige solo qué trozo del eje Y enseña, y a veces elige mal: si la función se dispara (una asíntota), o corta la parte interesante o aplasta todo lo demás.\n\nCon la opción `PlotRange` mandas tú:\n\n- `PlotRange -> {ymin, ymax}` fija el eje **Y**.\n- `PlotRange -> {{xmin, xmax}, {ymin, ymax}}` fija los dos ejes.\n- `PlotRange -> All` obliga a enseñarlo todo.\n\nCompara las dos celdas: la misma función, con y sin `PlotRange`.",
+   "md": "`Plot` elige solo qué trozo del eje Y enseña, y a veces elige mal: si la función se dispara (una asíntota), o corta la parte interesante o aplasta todo lo demás.\n\nCon la opción `PlotRange` mandas tú:\n\n- `PlotRange -> {ymin, ymax}` fija el eje **Y**.\n- `PlotRange -> {{xmin, xmax}, {ymin, ymax}}` fija los dos ejes.\n- `PlotRange -> All` obliga a enseñarlo todo.\n\nEjemplo: `1/(x - 1)` tiene una asíntota en `x = 1`. Sin `PlotRange` la gráfica queda descuadrada; con él, tú eliges la ventana.",
    "cells": [
-    {
-     "code": "Plot[1/(x - 1), {x, -2, 4}]",
-     "note": "la asíntota en x = 1 lo descuadra todo"
-    },
     {
      "code": "Plot[1/(x - 1), {x, -2, 4}, PlotRange -> {-10, 10}]",
      "note": "eje Y entre −10 y 10"
@@ -208,10 +178,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e05",
-    "kind": "fill",
+    "id": "1-p06-e04",
+    "kind": "code",
     "title": "Domar la tangente",
-    "prompt": "Completa la celda para dibujar `Tan[x]` entre 0 y 2π con el eje Y limitado al intervalo `[-5, 5]`.",
+    "prompt": "Dibuja `Tan[x]` entre 0 y 2π con el eje Y limitado al intervalo `[-5, 5]`.",
     "difficulty": 2,
     "cmds": [
      "Plot",
@@ -219,19 +189,7 @@
     ],
     "real": false,
     "source": null,
-    "template": "Plot[Tan[x], {x, 0, 2 Pi}, __1__ -> {__2__, __3__}]",
-    "blanks": [
-     [
-      "PlotRange"
-     ],
-     [
-      "-5"
-     ],
-     [
-      "5",
-      "5."
-     ]
-    ],
+    "solution": "Plot[Tan[x], {x, 0, 2 Pi}, PlotRange -> {-5, 5}]",
     "check": {
      "type": "all",
      "checks": [
@@ -243,27 +201,27 @@
       },
       {
        "type": "satisfies",
-       "test": "With[{r = Cases[Out[$Line], (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-5, 5}]] < 0.01]",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-5, 5}]] < 0.01]",
        "msg": "Revisa `PlotRange`: el eje Y debe ir de -5 a 5."
       }
      ]
     },
-    "hints": [
-     "La opción que fija el encuadre es `PlotRange`.",
-     "`PlotRange -> {-5, 5}`"
+    "requires": [
+     "Plot",
+     "PlotRange"
     ],
-    "explain": "`PlotRange -> {ymin, ymax}` con una sola pareja se refiere siempre al eje Y."
+    "hints": [
+     "La opción que fija el encuadre es `PlotRange` y va después del intervalo.",
+     "`Plot[Tan[x], {x, 0, 2 Pi}, PlotRange -> {-5, 5}]`"
+    ],
+    "explain": "`PlotRange -> {ymin, ymax}` con una sola pareja se refiere siempre al eje Y. Sin ella, las asíntotas de la tangente aplastan la gráfica."
    }
   },
   {
    "type": "explain",
    "title": "PlotStyle: color, grosor y trazo",
-   "md": "La opción `PlotStyle` cambia el aspecto de las curvas. Admite **directivas**:\n\n- Colores: `Red`, `Blue`, `Green`, `Orange`, `Black`, `Purple`…\n- Grosor: `Thick`, `Thin`, o `Thickness[0.01]` (la fracción del ancho de la gráfica: 0.01 es gruesa, 0.001 es finísima).\n- Trazo: `Dashed` (discontinuo), `Dotted` (punteado).\n\nVarias directivas para **una** curva van en una lista: `PlotStyle -> {Red, Thick}`.\n\nCon **varias** curvas necesitas una lista por curva, es decir, una lista de listas: `PlotStyle -> {{Red, Thick}, {Blue, Dashed}}`. El primer estilo es para la primera función, el segundo para la segunda.",
+   "md": "La opción `PlotStyle` cambia el aspecto de las curvas. Admite **directivas**:\n\n- Colores: `Red`, `Blue`, `Green`, `Orange`, `Black`, `Purple`…\n- Grosor: `Thick`, `Thin`, o `Thickness[0.01]` (la fracción del ancho de la gráfica: 0.01 es gruesa, 0.001 es finísima).\n- Trazo: `Dashed` (discontinuo), `Dotted` (punteado).\n\nVarias directivas para **una** curva van en una lista: `PlotStyle -> {Red, Thick}`.\n\nCon **varias** curvas necesitas una lista por curva, es decir, una lista de listas: `PlotStyle -> {{Red, Thick}, {Blue, Dashed}}`. El primer estilo es para la primera función, el segundo para la segunda.\n\nLa trampa: con dos curvas, `PlotStyle -> {Red, Thick}` (una sola lista) **reparte**: la primera sale roja y la segunda gruesa. Si quieres color y grosor para cada una, lista de listas.",
    "cells": [
-    {
-     "code": "Plot[Sin[x], {x, 0, 10}, PlotStyle -> Red]",
-     "note": "un color"
-    },
     {
      "code": "Plot[Sin[x], {x, 0, 10}, PlotStyle -> {Red, Thick, Dashed}]",
      "note": "varias directivas para una curva"
@@ -277,7 +235,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e06",
+    "id": "1-p06-e05",
     "kind": "code",
     "title": "Dos curvas, dos estilos",
     "prompt": "Dibuja `Sin[x]` y `Sin[2 x]` entre 0 y 2π. La primera en **rojo y gruesa** (`Thick`); la segunda en **azul y discontinua** (`Dashed`).",
@@ -312,29 +270,6 @@
    }
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p06-e07",
-    "kind": "mcq",
-    "title": "La trampa de las llaves",
-    "prompt": "Ejecutas `Plot[{Sin[x], Cos[x]}, {x, 0, 10}, PlotStyle -> {Red, Thick}]` (con **dos** funciones y una sola lista de estilo). ¿Qué sale?",
-    "difficulty": 2,
-    "cmds": [
-     "PlotStyle"
-    ],
-    "real": false,
-    "source": null,
-    "options": [
-     "Las dos curvas rojas y gruesas",
-     "El seno rojo (grosor normal) y el coseno grueso (color por defecto)",
-     "Un mensaje de error",
-     "Solo se dibuja el seno"
-    ],
-    "answer": 1,
-    "explain": "Con varias curvas, `PlotStyle -> {a, b}` reparte: `a` para la primera y `b` para la segunda. Para que cada curva tenga color **y** grosor hace falta una lista por curva: `{{Red, Thick}, {Blue, Thick}}`."
-   }
-  },
-  {
    "type": "explain",
    "title": "Etiquetas: AxesLabel y PlotLabel",
    "md": "Una gráfica de un informe lleva siempre nombre en los ejes (con unidades) y título:\n\n- `AxesLabel -> {\"eje x\", \"eje y\"}` = lista con dos textos entre comillas.\n- `PlotLabel -> \"título\"`.\n\nEjemplo: la altura de un cuerpo lanzado hacia arriba a 20 m/s es `h(t) = 20 t - 4.9 t^2`. La variable de `Plot` no tiene por qué llamarse `x`.",
@@ -348,7 +283,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e08",
+    "id": "1-p06-e06",
     "kind": "code",
     "title": "Una gráfica presentable",
     "prompt": "La velocidad de un cohete de juguete es `v(t) = 30 (1 - Exp[-t/2])` (m/s). Dibújala para `t` entre 0 y 10 con las etiquetas de ejes `\"t (s)\"` y `\"v (m/s)\"` y el título `\"Velocidad\"`.",
@@ -401,31 +336,37 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e09",
-    "kind": "predict",
+    "id": "1-p06-e07",
+    "kind": "code",
     "title": "¿Y fuera de los tramos?",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve la última línea?",
+    "prompt": "Define `f` con `Piecewise`: vale `1` si `x < 0` y vale `x + 1` si `0 <= x < 2`. Después calcula la lista `{f[-1], f[1], f[5]}` y fíjate en el último valor.",
     "difficulty": 2,
     "cmds": [
      "Piecewise"
     ],
     "real": false,
     "source": null,
-    "code": "f[x_] := Piecewise[{{1, x < 0}, {x + 1, 0 <= x < 2}}]\nf[5]",
-    "options": [
-     "`6`",
-     "`0`",
-     "`f[5]`",
-     "Un error"
+    "solution": "f[x_] := Piecewise[{{1, x < 0}, {x + 1, 0 <= x < 2}}]\n{f[-1], f[1], f[5]}",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 2, 0}",
+     "compare": "equal"
+    },
+    "requires": [
+     "Piecewise",
+     "SetDelayed"
     ],
-    "answer": 1,
-    "explain": "`5` no cumple ni `x < 0` ni `0 <= x < 2`. Cuando ninguna condición se cumple, `Piecewise` vale `0`."
+    "hints": [
+     "`f[x_] := Piecewise[{{1, x < 0}, {x + 1, 0 <= x < 2}}]`",
+     "Segunda línea: `{f[-1], f[1], f[5]}`."
+    ],
+    "explain": "`f[5]` da `0`: el 5 no cumple ni `x < 0` ni `0 <= x < 2`, y cuando ninguna condición se cumple `Piecewise` vale `0`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e10",
+    "id": "1-p06-e08",
     "kind": "code",
     "title": "Una rampa",
     "prompt": "Define la función `r` que vale `0` si `x < 0`, vale `x` si `0 <= x <= 1` y vale `1` si `x > 1`. Después dibújala para `x` entre `-1` y `3`.",
@@ -484,7 +425,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e11",
+    "id": "1-p06-e09",
     "kind": "fix",
     "title": "Ecuación, no asignación",
     "prompt": "Esta celda quería dibujar la circunferencia de centro el origen y radio 3 en el cuadrado `[-4, 4] × [-4, 4]`. Tiene dos errores. Corrígela.",
@@ -519,12 +460,8 @@
    "md": "`Table[expr, {k, kmin, kmax, paso}]` (Práctica 2) construye una lista dando valores a `k`. Si `expr` es una función o una ecuación, obtienes una **familia de curvas** lista para dibujar.\n\nUn detalle: `Plot` y `ContourPlot` no evalúan su primer argumento hasta tener números. Para que vean la lista ya construida, envuelve el `Table` en `Evaluate[...]`. Así cada curva sale además de un color.\n\nPara añadir una curva más a la lista: `Append[lista, elemento]`.",
    "cells": [
     {
-     "code": "Table[x^n, {n, 1, 4}]",
-     "note": "una lista de cuatro funciones"
-    },
-    {
      "code": "Plot[Evaluate[Table[x^n, {n, 1, 4}]], {x, 0, 1}]",
-     "note": "la familia dibujada"
+     "note": "la familia x, x^2, x^3, x^4 dibujada"
     },
     {
      "code": "ecs = Table[(x - k)^2 + y^2 == 1, {k, 0, 2}]",
@@ -539,7 +476,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e12",
+    "id": "1-p06-e10",
     "kind": "code",
     "title": "Circunferencias concéntricas",
     "prompt": "Con `Table` y `ContourPlot`, dibuja las circunferencias `x^2 + y^2 == r^2` para `r = 1, 2, 3` en el cuadrado `[-4, 4] × [-4, 4]`. Muestra los ejes y usa la misma escala en los dos.",
@@ -576,7 +513,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e13",
+    "id": "1-p06-e11",
     "kind": "code",
     "title": "Real · La familia de 26 circunferencias (ecuaciones)",
     "prompt": "Queremos una familia de 26 circunferencias con estas condiciones:\n\n- El primer centro está en `x = 0.1` y el último en `x = 5.1`, de modo que el paso es `0.2`.\n- Los centros están sobre la rama positiva de la hipérbola `y = 1/x`.\n- El radio cambia con cada centro: `r = x/10`.\n\nRecuerda la ecuación de la circunferencia de centro `(xk, yk)` y radio `rk`: `(x - xk)^2 + (y - yk)^2 == rk^2`. Si `xk = k`, entonces `yk = 1/k` y `rk = k/10`.\n\nGenera con `Table` la lista de las 26 ecuaciones y guárdala en la variable `ecs` (sin punto y coma al final, para verla).",
@@ -617,7 +554,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e14",
+    "id": "1-p06-e12",
     "kind": "code",
     "title": "Real · La familia de 26 circunferencias (gráfica)",
     "prompt": "La lista `ecs` con las 26 ecuaciones del ejercicio anterior ya está definida.\n\nDibújalas con `ContourPlot` en el rectángulo `[-1, 6] × [-1, 3]` de modo que:\n\n- se vean los ejes,\n- los dos ejes tengan la misma escala (que las circunferencias no parezcan elipses),\n- aparezca también la hipérbola en forma implícita `x y == 1`, añadida a la lista.",
@@ -635,7 +572,7 @@
     "check": {
      "type": "graphics",
      "dim": 2,
-     "min": 27,
+     "min": 25,
      "like": "ContourPlot[Evaluate[Append[ecs, x*y == 1]], {x, -1, 6}, {y, -1, 3}]",
      "msg": "Deben aparecer las 26 circunferencias y la hipérbola en el rectángulo [-1, 6] × [-1, 3]."
     },
@@ -655,7 +592,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e15",
+    "id": "1-p06-e13",
     "kind": "code",
     "title": "Real · Función a trozos y coseno desplazado",
     "prompt": "Define las dos funciones de la segunda gráfica de la práctica:\n\n- `f`, que vale `1/2` si `x <= 1` y `(x/6) Sin[8 x]` si `x > 1` (usa `Piecewise`);\n- `g`, que vale `Cos[x]/2 - 1`.",
@@ -698,7 +635,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e16",
+    "id": "1-p06-e14",
     "kind": "code",
     "title": "Real · Gráfica con leyenda y estilos",
     "prompt": "Las funciones `f` y `g` del ejercicio anterior ya están definidas.\n\nRepreséntalas en la misma gráfica para `x` entre `-1` y `5` de modo que:\n\n- el eje Y vaya de `-2` a `1`,\n- haya una leyenda con las funciones `f(x)` y `g(x)`,\n- `f` salga en rojo con grosor `0.01` y `g` en azul con grosor `0.001`.",
@@ -729,7 +666,7 @@
       },
       {
        "type": "satisfies",
-       "test": "With[{r = Cases[Out[$Line], (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-2, 1}]] < 0.01]",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-2, 1}]] < 0.01]",
        "msg": "Revisa `PlotRange`: el eje Y debe ir de -2 a 1."
       }
      ]
@@ -754,7 +691,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p06-e17",
+    "id": "1-p06-e15",
     "kind": "code",
     "title": "Real · Variante: aros sobre una parábola",
     "prompt": "En tu cuaderno de clase hiciste una variante del primer ejercicio: 13 circunferencias con centro `(k, k^2)` (sobre la parábola `y = x^2`) y radio `k/5`, para `k` desde `0.7` hasta `3.1` con paso `0.2`.\n\nDibújalas junto con la parábola (en implícitas, `y == x^2`) en el rectángulo `[-1, 4] × [-1, 11]`, con ejes y la misma escala en ambos.",

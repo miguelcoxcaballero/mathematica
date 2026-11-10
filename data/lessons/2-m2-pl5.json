@@ -1,0 +1,807 @@
+{
+ "id": "2-m2-pl5",
+ "year": 2,
+ "subject": "Matemáticas II",
+ "block": "Ecuaciones diferenciales",
+ "order": 5,
+ "title": "Sistemas de EDOs lineales: método matricial con autovalores",
+ "summary": "Resuelves sistemas de ecuaciones diferenciales lineales con DSolve y, sobre todo, con el método matricial del guion: autovalores reales, complejos, matriz no diagonalizable y sistemas no homogéneos por variación de constantes. Incluye la pregunta P5 del examen de 2021.",
+ "minutes": 80,
+ "commands": [
+  "Re",
+  "Im"
+ ],
+ "uses": [
+  "DSolve",
+  "Eigenvalues",
+  "Eigenvectors",
+  "Eigensystem",
+  "MatrixForm",
+  "Transpose",
+  "Det",
+  "Dot",
+  "D",
+  "Solve",
+  "Integrate",
+  "ReplaceAll",
+  "Flatten",
+  "Part",
+  "Simplify",
+  "Exp",
+  "Plot",
+  "Evaluate",
+  "FindRoot",
+  "N",
+  "Clear"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Sistemas: varias funciones que se influyen entre sí",
+   "md": "Dos muelles acoplados, dos depósitos conectados, la posición y la velocidad de un avión: en cuanto hay varias magnitudes que dependen unas de otras aparece un **sistema** de ecuaciones diferenciales. Esta práctica cierra el bloque de EDO y cayó en el examen de 2021 (pregunta P5) y en el de 2014.\n\n`DSolve` los resuelve con la misma estructura de siempre, pero con listas:\n- primer argumento: una lista con TODAS las ecuaciones y, si las hay, las condiciones iniciales;\n- segundo: la lista de funciones incógnita, `{y1[t], y2[t]}`;\n- tercero: la variable.\n\nDevuelve una regla por función. Para trabajar con la solución se extrae el vector entero de una vez: `{y1[t], y2[t]} /. Flatten[res]`. Sin condiciones iniciales salen tantas constantes `C[1]`, `C[2]`… como ecuaciones.",
+   "cells": [
+    {
+     "code": "res = DSolve[{y1'[t] == y2[t], y2'[t] == -5 y2[t] - 6 y1[t] + Cos[t], y1[0] == 1, y2[0] == 0}, {y1[t], y2[t]}, t]",
+     "note": "Ejemplo 5.1.1: dos ecuaciones, dos condiciones, dos funciones"
+    },
+    {
+     "code": "Y[t_] = {y1[t], y2[t]} /. Flatten[res]",
+     "note": "El vector solución, listo para usar"
+    },
+    {
+     "code": "Y[0]\nPlot[Evaluate[Y[t]], {t, 0, 10}]",
+     "note": "Cumple las condiciones; Evaluate hace que cada componente salga de un color"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e01",
+    "kind": "code",
+    "title": "Tu primer sistema con DSolve",
+    "prompt": "Resuelve el sistema `x' = x + 2y`, `y' = 2x + y` con `x(0) = 1`, `y(0) = 0`. Guarda el resultado de `DSolve` en `res` y define el vector solución `Y[t_] = {x[t], y[t]} /. Flatten[res]`.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "ReplaceAll",
+     "Flatten"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "res = DSolve[{x'[t] == x[t] + 2 y[t], y'[t] == 2 x[t] + y[t], x[0] == 1, y[0] == 0}, {x[t], y[t]}, t];\nY[t_] = {x[t], y[t]} /. Flatten[res]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`Y[t]` no cumple el sistema: al sustituir, `D[Y, t] - A.Y` no da el vector cero."
+      },
+      {
+       "type": "satisfies",
+       "test": "Max[Abs[N[Y[0] - {1, 0}]]] < 10^-8",
+       "msg": "`Y[0]` debe ser `{1, 0}`: revisa las condiciones iniciales."
+      }
+     ]
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "Cada función con su argumento: `x'[t] == x[t] + 2 y[t]`, `y'[t] == 2 x[t] + y[t]`, `x[0] == 1`, `y[0] == 0`, todo en una lista.",
+     "`res = DSolve[{...}, {x[t], y[t]}, t];`",
+     "`Y[t_] = {x[t], y[t]} /. Flatten[res]`"
+    ],
+    "explain": "Aparecen `E^(3t)` y `E^(-t)`: 3 y −1 son los autovalores de la matriz del sistema. Enseguida verás por qué."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "De una EDO de orden 2 a un sistema",
+   "md": "Toda EDO de orden 2 se puede escribir como un sistema de dos ecuaciones de orden 1. El truco: llamar `y1 = y` (la función) e `y2 = y'` (su derivada). Entonces:\n- `y1' = y2` (por definición);\n- `y2' = y''`, que se despeja de la ecuación.\n\nPara `y'' + 5y' + 6y = cos t` queda `y1' = y2`, `y2' = -6 y1 - 5 y2 + cos t`: justo el sistema del ejemplo anterior. En forma matricial es `Y' = A Y + F`, con `A = {{0, 1}, {-6, -5}}` y `F = {0, Cos[t]}`. Fíjate en la matriz: arriba `0, 1`; abajo, los coeficientes de `y` y de `y'` cambiados de signo.\n\nResolver la EDO y derivar la solución da las dos componentes del sistema.",
+   "cells": [
+    {
+     "code": "res2 = DSolve[{y''[t] + 5 y'[t] + 6 y[t] == Cos[t], y[0] == 1, y'[0] == 0}, y[t], t]",
+     "note": "Ejemplo 5.1.2: la EDO de segundo orden. Su solución es y1"
+    },
+    {
+     "code": "D[y[t] /. Flatten[res2], t] // Simplify",
+     "note": "Su derivada es y2: coincide con la segunda componente del sistema"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e02",
+    "kind": "mcq",
+    "title": "La matriz de una EDO",
+    "prompt": "Con `y1 = y`, `y2 = y'`, la ecuación `y'' + 3y' + 2y = 0` se convierte en `Y' = A Y`. ¿Cuál es la matriz `A`?",
+    "difficulty": 2,
+    "cmds": [
+     "Dot"
+    ],
+    "real": false,
+    "source": null,
+    "options": [
+     "`{{0, 1}, {-2, -3}}`",
+     "`{{0, 1}, {-3, -2}}`",
+     "`{{0, 1}, {2, 3}}`",
+     "`{{1, 0}, {-2, -3}}`"
+    ],
+    "answer": 0,
+    "explain": "`y1' = y2` da la fila `{0, 1}`. De `y'' = -2y - 3y'` sale `y2' = -2 y1 - 3 y2`: fila `{-2, -3}` (primero el coeficiente de `y`, luego el de `y'`, cambiados de signo)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e03",
+    "kind": "code",
+    "title": "Una EDO de orden 2 como sistema",
+    "prompt": "**Guion PL5, ejercicio 2.** Resuelve la ecuación `y'' + β² y = 0` transformándola previamente en un sistema. Hazlo con β² = {{k}}: escribe el sistema para `y1 = y`, `y2 = y'`, resuélvelo con `DSolve` (guarda el resultado en `res`) y define `Y[t_] = {y1[t], y2[t]} /. Flatten[res]`.",
+    "difficulty": 3,
+    "cmds": [
+     "DSolve",
+     "ReplaceAll",
+     "Flatten"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 2",
+    "params": {
+     "k": [
+      9,
+      4,
+      16
+     ]
+    },
+    "solution": "res = DSolve[{y1'[t] == y2[t], y2'[t] == -{{k}} y1[t]}, {y1[t], y2[t]}, t];\nY[t_] = {y1[t], y2[t]} /. Flatten[res]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{0, 1}, {-{{k}}, 0}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`Y[t]` no cumple el sistema `y1' = y2`, `y2' = -{{k}} y1`. Cuidado con el signo de la segunda ecuación."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{v = Y[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C[1], C[2]}}]] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}] > 10^-8]",
+       "msg": "Debe ser la solución general, con `C[1]` y `C[2]` (no pongas condiciones iniciales)."
+      }
+     ]
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "`y1' = y2` y, despejando `y'' = -{{k}} y`, `y2' = -{{k}} y1`.",
+     "`res = DSolve[{y1'[t] == y2[t], y2'[t] == -{{k}} y1[t]}, {y1[t], y2[t]}, t];`",
+     "`Y[t_] = {y1[t], y2[t]} /. Flatten[res]`"
+    ],
+    "explain": "La primera componente es la solución de la EDO original: senos y cosenos de frecuencia β. El error típico es olvidar el signo menos (`y2' = +β² y1`): entonces salen exponenciales en vez de oscilaciones."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Matrices y vectores solución",
+   "md": "El método del guion trabaja con el sistema en forma matricial, `Y' = A Y`. Repaso rápido de 1º:\n- una matriz es una **lista de filas**: `{{4, 0, -2}, {0, 4, -4}, {-2, -4, 5}}`;\n- `MatrixForm[m]` solo sirve para VERLA bien (no lo metas en la definición);\n- el producto matriz por vector es el **punto**: `m.v`. El asterisco `m*v` multiplica elemento a elemento y da otra cosa;\n- `D[v, t]` deriva cada componente de un vector.\n\nComprobar que un vector `Y1` es solución: `D[Y1, t] - m.Y1` debe dar el vector de ceros.\n\nCon n soluciones independientes se tiene un **sistema fundamental**. Puestas como columnas forman la matriz fundamental: `phi = Transpose[{Y1, Y2, Y3}]` (`Transpose` porque una lista de vectores los coloca por filas). Su determinante es el wronskiano: si `Det[phi]` no es 0, son independientes y la solución general es `C1 Y1 + C2 Y2 + C3 Y3`.",
+   "cells": [
+    {
+     "code": "m = {{4, 0, -2}, {0, 4, -4}, {-2, -4, 5}};\nMatrixForm[m]",
+     "note": "Ejemplo 5.2.1: la matriz del sistema"
+    },
+    {
+     "code": "Y1 = {1, 2, 2};\nY2 = {-2, 1, 0} Exp[4 t];\nY3 = {1, 2, -5/2} Exp[9 t];\nD[Y1, t] - m.Y1\nD[Y2, t] - m.Y2\nD[Y3, t] - m.Y3",
+     "note": "Tres candidatas: los tres residuos son vectores nulos"
+    },
+    {
+     "code": "phi = Transpose[{Y1, Y2, Y3}];\nDet[phi]",
+     "note": "Wronskiano distinto de 0: phi es una matriz fundamental"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e04",
+    "kind": "fix",
+    "title": "Punto, no asterisco",
+    "prompt": "Esta celda quiere comprobar que `v = {1, 1} e^(3t)` es solución de `Y' = m Y`, pero tiene dos errores y no devuelve el vector de ceros. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "Dot",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "m = {{1, 2}, {2, 1}};\nv = {1, 1} Exp[3 t];\nD[v] - m*v",
+    "solution": "m = {{1, 2}, {2, 1}};\nv = {1, 1} Exp[3 t];\nD[v, t] - m.v",
+    "check": {
+     "type": "expr",
+     "expected": "{0, 0}",
+     "compare": "equal"
+    },
+    "requires": [
+     "Dot",
+     "D"
+    ],
+    "hints": [
+     "`D` necesita saber respecto de qué variable deriva: `D[v, t]`.",
+     "El producto de matriz por vector es `m.v` (con punto)."
+    ],
+    "explain": "`m*v` no es el producto matricial: multiplica cada fila por un número. Con `m.v` el residuo es `{0, 0}`: `v` es solución."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Autovalores y autovectores: el método matricial",
+   "md": "Si se prueba `Y = v e^(λ t)` en `Y' = A Y` queda `A v = λ v`: `λ` es un **autovalor** de A y `v` su **autovector**. Cada pareja da una solución, y con n autovalores distintos ya está la solución general: `C1 v1 e^(λ1 t) + … + Cn vn e^(λn t)`.\n\nEn Mathematica:\n- `Eigenvalues[m]` da la lista de autovalores;\n- `Eigenvectors[m]` da los autovectores **por filas** y en el mismo orden que los autovalores;\n- `Eigensystem[m]` da las dos cosas: `{autovalores, autovectores}`;\n- asignación múltiple: `{l1, l2, l3} = Eigenvalues[m]` reparte la lista en tres variables.\n\nUn vector por un número y por una exponencial se escribe tal cual: `C1 v1 Exp[l1 t]`. Las constantes salen de la condición inicial con `Solve[sol[0] == {…}, {C1, C2, C3}]`: una igualdad entre vectores equivale a una ecuación por componente.",
+   "cells": [
+    {
+     "code": "m = {{4, 0, -2}, {0, 4, -4}, {-2, -4, 5}};\nEigensystem[m]",
+     "note": "Ejemplo 5.2.2: autovalores 9, 4, 0 y sus autovectores (por filas)"
+    },
+    {
+     "code": "{l1, l2, l3} = Eigenvalues[m];\n{v1, v2, v3} = Eigenvectors[m];\nsol[t_] = C1 v1 Exp[l1 t] + C2 v2 Exp[l2 t] + C3 v3 Exp[l3 t]",
+     "note": "Solución general del sistema"
+    },
+    {
+     "code": "D[sol[t], t] - m.sol[t] // Simplify",
+     "note": "Comprobación: vector de ceros"
+    },
+    {
+     "code": "solC = Solve[sol[0] == {1, 0, 0}, {C1, C2, C3}]\nsol[t] /. Flatten[solC]",
+     "note": "Con la condición Y(0) = (1, 0, 0)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e05",
+    "kind": "predict",
+    "title": "Filas y orden",
+    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "difficulty": 2,
+    "cmds": [
+     "Eigenvectors"
+    ],
+    "real": false,
+    "source": null,
+    "code": "Eigenvectors[{{2, 0}, {0, 3}}]",
+    "options": [
+     "`{{0, 1}, {1, 0}}`",
+     "`{{1, 0}, {0, 1}}`",
+     "`{3, 2}`",
+     "`{{2, 0}, {0, 3}}`"
+    ],
+    "answer": 0,
+    "explain": "`Eigenvalues` ordena de mayor a menor valor absoluto: `{3, 2}`. Los autovectores van en ese mismo orden y por filas: primero el de 3, que es `{0, 1}`, y luego el de 2, `{1, 0}`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e06",
+    "kind": "code",
+    "title": "Sistema 2×2 por autovalores",
+    "prompt": "Resuelve sin `DSolve` el sistema `x' = x + 2y`, `y' = 2x + y`. Define la matriz `m`, reparte autovalores y autovectores en `{l1, l2}` y `{v1, v2}`, y guarda la solución general como `solH[t_]` con constantes `C1`, `C2`.",
+    "difficulty": 3,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Exp"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "m = {{1, 2}, {2, 1}};\n{l1, l2} = Eigenvalues[m];\n{v1, v2} = Eigenvectors[m];\nsolH[t_] = C1 v1 Exp[l1 t] + C2 v2 Exp[l2 t]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`solH[t]` no cumple el sistema: al sustituir, `D[Y, t] - A.Y` no da el vector cero."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}] > 10^-8]",
+       "msg": "La solución debe ser GENERAL: tiene que incluir las constantes `C1`, `C2` multiplicando a soluciones independientes."
+      }
+     ]
+    },
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "`m = {{1, 2}, {2, 1}};` (cada fila son los coeficientes de x e y en una ecuación).",
+     "`{l1, l2} = Eigenvalues[m]; {v1, v2} = Eigenvectors[m];`",
+     "`solH[t_] = C1 v1 Exp[l1 t] + C2 v2 Exp[l2 t]`"
+    ],
+    "explain": "Autovalores 3 y −1 con autovectores `{1, 1}` y `{-1, 1}`: `solH = {C1 E^(3t) - C2 E^(-t), C1 E^(3t) + C2 E^(-t)}`. Es el mismo sistema que resolviste antes con `DSolve`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e07",
+    "kind": "code",
+    "title": "Autovalores dados y condición inicial",
+    "prompt": "**Guion PL5, ejercicio 1 (y examen de 2014, pregunta 3).** Un sistema homogéneo `Y' = A Y` tiene matriz 3×3 con autovalores `(6, -1, 2)` y autovectores `v1 = (0, 0, 1)`, `v2 = (-14, 7, 10)`, `v3 = (-2, -2, 1)`. Calcula la solución con `Y(0) = (1, 0, 1)` y guárdala como `Ys[t_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Flatten",
+     "Exp"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 1",
+    "solution": "{L1, L2, L3} = {6, -1, 2};\n{v1, v2, v3} = {{0, 0, 1}, {-14, 7, 10}, {-2, -2, 1}};\nsol[t_] = C1 v1 Exp[L1 t] + C2 v2 Exp[L2 t] + C3 v3 Exp[L3 t];\nsolC = Solve[sol[0] == {1, 0, 1}, {C1, C2, C3}]\nYs[t_] = sol[t] /. Flatten[solC]",
+    "check": {
+     "type": "value",
+     "expr": "Ys[t]",
+     "expected": "{2 Exp[-t]/3 + Exp[2 t]/3, -Exp[-t]/3 + Exp[2 t]/3, -10 Exp[-t]/21 - Exp[2 t]/6 + 23 Exp[6 t]/14}",
+     "compare": "equal",
+     "msg": "`Ys[t]` no es la solución pedida. Revisa que cada autovector va con su autovalor y la condición `Y(0) = {1, 0, 1}`."
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "No hace falta la matriz: `sol[t_] = C1 v1 Exp[L1 t] + C2 v2 Exp[L2 t] + C3 v3 Exp[L3 t];` con los datos del enunciado.",
+     "`solC = Solve[sol[0] == {1, 0, 1}, {C1, C2, C3}]`",
+     "`Ys[t_] = sol[t] /. Flatten[solC]`"
+    ],
+    "explain": "`C1 = 23/14`, `C2 = -1/21`, `C3 = -1/6`. En el examen se pide después algún valor numérico, por ejemplo `Ys[1][[3]] // N` (la tercera componente en t = 1)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e08",
+    "kind": "code",
+    "title": "Sistema 3×3 con autovalores distintos",
+    "prompt": "**Guion PL5, ejercicio 3a.** Halla, sin `DSolve`, la solución general de `x' = -4x + y + z`, `y' = x + 5y - z`, `z' = y - 3z`, y comprueba si la matriz es diagonalizable. Guarda la solución general como `solH[t_]` con constantes `C1`, `C2`, `C3`.",
+    "difficulty": 3,
+    "cmds": [
+     "Eigensystem",
+     "Exp",
+     "Part"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 3a",
+    "solution": "m = {{-4, 1, 1}, {1, 5, -1}, {0, 1, -3}};\n{vals, vecs} = Eigensystem[m]\nsolH[t_] = C1 vecs[[1]] Exp[vals[[1]] t] + C2 vecs[[2]] Exp[vals[[2]] t] + C3 vecs[[3]] Exp[vals[[3]] t]\nD[solH[t], t] - m.solH[t] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{-4, 1, 1}, {1, 5, -1}, {0, 1, -3}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`solH[t]` no cumple el sistema: al sustituir, `D[Y, t] - A.Y` no da el vector cero."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 3}, {c, {C1, C2, C3}}]] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}] > 10^-8]",
+       "msg": "La solución debe ser GENERAL: tiene que incluir las constantes `C1`, `C2`, `C3` multiplicando a soluciones independientes."
+      }
+     ]
+    },
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "`m = {{-4, 1, 1}, {1, 5, -1}, {0, 1, -3}};` y `{vals, vecs} = Eigensystem[m]`.",
+     "`vals[[1]]` es el primer autovalor y `vecs[[1]]` su autovector.",
+     "`solH[t_] = C1 vecs[[1]] Exp[vals[[1]] t] + C2 vecs[[2]] Exp[vals[[2]] t] + C3 vecs[[3]] Exp[vals[[3]] t]`"
+    ],
+    "explain": "Autovalores 5, −4, −3: tres distintos, así que hay tres autovectores independientes y la matriz ES diagonalizable. Ojo: que `Det[m]` sea distinto de 0 no dice nada sobre si es diagonalizable."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Autovalores complejos",
+   "md": "Si la matriz es real y aparece un autovalor complejo `λ = δ1 + i δ2` con autovector `γ1 + i γ2`, también está su conjugado, y entre los dos dan **dos soluciones reales** (fórmula 5.10 del guion):\n\n`(C1 (γ1 cos(δ2 t) - γ2 sen(δ2 t)) + C2 (γ1 sen(δ2 t) + γ2 cos(δ2 t))) e^(δ1 t)`\n\n`Re[...]` e `Im[...]` sacan la parte real y la imaginaria de un número o de cada componente de un vector. Basta usar UNO de los dos autovalores de la pareja (con su autovector): el conjugado daría las mismas soluciones.\n\nEl guion lo aplica a dos muelles acoplados con rozamiento: 4 ecuaciones, dos parejas de autovalores complejos, y la misma fórmula una vez por pareja.",
+   "cells": [
+    {
+     "code": "m = {{1, -5}, {1, -1}};\n{l1, l2} = Eigenvalues[m]\n{v1, v2} = Eigenvectors[m]",
+     "note": "Autovalores ±2i: δ1 = 0, δ2 = ±2"
+    },
+    {
+     "code": "solR[t_] = (C1 (Re[v1] Cos[Im[l1] t] - Im[v1] Sin[Im[l1] t]) + C2 (Re[v1] Sin[Im[l1] t] + Im[v1] Cos[Im[l1] t])) Exp[Re[l1] t]",
+     "note": "La fórmula con el primer autovalor y su autovector"
+    },
+    {
+     "code": "D[solR[t], t] - m.solR[t] // Simplify",
+     "note": "Es solución, y sin números complejos"
+    },
+    {
+     "code": "m1 = 10.0; m2 = 20.0; k1 = 5.0; k2 = 7.0; b1 = 1.0; b2 = 1.0;\nma2 = {{0, 1, 0, 0}, {-(k1/m1 + k2/m2), -(b1/m1 + b2/m2), k2/m1, b2/m1}, {0, 0, 0, 1}, {k2/m2, b2/m2, -k2/m2, -b2/m2}};\n{l1, l2, l3, l4} = Eigenvalues[ma2]\n{v1, v2, v3, v4} = Eigenvectors[ma2];",
+     "note": "Ejemplo 5.2.3: dos muelles acoplados. Dos parejas conjugadas: (l1, l2) y (l3, l4)"
+    },
+    {
+     "code": "l1r = Re[l1]; l1i = Im[l1]; l3r = Re[l3]; l3i = Im[l3];\nv1r = Re[v1]; v1i = Im[v1]; v3r = Re[v3]; v3i = Im[v3];\n{y1[x_], y2[x_], y3[x_], y4[x_]} = (C1 (v1r*Cos[l1i*x] - v1i*Sin[l1i*x]) + C2 (v1r*Sin[l1i*x] + v1i*Cos[l1i*x])) E^(l1r*x) + (C3 (v3r*Cos[l3i*x] - v3i*Sin[l3i*x]) + C4 (v3r*Sin[l3i*x] + v3i*Cos[l3i*x])) E^(l3r*x);\nconst = Solve[{y1[0] == 1, y2[0] == 0, y3[0] == -1, y4[0] == 0}, {C1, C2, C3, C4}]",
+     "note": "La fórmula para cada pareja y las constantes de las condiciones iniciales"
+    },
+    {
+     "code": "Plot[Evaluate[{y1[x], y3[x]} /. Flatten[const]], {x, 0, 100}, PlotStyle -> {{Red}, {Blue, Dashed}}]",
+     "note": "Posiciones de los dos muelles: acaban moviéndose sincronizados"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e09",
+    "kind": "code",
+    "title": "Solución real con autovalores complejos",
+    "prompt": "Resuelve sin `DSolve` el sistema `x' = -x - 2y`, `y' = 2x - y`. Define `m`, reparte autovalores y autovectores en `{l1, l2}`, `{v1, v2}` y construye con la fórmula del guion la solución general REAL `solR[t_]`, con constantes `C1`, `C2`.",
+    "difficulty": 4,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Re",
+     "Im"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "m = {{-1, -2}, {2, -1}};\n{l1, l2} = Eigenvalues[m];\n{v1, v2} = Eigenvectors[m];\nsolR[t_] = (C1 (Re[v1] Cos[Im[l1] t] - Im[v1] Sin[Im[l1] t]) + C2 (Re[v1] Sin[Im[l1] t] + Im[v1] Cos[Im[l1] t])) Exp[Re[l1] t]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = solR[t]}, Max[Abs[Flatten[(D[v, t] - ({{-1, -2}, {2, -1}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`solR[t]` no cumple el sistema: al sustituir, `D[Y, t] - A.Y` no da el vector cero."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{v = solR[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}] > 10^-8]",
+       "msg": "La solución debe ser GENERAL: tiene que incluir las constantes `C1`, `C2` multiplicando a soluciones independientes."
+      },
+      {
+       "type": "satisfies",
+       "test": "Max[Abs[Im[N[solR[t] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]]] < 10^-10",
+       "msg": "`solR[t]` debe ser real: usa la fórmula con `Re` e `Im`, no las exponenciales complejas."
+      }
+     ]
+    },
+    "requires": [
+     "Re",
+     "Im"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "`m = {{-1, -2}, {2, -1}}; {l1, l2} = Eigenvalues[m]; {v1, v2} = Eigenvectors[m];`",
+     "En la fórmula: γ1 = `Re[v1]`, γ2 = `Im[v1]`, δ1 = `Re[l1]`, δ2 = `Im[l1]`.",
+     "`solR[t_] = (C1 (Re[v1] Cos[Im[l1] t] - Im[v1] Sin[Im[l1] t]) + C2 (Re[v1] Sin[Im[l1] t] + Im[v1] Cos[Im[l1] t])) Exp[Re[l1] t]`"
+    ],
+    "explain": "Autovalores −1 ± 2i: oscilación de frecuencia 2 amortiguada por `e^(-t)`. La parte real del autovalor manda en la exponencial y la imaginaria en senos y cosenos, igual que con las raíces características de PL3."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Matriz no diagonalizable",
+   "md": "Puede pasar que un autovalor esté repetido y solo tenga UN autovector. `Eigensystem` lo delata rellenando con un vector de ceros: `{{-4, -4}, {{-1, 4}, {0, 0}}}`. La matriz no es diagonalizable y falta una solución.\n\nEl guion la busca probando un vector con polinomios de grado 1 por la misma exponencial: `{α1 x + β1, α2 x + β2} e^(λ x)`:\n- calcula el residuo `D[v2, x] - m.v2 // Simplify`;\n- para que sea 0 para todo x, se anulan el coeficiente de x y el término independiente de cada componente: 4 ecuaciones;\n- solo 2 son independientes, así que se despejan `α2`, `β2` en función de `α1`, `β1` y se eligen valores sencillos: `α1 = 1`, `β1 = 0`.\n\nLas letras griegas se escriben `\\[Alpha]`, `\\[Beta]`; en tus ejercicios puedes usar `a1`, `b1`, `a2`, `b2`.",
+   "cells": [
+    {
+     "code": "m3 = {{-8, -1}, {16, 0}};\n{valp, vecp} = Eigensystem[m3]",
+     "note": "Ejemplo 5.2.4: autovalor −4 doble, un solo autovector"
+    },
+    {
+     "code": "v1 = {-1, 4}*Exp[valp[[1]]*x];\nv2 = {\\[Alpha]1*x + \\[Beta]1, \\[Alpha]2*x + \\[Beta]2}*Exp[valp[[1]]*x];\nD[v2, x] - m3.v2 // Simplify",
+     "note": "Primera solución, candidata a segunda y su residuo"
+    },
+    {
+     "code": "solv2 = Solve[{\\[Alpha]1 + 4 \\[Beta]1 + \\[Beta]2 == 0, 4 \\[Alpha]1 + \\[Alpha]2 == 0, \\[Alpha]2 - 4 (4 \\[Beta]1 + \\[Beta]2) == 0, -4 (4 \\[Alpha]1 + \\[Alpha]2) == 0}, {\\[Alpha]2, \\[Beta]2}]",
+     "note": "Coeficientes del residuo igualados a 0: se despejan α2 y β2"
+    },
+    {
+     "code": "v2p = v2 /. Flatten[solv2] /. {\\[Beta]1 -> 0, \\[Alpha]1 -> 1}\nphi = Transpose[{v1, v2p}];\nDet[phi] // Simplify",
+     "note": "Segunda solución y wronskiano distinto de 0"
+    },
+    {
+     "code": "ys[x_] = c1*v1 + c2*v2p",
+     "note": "Solución general"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e10",
+    "kind": "mcq",
+    "title": "¿Es diagonalizable?",
+    "prompt": "**Guion PL5, ejercicio 3b.** Para el sistema `x' = x + y`, `y' = -4x - 3y`, `Eigensystem[{{1, 1}, {-4, -3}}]` devuelve `{{-1, -1}, {{-1, 2}, {0, 0}}}`. ¿Qué significa?",
+    "difficulty": 2,
+    "cmds": [
+     "Eigensystem"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 3b",
+    "options": [
+     "Autovalor −1 doble con un solo autovector, `{-1, 2}`: la matriz no es diagonalizable",
+     "Dos autovalores distintos: la matriz es diagonalizable",
+     "`{0, 0}` es el segundo autovector y da la solución nula",
+     "La matriz no tiene autovalores reales"
+    ],
+    "answer": 0,
+    "explain": "El `{0, 0}` no es un autovector: es el aviso de que falta uno. Hay que buscar la segunda solución con polinomios de grado 1 por `e^(-t)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e11",
+    "kind": "code",
+    "title": "La segunda solución",
+    "prompt": "**Guion PL5, ejercicio 3b (resolución).** Para `m = {{1, 1}, {-4, -3}}` la primera solución es `v1 = {-1, 2} e^(-t)`. Busca la segunda con la forma `v2 = {a1 t + b1, a2 t + b2} e^(-t)`: calcula el residuo `D[v2, t] - m.v2`, anula sus coeficientes despejando `a2` y `b2`, y con `a1 = 1`, `b1 = 0` guarda la segunda solución en `v2p`.",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "Dot",
+     "Solve",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 3b",
+    "solution": "m = {{1, 1}, {-4, -3}};\nv2 = {a1 t + b1, a2 t + b2} Exp[-t];\nD[v2, t] - m.v2 // Simplify\nsv = Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a2, b2}]\nv2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = v2p}, Max[Abs[Flatten[(D[v, t] - ({{1, 1}, {-4, -3}}).v) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`v2p` no es solución del sistema (o todavía contiene `a1`, `b1`, `a2`, `b2`)."
+      },
+      {
+       "type": "satisfies",
+       "test": "Abs[Det[Transpose[{{-1, 2} Exp[-t], v2p}]] /. {t -> 0.7}] > 10^-8",
+       "msg": "`v2p` debe ser independiente de la primera solución `{-1, 2} E^(-t)` (tiene que llevar un término con `t`)."
+      }
+     ]
+    },
+    "requires": [
+     "Solve",
+     "D"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "`v2 = {a1 t + b1, a2 t + b2} Exp[-t];` y `D[v2, t] - m.v2 // Simplify`.",
+     "En cada componente, el término independiente y el coeficiente de `t` deben ser 0: `Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a2, b2}]`.",
+     "`v2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}`"
+    ],
+    "explain": "`a2 = -2 a1`, `b2 = a1 - 2 b1`, y con a1 = 1, b1 = 0: `v2p = {t E^(-t), (1 - 2t) E^(-t)}`. Solución general: `x = -C1 E^(-t) + C2 t E^(-t)`, `y = 2 C1 E^(-t) + C2 (1 - 2t) E^(-t)`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Sistemas no homogéneos: variación de constantes",
+   "md": "Para `Y' = A Y + F(t)` la solución es la de la homogénea más una particular, y la particular se busca dejando que las constantes dependan de t: `c1(t) Y1 + c2(t) Y2`. Sus derivadas cumplen `c1' Y1 + c2' Y2 = F`.\n\nEn Mathematica (código del guion):\n- `solH[t_] = C1*v1*Exp[l1*t] + C2*v2*Exp[l2*t]` es la solución de la homogénea;\n- `Solve[solH[t] == F, {C1, C2}]`: lo que sale no son las constantes, son sus DERIVADAS `c1'(t)`, `c2'(t)`;\n- se integran y se suman las nuevas constantes: `{C1, C2} = Integrate[dCs, t] + {K1, K2}`;\n- como ahora `C1` y `C2` tienen valor, `solH[t]` ya es la solución general del sistema completo.\n\nAviso: después de esto `C1` y `C2` quedan definidas. Antes de reutilizarlas, `Clear[C1, C2]`.",
+   "cells": [
+    {
+     "code": "mat2 = {{6, -8}, {1, 0}};\n{l1, l2} = Eigenvalues[mat2];\n{v1, v2} = Eigenvectors[mat2];\nsolH[t_] = C1*v1*Exp[l1*t] + C2*v2*Exp[l2*t]",
+     "note": "Ejemplo 5.2.5: x' = 6x − 8y + e^(3t), y' = x. Solución de la homogénea"
+    },
+    {
+     "code": "solCs = Solve[solH[t] == {Exp[3 t], 0}, {C1, C2}]",
+     "note": "F = {e^(3t), 0}. Esto son c1'(t) y c2'(t)"
+    },
+    {
+     "code": "dCs = {C1, C2} /. Flatten[solCs];\n{C1, C2} = Integrate[dCs, t] + {K1, K2}",
+     "note": "Integrar y añadir las constantes K1, K2"
+    },
+    {
+     "code": "solH[t] // Simplify",
+     "note": "Solución general del sistema no homogéneo"
+    },
+    {
+     "code": "Clear[C1, C2]\nDSolve[{x'[t] == 6 x[t] - 8 y[t] + Exp[3 t], y'[t] == x[t]}, {x[t], y[t]}, t]",
+     "note": "Comprobación con DSolve: la misma familia con las constantes repartidas de otra forma"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e12",
+    "kind": "code",
+    "title": "Sistema no homogéneo",
+    "prompt": "**Guion PL5, ejercicio 4.** Encuentra, sin `DSolve`, la solución general del sistema `x' = 3x + 8y + e^t`, `y' = -x - 3y` por variación de constantes. Guárdala como `solG[t_]`, con las constantes llamadas `K1` y `K2`.",
+    "difficulty": 4,
+    "cmds": [
+     "Eigenvalues",
+     "Eigenvectors",
+     "Solve",
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "PL5 · ejercicio 4",
+    "solution": "m = {{3, 8}, {-1, -3}};\n{l1, l2} = Eigenvalues[m];\n{v1, v2} = Eigenvectors[m];\nsolH[t_] = C1 v1 Exp[l1 t] + C2 v2 Exp[l2 t];\nsolCs = Solve[solH[t] == {Exp[t], 0}, {C1, C2}]\ndCs = {C1, C2} /. Flatten[solCs];\n{C1, C2} = Integrate[dCs, t] + {K1, K2}\nsolG[t_] = solH[t] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "With[{v = solG[t]}, Max[Abs[Flatten[(D[v, t] - ({{3, 8}, {-1, -3}}).v - ({Exp[t], 0})) /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}]]] < 10^-6]",
+       "msg": "`solG[t]` no cumple el sistema completo `Y' = A Y + {e^t, 0}`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{v = solG[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {K1, K2}}]] /. {t -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6}] > 10^-8]",
+       "msg": "La solución debe ser GENERAL: tiene que incluir las constantes `K1`, `K2` multiplicando a soluciones independientes."
+      }
+     ]
+    },
+    "requires": [
+     "Integrate",
+     "Solve"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "Empieza por la homogénea: `m = {{3, 8}, {-1, -3}}`, autovalores y autovectores, `solH[t_] = C1 v1 Exp[l1 t] + C2 v2 Exp[l2 t];`",
+     "`solCs = Solve[solH[t] == {Exp[t], 0}, {C1, C2}]` (el término `e^t` solo está en la primera ecuación) y `dCs = {C1, C2} /. Flatten[solCs];`",
+     "`{C1, C2} = Integrate[dCs, t] + {K1, K2}` y por último `solG[t_] = solH[t] // Simplify`."
+    ],
+    "explain": "Autovalores −1 y 1; `c1' = E^(2t)/2`, `c2' = -1/2`, y al integrar aparece un término `t E^t` en la solución: el `e^t` de la fuerza coincide con un autovalor (resonancia)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e13",
+    "kind": "code",
+    "title": "Del sistema al número",
+    "prompt": "**Prueba de clase de PL5 (curso anterior), adaptado.** La solución general del sistema anterior ya está definida en `solG[t]` (con `K1`, `K2`). Impón `x(0) = 1`, `y(0) = 0`, y calcula en la última línea el valor de `x(2)` en decimal.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Part",
+     "N"
+    ],
+    "real": true,
+    "source": "PL5 · prueba de sesión 2020-21 (adaptado)",
+    "setup": "solG[t_] = {-2 K1 Exp[-t] + Exp[t] (-1/2 - 4 K2 + 2 t), K1 Exp[-t] + Exp[t] (1/4 + K2 - t/2)};",
+    "solution": "sK = Solve[solG[0] == {1, 0}, {K1, K2}]\nsolG[2][[1]] /. Flatten[sK] // N",
+    "check": {
+     "type": "expr",
+     "expected": "40.57214090",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`sK = Solve[solG[0] == {1, 0}, {K1, K2}]`",
+     "`x` es la primera componente: `solG[2][[1]]`.",
+     "`solG[2][[1]] /. Flatten[sK] // N`"
+    ],
+    "explain": "`K1 = 1/4`, `K2 = -1/2` y `x(2)` ≈ 40.57. `[[1]]` extrae la primera componente del vector solución."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e14",
+    "kind": "code",
+    "title": "Examen 2021: sistema con autovalores dados",
+    "prompt": "**Examen de 2021, P5 a).** `Y' = A Y` con autovalores `(-4, 2, 0)` y autovectores `(2, 3, 4)`, `(0, 1, 1)`, `(-1, 2, -2)`. Halla la solución con `Y(0) = (0, 1, -1)` y guárdala como `solF[t_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Flatten",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P5",
+    "solution": "{L1, L2, L3} = {-4, 2, 0};\n{v1, v2, v3} = {{2, 3, 4}, {0, 1, 1}, {-1, 2, -2}};\nsol[t_] = C1 v1 Exp[L1 t] + C2 v2 Exp[L2 t] + C3 v3 Exp[L3 t];\nsolCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]\nsolF[t_] = sol[t] /. Flatten[solCs]",
+    "check": {
+     "type": "value",
+     "expr": "solF[t]",
+     "expected": "{-4/7 + 4 Exp[-4 t]/7, 8/7 + 6 Exp[-4 t]/7 - Exp[2 t], -8/7 + 8 Exp[-4 t]/7 - Exp[2 t]}",
+     "compare": "equal",
+     "msg": "`solF[t]` no es la solución pedida. Revisa el emparejamiento autovalor-autovector y la condición inicial."
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`sol[t_] = C1 v1 Exp[L1 t] + C2 v2 Exp[L2 t] + C3 v3 Exp[L3 t];` con los datos del enunciado.",
+     "`solCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]`",
+     "`solF[t_] = sol[t] /. Flatten[solCs]`"
+    ],
+    "explain": "`C1 = 2/7`, `C2 = -1`, `C3 = 4/7`. Con autovalor 0 la exponencial es 1: ese término es constante."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e15",
+    "kind": "code",
+    "title": "Examen 2021: valores numéricos",
+    "prompt": "**Examen de 2021, P5 b).** Con `solF[t]` ya definida (solución del apartado anterior), devuelve la lista `{y1(0.5), y2(1)}`: la primera componente en t = 0.5 y la segunda en t = 1.",
+    "difficulty": 2,
+    "cmds": [
+     "Part",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P5",
+    "setup": "solF[t_] = {-4/7 + 4 Exp[-4 t]/7, 8/7 + 6 Exp[-4 t]/7 - Exp[2 t], -8/7 + 8 Exp[-4 t]/7 - Exp[2 t]};",
+    "solution": "{solF[0.5][[1]], solF[1][[2]]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{-0.4940941239, -6.230499837}",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Part"
+    ],
+    "hints": [
+     "La componente i del vector es `solF[t][[i]]`.",
+     "`{solF[0.5][[1]], solF[1][[2]]} // N`"
+    ],
+    "explain": "`{-0.4941, -6.2305}`. Hay que evaluar la solución con las constantes YA sustituidas: en el examen original el alumno evaluó la versión con `C1`, `C2` sin sustituir y el resultado no valía."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl5-e16",
+    "kind": "code",
+    "title": "Examen 2021: ¿cuándo vale −2?",
+    "prompt": "**Examen de 2021, P5 c).** Con `solF[t]` ya definida, halla el instante en que la tercera componente vale −2: `y3(t) = -2`. Usa `FindRoot` empezando en t = 0 y devuelve en la última línea el valor de `t`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot",
+     "Part",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P5",
+    "setup": "solF[t_] = {-4/7 + 4 Exp[-4 t]/7, 8/7 + 6 Exp[-4 t]/7 - Exp[2 t], -8/7 + 8 Exp[-4 t]/7 - Exp[2 t]};",
+    "solution": "y3f[t_] = solF[t][[3]];\nr = FindRoot[y3f[t] == -2, {t, 0}]\nt /. r",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "0.1760969352",
+       "compare": "numeric",
+       "tol": 0.0001
+      },
+      {
+       "type": "expr",
+       "expected": "{t -> 0.1760969352}",
+       "compare": "set",
+       "tol": 0.0001,
+       "msg": "El instante no es correcto: resuelve `y3(t) == -2` con `FindRoot` empezando en t = 0."
+      }
+     ]
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`y3f[t_] = solF[t][[3]];` es la tercera componente.",
+     "`r = FindRoot[y3f[t] == -2, {t, 0}]` devuelve una regla; `t /. r` saca el número."
+    ],
+    "explain": "t ≈ 0.1761. Antes de un `FindRoot` conviene dibujar (`Plot[y3f[t], {t, 0, 1}]`) para ver por dónde cruza y elegir bien el punto de partida."
+   }
+  }
+ ]
+}

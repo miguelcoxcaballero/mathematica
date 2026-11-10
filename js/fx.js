@@ -15,7 +15,7 @@ function ensureCtx() {
   try {
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = 0.55;
+    master.gain.value = 0.3; // avisos suaves
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 4;
     master.connect(comp); comp.connect(ctx.destination);
@@ -140,7 +140,9 @@ function layer() {
 }
 
 /* ---- confeti (canvas de partículas compartido) ---- */
-const PALETTE = ['#7c5cff', '#19e3c5', '#22d3ee', '#ff9f43', '#ffd166', '#3ddc97', '#ff5d73', '#ffffff'];
+// Confeti DISCRETO (SPEC §10): pocas piezas pequeñas, colores sobrios, vida corta. Pensado solo para hitos.
+const PALETTE = ['#dd1100', '#f47a00', '#2f73b3', '#2c8f55', '#9b9b9b', '#d98c00'];
+const MAX_CONFETTI = 60;
 let cv = null, c2d = null, parts = [], raf = 0, lastT = 0;
 
 function confettiLoop(t) {
@@ -185,18 +187,19 @@ export function confetti(opts = {}) {
     const r = opts.el.getBoundingClientRect();
     x = r.left + r.width / 2; y = r.top + r.height / 2;
   }
-  const count = Math.min(260, opts.count ?? 110);
-  const spread = opts.spread ?? Math.PI * 1.1;
-  const power = opts.power ?? 1;
+  // se acepta cualquier `count`, pero se reduce (÷3) y se limita: el efecto nunca llena la pantalla
+  const count = Math.min(MAX_CONFETTI, Math.max(8, Math.round((opts.count ?? 90) / 3)), Math.max(0, 90 - parts.length));
+  const spread = opts.spread ?? Math.PI * 0.9;
+  const power = Math.min(1, opts.power ?? 0.8);
   const colors = opts.colors || PALETTE;
   for (let i = 0; i < count; i++) {
     const ang = -Math.PI / 2 + (Math.random() - 0.5) * spread;
-    const sp = (260 + Math.random() * 520) * power;
+    const sp = (180 + Math.random() * 320) * power;
     parts.push({
       x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, grav: 900 + Math.random() * 300,
-      rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 14,
-      w: 5 + Math.random() * 6, h: 8 + Math.random() * 8, shape: Math.random() < 0.8 ? 0 : 1,
-      color: colors[(Math.random() * colors.length) | 0], life: 1.4 + Math.random() * 1.1,
+      rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 12,
+      w: 3 + Math.random() * 3, h: 5 + Math.random() * 5, shape: 0,
+      color: colors[(Math.random() * colors.length) | 0], life: 0.9 + Math.random() * 0.7,
     });
   }
   if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(confettiLoop); }
@@ -237,64 +240,20 @@ export function xpFloat(el, amount) {
   f.style.left = `${Math.max(40, Math.min(innerWidth - 40, r.left + r.width / 2))}px`;
   f.style.top = `${Math.max(30, r.top)}px`;
   layer().appendChild(f);
-  // vuela hacia la barra de XP si está a la vista
-  const target = document.querySelector('.hud-xp');
-  const tr = target?.getBoundingClientRect();
-  if (tr && tr.width) {
-    f.style.setProperty('--dx', `${tr.left + tr.width / 2 - (r.left + r.width / 2)}px`);
-    f.style.setProperty('--dy', `${tr.top - r.top}px`);
-    f.classList.add('fly');
-  }
   f.addEventListener('animationend', () => f.remove());
-  setTimeout(() => f.remove(), 1800);
+  setTimeout(() => f.remove(), 1500);
 }
 
-/* ---- chispas alrededor de un elemento (logros pequeños) ---- */
-export function sparkle(el, color = '#ffd166', n = 10) {
-  if (!fxEnabled() || !el?.getBoundingClientRect) return;
-  const r = el.getBoundingClientRect();
-  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  for (let i = 0; i < n; i++) {
-    const s = document.createElement('i');
-    s.className = 'fx-spark';
-    const ang = (i / n) * 6.283 + Math.random() * 0.5, d = 26 + Math.random() * 34;
-    s.style.cssText = `left:${cx}px;top:${cy}px;background:${color};--sx:${Math.cos(ang) * d}px;--sy:${Math.sin(ang) * d}px`;
-    layer().appendChild(s);
-    s.addEventListener('animationend', () => s.remove());
-    setTimeout(() => s.remove(), 900);
-  }
-}
+/** Antes dibujaba chispas decorativas. El diseño v2 no lleva partículas de adorno: se conserva la función (no hace nada). */
+export function sparkle() { /* intencionadamente vacío */ }
 
 /* ---- subida de nivel ---- */
-let levelOpen = null;
+/** Hito sobrio: sonido corto + aviso de texto + un poco de confeti (si los efectos están activos). */
 export function levelUp(level, title) {
   sfx.play('level');
-  if (!fxEnabled()) { toast(`¡Nivel ${level}! ${title || ''}`.trim(), 'xp', 4200); return; }
-  if (levelOpen) levelOpen.remove();
-  const o = document.createElement('div');
-  o.className = 'fx-level';
-  o.setAttribute('role', 'alertdialog');
-  o.setAttribute('aria-label', `Has subido al nivel ${level}`);
-  o.innerHTML = `
-    <div class="fx-level-rays" aria-hidden="true"></div>
-    <div class="fx-level-card">
-      <div class="fx-level-kicker">NIVEL ALCANZADO</div>
-      <div class="fx-level-hex"><span>${Number(level) || ''}</span></div>
-      <div class="fx-level-title"></div>
-      <div class="fx-level-sub">Sigue así: cada ejercicio te acerca al examen.</div>
-      <button class="btn primary" type="button">Continuar</button>
-    </div>`;
-  o.querySelector('.fx-level-title').textContent = title || `Nivel ${level}`;
-  layer().appendChild(o);
-  levelOpen = o;
-  const close = () => { if (!o.isConnected) return; o.classList.add('out'); setTimeout(() => o.remove(), 300); if (levelOpen === o) levelOpen = null; document.removeEventListener('keydown', onKey, true); };
-  const onKey = (e) => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); } };
-  o.addEventListener('click', close);
-  document.addEventListener('keydown', onKey, true);
-  setTimeout(() => confetti({ y: 0.42, count: 170, power: 1.15 }), 180);
-  setTimeout(() => confetti({ x: 0.2, y: 0.6, count: 60 }), 420);
-  setTimeout(() => confetti({ x: 0.8, y: 0.6, count: 60 }), 520);
-  setTimeout(close, 4200);
+  const msg = h('span', null, h('b', null, `Nivel ${level}`), title ? ` · ${title}` : '');
+  toast(msg, 'xp', 4600);
+  confetti({ x: 0.5, y: 0.9, count: 120, power: 1, spread: Math.PI * 0.7 });
 }
 
 /* =====================================================================
@@ -374,17 +333,33 @@ export function wlPre(code, extraClass = '') {
   return h('pre', { class: `wl sh-wl ${extraClass}`.trim(), html: hlWL(code) });
 }
 
+/** Celda FANTASMA (SPEC §11): el código de referencia sale en gris y el alumno lo teclea para ejecutarlo.
+ *  Usa createCell(host, {ghost}) de notebook.js; si el cuaderno aún no está disponible deja el código de solo lectura. */
+let nbModule = null;
+export function ghostCell(host, code, opts = {}) {
+  host.replaceChildren(wlPre(code));
+  (nbModule ||= import('./notebook.js')).then((nb) => {
+    if (!host.isConnected || typeof nb.createCell !== 'function') return;
+    const box = document.createElement('div');
+    try {
+      nb.createCell(box, { ghost: code, ...opts });
+      host.replaceChildren(box);
+    } catch (e) { console.warn('[fx] ghostCell', e); }
+  }).catch(() => { nbModule = null; });
+  return host;
+}
+
 /** Anillo de progreso SVG. ring({pct:0..1, size, stroke, color, label, sub}) */
 export function ring({ pct = 0, size = 120, stroke = 10, color = 'var(--accent)', color2 = null, label = '', sub = '', cls = '' } = {}) {
+  void color2; // el diseño v2 no usa degradados: trazo plano de un solo color
+  stroke = Math.min(stroke, Math.max(3, Math.round(size / 18)));
   const r = (size - stroke) / 2, c = 2 * Math.PI * r;
   const p = Math.max(0, Math.min(1, pct || 0));
-  const id = 'rg' + Math.random().toString(36).slice(2, 8);
   const wrap = h('div', { class: `ring ${cls}`.trim(), style: { width: size + 'px', height: size + 'px' }, role: 'img', 'aria-label': `${Math.round(p * 100)} %` });
   wrap.innerHTML = `
     <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true">
-      <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="${color2 || color}"/></linearGradient></defs>
-      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="${stroke}"/>
-      <circle class="ring-arc" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#${id})" stroke-width="${stroke}" stroke-linecap="round"
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>
+      <circle class="ring-arc" cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
         stroke-dasharray="${c}" stroke-dashoffset="${c}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
     </svg>
     <div class="ring-in"><b></b><small></small></div>`;
@@ -403,8 +378,8 @@ export function yearBadge(year, text) {
 
 /** Estado vacío / en construcción / error. */
 export function emptyState({ icon: ic = 'wrench', title = 'En construcción', text = '', actions = [] } = {}) {
+  void ic; // el diseño v2 no lleva icono decorativo: solo texto
   return h('div', { class: 'empty' },
-    h('div', { class: 'empty-ic', 'aria-hidden': 'true', html: icon(ic, 34) }),
     h('h3', null, title),
     text ? h('p', { class: 'muted' }, text) : null,
     actions.length ? h('div', { class: 'row empty-actions' }, actions) : null);
@@ -459,6 +434,7 @@ const ICONS = {
   rocket: '<path d="M12 2.5c3.5 2.5 5 6 5 9.5l-2 4.5H9L7 12c0-3.5 1.5-7 5-9.5z"/><circle cx="12" cy="9.5" r="1.8"/><path d="M9 16.5 7 21l3-1.5M15 16.5l2 4.5-3-1.5M7 12l-3 3.5 3.5.5M17 12l3 3.5-3.5.5"/>',
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
   dice: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="8.7" cy="8.7" r=".9"/><circle cx="15.3" cy="15.3" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="15.3" cy="8.7" r=".9"/><circle cx="8.7" cy="15.3" r=".9"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   wrench: '<path d="M14.5 6.5a4.5 4.5 0 0 0-6 5.6L3.5 17l3.5 3.5 4.9-5a4.5 4.5 0 0 0 5.6-6l-3 3-2.5-2.5z"/>',
   alert: '<path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.2v.3"/>',

@@ -1,0 +1,688 @@
+{
+ "id": "1-p26",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo II",
+ "order": 26,
+ "title": "Series numéricas y de potencias",
+ "summary": "Sumar series con Sum, decidir si convergen, controlar el error de una serie alternada con NestWhile, hallar el radio de convergencia de una serie de potencias con Limit y construir polinomios de Taylor con Series y Normal.",
+ "minutes": 50,
+ "commands": [
+  "Sum",
+  "SumConvergence",
+  "NestWhile",
+  "Series",
+  "Normal"
+ ],
+ "uses": [
+  "Limit",
+  "Abs",
+  "N",
+  "Function",
+  "Plot",
+  "Table",
+  "Exp",
+  "Part",
+  "Infinity"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Sumar infinitos términos",
+   "md": "Una **serie** es una suma de infinitos términos. Si los términos se hacen pequeños lo bastante rápido, la suma da un número: la serie **converge**. Con series se aproximan funciones complicadas por polinomios (Taylor), que es lo que hace por dentro cualquier calculadora o simulador de vuelo.\n\n`Sum[término, {n, desde, hasta}]` suma el término para `n = desde, desde + 1, ..., hasta`.\n\n- `{n, 1, 4}` = variable, primer valor, último valor.\n- Si el último valor es `Infinity`, Mathematica intenta la suma de la serie completa.\n- Con `// N` al final obtienes el decimal.",
+   "cells": [
+    {
+     "code": "Sum[n^2, {n, 1, 4}]",
+     "note": "1 + 4 + 9 + 16"
+    },
+    {
+     "code": "Sum[1/n^2, {n, 1, Infinity}]",
+     "note": "una serie famosa: suma exacta"
+    },
+    {
+     "code": "Sum[1/n^2, {n, 1, Infinity}] // N",
+     "note": "en decimal"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e01",
+    "kind": "code",
+    "title": "Una serie geométrica",
+    "prompt": "Calcula la suma de la serie de término `1/2^n` desde `n = 1` hasta infinito.",
+    "difficulty": 1,
+    "cmds": [
+     "Sum"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Sum[1/2^n, {n, 1, Infinity}]",
+    "check": {
+     "type": "expr",
+     "expected": "1"
+    },
+    "requires": [
+     "Sum",
+     "Infinity"
+    ],
+    "hints": [
+     "Infinito se escribe `Infinity`, con mayúscula.",
+     "`Sum[1/2^n, {n, 1, Infinity}]`"
+    ],
+    "explain": "`1/2 + 1/4 + 1/8 + ... = 1`. Fíjate en que la serie empieza en `n = 1`: si empezara en 0, sumaría 2."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "El término general como función",
+   "md": "En las pruebas el término general se define como una función de `n`, igual que definías `f[x_]`:\n\n`a[n_] := (3 n + 2)/5^n`\n\n- `n_` (con guion bajo) significa «cualquier valor»; sin él solo valdría para el símbolo `n`.\n- Después puedes pedir un término, `a[3]`, una lista de términos con `Table`, o la suma con `Sum[a[n], {n, 1, Infinity}]`.",
+   "cells": [
+    {
+     "code": "a[n_] := 1/(n (n + 1))\nTable[a[n], {n, 1, 5}]",
+     "note": "los cinco primeros términos"
+    },
+    {
+     "code": "Sum[a[n], {n, 1, Infinity}]",
+     "note": "la suma de la serie"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e02",
+    "kind": "code",
+    "title": "Suma de una serie",
+    "prompt": "Sea el término general `a_n = (3 n + 2)/5^n`. Defínelo como `a[n_]` y calcula la suma de la serie desde `n = 1` hasta infinito. Da el resultado en decimal.",
+    "difficulty": 2,
+    "cmds": [
+     "Sum",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P2 a)",
+    "solution": "a[n_] := (3 n + 2)/5^n\nSum[a[n], {n, 1, Infinity}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "1.4375",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Sum"
+    ],
+    "hints": [
+     "`a[n_] := (3 n + 2)/5^n`",
+     "`Sum[a[n], {n, 1, Infinity}] // N`"
+    ],
+    "explain": "La suma exacta es `23/16 = 1.4375`. En la prueba se admitía 1.4374–1.4376."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "¿Converge? SumConvergence y el criterio del cociente",
+   "md": "No todas las series tienen suma. Dos formas de saberlo:\n\n- `SumConvergence[término, n]` responde directamente `True` (converge) o `False` (diverge).\n- **Criterio del cociente**: calcula `L = Limit[Abs[a[n + 1]/a[n]], n -> Infinity]`. Si `L < 1` converge; si `L > 1` diverge; si `L = 1` el criterio no decide.\n\n`Limit[expr, n -> Infinity]` ya lo conoces: la flecha `->` indica hacia dónde tiende la variable. `Abs` es el valor absoluto.",
+   "cells": [
+    {
+     "code": "SumConvergence[1/n^2, n]",
+     "note": "converge"
+    },
+    {
+     "code": "SumConvergence[1/n, n]",
+     "note": "la serie armónica diverge, aunque sus términos tiendan a 0"
+    },
+    {
+     "code": "c[n_] := n/3^n\nLimit[Abs[c[n + 1]/c[n]], n -> Infinity]",
+     "note": "cociente: L = 1/3 < 1, converge"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e03",
+    "kind": "code",
+    "title": "Criterio del cociente",
+    "prompt": "Aplica el criterio del cociente a la serie de término `a_n = n^2/2^n`: define `a[n_]` y calcula `L`, el límite de `Abs[a[n + 1]/a[n]]` cuando `n` tiende a infinito.",
+    "difficulty": 2,
+    "cmds": [
+     "Limit",
+     "Abs"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "a[n_] := n^2/2^n\nLimit[Abs[a[n + 1]/a[n]], n -> Infinity]",
+    "check": {
+     "type": "expr",
+     "expected": "1/2"
+    },
+    "requires": [
+     "Limit"
+    ],
+    "hints": [
+     "`a[n_] := n^2/2^n`",
+     "`Limit[Abs[a[n + 1]/a[n]], n -> Infinity]`"
+    ],
+    "explain": "`L = 1/2 < 1`: la serie converge. Si hubiera salido mayor que 1 divergiría, y con `L = 1` el criterio no decide (prueba entonces `SumConvergence`)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Series alternadas: Leibniz, funciones puras y NestWhile",
+   "md": "En una serie **alternada** (signos + − + −) cuyos términos decrecen hacia 0, el criterio de Leibniz dice algo muy útil: si cortas la suma justo antes del término `k`, el error es menor que `|b_k|`, el primer término que no sumas.\n\nAsí que «¿cuántos términos hacen falta para un error menor que `10^-5`?» se traduce en: **busca el primer `k` con `|b_k| < 10^-5`**.\n\nEso se hace con `NestWhile[función, inicio, condición]`: aplica la función una y otra vez **mientras** la condición sea cierta y devuelve el primer valor que ya no la cumple.\n\nLa función y la condición se escriben como **funciones puras**: `#` es el argumento y `&` marca el final.\n\n- `# + 1 &` = «súmale 1».\n- `Abs[b[#]] >= 10^-5 &` = «¿el término todavía es demasiado grande?».",
+   "cells": [
+    {
+     "code": "(# + 1 &)[5]",
+     "note": "la función pura «sumar 1» aplicada a 5"
+    },
+    {
+     "code": "NestWhile[# + 1 &, 1, #^2 < 50 &]",
+     "note": "empieza en 1 y suma 1 mientras el cuadrado sea menor que 50"
+    },
+    {
+     "code": "d[n_] := (-1)^n/n^2\nNestWhile[# + 1 &, 1, Abs[d[#]] >= 10^-2 &]",
+     "note": "primer k con |d_k| < 0.01"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e04",
+    "kind": "code",
+    "title": "Buscar con NestWhile",
+    "prompt": "Usa `NestWhile` para hallar el primer entero `n` (empezando en 1) cuyo cuadrado **no** es menor que 200.",
+    "difficulty": 2,
+    "cmds": [
+     "NestWhile",
+     "Function"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "NestWhile[# + 1 &, 1, #^2 < 200 &]",
+    "check": {
+     "type": "expr",
+     "expected": "15"
+    },
+    "requires": [
+     "NestWhile"
+    ],
+    "hints": [
+     "`NestWhile[# + 1 &, 1, condición &]` suma 1 mientras se cumpla la condición.",
+     "La condición para **seguir** es `#^2 < 200 &`."
+    ],
+    "explain": "Devuelve 15 (`14^2 = 196` todavía es menor; `15^2 = 225` ya no). `NestWhile` devuelve el **primer** valor que deja de cumplir la condición."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e05",
+    "kind": "code",
+    "title": "El primer término despreciable",
+    "prompt": "Sea `b_n = (-1)^n/(n^2 + 37 n + 40)` (ya definido como `b[n_]`).\n\nb) Halla el primer `k` para el que el error al sumar solo hasta `k - 1` es menor que `10^-5`, es decir (Leibniz), el primer `k` con `|b_k| < 10^-5`. Guárdalo en `k`.",
+    "difficulty": 4,
+    "cmds": [
+     "NestWhile",
+     "Abs",
+     "Function"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P2 b)",
+    "setup": "b[n_] := (-1)^n/(n^2 + 37 n + 40)",
+    "solution": "k = NestWhile[# + 1 &, 1, Abs[b[#]] >= 10^(-5) &]",
+    "check": {
+     "type": "expr",
+     "expected": "299"
+    },
+    "requires": [
+     "NestWhile"
+    ],
+    "hints": [
+     "`NestWhile[# + 1 &, 1, condición &]` empieza en 1 y va sumando 1.",
+     "La condición para **seguir** es que el término aún sea grande: `Abs[b[#]] >= 10^(-5) &`.",
+     "`k = NestWhile[# + 1 &, 1, Abs[b[#]] >= 10^(-5) &]`"
+    ],
+    "explain": "k = 299. La condición de `NestWhile` es la contraria de lo que buscas: sigues **mientras** `|b_k| >= 10^-5` y paras en el primero que baja de ahí."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e06",
+    "kind": "code",
+    "title": "Suma parcial y cota de Leibniz",
+    "prompt": "Con `b[n_]` ya definido y `k = 299`:\n\nc) Calcula la suma parcial de `b_n` desde `n = 1` hasta `k - 1`. d) Calcula `|b_k|` y comprueba que es menor que `10^-5`.\n\nDeja como última salida la lista `{suma parcial, |b_k|}` en decimal.",
+    "difficulty": 3,
+    "cmds": [
+     "Sum",
+     "Abs",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P2 c) y prueba de 2026 d)",
+    "setup": "b[n_] := (-1)^n/(n^2 + 37 n + 40)\nk = 299;",
+    "solution": "{Sum[b[n], {n, 1, k - 1}], Abs[b[k]]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{-0.007874539103, 0.00000994985274}",
+     "compare": "numeric",
+     "tol": 1e-09
+    },
+    "requires": [
+     "Sum"
+    ],
+    "hints": [
+     "Suma parcial: `Sum[b[n], {n, 1, k - 1}]` (hasta `k - 1`, no hasta `k`).",
+     "`{Sum[b[n], {n, 1, k - 1}], Abs[b[k]]} // N`"
+    ],
+    "explain": "Suma parcial ≈ −0.00787454 y |b_299| ≈ 0.00000995 < 10^-5. Si piden «8 decimales», redondea tú la salida larga: −0.00787454."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Series de potencias y radio de convergencia",
+   "md": "Una **serie de potencias** tiene una `x` dentro: suma de `a_n (x - x0)^(p n)`. Converge para los `x` que están a menos de una distancia `R` del centro `x0`: el **radio de convergencia**.\n\nReceta del enunciado de la práctica:\n\n- `L = Limit[Abs[a[n + 1]/a[n]], n -> Infinity]` (solo con los coeficientes `a_n`, sin la `x`).\n- `R = 1/L^(1/p)`, donde `p` es lo que multiplica a `n` en el exponente de `(x - x0)`. Si el exponente es `n`, `p = 1`; si es `2 n`, `p = 2`.\n- Intervalo de convergencia absoluta: de `x0 - R` a `x0 + R`, abiertos. En los extremos hay que mirar aparte, por ejemplo con `SumConvergence`.",
+   "cells": [
+    {
+     "code": "a[n_] := 1/4^n\nL = Limit[Abs[a[n + 1]/a[n]], n -> Infinity]",
+     "note": "serie de a_n (x - 1)^(2n): L = 1/4"
+    },
+    {
+     "code": "R = 1/L^(1/2)",
+     "note": "p = 2, así que R = 2: converge absolutamente entre 1 - 2 y 1 + 2"
+    },
+    {
+     "code": "SumConvergence[a[n] (3 - 1)^(2 n), n]",
+     "note": "en el extremo x = 3 los términos valen 1: no converge"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e07",
+    "kind": "code",
+    "title": "Radio de convergencia",
+    "prompt": "Considera la serie de potencias de término `(x - 53)^(2 n)/Pi^(8 n)`, desde `n = 0`.\n\na) Calcula su **radio de convergencia** (valor numérico). Guárdalo en `R`.",
+    "difficulty": 4,
+    "cmds": [
+     "Limit",
+     "Abs",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P3 a)",
+    "solution": "a[n_] := 1/Pi^(8 n)\nL = Limit[Abs[a[n + 1]/a[n]], n -> Infinity];\nR = 1/L^(1/2) // N",
+    "check": {
+     "type": "expr",
+     "expected": "97.409091034",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Limit"
+    ],
+    "hints": [
+     "Coeficientes: `a[n_] := 1/Pi^(8 n)`. El exponente de `(x - 53)` es `2 n`: `p = 2`.",
+     "`L = Limit[Abs[a[n + 1]/a[n]], n -> Infinity]` y `R = 1/L^(1/2)`."
+    ],
+    "explain": "`L = 1/Pi^8` y `R = Pi^4 ≈ 97.4091`. El error típico es olvidar el `1/p` y contestar `Pi^8`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e08",
+    "kind": "code",
+    "title": "Intervalo de convergencia",
+    "prompt": "Para la misma serie (centro `x0 = 53`, radio `R = Pi^4`, ya definidos), b) da el intervalo en el que converge absolutamente como una lista `{extremo inferior, extremo superior}` en decimal.",
+    "difficulty": 2,
+    "cmds": [
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P3 b)",
+    "setup": "x0 = 53; R = Pi^4;",
+    "solution": "intervalo = {x0 - R, x0 + R} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{-44.409091034, 150.409091034}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "El intervalo va de `x0 - R` a `x0 + R`.",
+     "`{x0 - R, x0 + R} // N`"
+    ],
+    "explain": "] −44.4091, 150.409 [. Guardarlo como lista permite luego pedir el extremo superior con `intervalo[[2]]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e09",
+    "kind": "code",
+    "title": "¿Converge en el extremo?",
+    "prompt": "Misma serie: término `f[x_, n_] := (x - 53)^(2 n)/Pi^(8 n)` (ya definido), con `x0 = 53` y `R = Pi^4`.\n\nc) Estudia con `SumConvergence` si la serie converge en el **extremo superior** del intervalo, `x = x0 + R`.",
+    "difficulty": 3,
+    "cmds": [
+     "SumConvergence"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P3 c)",
+    "setup": "f[x_, n_] := (x - 53)^(2 n)/Pi^(8 n)\nx0 = 53; R = Pi^4;",
+    "solution": "SumConvergence[f[x0 + R, n], n]",
+    "check": {
+     "type": "expr",
+     "expected": "False",
+     "compare": "same"
+    },
+    "requires": [
+     "SumConvergence"
+    ],
+    "hints": [
+     "Sustituye `x` por `x0 + R` en el término: `f[x0 + R, n]`.",
+     "`SumConvergence[f[x0 + R, n], n]`"
+    ],
+    "explain": "`False`: en el extremo todos los términos valen 1 y la suma se va a infinito. En la prueba la casilla era 0 (no converge)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e10",
+    "kind": "code",
+    "title": "La versión de 2026",
+    "prompt": "Considera la serie de potencias de término `(83 - x)^(2 n)/Pi^(10 n)`, desde `n = 0`.\n\nCalcula su radio de convergencia `R` y el intervalo de convergencia absoluta. Deja como última salida la lista `{R, extremo inferior, extremo superior}` en decimal.",
+    "difficulty": 4,
+    "cmds": [
+     "Limit",
+     "Abs",
+     "N"
+    ],
+    "real": true,
+    "source": "Prueba de series · mayo 2026 (captura)",
+    "solution": "a[n_] := 1/Pi^(10 n)\nL = Limit[Abs[a[n + 1]/a[n]], n -> Infinity];\nR = 1/L^(1/2);\n{R, 83 - R, 83 + R} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{306.019684785, -223.019684785, 389.019684785}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Limit"
+    ],
+    "hints": [
+     "`(83 - x)^(2 n)` es lo mismo que `(x - 83)^(2 n)`: el centro es 83 y `p = 2`.",
+     "Coeficientes `a[n_] := 1/Pi^(10 n)`; `R = 1/L^(1/2)`.",
+     "`{R, 83 - R, 83 + R} // N`"
+    ],
+    "explain": "`R = Pi^5 ≈ 306.020`, intervalo ] −223.020, 389.020 [. Misma receta cambiando dos números; en el extremo superior tampoco converge."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Polinomios de Taylor: Series y Normal",
+   "md": "`Series[f, {x, x0, n}]` desarrolla `f` en potencias de `(x - x0)` hasta orden `n`.\n\n- `{x, x0, n}` = variable, **centro** del desarrollo, **orden**. Con `x0 = 0` se llama desarrollo de McLaurin.\n- El resultado termina en `O[x]^(n+1)`: es un objeto «serie», no un polinomio, y no se puede evaluar ni dibujar tal cual.\n- `Normal[...]` (o `// Normal`) quita ese término y deja el **polinomio**.\n\nPara guardarlo como función se usa `=` y no `:=`:\n\n`T[x_] = Series[Cos[x], {x, 0, 4}] // Normal`\n\nCon `=` el desarrollo se calcula una vez, ahora, con `x` simbólica. Con `:=` se intentaría recalcular en cada llamada con el número ya metido, `Series[Cos[0.5], {0.5, 0, 4}]`, que no tiene sentido.",
+   "cells": [
+    {
+     "code": "Series[Exp[x], {x, 0, 4}]",
+     "note": "serie con su término de resto"
+    },
+    {
+     "code": "Normal[Series[Exp[x], {x, 0, 4}]]",
+     "note": "el polinomio"
+    },
+    {
+     "code": "T[x_] = Series[Cos[x], {x, 0, 4}] // Normal;\n{Cos[0.5], T[0.5], Cos[3.], T[3.]}",
+     "note": "cerca del centro el polinomio casi clava la función; lejos, no"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e11",
+    "kind": "code",
+    "title": "McLaurin del seno",
+    "prompt": "Obtén el polinomio de McLaurin (centro 0) de orden 5 de `Sin[x]`.",
+    "difficulty": 2,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Normal[Series[Sin[x], {x, 0, 5}]]",
+    "check": {
+     "type": "expr",
+     "expected": "x - x^3/6 + x^5/120"
+    },
+    "requires": [
+     "Series",
+     "Normal"
+    ],
+    "hints": [
+     "`Series[Sin[x], {x, 0, 5}]` y después `Normal`.",
+     "`Normal[Series[Sin[x], {x, 0, 5}]]`"
+    ],
+    "explain": "`x - x^3/6 + x^5/120`. Sin `Normal` la salida llevaría el término `O[x]^6` y no sería un polinomio."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e12",
+    "kind": "fix",
+    "title": "Un Taylor mal definido",
+    "prompt": "Esta celda quiere definir `T[x]` como el polinomio de McLaurin de orden 4 de `Cos[x]` y evaluarlo en `0.5`. Tiene **tres errores**: corrígela.",
+    "difficulty": 3,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "T[x_] := Series[Cos[x], (x, 0, 4)]\nT[0.5]",
+    "solution": "T[x_] = Normal[Series[Cos[x], {x, 0, 4}]];\nT[0.5]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "0.8776041667",
+       "compare": "numeric",
+       "tol": 1e-07
+      },
+      {
+       "type": "satisfies",
+       "test": "PolynomialQ[T[x], x]",
+       "msg": "`T[x]` debe ser un polinomio: te falta `Normal`."
+      }
+     ]
+    },
+    "requires": [
+     "Normal"
+    ],
+    "hints": [
+     "El iterador va entre **llaves**: `{x, 0, 4}`.",
+     "Falta `Normal` para convertir la serie en polinomio.",
+     "Usa `=` en lugar de `:=` para que el desarrollo se calcule una sola vez con `x` simbólica."
+    ],
+    "explain": "Llaves en `{x, 0, 4}`, `Normal` y `=`. El enunciado de la prueba escribe `Series[f[x],(x,x0,n)]` con paréntesis, pero la sintaxis real lleva llaves."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e13",
+    "kind": "code",
+    "title": "Dos polinomios de Taylor",
+    "prompt": "Sea `f(x) = (1 - Exp[-2 x^2])/x^2` (ya definida como `f[x_]`). Define:\n\na) `T0[x]`: el desarrollo de McLaurin de orden 5 de `f`.\n\nb) `T3[x]`: el desarrollo de Taylor de `f` de orden 5 en potencias de `(x - 3)`.",
+    "difficulty": 4,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P4 a) y b)",
+    "setup": "f[x_] := (1 - Exp[-2 x^2])/x^2",
+    "solution": "T0[x_] = Series[f[x], {x, 0, 5}] // Normal;\nT3[x_] = Series[f[x], {x, 3, 5}] // Normal;",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "PolynomialQ[T0[x], x] && PolynomialQ[T3[x], x]",
+       "msg": "`T0[x]` y `T3[x]` deben ser polinomios: usa `Normal` y define con `=`."
+      },
+      {
+       "type": "value",
+       "expr": "{T0[0.5], T3[2.95]}",
+       "expected": "{1.5833333333, 0.1149095056}",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "requires": [
+     "Series",
+     "Normal"
+    ],
+    "hints": [
+     "`T0[x_] = Series[f[x], {x, 0, 5}] // Normal;`",
+     "Para `T3` cambia el centro: `{x, 3, 5}`. «En potencias de (x − 3)» significa centro 3."
+    ],
+    "explain": "El segundo número del iterador es el centro y el tercero el orden. `T0` sale `2 - 2 x^2 + 4 x^4/3`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e14",
+    "kind": "code",
+    "title": "Comparar cerca y lejos del centro",
+    "prompt": "Ya están definidas `f[x]`, `T0[x]` (McLaurin de orden 5) y `T3[x]` (Taylor de orden 5 centrado en 3).\n\nc) Calcula con 6 cifras `f`, `T0` y `T3` en `0.5` y en `2.95`. Deja como salida la lista `{f[0.5], T0[0.5], T3[0.5], f[2.95], T0[2.95], T3[2.95]}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Series"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P4 c)",
+    "setup": "f[x_] := (1 - Exp[-2 x^2])/x^2\nT0[x_] = Series[f[x], {x, 0, 5}] // Normal;\nT3[x_] = Series[f[x], {x, 3, 5}] // Normal;",
+    "solution": "{f[0.5], T0[0.5], T3[0.5], f[2.95], T0[2.95], T3[2.95]}",
+    "check": {
+     "type": "expr",
+     "expected": "{1.5738773611, 1.5833333333, 1.3203985757, 0.1149095056, 85.5730083333, 0.1149095056}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "Solo hay que evaluar las tres funciones en los dos puntos y meterlo todo en una lista."
+    ],
+    "explain": "En 0.5 gana `T0` (1.58333 frente a 1.57388); en 2.95 `T0` se dispara a 85.57 y `T3` clava el 0.114910. Un polinomio de Taylor solo es fiable **cerca de su centro**."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e15",
+    "kind": "code",
+    "title": "Verlo en una gráfica",
+    "prompt": "Con `f[x]`, `T0[x]` y `T3[x]` ya definidas, dibuja las tres juntas para `x` entre `-1` y `6`, con el rango vertical limitado a `{-1, 3}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 26 · P4",
+    "setup": "f[x_] := (1 - Exp[-2 x^2])/x^2\nT0[x_] = Series[f[x], {x, 0, 5}] // Normal;\nT3[x_] = Series[f[x], {x, 3, 5}] // Normal;",
+    "solution": "Plot[{f[x], T0[x], T3[x]}, {x, -1, 6}, PlotRange -> {-1, 3}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 3,
+     "like": "Plot[{f[x], T0[x], T3[x]}, {x, -1, 6}, PlotRange -> {-1, 3}]",
+     "tol": 0.05
+    },
+    "requires": [
+     "Plot",
+     "PlotRange"
+    ],
+    "hints": [
+     "Varias funciones en un mismo `Plot`: van en una lista `{f[x], T0[x], T3[x]}`.",
+     "La opción `PlotRange -> {-1, 3}` recorta el eje vertical."
+    ],
+    "explain": "Sin `PlotRange`, `T0` (que crece como `x^4`) aplastaría la gráfica. Se ve que cada polinomio se pega a `f` solo alrededor de su centro."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e16",
+    "kind": "code",
+    "title": "La versión de 2026",
+    "prompt": "Sea `f(x) = (1 - Exp[-3 x^2])/x^2`. Define `T0[x]` como su desarrollo de McLaurin de orden 5 y `T5[x]` como su desarrollo de Taylor de orden 4 en potencias de `(x - 5)`.\n\nDeja como última salida la lista `{f[0.3], T0[0.3], T5[0.3], f[4.7], T0[4.7], T5[4.7]}`.",
+    "difficulty": 4,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": true,
+    "source": "Prueba de series · mayo 2026 (captura)",
+    "solution": "f[x_] := (1 - Exp[-3 x^2])/x^2\nT0[x_] = Series[f[x], {x, 0, 5}] // Normal;\nT5[x_] = Series[f[x], {x, 5, 4}] // Normal;\n{f[0.3], T0[0.3], T5[0.3], f[4.7], T0[4.7], T5[4.7]}",
+    "check": {
+     "type": "expr",
+     "expected": "{2.6291167296, 2.63145, 0.510275232, 0.0452693526, 2099.45145, 0.045269152}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Series",
+     "Normal"
+    ],
+    "hints": [
+     "Cuidado con el orden y el centro de cada uno: `{x, 0, 5}` para `T0` y `{x, 5, 4}` para `T5`.",
+     "Define con `=` y `// Normal`, y evalúa en `0.3` y `4.7`."
+    ],
+    "explain": "Cerca de 0 acierta `T0` (2.63145 frente a 2.62912) y cerca de 5 acierta `T5` (0.0452692 frente a 0.0452694); cada uno falla estrepitosamente en el punto del otro."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p26-e17",
+    "kind": "code",
+    "title": "Examen: Taylor de orden 8",
+    "prompt": "Considera la función `f(x) = 7 + Exp[-(2 x - Pi)^2]/(2 x)`.\n\na) Define `T8[x]` como el desarrollo de Taylor de `f` de orden 8 en potencias de `(x + 1)`.\n\nb) Calcula con 6 cifras `f(-1.5)`, `T8(-1.5)`, `f(4.35)` y `T8(4.35)`. Deja como salida la lista `{f[-1.5], T8[-1.5], f[4.35], T8[4.35]}`.",
+    "difficulty": 4,
+    "cmds": [
+     "Series",
+     "Normal",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen PL2 · junio 2018 · P5 (Cálculo de varias variables)",
+    "solution": "f[x_] := 7 + Exp[-(2 x - Pi)^2]/(2 x)\nT8[x_] = Series[f[x], {x, -1, 8}] // Normal;\n{f[-1.5], T8[-1.5], f[4.35], T8[4.35]}",
+    "check": {
+     "type": "expr",
+     "expected": "{7., 6.9999999975, 7.0000000000, 6.1128803401}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Series",
+     "Normal"
+    ],
+    "hints": [
+     "«En potencias de (x + 1)» significa centro `x0 = -1`: `Series[f[x], {x, -1, 8}]`.",
+     "`T8[x_] = Series[f[x], {x, -1, 8}] // Normal;`"
+    ],
+    "explain": "Cerca de −1 el polinomio da 7.00000 (igual que `f`); en 4.35 da 6.11288 cuando `f` vale 7. «Analiza el porqué»: el desarrollo solo aproxima bien alrededor de su centro."
+   }
+  }
+ ]
+}

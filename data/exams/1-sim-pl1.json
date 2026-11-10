@@ -1,0 +1,280 @@
+{
+ "id": "1-sim-pl1",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "title": "Simulacro · examen PL1 de Mathematica (Cálculo I)",
+ "durationMin": 75,
+ "intro": "**Cómo es el examen real (ExPL1, Cálculo de una variable).** Se hace en aula informática con Mathematica y la herramienta Exámenes de PoliformaT. Son preguntas de «completar los espacios en blanco»: tecleas números en casillas y se corrigen solos por **rango** (por ejemplo, vale cualquier valor entre 3.54784 y 3.54804). Siempre caen los mismos seis tipos, casi en el mismo orden y con estos puntos: complejos (2.0), curva paramétrica (1.8), EDO lineal de segundo orden (1.5), integrales impropias (0.9), Newton–Raphson (1.6) y curva en polares con rectas (2.1). La primera pregunta es de control y la última pide subir el cuaderno `.nb`.\n\n**Reglas de las casillas.** Solo números, con punto o coma decimal, signo y notación `E` (5.3E-9). Casi siempre piden «6 dígitos» (cifras significativas); algunos apartados piden 10 u 11. Un complejo se da en dos casillas: parte real y parte imaginaria. Si una integral impropia diverge se escribe el número que diga el enunciado (aquí, `999`).\n\n**Qué se permite.** Tu cuaderno de recetas («chuleta») con una plantilla por tipo de pregunta. Se trabaja en un cuaderno y se sube al final; si no lo subes pierdes el derecho a revisión.\n\n**Cómo responder aquí.** Resuelve en el cuaderno de al lado y copia cada número en su casilla con 6 cifras significativas, salvo que el apartado pida otra cosa. Tolerancia: 0,1 % relativo, salvo indicación.\n\n**Consejos de tiempo.**\n\n- La duración real no consta en el material; aquí tienes 75 min, unos 10 min por pregunta.\n- Empieza cada pregunta con `ClearAll[\"Global`*\"]`: una `x`, una `y` o una `f` de la pregunta anterior es el fallo más frecuente.\n- Lee bien cuántos dígitos pide cada casilla y el orden de las casillas.\n- Polares es la que más puntúa y es pura plantilla: no la dejes para el último minuto.\n\nLos enunciados siguen el examen del 16/12/2021 con **datos adaptados** (los números son nuevos; el tipo de pregunta y los comandos son los mismos). La pregunta de polares se reparte aquí en dos (P6 y P7).",
+ "source": "Estructura, tipos de pregunta y puntuación del examen PL1 del 16/12/2021 (y de los de 2015–2019) y recetas R1–R6 del recetario; todos los datos numéricos son adaptados.",
+ "questions": [
+  {
+   "title": "P1 · Números complejos",
+   "prompt": "Considera el número complejo `z0 = 2 E - Sqrt[3 Pi] I` (es decir, 2e − √(3π) i).\n\na) Calcula su módulo. b) Calcula la determinación 40 de su argumento, `arg40(z0)`: el valor del argumento que cae en el intervalo `(40 - Pi, 40 + Pi]`. c) y d) Halla el complejo `z1` que resulta de girar el afijo de `z0` un ángulo de `1234` grados **en sentido horario**.",
+   "points": 2.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Módulo `|z0|`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 6.243477,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\n{Abs[z], Arg[z]} // N   (* módulo y argumento principal *)\nAbs[z] // N",
+     "explain": "`Abs` da el módulo y `Arg` el argumento principal (entre `-Pi` y `Pi`). El punto está en el cuarto cuadrante, así que el argumento principal es negativo: `-0.514052`. Error típico: escribir `i` o `e` en minúscula; las constantes son `I` y `E`."
+    },
+    {
+     "label": "b)",
+     "prompt": "`arg40(z0)`, en radianes, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 37.18506,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\nvueltas[a_, w_] := FixedPoint[If[a - Pi < Arg[w] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, w_] := Arg[w] + 2 Pi*vueltas[a, w]\narg[40, z] // N",
+     "explain": "Todos los argumentos son `Arg[z] + 2 k Pi`. La determinación 40 es el que queda a menos de `Pi` de 40: aquí `k = 6`. El bloque `vueltas`/`arg` de la chuleta va sumando vueltas hasta entrar en el intervalo; solo se cambia el 40. Comprueba que el resultado está entre `40 - Pi` y `40 + Pi`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de `z1`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -6.232142,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\nz1 = z*Exp[I*(-1234)*Degree] // N   (* horario = ángulo negativo *)\nRe[z1]",
+     "explain": "Girar un complejo un ángulo `θ` es multiplicarlo por `E^(I θ)`. Sentido horario significa ángulo **negativo**, y los grados se pasan a radianes con `Degree`. Error típico (el que más puntos quita): olvidar el signo menos."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de `z1`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.3760472,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\nz1 = z*Exp[I*(-1234)*Degree] // N;\nIm[z1]",
+     "explain": "`Re` e `Im` separan las dos partes para las dos casillas. El módulo no cambia al girar: `Abs[z1]` debe seguir siendo `6.24348`; úsalo como comprobación rápida."
+    }
+   ]
+  },
+  {
+   "title": "P2 · Curva paramétrica",
+   "prompt": "Representa el arco de curva de ecuaciones paramétricas `(x(t), y(t)) = (3 t^2/8 + 2, -4 Sin[3 t/5])` con `-5 Pi/3 < t < 5 Pi/3`. Es una curva cerrada y simétrica respecto del eje OX.",
+   "points": 1.8,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Área de la región plana que encierra la curva, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 52.35988,
+     "tol": 0.001,
+     "points": 0.6,
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nA = N[Integrate[y[t]*x'[t], {t, b, a}], 6]",
+     "explain": "Área encerrada por una curva paramétrica: integral de `y(t) x'(t)`. El signo depende del sentido de recorrido: si sale negativa, invierte los límites o toma el valor absoluto (la casilla quiere el valor positivo). `x'[t]` es la derivada de la función `x`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Longitud del arco, con 10 cifras significativas (tolerancia 0,0001 %).",
+     "answerType": "numeric",
+     "value": 28.15144435,
+     "tol": 1e-06,
+     "points": 0.6,
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nL = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, a, b}]",
+     "explain": "Longitud: integral de `Sqrt[x'(t)^2 + y'(t)^2]` en todo el intervalo. Esta integral no tiene primitiva sencilla, así que se usa `NIntegrate`. Cuando piden más dígitos de los que muestra la salida, usa `N[..., 10]` o `NumberForm[L, 10]`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Área de la superficie de revolución que genera el arco al girar alrededor del eje OX, con 6 cifras significativas. Como la curva es simétrica respecto de OX, basta girar la mitad `0 <= t <= 5 Pi/3`.",
+     "answerType": "numeric",
+     "value": 204.6705,
+     "tol": 0.001,
+     "points": 0.6,
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\n(* en 0 <= t <= b la curva está por debajo del eje (y <= 0): se toma valor absoluto *)\nAR = Abs[2 Pi*NIntegrate[y[t]*Sqrt[x'[t]^2 + y'[t]^2], {t, 0, b}]]",
+     "explain": "Área de revolución alrededor de OX: `2 Pi` por la integral de `|y(t)|` por el elemento de longitud. Si integras toda la curva cerrada cuentas la superficie dos veces (las dos mitades generan la misma). El resultado tiene que ser positivo: si sale negativo es por el signo de `y`, no por un error."
+    }
+   ]
+  },
+  {
+   "title": "P3 · Ecuación diferencial lineal de segundo orden",
+   "prompt": "Integra la ecuación diferencial `3 y''/4 + 5 y'/6 - 2 y = Pi Cos[t/3]`.\n\nPrimero, halla las constantes para que `y(1) = -5`, `y(2) = 3 E` (apartados a y b). Después, resuelve el problema con `y(0) = 2`, `y'(0) = -0.7` (apartado c).\n\nEn el examen real se teclean los valores de `C[1]` y `C[2]` tal como los numera Mathematica. Aquí se piden valores de la solución, que no dependen de cómo se numeren las constantes.",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Con `y(1) = -5`, `y(2) = 3 E`: valor de `y(0)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -66.40188,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t];\nyg[t_] = y[t] /. Flatten[sol]   (* solución general como función, con C[1] y C[2] *)\nctes = Solve[{yg[1] == -5, yg[2] == 3 E}, {C[1], C[2]}];   (* las dos condiciones *)\nN[ctes]\nyg[0] /. Flatten[ctes] // N",
+     "explain": "`DSolve` devuelve una regla `{{y[t] -> ...}}`. Para poder escribir `yg[1]`, `yg[2]` hay que convertirla en función: `yg[t_] = y[t] /. Flatten[sol]`. Después `Solve` con las dos condiciones da `C[1]` y `C[2]`. Error típico: saltarse ese paso y que `Solve` no encuentre las constantes."
+    },
+    {
+     "label": "b)",
+     "prompt": "Con las mismas condiciones: valor de `y(3)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 31.12607,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t];\nyg[t_] = y[t] /. Flatten[sol]   (* solución general como función, con C[1] y C[2] *)\nctes = Solve[{yg[1] == -5, yg[2] == 3 E}, {C[1], C[2]}];   (* las dos condiciones *)\nN[ctes]\nyg[3] /. Flatten[ctes] // N",
+     "explain": "Se sustituyen las constantes halladas con `/. Flatten[ctes]` y se evalúa. Una de las exponenciales crece (`E^(1.17 t)`) y la otra decae (`E^(-2.28 t)`): por eso la solución se dispara al alejarse del intervalo `[1, 2]`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Con `y(0) = 2`, `y'(0) = -0.7`: valor de `y(2.45)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 35.62484,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nsol2 = DSolve[{3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[0] == 2, y'[0] == -0.7}, y[t], t];\ny[t] /. Flatten[sol2] /. t -> 2.45",
+     "explain": "Con condiciones iniciales en el mismo punto, van dentro del `DSolve`, en una lista con la ecuación, y ya no quedan constantes. `ClearAll` entre apartados: una `y` definida antes rompe el `DSolve`. La derivada se escribe `y'[0]`."
+    }
+   ]
+  },
+  {
+   "title": "P4 · Integrales impropias",
+   "prompt": "Calcula las integrales impropias en `]-Infinity, +Infinity[` de las tres funciones siguientes. Si converge, escribe su valor con 6 cifras significativas; si diverge, escribe `999`.\n\nLas tres tienen el mismo denominador `p(x) = 3 x^2 - 12 x/5 + 21/25`.\n\nSi `NIntegrate` hasta infinito tarda demasiado o da un aviso, prueba `Integrate[...] // N` o un intervalo grande como `{x, -200, 200}`.",
+   "points": 0.9,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Integral de `7/p(x)`.",
+     "answerType": "numeric",
+     "value": 21.16099,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\nIntegrate[7/p[x], {x, -Infinity, Infinity}]   (* exacta: 35 Sqrt[3] Pi/9 *)\nN[%]",
+     "explain": "El integrando decae como `1/x^2`: converge. La receta del examen es `NIntegrate[7/p[x], {x, -Infinity, Infinity}]`; con `Integrate` sale además el valor exacto, `35 Sqrt[3] Pi/9`. Los infinitos se escriben `Infinity` y `-Infinity`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Integral de `(7 x - 3)/p(x)`.",
+     "answerType": "numeric",
+     "value": 999,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\nLimit[x*(7 x - 3)/p[x], x -> Infinity]   (* 7/3: el integrando se comporta como (7/3)/x *)\n999   (* 1/x no es integrable en el infinito: diverge *)",
+     "explain": "Numerador de grado 1 y denominador de grado 2: el integrando se comporta como `(7/3)/x`, que no es integrable en el infinito. Diverge. En Mathematica, `NIntegrate` avisa (`NIntegrate::ncvb`, `slwcon`) y devuelve un número enorme o sin sentido: esa es la señal para escribir `999`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Integral de `7 Sin[x]/p(x)`.",
+     "answerType": "numeric",
+     "value": 5.827851,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\n(* converge (decae como 1/x^2); se corta en un intervalo grande: la cola es del orden de 1/R^2 *)\nNIntegrate[7 Sin[x]/p[x], {x, -200, 200}]",
+     "explain": "`|Sin[x]| <= 1`, así que el integrando está acotado por `7/p(x)`, que converge: esta también. En Mathematica basta `NIntegrate[7 Sin[x]/p[x], {x, -Infinity, Infinity}]`; si avisa pero da un número estable, ese número vale. Las de `Sin` y `Cos` convergen; la del numerador `a x + b` es la que diverge."
+    }
+   ]
+  },
+  {
+   "title": "P5 · Método de Newton–Raphson",
+   "prompt": "Usa el método de Newton–Raphson con 16 dígitos de precisión para hallar la solución en `[0.9, 1.6]` de la ecuación `f(x) = 0`, con `f(x) = 3 Cos[2 x - 1] E^(x + 2) - 8`.\n\nEl criterio de parada es que la cota de error `|f(x_n)|/m1` sea menor que `10^-12`, donde `m1` es la cota inferior de `|f'(x)|` del apartado b).",
+   "points": 1.6,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "¿Cuál de los valores `x = 0.9`, `x = 1.1` o `x = 1.6` es el punto inicial que cumple todas las hipótesis del método? Escribe ese valor.",
+     "answerType": "numeric",
+     "value": 1.6,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := 3 Cos[2 x - 1]*Exp[x + 2] - 8\na = 0.9; b = 1.6;\n{Plot[f[x], {x, a, b}], Plot[Abs[f'[x]], {x, a, b}], Plot[f''[x], {x, a, b}]}\nTable[{c, f[c]*f''[c]}, {c, {0.9, 1.1, 1.6}}]   (* vale el de producto positivo *)\nx0 = 1.6",
+     "explain": "El punto inicial debe cumplir `f(x0) f''(x0) > 0` (criterio de Fourier). La tabla da el producto para cada candidato: solo es positivo en `1.6`. Los tres `Plot` sirven para ver que `f` cambia de signo, que `f'` no se anula y que `f''` no cambia de signo en el intervalo."
+    },
+    {
+     "label": "b)",
+     "prompt": "Mayor entero que es cota inferior de `|f'(x)|` en `]0.9, 1.6[`: `m1`.",
+     "answerType": "numeric",
+     "value": 40,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := 3 Cos[2 x - 1]*Exp[x + 2] - 8\na = 0.9; b = 1.6;\nPlot[Abs[f'[x]], {x, a, b}]   (* es creciente: el mínimo está en x = 0.9 *)\nN[Abs[{f'[a], f'[b]}], 10]\nm1 = Floor[Abs[f'[a]]]",
+     "explain": "En el dibujo se ve que `|f'|` crece en el intervalo, así que su mínimo está en el extremo izquierdo: `|f'(0.9)| = 40.2378`. El mayor entero por debajo es `40`. Error típico: redondear hacia arriba (41 ya no es cota inferior)."
+    },
+    {
+     "label": "c)",
+     "prompt": "La solución obtenida es `x_n = 1.232699______`. Escribe, como número entero, las 6 cifras decimales que faltan (se admite un error de ±100).",
+     "answerType": "numeric",
+     "value": 506842,
+     "tol": 0.0002,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := 3 Cos[2 x - 1]*Exp[x + 2] - 8\na = 0.9; b = 1.6;\nx0 = 1.6; m1 = 40; Err = 10^-12;\nlista = SetPrecision[NestWhileList[# - f[#]/f'[#] &, x0, Abs[f[#]]/m1 >= Err &], 16]\nxn = lista[[-1]]\nFloor[(xn - 1.232699)*10^12]   (* las 6 cifras que siguen a 1.232699 *)",
+     "explain": "`NestWhileList` repite `x - f(x)/f'(x)` mientras la cota de error `|f(x)|/m1` sea `>= 10^-12` y guarda todas las iteraciones. La última, `lista[[-1]]`, es la solución: `1.232699506842...`. En la casilla van solo las cifras 7 a 12 tras el punto: `506842`."
+    },
+    {
+     "label": "d)",
+     "prompt": "El valor de la iteración anterior es `x_(n-1) = 1.232699______`. Escribe, como número entero, las 6 cifras decimales que faltan (se admite un error de ±100).",
+     "answerType": "numeric",
+     "value": 507400,
+     "tol": 0.0002,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nf[x_] := 3 Cos[2 x - 1]*Exp[x + 2] - 8\na = 0.9; b = 1.6;\nx0 = 1.6; m1 = 40; Err = 10^-12;\nlista = SetPrecision[NestWhileList[# - f[#]/f'[#] &, x0, Abs[f[#]]/m1 >= Err &], 16]\nxn1 = lista[[-2]]\nFloor[(xn1 - 1.232699)*10^12]",
+     "explain": "La penúltima iteración es `lista[[-2]] = 1.232699507400...`. Por eso se usa `NestWhileList` (con `List`) y no `NestWhile`, que solo devuelve la última. Las dos iteraciones coinciden en las 8 primeras cifras decimales: Newton duplica las cifras correctas en cada paso."
+    }
+   ]
+  },
+  {
+   "title": "P6 · Curva en polares y rectas: puntos de corte",
+   "prompt": "Representa juntos el arco de la curva en coordenadas polares `ρ(α) = 3 Log[6!] - 2 Sin[7 α]`, con `α` en `[0, Pi]`, y las rectas `y = Sqrt[3] x`, `y = -x/Sqrt[3]`, con `x` en `[-22, 22]`.\n\nLa primera recta corta a la curva en un punto `P` del primer cuadrante y la segunda en un punto `Q` del segundo cuadrante.\n\nCalcula el ángulo que forma cada recta con el eje OX y úsalo para hallar las coordenadas polares `(ρ, α)` de `P` y `Q`.",
+   "points": 0.8,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Radio polar `ρ1` del punto `P`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 18.0057,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nP = {r[a1], a1} // N\nP[[1]]",
+     "explain": "Una recta `y = m x` es, en polares, un ángulo fijo `α` con `Tan[α] = m`. Para `m = Sqrt[3]` es `α1 = Pi/3` (60 grados). El punto de corte tiene ese ángulo y radio `ρ(α1)`: basta evaluar la curva. No hay que resolver ninguna ecuación."
+    },
+    {
+     "label": "b)",
+     "prompt": "Radio polar `ρ2` del punto `Q`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 20.73775,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nQ = {r[a2], a2} // N\nQ[[1]]",
+     "explain": "Para la pendiente negativa `ArcTan` da `-30` grados (cuarto cuadrante), pero el punto pedido está en el segundo: se suma `Pi` y queda `α2 = 5 Pi/6` (150 grados). Es lo que hace la función `ang`. Error típico: usar `-Pi/6` y salirse del arco `[0, Pi]`."
+    }
+   ]
+  },
+  {
+   "title": "P7 · Curva en polares y rectas: longitud, área y volumen",
+   "prompt": "Representa juntos el arco de la curva en coordenadas polares `ρ(α) = 3 Log[6!] - 2 Sin[7 α]`, con `α` en `[0, Pi]`, y las rectas `y = Sqrt[3] x`, `y = -x/Sqrt[3]`, con `x` en `[-22, 22]`.\n\nLa primera recta corta a la curva en un punto `P` del primer cuadrante y la segunda en un punto `Q` del segundo cuadrante.\n\nSon los puntos de ángulos `α1 = Pi/3` y `α2 = 5 Pi/6` de la pregunta anterior.",
+   "points": 1.4,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Longitud del arco de curva de `P` a `Q`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 34.42243,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nL = NIntegrate[Sqrt[r'[a]^2 + r[a]^2], {a, a1, a2}]",
+     "explain": "Longitud en polares: integral de `Sqrt[ρ'(α)^2 + ρ(α)^2]` entre los dos ángulos. Error típico: olvidar el término `ρ^2` (esa es la fórmula de cartesianas) o integrar en `[0, Pi]` en vez de entre `α1` y `α2`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Área de la región limitada por las dos rectas y el arco, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 309.7332,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nA = 1/2*NIntegrate[r[a]^2, {a, a1, a2}]",
+     "explain": "Área de un sector en polares: un medio de la integral de `ρ^2` entre los dos ángulos. El `1/2` es el olvido clásico."
+    },
+    {
+     "label": "c)",
+     "prompt": "Volumen de revolución que genera esa región al girar una vuelta completa alrededor del eje polar, con 11 cifras significativas (tolerancia 0,0001 %).",
+     "answerType": "numeric",
+     "value": 22359.338277,
+     "tol": 1e-06,
+     "points": 0.4,
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nV = 2 Pi/3*NIntegrate[r[a]^3*Sin[a], {a, a1, a2}]",
+     "explain": "Volumen al girar un sector polar alrededor del eje polar: `2 Pi/3` por la integral de `ρ^3 Sin[α]`. Cuando la casilla pide 11 dígitos, muestra el resultado con `NumberForm[V, 11]` o calcula con `N[Integrate[...], 11]`."
+    }
+   ]
+  }
+ ]
+}

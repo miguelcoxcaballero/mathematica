@@ -1,49 +1,54 @@
-/* Gráficos (2D/3D) y Manipulate — estilo Mathematica sobre el papel blanco del cuaderno. Dueño: GFX */
-.wl-gfx { display: inline-block; vertical-align: top; position: relative; max-width: 100%; line-height: 0; background: #fff; border-radius: 2px; }
+/* Gráficos (2D/3D) y Manipulate — aspecto Mathematica, sobrio, sobre papel blanco. Dueño: GFX.
+   Solo tokens de css/tokens.css (con valor de respaldo para la página de pruebas). Sin degradados ni brillos. */
+.wl-gfx { display: inline-block; vertical-align: top; position: relative; max-width: 100%; line-height: 0; background: var(--paper, #fff); }
 .wl-gfx2d .wl-svg { display: block; max-width: 100%; height: auto; touch-action: pan-y; -webkit-user-select: none; user-select: none; cursor: crosshair; overflow: visible; }
 .wl-gfx2d .wl-svg text { font-variant-numeric: lining-nums; }
+/* lectura de coordenadas al pasar el ratón: texto pequeño gris, sin panel */
+.wl-gfx2d .wl-readout { font-size: 11px; fill: var(--muted, #6a6a6a); stroke: var(--paper, #fff); stroke-width: 3px; stroke-linejoin: round; paint-order: stroke fill; font-variant-numeric: tabular-nums; }
+.wl-gfx2d .wl-cross { stroke: var(--dim, #9b9b9b); stroke-width: .7px; stroke-dasharray: 3 3; shape-rendering: crispEdges; }
+.wl-gfx2d .wl-dot { fill: var(--paper, #fff); stroke-width: 1.6px; }
 .wl-gfx3d { -webkit-user-select: none; user-select: none; }
 .wl-gfx3d .wl-canvas3d { display: block; max-width: 100%; touch-action: pan-y; cursor: grab; outline: none; -webkit-tap-highlight-color: transparent; }
 .wl-gfx3d .wl-canvas3d.grabbing { cursor: grabbing; }
 
-/* ------------------------------------------------------------------ Manipulate */
-.wl-manip { display: inline-block; max-width: 100%; box-sizing: border-box; background: #f3f4f7; border: 1px solid #c9ccd6; border-radius: 6px; padding: 8px 10px 10px; color: #23262f; font: 13px/1.35 "Source Sans 3", "Source Sans Pro", "Helvetica Neue", Helvetica, Arial, sans-serif; box-shadow: 0 1px 0 #fff inset; vertical-align: top; }
-.wl-manip-controls { display: grid; grid-template-columns: 1fr; gap: 5px; margin: 0 0 8px; }
+/* ------------------------------------------------------------------ Manipulate (marco gris claro, controles planos) */
+.wl-manip { display: inline-block; vertical-align: top; max-width: 100%; box-sizing: border-box; background: var(--bg-2, #f7f7f7); border: 1px solid var(--line, #e2e2e2); border-radius: var(--radius-s, 4px); padding: 8px 10px 10px; color: var(--text, #222); font: 13px/1.35 var(--font, "Source Sans 3", "Helvetica Neue", Arial, sans-serif); }
+.wl-manip.has-gfx { display: block; width: 100%; max-width: 640px; }
+.wl-manip-controls { display: grid; grid-template-columns: 1fr; gap: 3px; margin: 0 0 8px; }
 .wl-manip-controls:empty { display: none; }
-.wl-manip-row { display: flex; align-items: center; gap: 8px; min-height: 26px; }
-.wl-manip-label { flex: 0 1 auto; min-width: 1.2em; max-width: 42%; color: #3b3f4c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wl-manip-value { flex: 0 0 auto; min-width: 3.6em; text-align: right; font-variant-numeric: tabular-nums; color: #3b3f4c; font-size: 12.5px; }
-.wl-manip-slider { -webkit-appearance: none; appearance: none; flex: 1 1 110px; min-width: 70px; max-width: 260px; height: 22px; margin: 0; background: transparent; cursor: pointer; --f: 0%; touch-action: pan-y; }
+.wl-manip-row { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+.wl-manip-label { flex: 0 1 auto; min-width: 1.2em; max-width: 42%; color: var(--muted, #6a6a6a); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-manip-value { flex: 0 0 auto; min-width: 3.4em; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted, #6a6a6a); font-size: 12px; }
+.wl-manip-slider { -webkit-appearance: none; appearance: none; flex: 1 1 110px; min-width: 70px; max-width: 240px; height: 20px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
 .wl-manip-slider:focus { outline: none; }
-.wl-manip-slider::-webkit-slider-runnable-track { height: 5px; border-radius: 3px; border: 1px solid #a9adba; background: linear-gradient(90deg, #8fa7cf 0, #8fa7cf var(--f), #fff var(--f), #fff 100%); }
-.wl-manip-slider::-moz-range-track { height: 5px; border-radius: 3px; border: 1px solid #a9adba; background: #fff; }
-.wl-manip-slider::-moz-range-progress { height: 5px; border-radius: 3px; background: #8fa7cf; }
-.wl-manip-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 18px; margin-top: -7.5px; border-radius: 3px; border: 1px solid #7d8292; background: linear-gradient(180deg, #fff, #dfe2ea); box-shadow: 0 1px 1.5px rgba(0, 0, 0, .25); transition: transform .08s; }
-.wl-manip-slider::-moz-range-thumb { width: 11px; height: 17px; border-radius: 3px; border: 1px solid #7d8292; background: linear-gradient(180deg, #fff, #dfe2ea); box-shadow: 0 1px 1.5px rgba(0, 0, 0, .25); }
-.wl-manip-slider:active::-webkit-slider-thumb { transform: scale(1.12); background: linear-gradient(180deg, #fff, #cfd6e6); }
-.wl-manip-slider:focus-visible::-webkit-slider-thumb { border-color: #4a6fb5; box-shadow: 0 0 0 3px rgba(94, 129, 181, .35); }
-.wl-manip-slider:focus-visible::-moz-range-thumb { border-color: #4a6fb5; box-shadow: 0 0 0 3px rgba(94, 129, 181, .35); }
-.wl-manip-play { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1px solid #a9adba; background: linear-gradient(180deg, #fff, #e6e8ee); color: #4b5163; cursor: pointer; transition: background .15s, color .15s, transform .08s; }
-.wl-manip-play:hover { color: #1f55c4; border-color: #7f93bd; }
-.wl-manip-play:active { transform: scale(.92); }
-.wl-manip-play.on { background: #5e81b5; border-color: #4a6a9a; color: #fff; }
-.wl-manip-play:focus-visible, .wl-manip-opt:focus-visible, .wl-manip-select:focus-visible { outline: 2px solid #5e81b5; outline-offset: 1px; }
-.wl-manip-setter { display: inline-flex; flex-wrap: wrap; border: 1px solid #a9adba; border-radius: 5px; overflow: hidden; background: #fff; }
-.wl-manip-opt { border: 0; border-right: 1px solid #c9ccd6; background: linear-gradient(180deg, #fff, #eceef3); color: #2c303b; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; min-height: 24px; }
+.wl-manip-slider::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: #cfcfcf; }
+.wl-manip-slider::-moz-range-track { height: 3px; border-radius: 2px; background: #cfcfcf; }
+.wl-manip-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 9px; height: 15px; margin-top: -6px; border-radius: 2px; border: 1px solid #8c8c8c; background: var(--paper, #fff); }
+.wl-manip-slider::-moz-range-thumb { width: 8px; height: 14px; border-radius: 2px; border: 1px solid #8c8c8c; background: var(--paper, #fff); }
+.wl-manip-slider:hover::-webkit-slider-thumb, .wl-manip-slider:active::-webkit-slider-thumb { border-color: var(--text, #222); }
+.wl-manip-slider:hover::-moz-range-thumb, .wl-manip-slider:active::-moz-range-thumb { border-color: var(--text, #222); }
+.wl-manip-slider:focus-visible::-webkit-slider-thumb { border-color: var(--accent, #dd1100); box-shadow: var(--glow, 0 0 0 3px rgba(221, 17, 0, .14)); }
+.wl-manip-slider:focus-visible::-moz-range-thumb { border-color: var(--accent, #dd1100); box-shadow: var(--glow, 0 0 0 3px rgba(221, 17, 0, .14)); }
+.wl-manip-play { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border-radius: var(--radius-s, 4px); border: 1px solid transparent; background: transparent; color: var(--dim, #9b9b9b); cursor: pointer; transition: color .15s, border-color .15s; }
+.wl-manip-play:hover { color: var(--text, #222); border-color: #cfcfcf; }
+.wl-manip-play.on { color: var(--accent, #dd1100); }
+.wl-manip-play:focus-visible, .wl-manip-opt:focus-visible, .wl-manip-select:focus-visible { outline: none; box-shadow: var(--glow, 0 0 0 3px rgba(221, 17, 0, .14)); }
+.wl-manip-setter { display: inline-flex; flex-wrap: wrap; border: 1px solid #cfcfcf; border-radius: var(--radius-s, 4px); overflow: hidden; background: var(--paper, #fff); }
+.wl-manip-opt { border: 0; border-right: 1px solid var(--line, #e2e2e2); background: var(--paper, #fff); color: var(--muted, #6a6a6a); padding: 2px 9px; font: inherit; font-size: 12.5px; cursor: pointer; min-height: 22px; }
 .wl-manip-opt:last-child { border-right: 0; }
-.wl-manip-opt.on { background: #5e81b5; color: #fff; }
-.wl-manip-select { font: inherit; font-size: 12.5px; padding: 2px 6px; border: 1px solid #a9adba; border-radius: 5px; background: #fff; color: #2c303b; max-width: 100%; }
-.wl-manip-out { background: #fff; border: 1px solid #c9ccd6; border-radius: 3px; padding: 6px; min-width: 120px; overflow-x: auto; color: #1c1f2b; line-height: 1.4; }
+.wl-manip-opt:hover { color: var(--text, #222); }
+.wl-manip-opt.on { background: var(--panel-2, #f4f4f4); color: var(--text, #222); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent, #dd1100); }
+.wl-manip-select { font: inherit; font-size: 12.5px; padding: 2px 6px; border: 1px solid #cfcfcf; border-radius: var(--radius-s, 4px); background: var(--paper, #fff); color: var(--text, #222); max-width: 100%; }
+.wl-manip-out { background: var(--paper, #fff); border: 1px solid var(--line, #e2e2e2); border-radius: 2px; padding: 6px; min-width: 120px; overflow-x: auto; color: var(--ink, #1c1c1c); line-height: 1.4; }
 .wl-manip-out > .wl-gfx { display: block; margin: 0 auto; }
-.wl-manip-status { color: #d2552d; font-size: 12px; margin-top: 4px; }
+.wl-manip-status { color: var(--wl-msg, #d2552d); font-size: 12px; margin-top: 4px; }
 .wl-manip-status:empty { display: none; }
-.wl-manip-err { color: #d2552d; font-size: 12px; }
-.wl-manip.busy .wl-manip-out { transition: opacity .2s .25s; }
+.wl-manip-err { color: var(--wl-msg, #d2552d); font-size: 12px; }
 @media (max-width: 480px) {
   .wl-manip { padding: 7px 7px 8px; }
-  .wl-manip-row { gap: 6px; }
-  .wl-manip-slider { min-width: 60px; }
-  .wl-manip-slider::-webkit-slider-thumb { width: 16px; height: 22px; margin-top: -9.5px; }
+  .wl-manip-row { gap: 6px; min-height: 30px; }
+  .wl-manip-slider { min-width: 60px; height: 28px; }
+  .wl-manip-slider::-webkit-slider-thumb { width: 13px; height: 21px; margin-top: -9px; }
+  .wl-manip-slider::-moz-range-thumb { width: 12px; height: 20px; }
   .wl-manip-play { width: 26px; height: 26px; }
 }
-@media (prefers-reduced-motion: reduce) { .wl-manip-play, .wl-manip-slider::-webkit-slider-thumb { transition: none; } }

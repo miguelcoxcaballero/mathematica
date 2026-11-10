@@ -55,9 +55,21 @@ export function renderManipulate(el, item, kernel, renderItems) {
     const hgt = out.offsetHeight;
     if (hgt) out.style.minHeight = hgt + 'px';
     out.textContent = '';
+    // con gráficos el panel ocupa el ancho disponible (el gráfico decide su tamaño) y luego se ajusta a él
+    const hasG = items.some(it => it && (it.type === 'graphics' || it.type === 'gallery'));
+    root.classList.toggle('has-gfx', hasG);
+    root.style.maxWidth = '';
     try { renderItems(out, items); } catch (e) { h('div', 'wl-manip-err', out, String(e && e.message || e)); }
     shown = gi ? { g: true, dim: gi.g.dim } : null;
-    requestAnimationFrame(() => { out.style.minHeight = ''; });
+    const fit = () => {
+      out.style.minHeight = '';
+      if (!hasG || dead || !root.isConnected) return;
+      let w = 0;
+      out.querySelectorAll('.wl-gfx').forEach(n => { w = Math.max(w, n.offsetWidth); });
+      const single = out.querySelectorAll('.wl-gfx').length === 1;
+      if (w > 0 && single) root.style.maxWidth = Math.max(w + 36, 240) + 'px';
+    };
+    requestAnimationFrame(fit);
   };
 
   // ------------------------------------------------------------ peticiones (la última gana; como mucho una en cola)

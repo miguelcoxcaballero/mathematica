@@ -1,0 +1,694 @@
+{
+ "id": "2-m3-pl2",
+ "year": 2,
+ "subject": "Matemáticas III",
+ "block": "Variable compleja",
+ "order": 2,
+ "title": "Variable Compleja II: series de Laurent y residuos",
+ "summary": "Desarrollos de Taylor y de Laurent por regiones con Series y Apart, dibujo de coronas con RegionPlot, residuos por tres métodos e integrales de contorno por residuos.",
+ "minutes": 80,
+ "commands": [
+  "Residue",
+  "With",
+  "SeriesCoefficient"
+ ],
+ "uses": [
+  "Series",
+  "Normal",
+  "Apart",
+  "RegionPlot",
+  "Graphics",
+  "Point",
+  "PointSize",
+  "Show",
+  "Solve",
+  "Abs",
+  "Limit",
+  "D",
+  "N",
+  "Table",
+  "Total"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Para qué sirve: series de potencias con Series y Normal",
+   "md": "Cerca de un punto, toda función «buena» es un polinomio infinito (serie de Taylor); cerca de una singularidad aparece además una parte con potencias negativas (serie de **Laurent**). El coeficiente de 1/(z − z0) es el **residuo**, y con residuos se calculan en una línea integrales de contorno que a mano llevan una página. Eso es la PL2, y son dos de las cinco preguntas del examen.\n\n- `Series[f, {z, a, n}]` desarrolla `f` en potencias de (z − a) hasta orden n. Los argumentos de la llave: variable, centro, orden.\n- El término `O[z]^5` indica que la serie sigue. `Normal[serie]` lo quita y deja un polinomio normal.\n- `SeriesCoefficient[f, {z, a, k}]` da directamente el coeficiente de (z − a)^k.\n\nMathematica **no dice dónde vale** el desarrollo. Regla: una serie de Taylor centrada en `a` converge en el disco que llega hasta la singularidad más cercana. Para f = 1/((z+1)(z+3)) centrada en 0, la más cercana es −1: vale en |z| < 1.",
+   "cells": [
+    {
+     "code": "f = 1/((z + 1) (z + 3));\nSeries[f, {z, 0, 4}]",
+     "note": "Taylor en z = 0, válido para |z| < 1"
+    },
+    {
+     "code": "Normal[Series[f, {z, 0, 4}]]",
+     "note": "el mismo desarrollo como polinomio, sin el O[z]^5"
+    },
+    {
+     "code": "SeriesCoefficient[f, {z, 2 I, 1}]",
+     "note": "coeficiente de (z − 2i) en el desarrollo centrado en 2i (válido en |z − 2i| < √5)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e01",
+    "kind": "code",
+    "title": "Tu primer desarrollo",
+    "prompt": "Obtén el polinomio de Taylor de orden 3 en z = 0 de `Exp[z]/(1 - z)`, sin el término `O[z]^4`.",
+    "difficulty": 1,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Normal[Series[Exp[z]/(1 - z), {z, 0, 3}]]",
+    "check": {
+     "type": "expr",
+     "expected": "1 + 2 z + 5 z^2/2 + 8 z^3/3"
+    },
+    "requires": [
+     "Series",
+     "Normal"
+    ],
+    "hints": [
+     "`Series[f, {z, 0, 3}]` y por fuera `Normal[...]`.",
+     "`Normal[Series[Exp[z]/(1 - z), {z, 0, 3}]]`"
+    ],
+    "explain": "1 + 2z + 5z²/2 + 8z³/3. Vale para |z| < 1, porque la única singularidad es z = 1."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e02",
+    "kind": "code",
+    "title": "Un coeficiente concreto",
+    "prompt": "Calcula el coeficiente de (z − i)³ en el desarrollo de Taylor de `1/(z + 2)` centrado en z = i. Usa `SeriesCoefficient`.",
+    "difficulty": 2,
+    "cmds": [
+     "SeriesCoefficient"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "SeriesCoefficient[1/(z + 2), {z, I, 3}]",
+    "check": {
+     "type": "expr",
+     "expected": "-1/(2 + I)^4"
+    },
+    "requires": [
+     "SeriesCoefficient"
+    ],
+    "hints": [
+     "La llave es `{variable, centro, k}`: `{z, I, 3}`.",
+     "`SeriesCoefficient[1/(z + 2), {z, I, 3}]`"
+    ],
+    "explain": "Vale −1/(2 + i)⁴ = 7/625 + 24i/625. En el examen piden coeficientes sueltos así (c0, c4, c6…): es más seguro pedirlos con `SeriesCoefficient` que copiarlos a ojo de una serie larga."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Laurent «hacia fuera»: potencias negativas",
+   "md": "Lejos de las singularidades (fuera de un disco) la función se desarrolla en potencias **negativas**: 1/z, 1/z², …\n\n- En el guion se pide con el centro `Infinity`: `Series[f, {z, Infinity, 4}]`. Para f = 1/((z+1)(z+3)) da 1/z² − 4/z³ + 13/z⁴, válido en |z| > 3 (fuera de las dos singularidades).\n- `SeriesCoefficient[f, {z, Infinity, k}]` da el coeficiente de 1/z^k.\n- Truco equivalente y muy claro: «hacia fuera» es Taylor en la variable u = 1/z. Sustituye `z -> 1/u`, desarrolla en `u = 0` y deshaz el cambio (segunda celda).\n\n**Centro distinto de 0.** Para potencias negativas de (z − a) se hace un cambio de variable. En el guion: w = z − a, `Series[f /. z -> w + a, {w, Infinity, n}] /. w -> z - a` (Mathematica suelta un aviso `SeriesData::sdatv` inofensivo). Con el truco: `z -> a + 1/u` y al final `u -> 1/(z - a)` (tercera celda, con a = 3: válido en |z − 3| > 6, la distancia a la singularidad más lejana, −3).",
+   "cells": [
+    {
+     "code": "f = 1/((z + 1) (z + 3));\nSeriesCoefficient[f, {z, Infinity, 3}]",
+     "note": "coeficiente de 1/z³ en el desarrollo válido para |z| > 3"
+    },
+    {
+     "code": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z",
+     "note": "todo el desarrollo en potencias negativas de z"
+    },
+    {
+     "code": "Normal[Series[f /. z -> 3 + 1/u, {u, 0, 4}]] /. u -> 1/(z - 3)",
+     "note": "en potencias negativas de (z − 3)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e03",
+    "kind": "code",
+    "title": "Potencias negativas",
+    "prompt": "Para `1/((z - 1) (z - 2))` en la región |z| > 2, calcula el coeficiente de 1/z³ del desarrollo de Laurent (centro `Infinity`).",
+    "difficulty": 2,
+    "cmds": [
+     "SeriesCoefficient"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "SeriesCoefficient[1/((z - 1) (z - 2)), {z, Infinity, 3}]",
+    "check": {
+     "type": "expr",
+     "expected": "3"
+    },
+    "requires": [
+     "SeriesCoefficient"
+    ],
+    "hints": [
+     "Con centro `Infinity`, el número k de la llave es la potencia de 1/z.",
+     "`SeriesCoefficient[1/((z - 1) (z - 2)), {z, Infinity, 3}]`"
+    ],
+    "explain": "El desarrollo es 1/z² + 3/z³ + 7/z⁴ + …: el coeficiente pedido es 3."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e04",
+    "kind": "code",
+    "title": "Desarrollo completo hacia fuera",
+    "prompt": "Obtén el desarrollo de `1/(z - 2)` en potencias negativas de **(z + 1)** hasta (z + 1)^(−4), como expresión normal (sin `O[...]`). Es válido para |z + 1| > 3.",
+    "difficulty": 3,
+    "cmds": [
+     "Series",
+     "Normal"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Normal[Series[1/(z - 2) /. z -> -1 + 1/u, {u, 0, 4}]] /. u -> 1/(z + 1)",
+    "check": {
+     "type": "expr",
+     "expected": "1/(z + 1) + 3/(z + 1)^2 + 9/(z + 1)^3 + 27/(z + 1)^4"
+    },
+    "requires": [
+     "Series"
+    ],
+    "hints": [
+     "Centro a = −1: sustituye `z -> -1 + 1/u` y desarrolla en `{u, 0, 4}`.",
+     "Quita el resto con `Normal` y deshaz el cambio con `/. u -> 1/(z + 1)`."
+    ],
+    "explain": "1/(z+1) + 3/(z+1)² + 9/(z+1)³ + 27/(z+1)⁴: una geométrica de razón 3/(z+1), que converge justo cuando |z + 1| > 3."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Dibujar discos y coronas con RegionPlot",
+   "md": "Un Laurent centrado en `a` vale en una **corona** r < |z − a| < R cuyos bordes pasan por singularidades. Dibujarla junto a los puntos singulares evita equivocarse de región.\n\n- `RegionPlot[condición, {u, u1, u2}, {v, v1, v2}]` colorea los puntos (u, v) que cumplen la condición.\n- `With[{z = u + I v}, ...]` sustituye `z` por `u + I v` **solo dentro** de esa expresión, sin dejar `z` definida. Así la condición se escribe en complejo: `2 < Abs[z + 1] < 3`.\n- Los puntos singulares: `Graphics[{Red, PointSize[Large], Point[{x, y}], ...}]`. El complejo a + b i es el punto `{a, b}`.\n- `Show[corona, puntos]` superpone ambos.\n\nEjemplo del guion: f = −1/((z − 1)(z − 2)) en potencias de (z + 1). Las singularidades 1 y 2 están a distancia 2 y 3 del centro −1: la corona intermedia es 2 < |z + 1| < 3.",
+   "cells": [
+    {
+     "code": "corona = With[{z = u + I v}, RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]]",
+     "note": "la corona 2 < |z + 1| < 3"
+    },
+    {
+     "code": "puntos = Graphics[{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}];\nShow[corona, puntos]",
+     "note": "las singularidades z = 1 y z = 2 quedan justo en los bordes"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e05",
+    "kind": "code",
+    "title": "Dibuja una corona con sus singularidades",
+    "prompt": "Dibuja la corona **1 < |z − i| < 3** con `RegionPlot` (u de −4 a 4, v de −3 a 5) y superpón con `Show` los puntos z = 0 y z = −2 + i·... no: los puntos **z = 0** y **z = 3 + i**, en rojo.",
+    "difficulty": 3,
+    "cmds": [
+     "RegionPlot",
+     "With",
+     "Show"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "corona = With[{z = u + I v}, RegionPlot[1 < Abs[z - I] < 3, {u, -4, 4}, {v, -3, 5}]];\npuntos = Graphics[{Red, PointSize[Large], Point[{0, 0}], Point[{3, 1}]}];\nShow[corona, puntos]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "has": [
+      "field",
+      "points"
+     ],
+     "like": "RegionPlot[1 < Abs[u + I v - I] < 3, {u, -4, 4}, {v, -3, 5}]",
+     "tol": 0.05
+    },
+    "requires": [
+     "RegionPlot",
+     "Show"
+    ],
+    "hints": [
+     "La condición es `1 < Abs[z - I] < 3` dentro de `With[{z = u + I v}, RegionPlot[...]]`.",
+     "z = 0 es `Point[{0, 0}]` y z = 3 + i es `Point[{3, 1}]`. Termina con `Show[corona, puntos]`."
+    ],
+    "explain": "Los dos puntos están a distancia 1 y 3 del centro i, es decir, sobre los bordes de la corona: así se ve que la región es la correcta."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Laurent en una corona: Apart y cada fracción hacia su lado",
+   "md": "Receta para desarrollar una función racional en una corona centrada en `a`:\n\n- **1.** `Apart[f]` la separa en fracciones simples, una por singularidad.\n- **2.** Fracción cuya singularidad está en el borde **exterior** (o más lejos): se desarrolla «hacia dentro», Taylor normal `Series[frac, {z, a, n}]` (potencias positivas).\n- **3.** Fracción cuya singularidad está en el borde **interior** (o más cerca): «hacia fuera», potencias negativas con el cambio de variable.\n- **4.** El Laurent en la corona es la suma de ambos trozos.\n\nEjemplo del guion: f = −1/((z − 1)(z − 2)) en 2 < |z + 1| < 3. `Apart` da −1/(z − 2) + 1/(z − 1). La de z = 2 (borde exterior) va hacia dentro; la de z = 1 (borde interior), hacia fuera.\n\nEl guion extrae las fracciones con `desc[[1]]`, `desc[[2]]`. El orden en que `Apart` las escribe puede variar: mira siempre la salida antes de elegir, o escríbelas tú, como aquí.",
+   "cells": [
+    {
+     "code": "f = -1/((z - 1) (z - 2));\nApart[f]",
+     "note": "dos fracciones simples: singularidades en 1 y en 2"
+    },
+    {
+     "code": "Series[-1/(z - 2), {z, -1, 3}]",
+     "note": "parte regular: potencias positivas de (z + 1)"
+    },
+    {
+     "code": "Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
+     "note": "parte principal: potencias negativas de (z + 1)"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e06",
+    "kind": "code",
+    "title": "Coeficientes en la corona",
+    "prompt": "Para f = −1/((z − 1)(z − 2)) en la corona 2 < |z + 1| < 3 (el ejemplo anterior), devuelve la lista `{c₋₂, c₁}`: el coeficiente de (z + 1)^(−2) y el de (z + 1)^1.\n\nRecuerda: las potencias negativas salen de la fracción `1/(z - 1)` y las positivas de `-1/(z - 2)`.",
+    "difficulty": 3,
+    "cmds": [
+     "SeriesCoefficient"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "cm2 = SeriesCoefficient[1/(z - 1) /. z -> w - 1, {w, Infinity, 2}];\nc1 = SeriesCoefficient[-1/(z - 2), {z, -1, 1}];\n{cm2, c1}",
+    "check": {
+     "type": "expr",
+     "expected": "{2, 1/9}"
+    },
+    "hints": [
+     "Para c₋₂: cambia a w = z + 1 con `/. z -> w - 1` y pide `{w, Infinity, 2}`.",
+     "Para c₁: `SeriesCoefficient[-1/(z - 2), {z, -1, 1}]`."
+    ],
+    "explain": "c₋₂ = 2 (de 1/(z+1) + 2/(z+1)² + 4/(z+1)³ + …) y c₁ = 1/9 (de 1/3 + (z+1)/9 + …)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Residuos: tres formas de calcularlos",
+   "md": "El **residuo** de f en una singularidad z0 es el coeficiente c₋₁, el de 1/(z − z0), de su Laurent alrededor de z0. Ejemplo del guion: f = 1/(z (z + 4)³), con un polo triple en −4 y uno simple en 0.\n\n- **a) Con la serie**: `Series[f, {z, -4, 0}]` y se lee el coeficiente de 1/(z + 4).\n- **b) Con el límite**: si z0 es un polo de orden m, Res = límite cuando z → z0 de la derivada (m − 1)-ésima de (z − z0)^m · f, dividida entre (m − 1)!. Para m = 3: `D[..., {z, 2}]` entre `2!`.\n- **c) Con `Residue[f, {z, z0}]`**: directo. Ojo a la llave `{variable, punto}`.\n\nLas tres dan −1/64. En el examen usa `Residue`; las otras dos sirven para comprobar y son las que se hacen a mano.",
+   "cells": [
+    {
+     "code": "f = 1/(z (z + 4)^3);\nSeries[f, {z, -4, 0}]",
+     "note": "el coeficiente de 1/(z + 4) es −1/64"
+    },
+    {
+     "code": "Limit[D[(z + 4)^3 f, {z, 2}]/2!, z -> -4]",
+     "note": "fórmula del límite con m = 3"
+    },
+    {
+     "code": "{Residue[f, {z, -4}], Residue[f, {z, 0}]}",
+     "note": "con Residue, en los dos polos"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e07",
+    "kind": "fix",
+    "title": "La llave de Residue",
+    "prompt": "Se quiere el residuo de 1/(z² + 4) en z = 2i. La celda tiene errores de sintaxis típicos. Escribe la versión correcta.",
+    "difficulty": 1,
+    "cmds": [
+     "Residue"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "f = 1/(z^2 + 4);\nresidue[f, z, 2i]",
+    "solution": "f = 1/(z^2 + 4);\nResidue[f, {z, 2 I}]",
+    "check": {
+     "type": "expr",
+     "expected": "-I/4"
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "`Residue` con mayúscula; variable y punto van juntos entre llaves: `{z, punto}`.",
+     "El punto es `2 I` (I mayúscula): `Residue[f, {z, 2 I}]`."
+    ],
+    "explain": "Tres errores: `residue` en minúscula, falta la llave `{z, 2 I}` y la unidad imaginaria es `I`. El residuo vale 1/(4i) = −i/4."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e08",
+    "kind": "code",
+    "title": "Residuo en un polo doble",
+    "prompt": "Calcula con `Residue` el residuo de `Exp[z]/(z^2 (z - 1))` en z = 0.",
+    "difficulty": 2,
+    "cmds": [
+     "Residue"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Residue[Exp[z]/(z^2 (z - 1)), {z, 0}]",
+    "check": {
+     "type": "expr",
+     "expected": "-2"
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "`Residue[función, {z, 0}]`",
+     "`Residue[Exp[z]/(z^2 (z - 1)), {z, 0}]`"
+    ],
+    "explain": "z = 0 es un polo doble y el residuo vale −2: el coeficiente de z en el desarrollo de e^z/(z − 1) = −1 − 2z − …"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e09",
+    "kind": "code",
+    "title": "El mismo tipo de residuo, con el límite",
+    "prompt": "Sea `f = Exp[2 z]/((z - 1)^2 (z + 1))`. Calcula su residuo en el polo doble z = 1 **con la fórmula del límite** (sin `Residue`): límite cuando z → 1 de la derivada de (z − 1)² f.",
+    "difficulty": 3,
+    "cmds": [
+     "Limit",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f = Exp[2 z]/((z - 1)^2 (z + 1));\nLimit[D[(z - 1)^2 f, z], z -> 1]",
+    "check": {
+     "type": "expr",
+     "expected": "3 E^2/4"
+    },
+    "requires": [
+     "Limit",
+     "D"
+    ],
+    "forbids": [
+     "Residue"
+    ],
+    "hints": [
+     "Orden m = 2: derivada primera (m − 1 = 1) y se divide entre 1! = 1.",
+     "`Limit[D[(z - 1)^2 f, z], z -> 1]`"
+    ],
+    "explain": "Sale 3e²/4, lo mismo que `Residue[f, {z, 1}]`. Si el límite de (z − z0)^m f (sin derivar) es finito y no nulo, el polo es exactamente de orden m."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Integrales de contorno por residuos",
+   "md": "**Teorema de los residuos**: si C es una curva cerrada recorrida en sentido antihorario, ∫ f(z) dz = 2πi × (suma de los residuos de f en las singularidades **interiores** a C). Las de fuera no cuentan.\n\nReceta del guion, con C la circunferencia |z + 1 − i| = 2 (centro −1 + i, radio 2) y f = 1/((z + 1)²(z² + 1)):\n\n- **1. Polos**: `z /. Solve[den == 0, z]` da la lista de ceros del denominador (los múltiples, repetidos).\n- **2. ¿Dentro o fuera?** Distancia al centro: `Abs[polo - centro]`. Si es menor que el radio, está dentro. Restando un número a una lista se resta a todos sus elementos, así que sale de una vez.\n- **3. Sumar** los residuos de los de dentro y multiplicar por `2 Pi I`.\n\nAquí −1 e i están a distancia 1 (dentro) y −i a 2.236 (fuera). Si el contorno no es una circunferencia (elipse, cuadrado), se dibuja con los polos y se decide a ojo.",
+   "cells": [
+    {
+     "code": "den = (z + 1)^2 (z^2 + 1);\npolos = z /. Solve[den == 0, z]",
+     "note": "−1 (doble), −i e i"
+    },
+    {
+     "code": "N[Abs[polos - (-1 + I)]]",
+     "note": "distancias al centro −1 + i; el radio es 2"
+    },
+    {
+     "code": "2 Pi I (Residue[1/den, {z, -1}] + Residue[1/den, {z, I}])",
+     "note": "solo los polos interiores: resultado iπ/2"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e10",
+    "kind": "code",
+    "title": "Integral por residuos (un polo dentro)",
+    "prompt": "Calcula ∫ e^z/(z (z − 3)) dz sobre la circunferencia |z| = 1 (antihorario) por residuos. Resultado exacto.",
+    "difficulty": 2,
+    "cmds": [
+     "Residue"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "2 Pi I Residue[Exp[z]/(z (z - 3)), {z, 0}]",
+    "check": {
+     "type": "expr",
+     "expected": "-2 Pi I/3"
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "Polos: 0 y 3. Dentro de |z| = 1 solo está z = 0.",
+     "`2 Pi I Residue[Exp[z]/(z (z - 3)), {z, 0}]`"
+    ],
+    "explain": "El residuo en 0 es −1/3, así que la integral vale −2πi/3. El polo z = 3 queda fuera y no interviene."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e11",
+    "kind": "code",
+    "title": "Decidir qué polos entran",
+    "prompt": "Calcula ∫ 1/((z − 1)(z − 3)(z + 2)) dz sobre la circunferencia de **centro 2 y radio 2** (antihorario). Comprueba antes con `Abs` qué polos están dentro.",
+    "difficulty": 3,
+    "cmds": [
+     "Residue",
+     "Abs"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "g = 1/((z - 1) (z - 3) (z + 2));\nAbs[{1, 3, -2} - 2]\n2 Pi I (Residue[g, {z, 1}] + Residue[g, {z, 3}])",
+    "check": {
+     "type": "expr",
+     "expected": "-2 Pi I/15"
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "`Abs[{1, 3, -2} - 2]` da las distancias de los tres polos al centro: {1, 1, 4}.",
+     "Dentro están 1 y 3: `2 Pi I (Residue[g, {z, 1}] + Residue[g, {z, 3}])`."
+    ],
+    "explain": "Los polos 1 y 3 están a distancia 1 del centro (dentro) y −2 a distancia 4 (fuera). Suma de residuos: −1/6 + 1/10 = −1/15; integral: −2πi/15."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e12",
+    "kind": "code",
+    "title": "Laurent en potencias negativas",
+    "prompt": "Sea f(z) = 1/((z + 1)² (z + 2i − 1) e^(z+3)). El factor e^(−z−3) no tiene singularidades, así que se deja aparte y se desarrolla la parte racional `g = 1/((z + 1)^2 (z + 2 I - 1))` en potencias negativas de z. Devuelve la lista con los coeficientes de 1/z³ y 1/z⁴ de `g`.",
+    "difficulty": 3,
+    "cmds": [
+     "SeriesCoefficient"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 1",
+    "solution": "g = 1/((z + 1)^2 (z + 2 I - 1));\n{SeriesCoefficient[g, {z, Infinity, 3}], SeriesCoefficient[g, {z, Infinity, 4}]}",
+    "check": {
+     "type": "expr",
+     "expected": "{1, -1 - 2 I}"
+    },
+    "hints": [
+     "Con centro `Infinity`: `SeriesCoefficient[g, {z, Infinity, 3}]` es el coeficiente de 1/z³.",
+     "Mete los dos en una lista: `{SeriesCoefficient[g, {z, Infinity, 3}], SeriesCoefficient[g, {z, Infinity, 4}]}`."
+    ],
+    "explain": "g = 1/z³ − (1 + 2i)/z⁴ + … En Mathematica, `Series[f, {z, Infinity, 4}]` devuelve justo eso multiplicado por e^(−z−3): `E^(-z-3) ((1/z)^3 - (1+2 I)/z^4 + …)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e13",
+    "kind": "code",
+    "title": "Todos los Laurent posibles: el disco",
+    "prompt": "Sea f(z) = 1/((z² + 1)(z + 2i − 1)) y el centro a = −2i. Sus singularidades son −i y 1 − 2i (a distancia 1 del centro) e i (a distancia 3), así que hay tres regiones: |z + 2i| < 1, 1 < |z + 2i| < 3 y |z + 2i| > 3.\n\nEn el **disco** |z + 2i| < 1 el desarrollo es un Taylor. Devuelve la lista de sus coeficientes `{c0, c1, c2}`.",
+    "difficulty": 3,
+    "cmds": [
+     "SeriesCoefficient",
+     "Table"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 2 (región a)",
+    "solution": "f = 1/((z^2 + 1) (z + 2 I - 1));\nTable[SeriesCoefficient[f, {z, -2 I, k}], {k, 0, 2}]",
+    "check": {
+     "type": "expr",
+     "expected": "{1/3, 1/3 - 4 I/9, -4/27 - 4 I/9}"
+    },
+    "hints": [
+     "El centro es `-2 I`: `SeriesCoefficient[f, {z, -2 I, k}]`.",
+     "Con `Table[..., {k, 0, 2}]` salen los tres de una vez."
+    ],
+    "explain": "1/3 + (1/3 − 4i/9)(z + 2i) − (4/27 + 4i/9)(z + 2i)² + …, como en la solución del guion (`Series[f, {z, -2 I, 4}]`)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e14",
+    "kind": "code",
+    "title": "Todos los Laurent posibles: la corona",
+    "prompt": "Misma f(z) = 1/((z² + 1)(z + 2i − 1)), ahora en la **corona 1 < |z + 2i| < 3**. La fracción del polo z = i (borde exterior) va hacia dentro y las de −i y 1 − 2i (borde interior) hacia fuera.\n\n`Apart[f]` da para el polo i la fracción `fin = (-3/20 + I/20)/(z - I)`; el resto es `fout = f - fin`. Devuelve la lista `{c₋₁, c0}` del desarrollo en la corona: c₋₁ sale de `fout` (hacia fuera) y c0 de `fin` (hacia dentro).",
+    "difficulty": 4,
+    "cmds": [
+     "SeriesCoefficient",
+     "Apart"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 2 (región b)",
+    "solution": "f = 1/((z^2 + 1) (z + 2 I - 1));\nfin = (-3/20 + I/20)/(z - I);\nfout = f - fin;\ncm1 = SeriesCoefficient[fout /. z -> w - 2 I, {w, Infinity, 1}];\nc0 = SeriesCoefficient[fin, {z, -2 I, 0}];\n{cm1, c0}",
+    "check": {
+     "type": "expr",
+     "expected": "{3/20 - I/20, -1/60 - I/20}"
+    },
+    "hints": [
+     "Hacia fuera: cambia a w = z + 2i con `fout /. z -> w - 2 I` y pide `{w, Infinity, 1}`.",
+     "Hacia dentro: `SeriesCoefficient[fin, {z, -2 I, 0}]`."
+    ],
+    "explain": "c₋₁ = 3/20 − i/20 y c0 = −1/60 − i/20. Cuidado: en la solución de 2021 que circula, las fracciones de i y de −i están intercambiadas en esta región; manda siempre la distancia de cada polo al centro."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e15",
+    "kind": "code",
+    "title": "Todos los Laurent posibles: el exterior",
+    "prompt": "Misma f(z) = 1/((z² + 1)(z + 2i − 1)), en la región exterior **|z + 2i| > 3**: todo va hacia fuera, así que basta desarrollar f entera en potencias negativas de w = z + 2i. Devuelve la lista `{c₋₃, c₋₄}`.",
+    "difficulty": 3,
+    "cmds": [
+     "SeriesCoefficient",
+     "Table"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 2 (región c)",
+    "solution": "f = 1/((z^2 + 1) (z + 2 I - 1));\nTable[SeriesCoefficient[f /. z -> w - 2 I, {w, Infinity, k}], {k, 3, 4}]",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 1 + 4 I}"
+    },
+    "hints": [
+     "Cambio de variable: `f /. z -> w - 2 I`, y centro `Infinity` en w.",
+     "`Table[SeriesCoefficient[f /. z -> w - 2 I, {w, Infinity, k}], {k, 3, 4}]`"
+    ],
+    "explain": "f = 1/(z+2i)³ + (1 + 4i)/(z+2i)⁴ + … Empieza en la potencia −3 porque el denominador tiene grado 3. Es el atajo que usó un alumno en el examen: fuera de todo, se desarrolla la función completa."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e16",
+    "kind": "code",
+    "title": "Integral por residuos con cinco polos",
+    "prompt": "Calcula ∫ f(z) dz sobre la circunferencia de centro 0 y radio 2, con f(z) = 1/((z² − 1/2)(z² + 2i − 1)(z + (1/4 − i/4))). Los polos son −1/4 + i/4, ±√(1 − 2i) y ±1/√2. Guárdalos en una lista `polos`, comprueba con `N[Abs[polos]]` que todos están dentro y da el valor **numérico** de la integral.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "Table",
+     "Total"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 3",
+    "solution": "den = (z^2 - 1/2) (z^2 + 2 I - 1) (z + (1/4 - I/4));\npolos = {-1/4 + I/4, -Sqrt[1 - 2 I], Sqrt[1 - 2 I], -1/Sqrt[2], 1/Sqrt[2]};\nN[Abs[polos]]\nN[2 Pi I Total[Table[Residue[1/den, {z, p}], {p, polos}]]]",
+    "check": {
+     "type": "expr",
+     "expected": "0",
+     "compare": "numeric",
+     "tol": 1e-07
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "`Table[Residue[1/den, {z, p}], {p, polos}]` calcula el residuo en cada polo de la lista; `Total` los suma.",
+     "`N[2 Pi I Total[Table[Residue[1/den, {z, p}], {p, polos}]]]`"
+    ],
+    "explain": "Los módulos son 0.354, 1.495, 1.495, 0.707 y 0.707: todos menores que 2. La suma de los cinco residuos es 0 (sale un número del orden de 10⁻¹⁶), así que la integral vale 0. El guion pide comprobarlo parametrizando: `zt[t_] = 2 Exp[I t]; NIntegrate[(1/den /. z -> zt[t]) zt'[t], {t, 0, 2 Pi}]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e17",
+    "kind": "code",
+    "title": "Residuos con un polo doble",
+    "prompt": "Calcula por residuos ∫ z/((z² − 1/4)(z² + 9)(z + (1/2 − i/2))²) dz sobre la circunferencia unidad |z| = 1. Los polos son ±1/2, ±3i y −1/2 + i/2 (doble). Da el valor numérico.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "N"
+    ],
+    "real": true,
+    "source": "Prueba de la PL2 (2021) · ej. 2",
+    "solution": "f = z/((z^2 - 1/4) (z^2 + 9) (z + (1/2 - I/2))^2);\nN[2 Pi I (Residue[f, {z, -1/2}] + Residue[f, {z, 1/2}] + Residue[f, {z, -1/2 + I/2}])]",
+    "check": {
+     "type": "expr",
+     "expected": "0.012488797944326505 - 0.0743154217531602 I",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "Dentro de |z| = 1 están −1/2, 1/2 y −1/2 + i/2 (módulo 0.707). Los polos ±3i quedan fuera.",
+     "Suma los tres residuos, multiplica por `2 Pi I` y aplica `N`."
+    ],
+    "explain": "≈ 0.01249 − 0.07432 i. `Residue` se encarga solo del polo doble; no hace falta indicarle el orden."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e18",
+    "kind": "code",
+    "title": "La misma integral en dos contornos",
+    "prompt": "Sea g(z) = sinh((4 + i) z)/(z² (z² + 1)), con polos en 0 (doble), i y −i. Calcula por residuos ∫ g dz sobre a) la circunferencia de centro 0 y radio 2 y b) la de centro i/2 y radio 1. Devuelve la lista numérica `{Ia, Ib}`.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "N"
+    ],
+    "real": true,
+    "source": "Prueba de la PL2 (2021) · ej. 3",
+    "solution": "g = Sinh[(4 + I) z]/(z^2 (z^2 + 1));\nr0 = Residue[g, {z, 0}]; r1 = Residue[g, {z, I}]; r2 = Residue[g, {z, -I}];\nN[2 Pi I {r0 + r1 + r2, r0 + r1}]",
+    "check": {
+     "type": "expr",
+     "expected": "{-11.109694296052394 + 32.470290739921595 I, -8.69643980161599 + 28.801515984319973 I}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "a) Los tres polos tienen módulo ≤ 1 < 2: entran todos.",
+     "b) Distancias al centro i/2: 0.5 (z = 0), 0.5 (z = i) y 1.5 (z = −i): este último queda fuera."
+    ],
+    "explain": "a) −11.110 + 32.470 i; b) −8.696 + 28.802 i. Es la integral del tipo «Ejercicio 6» de la PL1, ahora en dos líneas."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e19",
+    "kind": "code",
+    "title": "Laurent por regiones con coeficientes y residuos",
+    "prompt": "Sea f(z) = −1/((z − (1 + i/2))(z + 2)) y el centro a = 2 − i. El polo 1 + i/2 está a distancia 1.803 del centro y el polo −2 a 4.123. En la **corona 1.803 < |z − (2 − i)| < 4.123** devuelve la lista numérica `{c₋₁, c0}`.\n\nPista: la fracción del polo −2 es `f1 = Residue[f, {z, -2}]/(z + 2)` (va hacia dentro) y el resto, `f2 = f - f1`, va hacia fuera.",
+    "difficulty": 5,
+    "cmds": [
+     "Residue",
+     "SeriesCoefficient"
+    ],
+    "real": true,
+    "source": "Prueba de la PL2 (2021) · ej. 4",
+    "solution": "f = -1/((z - (1 + I/2)) (z + 2));\nf1 = Residue[f, {z, -2}]/(z + 2);\nf2 = f - f1;\ncm1 = SeriesCoefficient[f2 /. z -> w + 2 - I, {w, Infinity, 1}];\nc0 = SeriesCoefficient[f1, {z, 2 - I, 0}];\nN[{cm1, c0}]",
+    "check": {
+     "type": "expr",
+     "expected": "{-12/37 + 2 I/37, 50/629 + 4 I/629}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "En una fracción simple A/(z − z0), A es el residuo en z0: por eso `f1 = Residue[f, {z, -2}]/(z + 2)`.",
+     "c₋₁: `SeriesCoefficient[f2 /. z -> w + 2 - I, {w, Infinity, 1}]`. c0: `SeriesCoefficient[f1, {z, 2 - I, 0}]`."
+    ],
+    "explain": "c₋₁ ≈ −0.3243 + 0.0541 i (que es el residuo de f en 1 + i/2) y c0 ≈ 0.0795 + 0.0064 i. En el disco interior c₋₁ sería 0, y en la región exterior también: allí los dos residuos se cancelan."
+   }
+  }
+ ]
+}

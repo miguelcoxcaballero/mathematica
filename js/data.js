@@ -87,6 +87,9 @@ function normCommands(raw) {
     related: arr(c.related),
     pitfalls: arr(c.pitfalls),
     usedIn: arr(c.usedIn),
+    aka: arr(c.aka),
+    of: arr(c.of),
+    kind: c.kind || 'function',
     freq: Number(c.freq) || 0,
   }));
   const byName = new Map(commands.map((c) => [c.name, c]));
@@ -191,6 +194,40 @@ export function yearProgress(course, year) {
     if (e.total == null) exKnown = false; else exTotal += e.total;
   }
   return { units: units.length, done, pct: units.length ? sum / units.length : 0, exDone, exTotal: exKnown ? exTotal : null };
+}
+
+/* ---------- familias de comandos (esquema + lista de comandos) ---------- */
+const CAT_LABEL = {
+  sintaxis: 'Sintaxis básica', numeros: 'Números y expresiones', funciones: 'Funciones y programación', listas: 'Listas y tablas',
+  ecuaciones: 'Ecuaciones', calculo: 'Cálculo', series: 'Series y sumas', vectorial: 'Cálculo en varias variables', lineal: 'Álgebra lineal',
+  edo: 'Ecuaciones diferenciales', transformadas: 'Transformadas', compleja: 'Variable compleja', graficos2d: 'Gráficos 2D', graficos3d: 'Gráficos 3D',
+};
+const CAT_ORDER = Object.keys(CAT_LABEL);
+
+/** Familias ordenadas: [{id, name, desc, commands:[cmd…], groups:[{name, commands:[cmd…]}]}]. Usa schema.json si existe;
+ *  si no, agrupa por `cat` de commands.json. Deja en cada comando `c._fam` (id de su familia). */
+export function familyIndex(schema, cmds) {
+  if (!cmds?.commands?.length) return [];
+  const fams = new Map();
+  const famOf = new Map();
+  for (const f of schema?.families || []) {
+    fams.set(f.id, { id: f.id, name: f.name, desc: f.desc || '', idea: f.idea || '', commands: [], groups: [] });
+    for (const n of f.commands) if (!famOf.has(n)) famOf.set(n, f.id);
+  }
+  for (const c of cmds.commands) {
+    const id = famOf.get(c.name) || (fams.has(c.cat) ? c.cat : null) || c.cat || 'otros';
+    if (!fams.has(id)) fams.set(id, { id, name: CAT_LABEL[id] || id.charAt(0).toUpperCase() + id.slice(1), desc: '', idea: '', commands: [], groups: [] });
+    c._fam = id;
+    fams.get(id).commands.push(c);
+  }
+  const out = [...fams.values()].filter((f) => f.commands.length);
+  if (!schema?.families?.length) out.sort((a, b) => ((CAT_ORDER.indexOf(a.id) + 1) || 99) - ((CAT_ORDER.indexOf(b.id) + 1) || 99));
+  for (const f of out) {
+    const gs = new Map();
+    for (const c of f.commands) { const g = c.group || ''; if (!gs.has(g)) gs.set(g, []); gs.get(g).push(c); }
+    f.groups = [...gs].map(([name, commands]) => ({ name, commands }));
+  }
+  return out;
 }
 
 export function lessonHref(id, step) { return `#/leccion/${encodeURIComponent(id)}${step != null ? '/' + step : ''}`; }

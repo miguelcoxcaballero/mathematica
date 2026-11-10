@@ -1,0 +1,1918 @@
+{
+ "anatomy": {
+  "title": "Anatomía de un comando",
+  "example": "Plot[Sin[2 x], {x, 0, 2 Pi}, PlotStyle -> Red]",
+  "parts": [
+   {
+    "token": "Plot",
+    "role": "Comando",
+    "d": "El nombre de lo que quieres hacer. Siempre empieza por mayúscula y va en inglés: Plot, Solve, Integrate."
+   },
+   {
+    "token": "[ … ]",
+    "role": "Corchetes",
+    "d": "Encierran los argumentos del comando. Solo corchetes: los paréntesis son para agrupar operaciones."
+   },
+   {
+    "token": "Sin[2 x]",
+    "role": "Qué",
+    "d": "El primer argumento casi siempre es el objeto sobre el que actúas: la función, la ecuación, la matriz."
+   },
+   {
+    "token": ",",
+    "role": "Coma",
+    "d": "Separa un argumento del siguiente."
+   },
+   {
+    "token": "{x, 0, 2 Pi}",
+    "role": "Con qué variable y dónde",
+    "d": "Una lista entre llaves: variable, desde, hasta. La misma forma sirve en Plot, Integrate, Sum y Table."
+   },
+   {
+    "token": "PlotStyle -> Red",
+    "role": "Opción",
+    "d": "Ajustes opcionales al final, siempre como nombre -> valor. Puedes poner varios separados por comas."
+   }
+  ],
+  "rules": [
+   "Los comandos empiezan por mayúscula y se escriben enteros: `Sin`, `Solve`, `ParametricPlot`. Tus nombres, mejor en minúscula.",
+   "Corchetes `[ ]` para los argumentos, llaves `{ }` para las listas y paréntesis `( )` solo para agrupar operaciones.",
+   "`=` guarda un valor ahora; `:=` define una función que se calcula cada vez; `==` escribe una ecuación o pregunta si dos cosas son iguales.",
+   "Una función propia lleva guion bajo en el argumento: `f[x_] := x^2`. Sin el guion bajo solo funciona para la letra x.",
+   "`->` es una regla (\"x pasa a valer 3\") y `/.` la aplica: `x^2 /. x -> 3`. Solve y DSolve responden con reglas.",
+   "Mathematica calcula en exacto (`1/3`, `Sqrt[2]`, `Pi`). Para ver decimales usa `N[expr]`, `N[expr, cifras]` o `expr // N`.",
+   "`%` es el último resultado. `;` al final de una línea calcula pero no muestra la salida.",
+   "Un espacio multiplica: `2 x` es 2 por x. Pero `xy` es una variable nueva llamada \"xy\".",
+   "El kernel tiene memoria: lo que asignas se queda hasta que lo borras. Empieza cada ejercicio con `Clear[\"Global`*\"]`.",
+   "Todo es una expresión de la forma `Cabeza[argumentos]`. Si un comando te devuelve lo mismo que escribiste, es que no lo ha entendido: revisa mayúsculas, corchetes y nombres."
+  ]
+ },
+ "mentalModels": [
+  {
+   "id": "todo-es-expresion",
+   "title": "Todo es una expresión",
+   "idea": "Por dentro, cualquier cosa que escribes es Cabeza[argumentos]. Los símbolos +, ^, ->, {} son solo atajos de escritura.",
+   "md": "Cuando escribes `a + b`, Mathematica guarda `Plus[a, b]`. Una lista `{1, 2}` es `List[1, 2]` y una regla `x -> 3` es `Rule[x, 3]`.\n\n`Head` te dice la cabeza de una expresión y `FullForm` te la enseña entera sin adornos.\n\nPor qué importa: un comando no \"imprime texto\", devuelve otra expresión. Por eso puedes meter un resultado dentro de otro comando, guardarlo o sustituir partes.",
+   "cells": [
+    {
+     "code": "FullForm[a + b^2]",
+     "note": "la suma y la potencia tienen nombre"
+    },
+    {
+     "code": "Head[{1, 2, 3}]",
+     "note": "las llaves son la cabeza List"
+    },
+    {
+     "code": "Head[Solve[x^2 == 4, x]]",
+     "note": "Solve devuelve una lista: se puede seguir trabajando con ella"
+    }
+   ],
+   "commands": [
+    "Head",
+    "FullForm",
+    "List",
+    "Plus",
+    "Rule"
+   ]
+  },
+  {
+   "id": "mayusculas-y-corchetes",
+   "title": "Mayúsculas, corchetes, llaves y paréntesis",
+   "idea": "Cada signo tiene un único trabajo: corchetes para argumentos, llaves para listas, paréntesis para agrupar.",
+   "md": "En papel escribes sin(x); aquí es `Sin[x]`. Los nombres de Mathematica empiezan por mayúscula, y los argumentos van entre **corchetes**.\n\n- `[ ]` argumentos de un comando o función.\n- `{ }` listas: vectores, intervalos, varias cosas a la vez.\n- `( )` solo para agrupar: `(a + b)/2`.\n- `[[ ]]` para sacar un elemento de una lista.\n\nSi te equivocas, Mathematica no siempre protesta: `sin[Pi]` se queda tal cual porque cree que `sin` es una función tuya sin definir.",
+   "cells": [
+    {
+     "code": "Sin[Pi/2]",
+     "note": "correcto: mayúscula y corchetes"
+    },
+    {
+     "code": "sin[Pi/2]",
+     "note": "en minúscula no lo reconoce y lo devuelve igual"
+    },
+    {
+     "code": "(1 + 2)*{10, 20}[[2]]",
+     "note": "paréntesis para agrupar, llaves para la lista y doble corchete para extraer"
+    }
+   ],
+   "commands": [
+    "Sin",
+    "List",
+    "Part",
+    "Times"
+   ]
+  },
+  {
+   "id": "exacto-vs-decimal",
+   "title": "Exacto o decimal",
+   "idea": "Mathematica no redondea salvo que se lo pidas. Un solo punto decimal convierte todo el cálculo en aproximado.",
+   "md": "`1/3` es una fracción exacta; `1/3.` es `0.333333`. Con enteros, fracciones, `Pi`, `E` y raíces el resultado es exacto y puede quedar \"sin hacer\" (`Sqrt[2]`).\n\nPara pasar a decimal: `N[expr]`, o `N[expr, 6]` si te piden 6 cifras significativas. La forma corta es `expr // N`.\n\nConsejo: calcula en exacto y aplica `N` al final. Así no arrastras errores de redondeo.",
+   "cells": [
+    {
+     "code": "1/3 + 1/6",
+     "note": "exacto: una fracción"
+    },
+    {
+     "code": "1/3. + 1/6",
+     "note": "con un punto decimal todo pasa a ser aproximado"
+    },
+    {
+     "code": "N[Pi^2/6, 10]",
+     "note": "10 cifras significativas"
+    }
+   ],
+   "commands": [
+    "N",
+    "Divide",
+    "Pi",
+    "Sqrt",
+    "Rationalize"
+   ]
+  },
+  {
+   "id": "tres-iguales",
+   "title": "Tres iguales distintos: =, := y ==",
+   "idea": "= guarda, := define y == compara. Confundirlos es el error número uno.",
+   "md": "- `a = 5` **guarda** el valor 5 en `a` ahora mismo.\n- `f[x_] := x^2` **define**: guarda la receta y la calcula cada vez que la llamas.\n- `x^2 == 4` es una **ecuación** (o una pregunta): no guarda nada.\n\nDentro de `Solve`, `DSolve`, `FindRoot` y `ContourPlot` siempre va `==`. Si escribes `Solve[x = 4, x]` acabas de asignar 4 a `x` y lo has estropeado todo: arréglalo con `Clear[x]`.",
+   "cells": [
+    {
+     "code": "a = 5; a^2",
+     "note": "= guarda un valor"
+    },
+    {
+     "code": "f[x_] := x^2 + 1\nf[3]",
+     "note": ":= define una función"
+    },
+    {
+     "code": "Solve[x^2 == 4, x]",
+     "note": "== escribe la ecuación"
+    }
+   ],
+   "commands": [
+    "Set",
+    "SetDelayed",
+    "Equal",
+    "Clear"
+   ]
+  },
+  {
+   "id": "reglas-y-sustitucion",
+   "title": "Reglas: cómo responde Mathematica",
+   "idea": "Solve no te da números, te da reglas x -> valor. Con /. las aplicas donde quieras.",
+   "md": "Una regla `x -> 3` significa \"donde ponga x, pon 3\". No cambia `x` para siempre: solo actúa cuando la aplicas con `/.`.\n\n`Solve` devuelve `{{x -> 2}, {x -> 3}}`: una lista con una lista de reglas por cada solución. Para sacar los valores: `x /. sol`. Si solo hay una solución, `Flatten` quita las llaves que sobran.\n\nEl patrón que más vas a repetir en todo el curso: **resolver, y después `expresión /. solución`**.",
+   "cells": [
+    {
+     "code": "x^2 + 1 /. x -> 3",
+     "note": "aplicar una regla a mano"
+    },
+    {
+     "code": "sol = Solve[x^2 - 5 x + 6 == 0, x]\nx /. sol",
+     "note": "las dos soluciones como lista de números"
+    },
+    {
+     "code": "xc = x /. Flatten[Solve[2 x - 8 == 0, x]]\nxc^2",
+     "note": "una sola solución: Flatten y a una variable"
+    }
+   ],
+   "commands": [
+    "Rule",
+    "ReplaceAll",
+    "Solve",
+    "Flatten",
+    "Part"
+   ]
+  },
+  {
+   "id": "la-forma-de-los-comandos",
+   "title": "Qué, variable, y de dónde a dónde",
+   "idea": "Casi todos los comandos de cálculo siguen el mismo molde: Comando[expresión, {variable, desde, hasta}].",
+   "md": "Si te aprendes un molde, te sabes diez comandos:\n\n- `Plot[f, {x, a, b}]` dibuja.\n- `Integrate[f, {x, a, b}]` integra.\n- `Sum[f, {n, a, b}]` suma.\n- `Table[f, {n, a, b}]` hace una lista.\n- `NIntegrate`, `Product`, `Manipulate`… igual.\n\nLa lista `{x, a, b}` se lee \"x desde a hasta b\". Con solo la variable (`Integrate[f, x]`, `D[f, x]`) el cálculo es simbólico, sin intervalo.",
+   "cells": [
+    {
+     "code": "Table[n^2, {n, 1, 5}]",
+     "note": "lista de valores"
+    },
+    {
+     "code": "Sum[n^2, {n, 1, 5}]",
+     "note": "el mismo molde, ahora sumando"
+    },
+    {
+     "code": "Integrate[x^2, {x, 0, 3}]",
+     "note": "y ahora integrando"
+    }
+   ],
+   "commands": [
+    "Plot",
+    "Integrate",
+    "Sum",
+    "Table",
+    "D"
+   ]
+  },
+  {
+   "id": "funciones-y-guion-bajo",
+   "title": "Tus funciones: el guion bajo",
+   "idea": "f[x_] := … crea una función. El guion bajo dice \"aquí va cualquier cosa, y la llamaré x\".",
+   "md": "Con `f[x_] := x^2 + 1` puedes hacer `f[3]`, `f[a + b]`, `f'[x]`, `Plot[f[x], {x, 0, 2}]`.\n\n¿`=` o `:=`? Usa `:=` por defecto. Usa `=` cuando el lado derecho es un cálculo caro que quieres hacer una sola vez, como convertir en función la salida de `DSolve`, `Integrate` o `Series`: `ys[x_] = y[x] /. Flatten[sol]`.\n\nUna función ya definida se deriva con comilla: `f'[x]`, `f''[2]`.",
+   "cells": [
+    {
+     "code": "f[x_] := x^3 - 2 x\n{f[2], f[t + 1]}",
+     "note": "vale para números y para expresiones"
+    },
+    {
+     "code": "f[x_] := x^3 - 2 x\nf'[x]",
+     "note": "la comilla deriva una función definida"
+    },
+    {
+     "code": "g[x_, y_] := x^2 + y^2\ng[3, 4]",
+     "note": "varias variables: un guion bajo en cada una"
+    }
+   ],
+   "commands": [
+    "Blank",
+    "SetDelayed",
+    "Set",
+    "Derivative"
+   ]
+  },
+  {
+   "id": "listas",
+   "title": "Listas: una caja para todo",
+   "idea": "Vectores, matrices, puntos, soluciones y hasta gráficas viajan en listas. Las operaciones actúan elemento a elemento.",
+   "md": "Una lista es `{a, b, c}`. Una matriz es una lista de filas: `{{1, 2}, {3, 4}}`.\n\n- Operar: `2 {1, 2, 3}`, `{1, 2} + {10, 20}`, `Sqrt[{1, 4, 9}]`.\n- Extraer: `lista[[2]]`, `matriz[[1, 2]]`, `matriz[[All, 1]]`.\n- Crear: `Table[expr, {n, 1, 10}]`.\n\nOjo con las matrices: `A*B` multiplica elemento a elemento. El producto de matrices es el punto: `A.B`.",
+   "cells": [
+    {
+     "code": "v = {1, 2, 3}; {2 v, v^2, Total[v]}",
+     "note": "las operaciones entran en la lista"
+    },
+    {
+     "code": "m = {{1, 2}, {3, 4}}; {m[[2, 1]], m[[All, 2]]}",
+     "note": "un elemento y una columna"
+    },
+    {
+     "code": "m = {{1, 2}, {3, 4}}; {m . m, m*m}",
+     "note": "producto matricial frente a elemento a elemento"
+    }
+   ],
+   "commands": [
+    "List",
+    "Part",
+    "Table",
+    "Dot",
+    "Total",
+    "All"
+   ]
+  },
+  {
+   "id": "memoria-del-kernel",
+   "title": "El kernel tiene memoria",
+   "idea": "Lo que asignas se queda guardado aunque borres la celda. Importa el orden en que evalúas, no el orden en la pantalla.",
+   "md": "Si en el ejercicio 1 hiciste `x = 3`, en el ejercicio 2 `Solve[x^2 == 4, x]` falla, porque para Mathematica has escrito `Solve[9 == 4, 3]`.\n\nPor eso los cuadernos de clase empiezan cada problema con `Clear[\"Global`*\"]`.\n\n`%` es la última salida **evaluada**, no la celda de encima. Es cómodo, pero en un examen es más seguro poner nombre a los resultados: `sol = Solve[…]`.",
+   "cells": [
+    {
+     "code": "x = 3;\nx^2 + 1",
+     "note": "x se queda con el valor 3"
+    },
+    {
+     "code": "x = 3; Clear[x];\nSolve[x^2 == 4, x]",
+     "note": "tras Clear vuelve a ser una incógnita"
+    },
+    {
+     "code": "2^10\n% + 1",
+     "note": "% recupera la última salida"
+    }
+   ],
+   "commands": [
+    "Clear",
+    "ClearAll",
+    "Out",
+    "CompoundExpression",
+    "Set"
+   ]
+  },
+  {
+   "id": "simbolico-o-numerico",
+   "title": "Primero exacto, luego numérico",
+   "idea": "Cada tarea tiene dos comandos: el exacto (Solve, Integrate, DSolve) y el numérico (NSolve/FindRoot, NIntegrate, NDSolve).",
+   "md": "El exacto te da fórmulas, pero no siempre puede. El numérico siempre da un número, pero necesita que todo sean números.\n\n- Ecuaciones: `Solve` → si no puede, `FindRoot[ec, {x, x0}]` con un punto inicial sacado de una gráfica.\n- Integrales: `Integrate` → `NIntegrate` (longitudes de arco, impropias complicadas).\n- EDO: `DSolve` → `NDSolve`.\n\nSeñal de que toca el numérico: Mathematica te devuelve el comando tal cual, o tarda una eternidad.",
+   "cells": [
+    {
+     "code": "Solve[x^2 == 2, x]",
+     "note": "exacto"
+    },
+    {
+     "code": "FindRoot[Cos[x] == x, {x, 1}]",
+     "note": "no hay fórmula: numérico con punto inicial"
+    },
+    {
+     "code": "NIntegrate[Sqrt[1 + Cos[x]^2], {x, 0, Pi}]",
+     "note": "longitud de un arco de seno: sin primitiva elemental"
+    }
+   ],
+   "commands": [
+    "Solve",
+    "NSolve",
+    "FindRoot",
+    "Integrate",
+    "NIntegrate",
+    "DSolve",
+    "NDSolve"
+   ]
+  },
+  {
+   "id": "funciones-puras",
+   "title": "Funciones sin nombre: # y &",
+   "idea": "# + 1 & es \"la función que suma 1\". # es el hueco del argumento y & marca el final.",
+   "md": "Algunos comandos piden una función como argumento: `NestWhile`, `FixedPoint`, `Map`. En vez de definirla aparte, la escribes ahí mismo.\n\n- `#^2 &` → eleva al cuadrado.\n- `# - f[#]/f'[#] &` → un paso de Newton.\n- `Abs[f[#]] >= 10^-8 &` → una condición sobre el valor actual.\n\nLéelo así: \"coge lo que te llegue (#) y haz esto con ello\".",
+   "cells": [
+    {
+     "code": "#^2 &[5]",
+     "note": "la función aplicada a 5"
+    },
+    {
+     "code": "Map[#^2 &, {1, 2, 3}]",
+     "note": "aplicada a cada elemento"
+    },
+    {
+     "code": "NestWhile[# + 1 &, 1, #^2 < 200 &]",
+     "note": "sumar 1 mientras el cuadrado sea menor que 200"
+    }
+   ],
+   "commands": [
+    "Function",
+    "Slot",
+    "Map",
+    "NestWhile",
+    "NestWhileList",
+    "FixedPoint"
+   ]
+  },
+  {
+   "id": "graficas-son-objetos",
+   "title": "Una gráfica también es un resultado",
+   "idea": "Un Plot se puede guardar en una variable, combinar con otros y ajustar con opciones nombre -> valor.",
+   "md": "Guardas con `g1 = Plot[…]` y combinas con `Show[g1, g2]`. Así se superponen una curva cartesiana, una polar y unos puntos.\n\nLas **opciones** van al final y siempre con flecha: `PlotRange -> {-2, 2}`, `PlotStyle -> Red`, `AxesLabel -> {\"x\", \"y\"}`. No importa el orden entre ellas.\n\nPara leer un punto de corte: dibuja, cierra la ventana con `PlotRange` y usa esas coordenadas como punto inicial de `FindRoot`.",
+   "cells": [
+    {
+     "code": "g1 = Plot[Sin[x], {x, 0, 6}];\ng2 = Plot[x/6, {x, 0, 6}, PlotStyle -> Red];\nShow[g1, g2]",
+     "note": "dos gráficas guardadas y superpuestas"
+    },
+    {
+     "code": "Plot[Tan[x], {x, 0, 6}, PlotRange -> {-4, 4}, AxesLabel -> {\"x\", \"y\"}]",
+     "note": "opciones al final, con flecha"
+    },
+    {
+     "code": "Show[Plot[Sin[x], {x, 0, 6}], Graphics[{Red, PointSize[Large], Point[{Pi/2, 1}]}]]",
+     "note": "una curva y un punto marcado"
+    }
+   ],
+   "commands": [
+    "Plot",
+    "Show",
+    "Graphics",
+    "PlotRange",
+    "PlotStyle",
+    "AxesLabel"
+   ]
+  },
+  {
+   "id": "de-la-solucion-a-la-funcion",
+   "title": "De la salida de DSolve a una función que puedes usar",
+   "idea": "DSolve devuelve {{y[x] -> fórmula}}. En una línea la conviertes en una función normal: ys[x_] = y[x] /. Flatten[sol].",
+   "md": "Es la jugada clave de 2º. Tres pasos que siempre son iguales:\n\n- Resolver: `sol = DSolve[{ecuación, condiciones}, y[x], x]`.\n- Convertir: `ys[x_] = y[x] /. Flatten[sol]` (con `=`, para que la sustitución se haga ahora).\n- Usar: `ys[2.3]`, `Plot[ys[x], {x, 0, 5}]`, `FindRoot[ys[x] == 1, {x, 1}]`.\n\nLo mismo vale para `Solve`, `InverseLaplaceTransform` y cualquier comando que responda con reglas.",
+   "cells": [
+    {
+     "code": "sol = DSolve[{y'[x] + 2 y[x] == 4, y[0] == 0}, y[x], x]",
+     "note": "la salida es una regla dentro de dos llaves"
+    },
+    {
+     "code": "sol = DSolve[{y'[x] + 2 y[x] == 4, y[0] == 0}, y[x], x];\nys[x_] = y[x] /. Flatten[sol];\nys[1.]",
+     "note": "convertida en función y evaluada"
+    },
+    {
+     "code": "sol = DSolve[{y'[x] + 2 y[x] == 4, y[0] == 0}, y[x], x];\nys[x_] = y[x] /. Flatten[sol];\nFindRoot[ys[x] == 1, {x, 0.5}]",
+     "note": "¿cuándo vale 1 la solución?"
+    }
+   ],
+   "commands": [
+    "DSolve",
+    "ReplaceAll",
+    "Flatten",
+    "Set",
+    "FindRoot",
+    "C"
+   ]
+  },
+  {
+   "id": "cuando-algo-falla",
+   "title": "Cuando algo falla: cómo leer la respuesta",
+   "idea": "Si la salida es igual que la entrada, Mathematica no ha reconocido algo. Casi siempre es una mayúscula, un corchete o una variable con valor antiguo.",
+   "md": "Lista de comprobación rápida:\n\n- ¿El comando está bien escrito y con mayúscula? (`Lenght`, `plot`, `Integrate` sin la e…)\n- ¿Corchetes en los argumentos y llaves en `{x, a, b}`?\n- ¿`==` en las ecuaciones?\n- ¿Alguna variable tiene un valor de antes? Prueba `Clear[\"Global`*\"]` y vuelve a evaluar desde arriba.\n- ¿Estás usando la salida de `Solve` como si fuera un número? Extrae con `/.`.\n- ¿Aparece `y` en vez de `y[x]` en una ecuación diferencial?\n\nLos mensajes en color indican el comando que protesta y una pista. Léelos: `Solve::ivar: 3 is not a valid variable` quiere decir que `x` vale 3.",
+   "cells": [
+    {
+     "code": "lenght[{1, 2, 3}]",
+     "note": "mal escrito: se queda igual, sin calcular"
+    },
+    {
+     "code": "Length[{1, 2, 3}]",
+     "note": "bien escrito"
+    },
+    {
+     "code": "sol = Solve[2 x == 10, x];\n{sol, x /. sol}",
+     "note": "la salida de Solve y el número que contiene"
+    }
+   ],
+   "commands": [
+    "Length",
+    "Clear",
+    "Solve",
+    "ReplaceAll",
+    "Equal"
+   ]
+  }
+ ],
+ "families": [
+  {
+   "id": "sintaxis",
+   "title": "Sintaxis y básicos",
+   "color": "#5E81B5",
+   "icon": "=",
+   "idea": "Las piezas con las que se escribe todo: asignar, sustituir, encadenar, comparar.",
+   "pattern": "x = valor   ·   expr /. x -> a   ·   expr // N",
+   "groups": [
+    {
+     "title": "Asignar y borrar",
+     "commands": [
+      "Set",
+      "SetDelayed",
+      "Clear",
+      "ClearAll"
+     ]
+    },
+    {
+     "title": "Reglas y sustitución",
+     "commands": [
+      "Rule",
+      "ReplaceAll"
+     ]
+    },
+    {
+     "title": "Encadenar y reutilizar",
+     "commands": [
+      "Postfix",
+      "Out",
+      "CompoundExpression",
+      "Comentario"
+     ]
+    },
+    {
+     "title": "Aritmética",
+     "commands": [
+      "Plus",
+      "Times",
+      "Divide",
+      "Power",
+      "Factorial",
+      "Factorial2"
+     ]
+    },
+    {
+     "title": "Comparar y lógica",
+     "commands": [
+      "Unequal",
+      "Less",
+      "LessEqual",
+      "Greater",
+      "GreaterEqual",
+      "And",
+      "Or",
+      "Not",
+      "True",
+      "False"
+     ]
+    },
+    {
+     "title": "Ver la estructura",
+     "commands": [
+      "Head",
+      "FullForm"
+     ]
+    },
+    {
+     "title": "Paquetes y salida",
+     "commands": [
+      "Needs",
+      "Get",
+      "Print",
+      "ToString",
+      "StringJoin"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "numeros",
+   "title": "Números y álgebra",
+   "color": "#E19C24",
+   "icon": "π",
+   "idea": "Constantes, funciones elementales, paso a decimal y manipulación de expresiones.",
+   "pattern": "N[expr, n]   ·   Simplify[expr]   ·   Sin[x]",
+   "groups": [
+    {
+     "title": "Constantes",
+     "commands": [
+      "Pi",
+      "E",
+      "Infinity",
+      "Degree",
+      "GoldenRatio"
+     ]
+    },
+    {
+     "title": "Exacto y decimal",
+     "commands": [
+      "N",
+      "SetPrecision",
+      "Rationalize",
+      "Chop",
+      "Round",
+      "Floor",
+      "Ceiling"
+     ]
+    },
+    {
+     "title": "Raíces, exponenciales y logaritmos",
+     "commands": [
+      "Sqrt",
+      "Exp",
+      "Log",
+      "Log10"
+     ]
+    },
+    {
+     "title": "Trigonométricas",
+     "commands": [
+      "Sin",
+      "Cos",
+      "Tan",
+      "Cot",
+      "Sec",
+      "Csc",
+      "ArcSin",
+      "ArcCos",
+      "ArcTan",
+      "ArcCot"
+     ]
+    },
+    {
+     "title": "Hiperbólicas",
+     "commands": [
+      "Sinh",
+      "Cosh",
+      "Tanh",
+      "ArcSinh",
+      "ArcCosh"
+     ]
+    },
+    {
+     "title": "Valor absoluto, signo y enteros",
+     "commands": [
+      "Abs",
+      "Sign",
+      "Mod",
+      "Max",
+      "Min",
+      "Binomial",
+      "FromDMS"
+     ]
+    },
+    {
+     "title": "Simplificar",
+     "commands": [
+      "Simplify",
+      "FullSimplify",
+      "Assumptions",
+      "Assuming",
+      "Element"
+     ]
+    },
+    {
+     "title": "Transformar expresiones",
+     "commands": [
+      "Expand",
+      "Trig",
+      "Factor",
+      "Collect",
+      "Coefficient",
+      "Apart",
+      "Together",
+      "PowerExpand",
+      "Numerator",
+      "Denominator",
+      "PolynomialQuotient",
+      "PolynomialRemainder",
+      "CoefficientList",
+      "ExpandAll"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "funciones",
+   "title": "Funciones, lógica e iteración",
+   "color": "#8FB032",
+   "icon": "ƒ",
+   "idea": "Definir funciones propias, funciones a trozos, funciones puras y repetir cálculos.",
+   "pattern": "f[x_] := expr   ·   NestWhile[f, x0, test]",
+   "groups": [
+    {
+     "title": "Definir funciones",
+     "commands": [
+      "Blank",
+      "Integer",
+      "Function",
+      "Slot",
+      "Condition",
+      "With",
+      "Module"
+     ]
+    },
+    {
+     "title": "Funciones a trozos",
+     "commands": [
+      "Piecewise",
+      "If",
+      "Which"
+     ]
+    },
+    {
+     "title": "Aplicar funciones",
+     "commands": [
+      "Map",
+      "Apply",
+      "Through",
+      "Evaluate"
+     ]
+    },
+    {
+     "title": "Iterar",
+     "commands": [
+      "Nest",
+      "NestList",
+      "NestWhile",
+      "NestWhileList",
+      "FixedPoint",
+      "FixedPointList"
+     ]
+    },
+    {
+     "title": "Bucles",
+     "commands": [
+      "Do",
+      "While",
+      "For",
+      "Increment"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "listas",
+   "title": "Listas y tablas",
+   "color": "#EB6235",
+   "icon": "{ }",
+   "idea": "Crear, recorrer, extraer y resumir listas (y las matrices como listas de filas).",
+   "pattern": "Table[expr, {i, a, b}]   ·   lista[[i]]",
+   "groups": [
+    {
+     "title": "Crear listas",
+     "commands": [
+      "List",
+      "Table",
+      "Range",
+      "Array"
+     ]
+    },
+    {
+     "title": "Extraer partes",
+     "commands": [
+      "Part",
+      "Span",
+      "All",
+      "First",
+      "Last",
+      "Take",
+      "Drop"
+     ]
+    },
+    {
+     "title": "Medir y ordenar",
+     "commands": [
+      "Length",
+      "Dimensions",
+      "Sort",
+      "Ordering",
+      "Reverse",
+      "Count"
+     ]
+    },
+    {
+     "title": "Combinar y aplanar",
+     "commands": [
+      "Join",
+      "Append",
+      "Flatten",
+      "Thread",
+      "Prepend"
+     ]
+    },
+    {
+     "title": "Sumar y resumir",
+     "commands": [
+      "Total",
+      "Mean"
+     ]
+    },
+    {
+     "title": "Presentar resultados",
+     "commands": [
+      "TableForm",
+      "Subscript",
+      "TraditionalForm"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ecuaciones",
+   "title": "Ecuaciones y sistemas",
+   "color": "#8778B3",
+   "icon": "⩵",
+   "idea": "Resolver ecuaciones de forma exacta o numérica, interpolar y ajustar datos.",
+   "pattern": "Solve[ecuación, x]   ·   FindRoot[ecuación, {x, x0}]",
+   "groups": [
+    {
+     "title": "Plantear",
+     "commands": [
+      "Equal"
+     ]
+    },
+    {
+     "title": "Resolver de forma exacta",
+     "commands": [
+      "Solve",
+      "Reduce"
+     ]
+    },
+    {
+     "title": "Resolver de forma numérica",
+     "commands": [
+      "NSolve",
+      "FindRoot",
+      "WorkingPrecision"
+     ]
+    },
+    {
+     "title": "Interpolar y ajustar",
+     "commands": [
+      "InterpolatingPolynomial",
+      "Fit"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "calculo",
+   "title": "Cálculo en una variable",
+   "color": "#C56E1A",
+   "icon": "∫",
+   "idea": "Límites, derivadas e integrales exactas y numéricas.",
+   "pattern": "Comando[f, x]   ·   Comando[f, {x, a, b}]",
+   "groups": [
+    {
+     "title": "Límites",
+     "commands": [
+      "Limit",
+      "Direction"
+     ]
+    },
+    {
+     "title": "Derivar",
+     "commands": [
+      "D",
+      "Derivative"
+     ]
+    },
+    {
+     "title": "Integrar",
+     "commands": [
+      "Integrate",
+      "NIntegrate",
+      "PrincipalValue"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "series",
+   "title": "Series, Fourier y funciones especiales",
+   "color": "#5D9EC7",
+   "icon": "Σ",
+   "idea": "Sumas, series de Taylor y Laurent, series de Fourier y polinomios especiales.",
+   "pattern": "Sum[a, {n, 1, Infinity}]   ·   Series[f, {x, x0, n}]",
+   "groups": [
+    {
+     "title": "Sumas y productos",
+     "commands": [
+      "Sum",
+      "Product",
+      "SumConvergence"
+     ]
+    },
+    {
+     "title": "Taylor y Laurent",
+     "commands": [
+      "Series",
+      "Normal"
+     ]
+    },
+    {
+     "title": "Series de Fourier",
+     "commands": [
+      "FourierTrigSeries",
+      "FourierSeries",
+      "FourierParameters"
+     ]
+    },
+    {
+     "title": "Funciones especiales",
+     "commands": [
+      "Gamma",
+      "Beta",
+      "LegendreP",
+      "HermiteH",
+      "LaguerreL",
+      "BesselJ",
+      "BesselY",
+      "BesselJZero"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "graficos2d",
+   "title": "Gráficos 2D",
+   "color": "#FFBF00",
+   "icon": "📈",
+   "idea": "Dibujar funciones, curvas, regiones y datos; combinarlos y darles estilo.",
+   "pattern": "Plot[f, {x, a, b}, opción -> valor]",
+   "groups": [
+    {
+     "title": "Funciones y curvas",
+     "commands": [
+      "Plot",
+      "ParametricPlot",
+      "PolarPlot",
+      "ContourPlot",
+      "RegionPlot"
+     ]
+    },
+    {
+     "title": "Datos y sucesiones",
+     "commands": [
+      "ListPlot",
+      "ListLinePlot",
+      "DiscretePlot"
+     ]
+    },
+    {
+     "title": "Combinar e interactuar",
+     "commands": [
+      "Show",
+      "GraphicsRow",
+      "Spacings",
+      "Manipulate",
+      "Animate"
+     ]
+    },
+    {
+     "title": "Primitivas gráficas",
+     "commands": [
+      "Graphics",
+      "Point",
+      "Line",
+      "Arrow",
+      "Circle",
+      "Rectangle",
+      "Polygon",
+      "Text"
+     ]
+    },
+    {
+     "title": "Rango, ejes y marco",
+     "commands": [
+      "PlotRange",
+      "AspectRatio",
+      "Axes",
+      "AxesLabel",
+      "AxesOrigin",
+      "Frame",
+      "GridLines",
+      "Ticks",
+      "PlotLabel",
+      "PlotLegends"
+     ]
+    },
+    {
+     "title": "Estilo del trazo",
+     "commands": [
+      "PlotStyle",
+      "ContourStyle",
+      "Thickness",
+      "AbsoluteThickness",
+      "PointSize",
+      "Dashed",
+      "Opacity",
+      "PlotPoints",
+      "Filling"
+     ]
+    },
+    {
+     "title": "Colores",
+     "commands": [
+      "RGBColor",
+      "Red",
+      "Blue",
+      "Green",
+      "Black",
+      "Orange",
+      "Pink",
+      "Yellow",
+      "Purple",
+      "LightBlue"
+     ]
+    },
+    {
+     "title": "Valores de opción",
+     "commands": [
+      "Automatic",
+      "None",
+      "Full",
+      "Small",
+      "Medium",
+      "Large"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "graficos3d",
+   "title": "Gráficos 3D",
+   "color": "#A5609D",
+   "icon": "🧊",
+   "idea": "Superficies, curvas en el espacio, sólidos y objetos 3D.",
+   "pattern": "Plot3D[f, {x, a, b}, {y, c, d}]",
+   "groups": [
+    {
+     "title": "Superficies y curvas",
+     "commands": [
+      "Plot3D",
+      "ParametricPlot3D",
+      "ContourPlot3D",
+      "RegionPlot3D"
+     ]
+    },
+    {
+     "title": "Objetos 3D",
+     "commands": [
+      "Graphics3D",
+      "Sphere",
+      "Cylinder",
+      "Cone",
+      "Cuboid"
+     ]
+    },
+    {
+     "title": "Opciones 3D",
+     "commands": [
+      "BoxRatios",
+      "Boxed",
+      "ViewPoint",
+      "Mesh"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lineal",
+   "title": "Álgebra lineal",
+   "color": "#929600",
+   "icon": "▦",
+   "idea": "Matrices, sistemas lineales, espacios vectoriales y diagonalización.",
+   "pattern": "A . B   ·   Comando[matriz]",
+   "groups": [
+    {
+     "title": "Construir y mostrar",
+     "commands": [
+      "MatrixForm",
+      "IdentityMatrix",
+      "DiagonalMatrix",
+      "Transpose"
+     ]
+    },
+    {
+     "title": "Operar con matrices y vectores",
+     "commands": [
+      "Dot",
+      "Cross",
+      "Inverse",
+      "Det",
+      "Tr",
+      "MatrixPower",
+      "Minors",
+      "Cofactor"
+     ]
+    },
+    {
+     "title": "Sistemas y rango",
+     "commands": [
+      "MatrixRank",
+      "RowReduce",
+      "LinearSolve",
+      "NullSpace"
+     ]
+    },
+    {
+     "title": "Norma, ángulo y proyección",
+     "commands": [
+      "Norm",
+      "Normalize",
+      "EuclideanDistance",
+      "VectorAngle",
+      "Projection",
+      "Orthogonalize",
+      "LeastSquares"
+     ]
+    },
+    {
+     "title": "Valores propios y diagonalización",
+     "commands": [
+      "Eigenvalues",
+      "Eigenvectors",
+      "Eigensystem",
+      "CharacteristicPolynomial"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vectorial",
+   "title": "Varias variables y análisis vectorial",
+   "color": "#E95536",
+   "icon": "∇",
+   "idea": "Gradiente, derivación implícita, rotacional y campos vectoriales.",
+   "pattern": "Grad[f, {x, y, z}]   ·   Curl[F, {x, y, z}]",
+   "groups": [
+    {
+     "title": "Derivadas en varias variables",
+     "commands": [
+      "Grad",
+      "Dt",
+      "Constants"
+     ]
+    },
+    {
+     "title": "Campos vectoriales",
+     "commands": [
+      "Div",
+      "Curl"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "edo",
+   "title": "Ecuaciones diferenciales",
+   "color": "#6685D9",
+   "icon": "y′",
+   "idea": "Resolver EDO, sistemas, EDP y ecuaciones en diferencias; campos de direcciones.",
+   "pattern": "DSolve[{ecuación, y[0] == a}, y[x], x]",
+   "groups": [
+    {
+     "title": "Resolver ecuaciones diferenciales",
+     "commands": [
+      "DSolve",
+      "C",
+      "NDSolve"
+     ]
+    },
+    {
+     "title": "Campo de direcciones",
+     "commands": [
+      "VectorPlot",
+      "VectorScale"
+     ]
+    },
+    {
+     "title": "Ecuaciones en diferencias",
+     "commands": [
+      "RSolve"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "transformadas",
+   "title": "Transformadas: Laplace, Fourier y Z",
+   "color": "#F89F13",
+   "icon": "ℒ",
+   "idea": "Transformar una función o una ecuación entera, y volver atrás con la inversa.",
+   "pattern": "LaplaceTransform[f, t, s]   ·   InverseLaplaceTransform[F, s, t]",
+   "groups": [
+    {
+     "title": "Laplace",
+     "commands": [
+      "LaplaceTransform",
+      "InverseLaplaceTransform",
+      "Convolve"
+     ]
+    },
+    {
+     "title": "Escalones e impulsos",
+     "commands": [
+      "UnitStep",
+      "HeavisideTheta",
+      "DiracDelta"
+     ]
+    },
+    {
+     "title": "Fourier",
+     "commands": [
+      "FourierTransform",
+      "InverseFourierTransform",
+      "FourierSinTransform",
+      "InverseFourierSinTransform",
+      "FourierCosTransform",
+      "InverseFourierCosTransform"
+     ]
+    },
+    {
+     "title": "Transformada Z",
+     "commands": [
+      "ZTransform",
+      "InverseZTransform",
+      "DiscreteDelta"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "compleja",
+   "title": "Números complejos y variable compleja",
+   "color": "#BC5B80",
+   "icon": "ⅈ",
+   "idea": "Parte real e imaginaria, módulo, argumento, forma binómica y residuos.",
+   "pattern": "Re[z]   ·   ComplexExpand[expr]   ·   Residue[f, {z, z0}]",
+   "groups": [
+    {
+     "title": "Partes de un complejo",
+     "commands": [
+      "I",
+      "Re",
+      "Im",
+      "Arg",
+      "Conjugate",
+      "ReIm"
+     ]
+    },
+    {
+     "title": "Forma binómica",
+     "commands": [
+      "ComplexExpand"
+     ]
+    },
+    {
+     "title": "Residuos",
+     "commands": [
+      "Residue"
+     ]
+    }
+   ]
+  }
+ ],
+ "flows": [
+  {
+   "id": "complejo-modulo-argumento",
+   "title": "Complejo: módulo, argumento y giro",
+   "year": 1,
+   "when": "Te dan un complejo y piden módulo, argumento en grados, girarlo o su logaritmo.",
+   "lessons": [
+    "1-p05",
+    "1-p01"
+   ],
+   "steps": [
+    {
+     "cmd": "N",
+     "d": "Guarda el complejo en `z`, ya en decimal. La unidad imaginaria es `I` mayúscula.",
+     "code": "z = (2 + 3 I)^5/(-2 + Pi I)^4 // N"
+    },
+    {
+     "cmd": "Abs",
+     "d": "Módulo.",
+     "code": "Abs[z]"
+    },
+    {
+     "cmd": "Arg",
+     "d": "Argumento principal; dividir por `Degree` lo pasa a grados.",
+     "code": "Arg[z]/Degree"
+    },
+    {
+     "cmd": "Exp",
+     "d": "Girar un ángulo es multiplicar por `Exp[I ángulo]`; en sentido horario el ángulo es negativo.",
+     "code": "w = z Exp[-I 40 Degree]"
+    },
+    {
+     "cmd": "Re",
+     "d": "Parte real e imaginaria del resultado, para escribirlo como a + bi.",
+     "code": "{Re[w], Im[w]}"
+    }
+   ],
+   "example": "z = (2 + 3 I)^5/(-2 + Pi I)^4 // N\nAbs[z]\nArg[z]/Degree\nw = z Exp[-I 40 Degree]\n{Re[w], Im[w]}"
+  },
+  {
+   "id": "recta-tangente",
+   "title": "Recta tangente y normal a una curva",
+   "year": 1,
+   "when": "Piden la tangente o la normal en x = a, su valor en un punto o dónde corta al eje.",
+   "lessons": [
+    "1-p04"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define la función y el punto.",
+     "code": "f[x_] := Log[Tan[3 x]]; a = Pi/9;"
+    },
+    {
+     "cmd": "Derivative",
+     "d": "Tangente: pasa por (a, f(a)) con pendiente `f'[a]`.",
+     "code": "ytan[x_] = f[a] + f'[a] (x - a);"
+    },
+    {
+     "cmd": "Set",
+     "d": "Normal: misma idea con pendiente `-1/f'[a]`.",
+     "code": "ynor[x_] = f[a] - 1/f'[a] (x - a);"
+    },
+    {
+     "cmd": "N",
+     "d": "Valor de la tangente en un punto.",
+     "code": "N[ytan[1], 6]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Corte de la normal con el eje OX.",
+     "code": "Solve[ynor[x] == 0, x] // N"
+    }
+   ],
+   "example": "f[x_] := Log[Tan[3 x]]; a = Pi/9;\nytan[x_] = f[a] + f'[a] (x - a);\nynor[x_] = f[a] - 1/f'[a] (x - a);\nN[ytan[1], 6]\nSolve[ynor[x] == 0, x] // N"
+  },
+  {
+   "id": "curva-parametrica",
+   "title": "Curva paramétrica: dibujo, longitud y área",
+   "year": 1,
+   "when": "Dan x(t), y(t) y piden dibujarla, su longitud o el área que encierra.",
+   "lessons": [
+    "1-p07",
+    "1-p10",
+    "1-p13"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define las dos coordenadas como funciones de t.",
+     "code": "x[t_] := 2 t - 2 Sin[t]; y[t_] := 2 - 2 Cos[t];"
+    },
+    {
+     "cmd": "ParametricPlot",
+     "d": "Dibuja para ver el recorrido y los límites del parámetro.",
+     "code": "ParametricPlot[{x[t], y[t]}, {t, 0, 2 Pi}]"
+    },
+    {
+     "cmd": "NIntegrate",
+     "d": "Longitud: integral del módulo de la velocidad.",
+     "code": "NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]"
+    },
+    {
+     "cmd": "Integrate",
+     "d": "Área bajo el arco: integral de y por x'. Toma el valor absoluto.",
+     "code": "N[Abs[Integrate[y[t] x'[t], {t, 0, 2 Pi}]], 6]"
+    }
+   ],
+   "example": "x[t_] := 2 t - 2 Sin[t]; y[t_] := 2 - 2 Cos[t];\nParametricPlot[{x[t], y[t]}, {t, 0, 2 Pi}]\nNIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]\nN[Abs[Integrate[y[t] x'[t], {t, 0, 2 Pi}]], 6]"
+  },
+  {
+   "id": "interseccion-de-curvas",
+   "title": "Cortes de dos curvas: dibujar y FindRoot",
+   "year": 1,
+   "when": "Piden el punto donde se cortan dos curvas y Solve no puede.",
+   "lessons": [
+    "1-p08",
+    "1-p13"
+   ],
+   "steps": [
+    {
+     "cmd": "ContourPlot",
+     "d": "Dibuja las dos ecuaciones juntas: ves cuántos cortes hay y por dónde caen.",
+     "code": "ContourPlot[{x^2 + y^2 == 4, y == Exp[-x]}, {x, -3, 3}, {y, -3, 3}]"
+    },
+    {
+     "cmd": "FindRoot",
+     "d": "Sustituye una ecuación en la otra y afina desde el punto que has leído en la gráfica.",
+     "code": "sol = FindRoot[x^2 + Exp[-2 x] == 4, {x, 2}]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "Convierte la regla en las coordenadas del punto.",
+     "code": "P = {x, Exp[-x]} /. sol"
+    }
+   ],
+   "example": "ContourPlot[{x^2 + y^2 == 4, y == Exp[-x]}, {x, -3, 3}, {y, -3, 3}]\nsol = FindRoot[x^2 + Exp[-2 x] == 4, {x, 2}]\nP = {x, Exp[-x]} /. sol"
+  },
+  {
+   "id": "newton-raphson",
+   "title": "Newton-Raphson con error controlado",
+   "year": 1,
+   "when": "Piden las iteraciones de Newton hasta que el error baje de una tolerancia.",
+   "lessons": [
+    "1-p09"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define la función cuya raíz buscas.",
+     "code": "f[x_] := x^3 - 2 x - 5"
+    },
+    {
+     "cmd": "Plot",
+     "d": "Dibuja para localizar la raíz y elegir el punto inicial.",
+     "code": "Plot[f[x], {x, 1, 3}]"
+    },
+    {
+     "cmd": "NestWhileList",
+     "d": "Paso de Newton repetido mientras el error sea mayor o igual que la tolerancia.",
+     "code": "it = NestWhileList[# - f[#]/f'[#] &, 2., Abs[f[#]] >= 10^-10 &]"
+    },
+    {
+     "cmd": "Length",
+     "d": "Número de iteraciones: longitud de la lista menos 1.",
+     "code": "Length[it] - 1"
+    },
+    {
+     "cmd": "Last",
+     "d": "La última es la raíz aproximada.",
+     "code": "Last[it]"
+    }
+   ],
+   "example": "f[x_] := x^3 - 2 x - 5\nPlot[f[x], {x, 1, 3}]\nit = NestWhileList[# - f[#]/f'[#] &, 2., Abs[f[#]] >= 10^-10 &]\nLength[it] - 1\nLast[it]"
+  },
+  {
+   "id": "pvi-con-dsolve",
+   "title": "EDO con condiciones iniciales (PVI)",
+   "year": 1,
+   "when": "Dan una EDO con y(0), y'(0) y piden el valor de la solución en un punto.",
+   "lessons": [
+    "1-p12",
+    "2-m2-pl1"
+   ],
+   "steps": [
+    {
+     "cmd": "DSolve",
+     "d": "Ecuación y condiciones, todo dentro de una lista.",
+     "code": "sol = DSolve[{y''[x] + 2 y'[x] + 5 y[x] == 0, y[0] == 2, y'[0] == 1}, y[x], x]"
+    },
+    {
+     "cmd": "Flatten",
+     "d": "Convierte la regla en una función normal (con `=`).",
+     "code": "ys[x_] = y[x] /. Flatten[sol];"
+    },
+    {
+     "cmd": "N",
+     "d": "Evalúa donde pidan.",
+     "code": "N[ys[14/5], 6]"
+    },
+    {
+     "cmd": "Plot",
+     "d": "Dibuja para comprobar que arranca donde debe.",
+     "code": "Plot[ys[x], {x, 0, 5}, PlotRange -> All]"
+    }
+   ],
+   "example": "sol = DSolve[{y''[x] + 2 y'[x] + 5 y[x] == 0, y[0] == 2, y'[0] == 1}, y[x], x]\nys[x_] = y[x] /. Flatten[sol];\nN[ys[14/5], 6]\nPlot[ys[x], {x, 0, 5}, PlotRange -> All]"
+  },
+  {
+   "id": "diagonalizar",
+   "title": "Diagonalizar una matriz",
+   "year": 1,
+   "when": "Piden valores y vectores propios, la matriz de paso o comprobar A = P·D·P⁻¹.",
+   "lessons": [
+    "1-p18"
+   ],
+   "steps": [
+    {
+     "cmd": "Set",
+     "d": "Guarda la matriz como lista de filas.",
+     "code": "A = {{4, 1}, {2, 3}};"
+    },
+    {
+     "cmd": "Eigenvalues",
+     "d": "Valores propios.",
+     "code": "valp = Eigenvalues[A]"
+    },
+    {
+     "cmd": "Eigenvectors",
+     "d": "Vectores propios: salen por filas, así que se trasponen para formar la matriz de paso.",
+     "code": "P = Transpose[Eigenvectors[A]]"
+    },
+    {
+     "cmd": "DiagonalMatrix",
+     "d": "Matriz diagonal con los valores propios (no la llames `D`).",
+     "code": "d = DiagonalMatrix[valp]"
+    },
+    {
+     "cmd": "Inverse",
+     "d": "Comprobación: debe dar `True`.",
+     "code": "A == P . d . Inverse[P]"
+    }
+   ],
+   "example": "A = {{4, 1}, {2, 3}};\nvalp = Eigenvalues[A]\nP = Transpose[Eigenvectors[A]]\nd = DiagonalMatrix[valp]\nA == P . d . Inverse[P]"
+  },
+  {
+   "id": "minimos-cuadrados",
+   "title": "Sistema incompatible: mínimos cuadrados",
+   "year": 1,
+   "when": "Hay más ecuaciones que incógnitas y piden la mejor solución aproximada y su error.",
+   "lessons": [
+    "1-p17"
+   ],
+   "steps": [
+    {
+     "cmd": "Set",
+     "d": "Matriz de coeficientes y términos independientes.",
+     "code": "A = {{1, 0}, {1, 1}, {1, 2}}; b = {1, 2, 4};"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Ecuaciones normales: `Transpose[A].A.x == Transpose[A].b`.",
+     "code": "sol = Solve[Transpose[A] . A . {p, q} == Transpose[A] . b, {p, q}]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "Lo que vale A·x con esa solución.",
+     "code": "Ax = A . {p, q} /. Flatten[sol]"
+    },
+    {
+     "cmd": "Norm",
+     "d": "Error cometido.",
+     "code": "Norm[b - Ax] // N"
+    }
+   ],
+   "example": "A = {{1, 0}, {1, 1}, {1, 2}}; b = {1, 2, 4};\nsol = Solve[Transpose[A] . A . {p, q} == Transpose[A] . b, {p, q}]\nAx = A . {p, q} /. Flatten[sol]\nNorm[b - Ax] // N"
+  },
+  {
+   "id": "extremos-libres",
+   "title": "Puntos críticos y clasificación con la hessiana",
+   "year": 1,
+   "when": "Piden los extremos relativos de f(x, y).",
+   "lessons": [
+    "1-p20"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define la función de dos variables.",
+     "code": "f[x_, y_] := x^3 - 3 x + y^2"
+    },
+    {
+     "cmd": "Grad",
+     "d": "Gradiente: las dos derivadas parciales.",
+     "code": "g = Grad[f[x, y], {x, y}]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Puntos críticos: las dos parciales valen 0.",
+     "code": "pts = Solve[{g[[1]] == 0, g[[2]] == 0}, {x, y}]"
+    },
+    {
+     "cmd": "D",
+     "d": "Matriz hessiana: doble llave y un 2.",
+     "code": "H = D[f[x, y], {{x, y}, 2}]"
+    },
+    {
+     "cmd": "Det",
+     "d": "En cada punto: hessiano y fxx. Hessiano negativo es punto de silla; positivo con fxx > 0, mínimo.",
+     "code": "{Det[H], H[[1, 1]]} /. pts"
+    }
+   ],
+   "example": "f[x_, y_] := x^3 - 3 x + y^2\ng = Grad[f[x, y], {x, y}]\npts = Solve[{g[[1]] == 0, g[[2]] == 0}, {x, y}]\nH = D[f[x, y], {{x, y}, 2}]\n{Det[H], H[[1, 1]]} /. pts"
+  },
+  {
+   "id": "integral-doble",
+   "title": "Integral doble sobre un recinto",
+   "year": 1,
+   "when": "Piden el área o la masa de un recinto plano limitado por curvas.",
+   "lessons": [
+    "1-p23"
+   ],
+   "steps": [
+    {
+     "cmd": "ContourPlot",
+     "d": "Dibuja las curvas frontera para ver el recinto.",
+     "code": "ContourPlot[{y == x^2, y == x + 2}, {x, -2, 3}, {y, -1, 5}]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Los cortes dan los límites de la variable exterior.",
+     "code": "Solve[x^2 == x + 2, x]"
+    },
+    {
+     "cmd": "Integrate",
+     "d": "Área: integra 1. Primero el rango fijo y después el que depende de x.",
+     "code": "Integrate[1, {x, -1, 2}, {y, x^2, x + 2}]"
+    },
+    {
+     "cmd": "N",
+     "d": "Masa: integra la densidad.",
+     "code": "Integrate[x^2 + y, {x, -1, 2}, {y, x^2, x + 2}] // N"
+    }
+   ],
+   "example": "ContourPlot[{y == x^2, y == x + 2}, {x, -2, 3}, {y, -1, 5}]\nSolve[x^2 == x + 2, x]\nIntegrate[1, {x, -1, 2}, {y, x^2, x + 2}]\nIntegrate[x^2 + y, {x, -1, 2}, {y, x^2, x + 2}] // N"
+  },
+  {
+   "id": "trabajo-de-un-campo",
+   "title": "Integral de línea: trabajo de un campo",
+   "year": 1,
+   "when": "Dan un campo F y una curva; piden el trabajo, o si el campo es conservativo.",
+   "lessons": [
+    "1-p22",
+    "1-p25"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define el campo vectorial.",
+     "code": "F[x_, y_, z_] := {y z, x z, x y + 2 z}"
+    },
+    {
+     "cmd": "Set",
+     "d": "Parametriza la curva: aquí x, y, z pasan a depender de t.",
+     "code": "r = {Cos[t], Sin[t], t};"
+    },
+    {
+     "cmd": "Dot",
+     "d": "Integrando: el campo sobre la curva por el vector tangente.",
+     "code": "integrando = F[Cos[t], Sin[t], t] . D[r, t]"
+    },
+    {
+     "cmd": "NIntegrate",
+     "d": "Trabajo entre los dos valores del parámetro.",
+     "code": "NIntegrate[integrando, {t, 0, Pi/2}]"
+    },
+    {
+     "cmd": "Curl",
+     "d": "Rotacional nulo: el campo es conservativo.",
+     "code": "Curl[F[x, y, z], {x, y, z}]"
+    }
+   ],
+   "example": "F[x_, y_, z_] := {y z, x z, x y + 2 z}\nr = {Cos[t], Sin[t], t};\nintegrando = F[Cos[t], Sin[t], t] . D[r, t]\nNIntegrate[integrando, {t, 0, Pi/2}]\nCurl[F[x, y, z], {x, y, z}]"
+  },
+  {
+   "id": "polinomio-de-taylor",
+   "title": "Polinomio de Taylor y comparación",
+   "year": 1,
+   "when": "Piden el polinomio de Taylor de grado n en x0 y compararlo con la función.",
+   "lessons": [
+    "1-p26"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define la función.",
+     "code": "f[x_] := Exp[-x] Cos[x]"
+    },
+    {
+     "cmd": "Series",
+     "d": "Desarrolla, quita el término O con `Normal` y guarda con `=`.",
+     "code": "T[x_] = Normal[Series[f[x], {x, 0, 4}]]"
+    },
+    {
+     "cmd": "Abs",
+     "d": "Error en un punto.",
+     "code": "Abs[f[0.5] - T[0.5]]"
+    },
+    {
+     "cmd": "Plot",
+     "d": "Función y polinomio juntos: se separan al alejarse del centro.",
+     "code": "Plot[{f[x], T[x]}, {x, -2, 3}, PlotRange -> {-3, 3}]"
+    }
+   ],
+   "example": "f[x_] := Exp[-x] Cos[x]\nT[x_] = Normal[Series[f[x], {x, 0, 4}]]\nAbs[f[0.5] - T[0.5]]\nPlot[{f[x], T[x]}, {x, -2, 3}, PlotRange -> {-3, 3}]"
+  },
+  {
+   "id": "serie-de-fourier",
+   "title": "Serie de Fourier de una función a trozos",
+   "year": 1,
+   "when": "Dan una función en un intervalo y piden su extensión periódica y las sumas de Fourier.",
+   "lessons": [
+    "1-p27"
+   ],
+   "steps": [
+    {
+     "cmd": "Piecewise",
+     "d": "Define la función en su intervalo [-2, 2[.",
+     "code": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]"
+    },
+    {
+     "cmd": "Mod",
+     "d": "Extensión de periodo 4: `a + Mod[x - a, T]`.",
+     "code": "FE[x_] := f[-2 + Mod[x + 2, 4]]"
+    },
+    {
+     "cmd": "FourierTrigSeries",
+     "d": "Suma parcial de grado 4, guardada con `=`. El periodo va en `FourierParameters`.",
+     "code": "F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];"
+    },
+    {
+     "cmd": "N",
+     "d": "Compara los valores en un punto.",
+     "code": "N[{FE[5], F4[5]}]"
+    },
+    {
+     "cmd": "Plot",
+     "d": "Dibuja la extensión y la suma parcial.",
+     "code": "Plot[{FE[x], F4[x]}, {x, -6, 6}]"
+    }
+   ],
+   "example": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]\nF4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];\nN[{FE[5], F4[5]}]\nPlot[{FE[x], F4[x]}, {x, -6, 6}]"
+  },
+  {
+   "id": "edo-campo-de-direcciones",
+   "title": "EDO de primer orden: solución y campo de direcciones",
+   "year": 2,
+   "when": "Piden resolver y' = f(t, y), dibujar la familia de soluciones y el campo de vectores.",
+   "lessons": [
+    "2-m2-pl1",
+    "2-m2-pl2"
+   ],
+   "steps": [
+    {
+     "cmd": "DSolve",
+     "d": "Solución general, con la constante `C[1]`.",
+     "code": "sol = DSolve[y'[t] + 2 y[t] == t, y[t], t]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "Función de dos argumentos: el tiempo y la constante.",
+     "code": "z[t_, c_] = y[t] /. Flatten[sol] /. C[1] -> c;"
+    },
+    {
+     "cmd": "Table",
+     "d": "Familia de curvas para varios valores de la constante.",
+     "code": "p1 = Plot[Evaluate[Table[z[t, c], {c, -2, 2}]], {t, -1, 2}, PlotRange -> {-2, 2}];"
+    },
+    {
+     "cmd": "VectorPlot",
+     "d": "Campo de direcciones: `{1, y'}` con y' despejada de la ecuación.",
+     "code": "p2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}];"
+    },
+    {
+     "cmd": "Show",
+     "d": "Las curvas son tangentes a las flechas.",
+     "code": "Show[p1, p2]"
+    }
+   ],
+   "example": "sol = DSolve[y'[t] + 2 y[t] == t, y[t], t]\nz[t_, c_] = y[t] /. Flatten[sol] /. C[1] -> c;\np1 = Plot[Evaluate[Table[z[t, c], {c, -2, 2}]], {t, -1, 2}, PlotRange -> {-2, 2}];\np2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}];\nShow[p1, p2]"
+  },
+  {
+   "id": "coeficientes-indeterminados",
+   "title": "Solución particular por coeficientes indeterminados",
+   "year": 2,
+   "when": "Piden A, B, C para que yp sea solución particular de una EDO lineal.",
+   "lessons": [
+    "2-m2-pl3",
+    "2-m2-pl4"
+   ],
+   "steps": [
+    {
+     "cmd": "Set",
+     "d": "Candidata con coeficientes por determinar (no uses `C`, está reservado).",
+     "code": "yp[x_] = A + B x + C1 x^2;"
+    },
+    {
+     "cmd": "D",
+     "d": "Sustituye en la ecuación y pásalo todo a un lado: es el residuo.",
+     "code": "res = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);"
+    },
+    {
+     "cmd": "Collect",
+     "d": "Agrupa por potencias de x: cada paréntesis debe valer 0.",
+     "code": "Collect[res, x]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Iguala a 0 todos los coeficientes y resuelve.",
+     "code": "sol = Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "La solución particular.",
+     "code": "yp[x] /. Flatten[sol]"
+    }
+   ],
+   "example": "yp[x_] = A + B x + C1 x^2;\nres = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);\nCollect[res, x]\nsol = Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]\nyp[x] /. Flatten[sol]"
+  },
+  {
+   "id": "sistema-edo-matricial",
+   "title": "Sistema lineal de EDO por el método matricial",
+   "year": 2,
+   "when": "Piden resolver Y' = A·Y con valores y vectores propios y una condición inicial.",
+   "lessons": [
+    "2-m2-pl5"
+   ],
+   "steps": [
+    {
+     "cmd": "Eigensystem",
+     "d": "Valores y vectores propios a la vez.",
+     "code": "{valp, vecp} = Eigensystem[{{4, 1}, {2, 3}}]"
+    },
+    {
+     "cmd": "Exp",
+     "d": "Solución general: cada vector por su exponencial, con constantes.",
+     "code": "sg[t_] = C1 vecp[[1]] Exp[valp[[1]] t] + C2 vecp[[2]] Exp[valp[[2]] t]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Las constantes salen de la condición inicial.",
+     "code": "ctes = Solve[sg[0] == {1, 0}, {C1, C2}]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "Solución del problema, como función.",
+     "code": "ys[t_] = sg[t] /. Flatten[ctes]"
+    },
+    {
+     "cmd": "N",
+     "d": "Valor en el instante pedido.",
+     "code": "ys[0.5]"
+    }
+   ],
+   "example": "{valp, vecp} = Eigensystem[{{4, 1}, {2, 3}}]\nsg[t_] = C1 vecp[[1]] Exp[valp[[1]] t] + C2 vecp[[2]] Exp[valp[[2]] t]\nctes = Solve[sg[0] == {1, 0}, {C1, C2}]\nys[t_] = sg[t] /. Flatten[ctes]\nys[0.5]"
+  },
+  {
+   "id": "laplace-pvi",
+   "title": "PVI con transformada de Laplace",
+   "year": 2,
+   "when": "Piden resolver una EDO con condiciones iniciales usando Laplace.",
+   "lessons": [
+    "2-m2-pl6"
+   ],
+   "steps": [
+    {
+     "cmd": "LaplaceTransform",
+     "d": "Transforma la ecuación entera: aparecen `y[0]` e `y'[0]`.",
+     "code": "ec = LaplaceTransform[y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t], t, s]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Despeja la transformada de la incógnita e impón las condiciones iniciales.",
+     "code": "sol = Solve[ec, LaplaceTransform[y[t], t, s]] /. {y[0] -> 1, y'[0] -> 5}"
+    },
+    {
+     "cmd": "Part",
+     "d": "Extrae la expresión: primera solución, primera regla, lado derecho.",
+     "code": "Y = sol[[1, 1, 2]]"
+    },
+    {
+     "cmd": "InverseLaplaceTransform",
+     "d": "Vuelve a la variable t.",
+     "code": "ys[t_] = InverseLaplaceTransform[Y, s, t]"
+    },
+    {
+     "cmd": "N",
+     "d": "Evalúa donde pidan.",
+     "code": "ys[0.5]"
+    }
+   ],
+   "example": "ec = LaplaceTransform[y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t], t, s]\nsol = Solve[ec, LaplaceTransform[y[t], t, s]] /. {y[0] -> 1, y'[0] -> 5}\nY = sol[[1, 1, 2]]\nys[t_] = InverseLaplaceTransform[Y, s, t]\nys[0.5]"
+  },
+  {
+   "id": "edo-serie-de-potencias",
+   "title": "EDO en serie de potencias (punto ordinario)",
+   "year": 2,
+   "when": "Piden la solución en serie hasta x^n de una EDO con coeficientes variables.",
+   "lessons": [
+    "2-m2-pl7"
+   ],
+   "steps": [
+    {
+     "cmd": "Sum",
+     "d": "Serie truncada con coeficientes `a[k]`.",
+     "code": "y[x_] = Sum[a[k] x^k, {k, 0, 5}];"
+    },
+    {
+     "cmd": "D",
+     "d": "Sustituye la serie en la ecuación.",
+     "code": "res = D[y[x], {x, 2}] - 2 x D[y[x], x] - 2 y[x];"
+    },
+    {
+     "cmd": "CoefficientList",
+     "d": "Coeficientes de las primeras potencias de x: todos deben anularse.",
+     "code": "coefs = Take[CoefficientList[res, x], 4]"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Despeja los coeficientes altos en función de `a[0]` y `a[1]`.",
+     "code": "sol = Solve[coefs == {0, 0, 0, 0}, {a[2], a[3], a[4], a[5]}]"
+    },
+    {
+     "cmd": "ReplaceAll",
+     "d": "La serie solución, con dos constantes libres.",
+     "code": "y[x] /. Flatten[sol]"
+    }
+   ],
+   "example": "y[x_] = Sum[a[k] x^k, {k, 0, 5}];\nres = D[y[x], {x, 2}] - 2 x D[y[x], x] - 2 y[x];\ncoefs = Take[CoefficientList[res, x], 4]\nsol = Solve[coefs == {0, 0, 0, 0}, {a[2], a[3], a[4], a[5]}]\ny[x] /. Flatten[sol]"
+  },
+  {
+   "id": "edp-calor-fourier",
+   "title": "Ecuación del calor por separación de variables",
+   "year": 2,
+   "when": "Piden u(x, t) con extremos a cero, su valor en un punto o el instante en que alcanza un valor.",
+   "lessons": [
+    "2-m2-pl9"
+   ],
+   "steps": [
+    {
+     "cmd": "Set",
+     "d": "Datos: longitud y temperatura inicial.",
+     "code": "L = 5; phi[x_] = x (L - x);"
+    },
+    {
+     "cmd": "Integer",
+     "d": "Coeficientes de Fourier, solo para n entero.",
+     "code": "An[n_Integer] := (2/L) Integrate[phi[x] Sin[n Pi x/L], {x, 0, L}]"
+    },
+    {
+     "cmd": "Sum",
+     "d": "Serie truncada con 5 términos (aquí con a² = 4).",
+     "code": "u[x_, t_] = Sum[An[n] Exp[-4 (n Pi/L)^2 t] Sin[n Pi x/L], {n, 1, 5}];"
+    },
+    {
+     "cmd": "N",
+     "d": "Valor en un punto y un instante.",
+     "code": "N[u[3, 1/10]]"
+    },
+    {
+     "cmd": "FindRoot",
+     "d": "Instante en que la temperatura en x = 3 baja a 1.",
+     "code": "FindRoot[u[3, t] == 1, {t, 0.5}]"
+    }
+   ],
+   "example": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x] Sin[n Pi x/L], {x, 0, L}]\nu[x_, t_] = Sum[An[n] Exp[-4 (n Pi/L)^2 t] Sin[n Pi x/L], {n, 1, 5}];\nN[u[3, 1/10]]\nFindRoot[u[3, t] == 1, {t, 0.5}]"
+  },
+  {
+   "id": "integral-por-residuos",
+   "title": "Integral de contorno por residuos",
+   "year": 2,
+   "when": "Piden la integral de una función con polos sobre una circunferencia.",
+   "lessons": [
+    "2-m3-pl2",
+    "2-m3-pl1"
+   ],
+   "steps": [
+    {
+     "cmd": "SetDelayed",
+     "d": "Define la función.",
+     "code": "f[z_] := 1/(z (z + 4)^3)"
+    },
+    {
+     "cmd": "Solve",
+     "d": "Polos: ceros del denominador.",
+     "code": "polos = z /. Solve[z (z + 4)^3 == 0, z]"
+    },
+    {
+     "cmd": "Abs",
+     "d": "Distancia de cada polo al centro: solo cuentan los que quedan dentro del radio (aquí 2).",
+     "code": "Abs[polos]"
+    },
+    {
+     "cmd": "Residue",
+     "d": "Integral = 2πi por la suma de los residuos interiores.",
+     "code": "2 Pi I Residue[f[z], {z, 0}]"
+    },
+    {
+     "cmd": "N",
+     "d": "En decimal, para la casilla.",
+     "code": "N[%]"
+    }
+   ],
+   "example": "f[z_] := 1/(z (z + 4)^3)\npolos = z /. Solve[z (z + 4)^3 == 0, z]\nAbs[polos]\n2 Pi I Residue[f[z], {z, 0}]\nN[%]"
+  }
+ ]
+}

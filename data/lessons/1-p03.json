@@ -1,0 +1,862 @@
+{
+ "id": "1-p03",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo I",
+ "order": 3,
+ "title": "Funciones",
+ "summary": "Usar las funciones elementales, definir las tuyas con f[x_] := …, evaluarlas en números y en listas, despejar con Solve y construir la función inversa (el arco de San Luis).",
+ "minutes": 45,
+ "commands": [
+  "Log",
+  "Exp",
+  "Abs",
+  "Cosh",
+  "ArcCosh",
+  "Blank",
+  "Solve"
+ ],
+ "uses": [
+  "N",
+  "Sin",
+  "Sqrt",
+  "Pi",
+  "E",
+  "FromDMS",
+  "Degree",
+  "Set",
+  "SetDelayed",
+  "Clear",
+  "ReplaceAll",
+  "Part",
+  "Out"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Fórmulas con nombre",
+   "md": "Una función es una fórmula con nombre: le das un valor y te devuelve otro. La sustentación en función de la velocidad, la altura de un arco en función de x, la temperatura en función de la altitud…\n\nMathematica trae cientos de funciones hechas y, además, puedes **definir las tuyas**. Es el paso que convierte la calculadora en una herramienta de ingeniería: escribes la fórmula una vez y la evalúas, la derivas o la dibujas las veces que quieras.\n\nAl acabar sabrás:\n- usar las funciones elementales (`Log`, `Exp`, `Abs`, `Cosh`…);\n- definir funciones con `f[x_] := …` y entender qué pinta ese guion bajo;\n- evaluarlas en un número, en una expresión o en una lista entera;\n- despejar con `Solve` y construir la función inversa.\n\nAbajo, una función propia definida en una línea y evaluada de dos maneras. Tecléala.",
+   "cells": [
+    {
+     "code": "area[r_] := Pi r^2\narea[2]\narea[{1, 2, 3}]",
+     "note": "Definida, evaluada en un número y sobre una lista"
+    }
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Las funciones que ya vienen",
+   "md": "Todas siguen la regla de la práctica 1: mayúscula inicial y corchetes.\n- Trigonométricas: `Sin`, `Cos`, `Tan` y sus inversas `ArcSin`, `ArcCos`, `ArcTan`. Siempre en radianes.\n- Exponencial: `Exp[x]`, que es lo mismo que `E^x`.\n- Logaritmos: `Log[x]` es el **neperiano** (ln). No existe `Ln`. Para otra base, `Log[b, x]`: la base va primero.\n- `Abs[x]` es el valor absoluto y `Sqrt[x]` la raíz cuadrada.\n- Hiperbólicas: `Sinh`, `Cosh`, `Tanh` y sus inversas `ArcSinh`, `ArcCosh`… (el «argcosh» de clase).\n\nComo siempre: con datos exactos responden exacto y con decimales, en decimales.",
+   "cells": [
+    {
+     "code": "Log[E^2]",
+     "note": "Neperiano de e²"
+    },
+    {
+     "code": "Log[10, 1000]",
+     "note": "Logaritmo en base 10 de 1000"
+    },
+    {
+     "code": "{Cosh[0], Cosh[1.]}",
+     "note": "Coseno hiperbólico: exacto y decimal"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e01",
+    "kind": "code",
+    "title": "Logaritmo en otra base",
+    "prompt": "Calcula el logaritmo en base 2 de 1024.",
+    "difficulty": 1,
+    "cmds": [
+     "Log"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Log[2, 1024]",
+    "check": {
+     "type": "expr",
+     "expected": "10"
+    },
+    "requires": [
+     "Log"
+    ],
+    "hints": [
+     "Con dos argumentos, `Log[b, x]` es el logaritmo en base b de x: la base va primero.",
+     "`Log[2, 1024]`"
+    ],
+    "explain": "`Log[2, 1024]` da 10 porque 2^10 = 1024. Con un solo argumento, `Log[1024]` sería el neperiano."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e02",
+    "kind": "code",
+    "title": "Combinar funciones",
+    "prompt": "Calcula ln|e·π²/5 − 21| con 10 cifras significativas. El logaritmo neperiano es `Log` y el valor absoluto, `Abs`.",
+    "difficulty": 2,
+    "cmds": [
+     "Log",
+     "Abs",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "N[Log[Abs[E Pi^2/5 - 21]], 10]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "Log[Abs[E Pi^2/5 - 21]]",
+       "compare": "numeric",
+       "tol": 1e-08
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
+       "msg": "El valor es correcto, pero no tiene exactamente 10 cifras significativas. Pídelas con el segundo argumento: `N[expr, 10]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "Log",
+     "Abs",
+     "N"
+    ],
+    "hints": [
+     "Constrúyelo de dentro afuera: primero `E Pi^2/5 - 21`, luego `Abs[...]`, luego `Log[...]`.",
+     "`N[Log[Abs[E Pi^2/5 - 21]], 10]`"
+    ],
+    "explain": "Sale 2.749468929. Las funciones se anidan con corchetes, de dentro afuera. Es el mismo tipo de cálculo que el apartado b) de la práctica."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Definir tu propia función",
+   "md": "La forma es siempre la misma:\n\n`f[x_] := x^2 + 1`\n\nTres piezas:\n- `f` es el nombre (mejor en minúscula, para no pisar funciones de Mathematica).\n- `x_` es el argumento. El **guion bajo** significa «aquí vale cualquier cosa, y la llamaré x». Solo se pone a la izquierda; a la derecha se escribe `x` normal.\n- `:=` guarda la fórmula sin calcular nada. Por eso definir no produce salida.\n\nDespués se usa como cualquier otra función: `f[3]`, `f[2.5]`, `f[a + b]`. Mathematica cambia `x` por lo que pongas entre corchetes.\n\n**El error más repetido**: olvidar el guion bajo. Teclea la última celda, que está mal a propósito. `g[x] := x^2` define el valor de g **solo** para el símbolo literal `x`. Por eso `g[3]` se queda sin calcular, y no avisa de nada.",
+   "cells": [
+    {
+     "code": "f[x_] := x^2 + 1",
+     "note": "Definir no da salida"
+    },
+    {
+     "code": "f[3]"
+    },
+    {
+     "code": "f[a + b]",
+     "note": "Vale cualquier cosa como argumento"
+    },
+    {
+     "code": "g[x] := x^2\ng[3]",
+     "note": "Mal a propósito. Sin guion bajo no sabe qué hacer con 3"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e03",
+    "kind": "code",
+    "title": "Tu primera función",
+    "prompt": "Define la función `lin[t_]` que devuelva `3 t + 1`. En otra línea, calcula `lin[2]`.",
+    "difficulty": 1,
+    "cmds": [
+     "Blank",
+     "SetDelayed"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "lin[t_] := 3 t + 1\nlin[2]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "lin[10]",
+       "expected": "31",
+       "msg": "`lin` no funciona para cualquier valor. ¿Has puesto el guion bajo en `lin[t_]`?"
+      },
+      {
+       "type": "expr",
+       "expected": "7"
+      }
+     ]
+    },
+    "hints": [
+     "A la izquierda, `lin[t_]` con guion bajo; después `:=` y la fórmula con `t` normal.",
+     "`lin[t_] := 3 t + 1` y debajo `lin[2]`."
+    ],
+    "explain": "`lin[2]` da 7. Sin el guion bajo (`lin[t] := 3 t + 1`) la definición solo valdría para el símbolo `t`, y `lin[2]` se quedaría sin calcular."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e04",
+    "kind": "code",
+    "title": "Volumen de una esfera",
+    "prompt": "Define la función `vol[r_]` que da el volumen de una esfera de radio r: (4/3)·π·r³. En otra línea, calcula `vol[3]`.",
+    "difficulty": 2,
+    "cmds": [
+     "SetDelayed",
+     "Blank",
+     "Pi"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "vol[r_] := 4/3 Pi r^3\nvol[3]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "vol[t]",
+       "expected": "4/3 Pi t^3",
+       "msg": "`vol` no está bien definida. Debe ser `vol[r_] := 4/3 Pi r^3` (con guion bajo en `r_`)."
+      },
+      {
+       "type": "expr",
+       "expected": "36 Pi"
+      }
+     ]
+    },
+    "hints": [
+     "A la izquierda `vol[r_]`, con guion bajo; a la derecha, la fórmula con `r` normal.",
+     "`vol[r_] := 4/3 Pi r^3` y debajo `vol[3]`."
+    ],
+    "explain": "`vol[3]` da `36 Pi`, exacto, porque 3 es un entero. Con `vol[3.]` saldría 113.097."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e05",
+    "kind": "fix",
+    "title": "Dos errores al definir",
+    "prompt": "Esta celda debería definir `cub` como x³ − x y calcular su valor en 2 (resultado: 6). Tiene dos errores. Corrígelos.",
+    "difficulty": 2,
+    "cmds": [
+     "SetDelayed",
+     "Blank"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "cub[x] := x^3 - x\ncub(2)",
+    "solution": "cub[x_] := x^3 - x\ncub[2]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "cub[5]",
+       "expected": "120",
+       "msg": "La definición no funciona para cualquier valor: ¿falta el guion bajo en `x_`?"
+      },
+      {
+       "type": "expr",
+       "expected": "6"
+      }
+     ]
+    },
+    "hints": [
+     "En la definición, el argumento necesita guion bajo: `cub[x_]`.",
+     "Para evaluar se usan corchetes: `cub[2]`."
+    ],
+    "explain": "`x_` en la definición y corchetes al evaluar. Con `cub(2)` Mathematica multiplicaba el símbolo `cub` por 2."
+   }
+  },
+  {
+   "type": "explain",
+   "title": ":= o = al definir funciones",
+   "md": "Verás las dos formas en los ejercicios resueltos: `f[x_] := …` y `f[x_] = …`. La diferencia es la misma que con las variables:\n- `:=` guarda la receta y la calcula en cada llamada. Es la opción segura por defecto.\n- `=` calcula el lado derecho **en el momento de definir** y guarda el resultado. Interesa cuando el lado derecho es un cálculo que quieres hacer una sola vez (el resultado de un `Solve`, una derivada, una integral).\n\nEl riesgo de `=`: si `x` tiene un valor antiguo cuando defines, ese valor se queda grabado dentro de la función. Abajo, `x` vale 3 y `mal` devuelve siempre 9.\n\nPor eso, antes de definir funciones, haz `Clear` de las variables que vayas a usar.",
+   "cells": [
+    {
+     "code": "x = 3;\nmal[x_] = x^2;\nmal[5]",
+     "note": "Calculó x^2 con x = 3 al definir: siempre da 9"
+    },
+    {
+     "code": "bien[x_] := x^2;\nbien[5]",
+     "note": "Con := la x es la del argumento"
+    },
+    {
+     "code": "Clear[x]",
+     "note": "Y dejamos x libre otra vez"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e06",
+    "kind": "fix",
+    "title": "Un valor grabado",
+    "prompt": "En una celda anterior alguien evaluó `x = 3`. Con esta definición, `q[10]` devuelve 4 en vez de 11, porque al definir con `=` se calculó `x + 1` con x = 3.\n\nEscribe una versión que devuelva 11. Hay dos arreglos posibles: definir con `:=`, o liberar `x` antes de definir.",
+    "difficulty": 2,
+    "cmds": [
+     "Set",
+     "SetDelayed",
+     "Clear"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "x = 3;",
+    "broken": "q[x_] = x + 1\nq[10]",
+    "solution": "q[x_] := x + 1\nq[10]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "q[20]",
+       "expected": "21",
+       "msg": "`q` sigue devolviendo un valor fijo. Usa `:=` al definir, o haz `Clear[x]` antes."
+      },
+      {
+       "type": "expr",
+       "expected": "11"
+      }
+     ]
+    },
+    "hints": [
+     "Con `=`, el lado derecho se calcula en el momento de definir, con el valor que tenga `x` entonces.",
+     "Cambia `=` por `:=`: `q[x_] := x + 1`."
+    ],
+    "explain": "Con `:=` no se calcula nada al definir, así que el valor viejo de `x` no se cuela. La otra solución es `Clear[x]` antes de definir con `=`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Funciones sobre listas y de varias variables",
+   "md": "Una función definida con operaciones normales se puede aplicar a una **lista entera**: `s[{0, 1, 2, 3}]` calcula los cuatro valores de golpe. Otra forma equivalente es `s /@ lista` («aplica s a cada elemento»).\n\nDos cosas que verás en la salida:\n- Con enteros responde exacto (`Sqrt[3]`); con decimales, en decimales. Para pasarlo todo a decimales, envuélvelo en `N[..., 6]`.\n- Si un valor cae **fuera del dominio**, no da error: devuelve un número complejo. La raíz de un negativo trae una `I`. Es la señal de que ese x no pertenece a la curva.\n\nPara varias variables, un guion bajo en cada una: `dist[x_, y_] := Sqrt[x^2 + y^2]`.",
+   "cells": [
+    {
+     "code": "s[x_] := Sqrt[4 - x^2]",
+     "note": "Semicircunferencia de radio 2"
+    },
+    {
+     "code": "s[{0, 1, 2, 3}]",
+     "note": "x = 3 está fuera del dominio: aparece I"
+    },
+    {
+     "code": "N[s[{0, 1, 2, 3}], 6]",
+     "note": "Todo en decimales, con 6 cifras"
+    },
+    {
+     "code": "dist[x_, y_] := Sqrt[x^2 + y^2]\ndist[3, 4]",
+     "note": "Dos argumentos"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e07",
+    "kind": "code",
+    "title": "Evaluar sobre una lista",
+    "prompt": "Define `p[x_]` como `x^2 - 3 x` y evalúala, con una sola llamada, sobre la lista `{0, 1, 2, 3}`.",
+    "difficulty": 2,
+    "cmds": [
+     "SetDelayed",
+     "Blank",
+     "List"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "p[x_] := x^2 - 3 x\np[{0, 1, 2, 3}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "p[t]",
+       "expected": "t^2 - 3 t",
+       "msg": "Define `p[x_] := x^2 - 3 x` (con guion bajo en `x_`)."
+      },
+      {
+       "type": "expr",
+       "expected": "{0, -2, -2, 0}"
+      }
+     ]
+    },
+    "hints": [
+     "Primero la definición: `p[x_] := x^2 - 3 x`.",
+     "La lista entera va como argumento: `p[{0, 1, 2, 3}]`."
+    ],
+    "explain": "La lista entra como argumento y las operaciones se aplican elemento a elemento: `{0, -2, -2, 0}`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Solve: despejar una incógnita",
+   "md": "`Solve[ecuación, incógnita]` despeja.\n- La ecuación se escribe con `==` (dos iguales). Con uno solo estarías asignando.\n- El segundo argumento dice qué letra quieres despejar. Las demás se tratan como parámetros.\n\nLa salida tiene una forma que al principio despista: `{{x -> 2}, {x -> 3}}`. Es una **lista de soluciones**, y cada solución es una lista de **reglas**. No son números sueltos: son reglas `x -> valor`, las mismas de `/.`.\n\nPara aprovecharlas:\n- `sol[[1]]` es la primera solución y `sol[[2]]` la segunda.\n- `x /. sol[[1]]` da el valor de la primera, ya sin flecha.\n- `x /. sol` da la lista de todos los valores.\n\nLa incógnita tiene que estar libre. Si `x` tiene valor, `Solve` no puede despejarla: haz `Clear[x]` antes.",
+   "cells": [
+    {
+     "code": "Solve[x^2 - 5 x + 6 == 0, x]"
+    },
+    {
+     "code": "sol = Solve[2 x + 6 == 0, x]",
+     "note": "Una solución, guardada con nombre"
+    },
+    {
+     "code": "x /. sol[[1]]",
+     "note": "El valor, ya sin flecha"
+    },
+    {
+     "code": "Solve[v == v0 + a t, t]",
+     "note": "Despeja t; el resto son parámetros"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e08",
+    "kind": "code",
+    "title": "Tu primer Solve",
+    "prompt": "Resuelve con `Solve` la ecuación x² = 9.\n\nLa forma es `Solve[ecuación, incógnita]`, y la ecuación se escribe con dos signos igual.",
+    "difficulty": 1,
+    "cmds": [
+     "Solve",
+     "Equal"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Solve[x^2 == 9, x]",
+    "check": {
+     "type": "expr",
+     "expected": "{{x -> -3}, {x -> 3}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "Equal"
+    ],
+    "hints": [
+     "La ecuación es `x^2 == 9`, con dos iguales.",
+     "`Solve[x^2 == 9, x]`"
+    ],
+    "explain": "`Solve[x^2 == 9, x]` devuelve `{{x -> -3}, {x -> 3}}`: dos soluciones, cada una como regla."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e09",
+    "kind": "fix",
+    "title": "= no es ==",
+    "prompt": "Queremos resolver 3x − 12 = 0. La celda tiene dos errores típicos. Corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "Equal"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "solve[3 x - 12 = 0, x]",
+    "solution": "Solve[3 x - 12 == 0, x]",
+    "check": {
+     "type": "expr",
+     "expected": "{{x -> 4}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "Equal"
+    ],
+    "hints": [
+     "`Solve` empieza por mayúscula.",
+     "Las ecuaciones llevan `==`; un solo `=` intenta asignar."
+    ],
+    "explain": "Mayúscula en `Solve` y `==` en la ecuación. Con un solo `=` Mathematica intenta guardar un 0 «dentro de» `3 x - 12` y protesta."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e10",
+    "kind": "code",
+    "title": "De una ecuación a una función",
+    "prompt": "La circunferencia de centro (0, 0) y radio 5 es `x^2 + y^2 == 25`.\n\n1. Despeja `y` con `Solve`. Salen dos ramas: la de signo − (mitad inferior) y la de signo + (mitad superior).\n2. Define `sup[x_]` con la rama **superior**.\n3. En la última línea, calcula `sup[3]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "SetDelayed",
+     "Sqrt"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Solve[x^2 + y^2 == 25, y]\nsup[x_] := Sqrt[25 - x^2]\nsup[3]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "sup[{0, 4, 5}]",
+       "expected": "{5, 3, 0}",
+       "msg": "`sup` debe ser la rama positiva: `sup[x_] := Sqrt[25 - x^2]`."
+      },
+      {
+       "type": "expr",
+       "expected": "4"
+      }
+     ]
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`Solve[x^2 + y^2 == 25, y]` da `y -> -Sqrt[25 - x^2]` e `y -> Sqrt[25 - x^2]`.",
+     "Copia la rama positiva en la definición: `sup[x_] := Sqrt[25 - x^2]`.",
+     "Última línea: `sup[3]`."
+    ],
+    "explain": "`Solve` da las dos ramas y tú eliges la que te piden. `sup[3]` es 4: el punto (3, 4) está en la circunferencia. Así se resuelve el ejercicio de la semicircunferencia de la práctica."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "La función inversa: despejar al revés",
+   "md": "Si `y = f(x)`, la inversa se obtiene despejando `x` en función de `y`. Con `Solve` basta pedirle que despeje la otra letra.\n\nCuando la función es un `Cosh`, un `Sin` o una exponencial, al despejar aparece su función inversa (`ArcCosh`, `ArcSin`, `Log`). Mathematica avisa entonces con el mensaje `Solve::ifun` («se están usando funciones inversas»). Es un **aviso**, no un error: el resultado vale.\n\nEl caso de la práctica es el coseno hiperbólico. A mano: si `Cosh[u] == c`, entonces `u = ArcCosh[c]` (y también `-ArcCosh[c]`: el coseno hiperbólico es simétrico, por eso `Solve` da dos ramas).\n\nPara invertir `y = a - b Cosh[k x]`:\n1. Aíslas el coseno: `Cosh[k x] = (a - y)/b`.\n2. Aplicas la inversa: `k x = ArcCosh[(a - y)/b]`.\n3. Despejas: `x = ArcCosh[(a - y)/b]/k`.",
+   "cells": [
+    {
+     "code": "Solve[y == 3 x + 2, x]",
+     "note": "La inversa de una recta"
+    },
+    {
+     "code": "Cosh[ArcCosh[3]]",
+     "note": "Una deshace a la otra"
+    },
+    {
+     "code": "inv[y_] := ArcCosh[(10 - y)/2]/3\ninv[10 - 2 Cosh[3*0.7]]",
+     "note": "Inversa de y = 10 − 2 Cosh[3 x]: recuperamos x = 0.7"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e11",
+    "kind": "code",
+    "title": "Anchura de un arco",
+    "prompt": "La altura de un arco (en metros) es `10 - Cosh[x]`, con x la distancia horizontal al centro. Despejando: `Cosh[x] = 10 - a`, luego `x = ArcCosh[10 - a]`.\n\n1. Define `semi[a_]`: la semianchura del arco a la altura `a`.\n2. En la última línea, calcula en decimales la anchura total en el suelo: `2 semi[0]`.",
+    "difficulty": 3,
+    "cmds": [
+     "ArcCosh",
+     "SetDelayed",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "semi[a_] := ArcCosh[10 - a]\n2 semi[0] // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "semi[10 - Cosh[2.]]",
+       "expected": "2",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "`semi` debe ser la inversa: `semi[a_] := ArcCosh[10 - a]`."
+      },
+      {
+       "type": "expr",
+       "expected": "2 ArcCosh[10]",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "requires": [
+     "ArcCosh"
+    ],
+    "hints": [
+     "La definición es una línea: `semi[a_] := ArcCosh[10 - a]`.",
+     "Para verlo en decimales añade `// N`: `2 semi[0] // N`."
+    ],
+    "explain": "El arco mide 5.98645 m de ancho en el suelo. `semi` es la función inversa de la altura: le das una altura y te devuelve a qué distancia del centro se alcanza. Es justo lo que pide el arco de San Luis."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e12",
+    "kind": "code",
+    "title": "Práctica 3 · seno de un ángulo en grados",
+    "prompt": "Ejercicio real. Calcula con 16 cifras significativas el valor de sin(5° 30' 20'').",
+    "difficulty": 3,
+    "cmds": [
+     "Sin",
+     "FromDMS",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 2a",
+    "solution": "N[Sin[FromDMS[{5, 30, 20}] Pi/180], 16]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "Sin[FromDMS[{5, 30, 20}] Pi/180]",
+       "compare": "numeric",
+       "tol": 1e-12
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "Sin",
+     "N"
+    ],
+    "hints": [
+     "`FromDMS[{5, 30, 20}]` da el ángulo en grados.",
+     "`Sin` trabaja en radianes: multiplica por `Pi/180` (o por `Degree`) dentro del seno.",
+     "`N[Sin[FromDMS[{5, 30, 20}] Pi/180], 16]`"
+    ],
+    "explain": "Resultado oficial: 0.09594226840853135. El orden es: grados con `FromDMS`, a radianes con `Pi/180`, seno, y `N[..., 16]` por fuera de todo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e13",
+    "kind": "code",
+    "title": "Práctica 3 · logaritmo de un valor absoluto",
+    "prompt": "Calcula con 16 cifras significativas el valor de ln(|e·π²/3 − 10|).",
+    "difficulty": 3,
+    "cmds": [
+     "Log",
+     "Abs",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 2b",
+    "solution": "N[Log[Abs[E Pi^2/3 - 10]], 16]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "Log[Abs[E Pi^2/3 - 10]]",
+       "compare": "numeric",
+       "tol": 1e-10
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+      }
+     ]
+    },
+    "requires": [
+     "Log",
+     "Abs",
+     "N"
+    ],
+    "hints": [
+     "De dentro afuera: `E Pi^2/3 - 10`, después `Abs[...]`, después `Log[...]`.",
+     "`N[Log[Abs[E Pi^2/3 - 10]], 16]`"
+    ],
+    "explain": "Resultado oficial: 0.05563453001244184. Lo de dentro vale −1.057…, por eso hace falta el valor absoluto: el logaritmo de un negativo sería complejo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e14",
+    "kind": "code",
+    "title": "Práctica 3 · semicircunferencia",
+    "prompt": "Define una función `g[x_]` que calcule la `y` del punto de abscisa x de la **semicircunferencia** de centro (3, −2) y radio 6 situada por encima de la recta y = −2.\n\nEcuación de una circunferencia: (x − xc)² + (y − yc)² = r². Despeja `y` con `Solve` y quédate con la rama adecuada.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "SetDelayed",
+     "Sqrt"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 3a",
+    "solution": "Solve[(x - 3)^2 + (y + 2)^2 == 36, y]\ng[x_] := -2 + Sqrt[36 - (x - 3)^2]",
+    "check": {
+     "type": "value",
+     "expr": "g[{3, 0, 9, 1/2}]",
+     "expected": "{4, -2 + 3 Sqrt[3], -2, -2 + Sqrt[119]/2}",
+     "compare": "numeric",
+     "tol": 1e-09,
+     "msg": "`g` no coincide con la semicircunferencia superior. Debe ser −2 más la raíz (rama positiva): por ejemplo, `g[3]` tiene que valer 4."
+    },
+    "hints": [
+     "La ecuación es `(x - 3)^2 + (y + 2)^2 == 36`. Despeja con `Solve[..., y]`.",
+     "Salen `y -> -2 - Sqrt[...]` e `y -> -2 + Sqrt[...]`. Por encima de y = −2 está la del signo +.",
+     "`g[x_] := -2 + Sqrt[36 - (x - 3)^2]` (o copia la raíz tal como la escribe `Solve`)."
+    ],
+    "explain": "La rama con + es la que queda por encima de y = −2. En el punto más alto, `g[3]` = −2 + 6 = 4. También vale definirla sin copiar a mano: `g[x_] = y /. sol[[2]]`, guardando antes la salida de `Solve` en `sol`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e15",
+    "kind": "code",
+    "title": "Práctica 3 · evaluar g sobre una lista",
+    "prompt": "La función `g` del apartado anterior ya está definida. Calcula, con 6 cifras significativas, el valor de `g` sobre la lista (0.25, 10, 6, 0.9).",
+    "difficulty": 3,
+    "cmds": [
+     "N",
+     "List"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 3b",
+    "setup": "g[x_] := -2 + Sqrt[27 + 6 x - x^2]",
+    "solution": "N[g[{0.25, 10, 6, 0.9}], 6]",
+    "check": {
+     "type": "expr",
+     "expected": "-2 + Sqrt[27 + 6 # - #^2] & /@ {0.25, 10, 6, 0.9}",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "g"
+    ],
+    "hints": [
+     "La lista se escribe con llaves y entra entera como argumento: `g[{0.25, 10, 6, 0.9}]`.",
+     "Envuélvelo en `N[..., 6]`."
+    ],
+    "explain": "Resultado oficial: 3.33268, −2 + i·√13, 3.19615 y 3.62050. El segundo es complejo porque x = 10 queda fuera de la semicircunferencia, que solo existe entre x = −3 y x = 9."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e16",
+    "kind": "code",
+    "title": "Práctica 3 · arco de San Luis: altura",
+    "prompt": "El arco de San Luis (EE. UU.) describe una catenaria. Su altura en pies es\n\nA(x) = 693.8597 − 68.7672·cosh(3.0022·x / 299.2239)\n\n1. Define la función `A[x_]`.\n2. Calcula `A[0]`, el punto más alto, en pies.\n3. En la última línea, pasa ese valor a metros (1 m = 3.281 ft).",
+    "difficulty": 4,
+    "cmds": [
+     "SetDelayed",
+     "Cosh",
+     "Out"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 4a",
+    "solution": "A[x_] := 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]\nA[0]\n%/3.281",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "A[100]",
+       "expected": "693.8597 - 68.7672 Cosh[3.0022*100/299.2239]",
+       "compare": "numeric",
+       "tol": 1e-08,
+       "msg": "Revisa la definición de `A[x_]`: coeficientes, `Cosh` con mayúscula y el guion bajo en `x_`."
+      },
+      {
+       "type": "expr",
+       "expected": "625.0925/3.281",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "La última línea debe ser la altura máxima en metros: `A[0]` dividido entre 3.281."
+      }
+     ]
+    },
+    "requires": [
+     "Cosh"
+    ],
+    "hints": [
+     "`A[x_] := 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]`",
+     "`A[0]` da la altura en pies. Para pasar a metros se divide entre 3.281.",
+     "Tercera línea: `%/3.281` (o directamente `A[0]/3.281`)."
+    ],
+    "explain": "Resultados oficiales: A(0) = 625.0925 ft = 190.519 m. `Cosh[0]` vale 1, así que A(0) = 693.8597 − 68.7672."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e17",
+    "kind": "code",
+    "title": "Práctica 3 · arco de San Luis: función inversa",
+    "prompt": "La función `A[x_]` del arco ya está definida. Despejando x en función de la altura se obtiene una expresión con argcosh:\n\nx(a) = c · argcosh((693.8597 − a)/68.7672), con c = 299.2239/3.0022\n\n1. Define esa inversa como `semi[a_]` (semianchura del arco a la altura `a`, todo en pies).\n2. En la última línea, calcula `semi[0]`: la semianchura del arco en el suelo.",
+    "difficulty": 4,
+    "cmds": [
+     "ArcCosh",
+     "SetDelayed"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 4b",
+    "setup": "A[x_] := 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]",
+    "solution": "semi[a_] := 299.2239/3.0022 ArcCosh[(693.8597 - a)/68.7672]\nsemi[0]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "semi[100.]",
+       "expected": "299.2239/3.0022 ArcCosh[(693.8597 - 100)/68.7672]",
+       "compare": "numeric",
+       "tol": 1e-07,
+       "msg": "`semi` no es la inversa de `A`. Comprueba que `A[semi[100.]]` devuelve 100."
+      },
+      {
+       "type": "expr",
+       "expected": "299.226428346399",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "requires": [
+     "ArcCosh"
+    ],
+    "hints": [
+     "Sigue los tres pasos: aísla el `Cosh`, aplica `ArcCosh` y divide entre 3.0022/299.2239.",
+     "`semi[a_] := 299.2239/3.0022 ArcCosh[(693.8597 - a)/68.7672]`",
+     "Última línea: `semi[0]`."
+    ],
+    "explain": "Resultados oficiales: coeficiente c = 99.668 y semi(0) = 299.226 ft (91.2 m). En Mathematica, `Solve[a == 693.8597 - 68.7672 Cosh[3.0022 x/299.2239], x]` da directamente las dos ramas ±99.668·ArcCosh[10.09 − 0.01454 a], con el aviso `Solve::ifun`; la positiva es esta."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p03-e18",
+    "kind": "code",
+    "title": "Práctica 3 · arco de San Luis: anchura a 100 m",
+    "prompt": "`A[x_]` y su inversa `semi[a_]` (ambas en pies) ya están definidas. Halla, en **metros**, la anchura del arco (2 × semianchura) a 100 m de altura.\n\nRecuerda: 1 m = 3.281 ft, y `semi` espera la altura en pies.",
+    "difficulty": 5,
+    "cmds": [
+     "ArcCosh"
+    ],
+    "real": true,
+    "source": "Práctica 3 · Pregunta 4c",
+    "setup": "A[x_] := 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]; semi[a_] := 299.2239/3.0022 ArcCosh[(693.8597 - a)/68.7672];",
+    "solution": "2 semi[100*3.281]/3.281",
+    "check": {
+     "type": "expr",
+     "expected": "143.10424359138244",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "No coincide. Pasa 100 m a pies antes de entrar en `semi`, multiplica por 2 y vuelve a metros dividiendo entre 3.281."
+    },
+    "requires": [
+     "semi"
+    ],
+    "hints": [
+     "Primero las unidades: 100 m son `100*3.281` pies.",
+     "`semi[100*3.281]` es la semianchura en pies. La anchura es el doble.",
+     "Para volver a metros divide entre 3.281: `2 semi[100*3.281]/3.281`."
+    ],
+    "explain": "Resultado oficial: 143.104 m. Tres conversiones encadenadas: metros a pies para entrar en la función, por 2 para la anchura completa y pies a metros para la respuesta."
+   }
+  }
+ ]
+}

@@ -32,7 +32,7 @@
   {
    "type": "explain",
    "title": "Una matriz es una lista de listas",
-   "md": "Los giros de un avión (cabeceo, guiñada, alabeo), las tensiones de una estructura o un sistema de ecuaciones: todo eso se guarda en **matrices**. En esta práctica aprendes a escribirlas, multiplicarlas bien (aquí está el fallo que más puntos quita) y a usar inversa, determinante y adjunta. Al final descifrarás un mensaje en clave, como en la prueba real.\n\nEn Mathematica una matriz es una **lista de filas**, y cada fila es otra lista:\n\n- `{{1, 2, 3}, {4, 5, 6}}` = 2 filas y 3 columnas. Llaves por fuera, llaves en cada fila, comas entre filas.\n- `A // MatrixForm` la **dibuja** como matriz. Solo sirve para mirar.\n- `Dimensions[A]` devuelve `{filas, columnas}`.\n\nUn **vector** es una lista simple: `{1, 2, 3}`.",
+   "md": "Los giros de un avión (cabeceo, guiñada, alabeo), las tensiones de una estructura o un sistema de ecuaciones: todo eso se guarda en **matrices**. En esta práctica aprendes a escribirlas, multiplicarlas bien (aquí está el fallo que más puntos quita) y a usar inversa, determinante y adjunta. Al final descifrarás un mensaje en clave, como en la prueba real.\n\nEn Mathematica una matriz es una **lista de filas**, y cada fila es otra lista:\n\n- `{{1, 2, 3}, {4, 5, 6}}` = 2 filas y 3 columnas. Llaves por fuera, llaves en cada fila, comas entre filas.\n- `A // MatrixForm` la **dibuja** como matriz. Solo sirve para mirar: nunca escribas `A = {{…}} // MatrixForm`, porque `A` guardaría el dibujo y no podrías operar con ella.\n- `Dimensions[A]` devuelve `{filas, columnas}`.\n\nUn **vector** es una lista simple: `{1, 2, 3}`.",
    "cells": [
     {
      "code": "A = {{1, 2, 3}, {4, 5, 6}}",
@@ -52,23 +52,39 @@
    "type": "exercise",
    "ex": {
     "id": "1-p14-e01",
-    "kind": "mcq",
-    "title": "La trampa de MatrixForm",
-    "prompt": "Escribes `A = {{1, 2}, {3, 4}} // MatrixForm` y después `A.A`. Mathematica no calcula nada: devuelve el producto sin hacer. ¿Por qué?",
+    "kind": "code",
+    "title": "Escribe tu primera matriz",
+    "prompt": "Define la matriz `B` cuyas filas son (1, 0), (2, 5) y (7, 7). En otra línea, pide sus dimensiones.",
     "difficulty": 1,
     "cmds": [
-     "MatrixForm"
+     "Dimensions"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "Porque `A` guarda el dibujo de la matriz, no la matriz: `MatrixForm` es solo para mostrar y no se debe asignar",
-     "Porque falta un punto y coma al final",
-     "Porque el producto de matrices se escribe `A*A`",
-     "Porque `A` es un nombre protegido de Mathematica"
+    "solution": "B = {{1, 0}, {2, 5}, {7, 7}}\nDimensions[B]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "B",
+       "expected": "{{1, 0}, {2, 5}, {7, 7}}",
+       "msg": "`B` no es la matriz pedida: tres filas de dos elementos, cada fila entre llaves."
+      },
+      {
+       "type": "expr",
+       "expected": "{3, 2}"
+      }
+     ]
+    },
+    "requires": [
+     "Dimensions"
     ],
-    "answer": 0,
-    "explain": "Define primero (`A = {{1, 2}, {3, 4}}`) y mira después (`A // MatrixForm`), en órdenes separadas. Si guardas el `MatrixForm`, la variable deja de servir para operar."
+    "hints": [
+     "Cada fila va entre llaves y todas juntas dentro de otras llaves: `{{1, 0}, {2, 5}, {7, 7}}`.",
+     "`B = {{1, 0}, {2, 5}, {7, 7}}` y después `Dimensions[B]`."
+    ],
+    "explain": "Sale `{3, 2}`: 3 filas y 2 columnas. Fíjate en que no has asignado `B = … // MatrixForm`: si lo haces, `B` guarda el dibujo y ya no sirve para operar."
    }
   },
   {
@@ -94,24 +110,29 @@
    "type": "exercise",
    "ex": {
     "id": "1-p14-e02",
-    "kind": "predict",
-    "title": "¿Qué elemento sale?",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve la última línea?",
+    "kind": "code",
+    "title": "Una columna entera",
+    "prompt": "Ya está definida la matriz `A = {{10, 20}, {30, 40}, {50, 60}}`.\n\nExtrae su segunda columna.",
     "difficulty": 1,
     "cmds": [
      "Part"
     ],
     "real": false,
     "source": null,
-    "code": "A = {{10, 20}, {30, 40}, {50, 60}};\nA[[3, 1]]",
-    "options": [
-     "50",
-     "30",
-     "20",
-     "60"
+    "setup": "A = {{10, 20}, {30, 40}, {50, 60}};",
+    "solution": "A[[All, 2]]",
+    "check": {
+     "type": "expr",
+     "expected": "{20, 40, 60}"
+    },
+    "requires": [
+     "Part"
     ],
-    "answer": 0,
-    "explain": "`[[3, 1]]` = fila 3, columna 1. La fila 3 es `{50, 60}` y su primer elemento es 50."
+    "hints": [
+     "Para una columna, en el sitio de la fila se escribe `All`.",
+     "`A[[All, 2]]`"
+    ],
+    "explain": "`All` significa «todas las filas»; el 2 elige la columna. Con `A[[2]]` habrías sacado la fila 2, que es `{30, 40}`."
    }
   },
   {
@@ -170,24 +191,27 @@
    "type": "exercise",
    "ex": {
     "id": "1-p14-e04",
-    "kind": "predict",
-    "title": "¿Qué hace el asterisco?",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "kind": "code",
+    "title": "El cuadrado de verdad",
+    "prompt": "Ya está definida `A = {{1, 2}, {3, 4}}`.\n\nCalcula el cuadrado de la matriz A, es decir, el **producto matricial** de A por A.",
     "difficulty": 1,
     "cmds": [
-     "Times"
+     "Dot"
     ],
     "real": false,
     "source": null,
-    "code": "{{1, 2}, {3, 4}}*{{1, 2}, {3, 4}}",
-    "options": [
-     "{{1, 4}, {9, 16}}",
-     "{{7, 10}, {15, 22}}",
-     "{{2, 4}, {6, 8}}",
-     "30"
+    "setup": "A = {{1, 2}, {3, 4}};",
+    "solution": "A.A",
+    "check": {
+     "type": "expr",
+     "expected": "{{7, 10}, {15, 22}}",
+     "msg": "Eso no es el producto matricial. `A^2` y `A*A` elevan cada casilla por separado; usa el punto."
+    },
+    "hints": [
+     "El producto matricial se escribe con un punto.",
+     "`A.A`"
     ],
-    "answer": 0,
-    "explain": "El asterisco multiplica casilla por casilla: 1·1, 2·2, 3·3, 4·4. El producto matricial (con punto) daría `{{7, 10}, {15, 22}}`."
+    "explain": "`A.A` da `{{7, 10}, {15, 22}}`. Con `A^2` o `A*A` habría salido `{{1, 4}, {9, 16}}`: cada casilla al cuadrado, que es otra cosa."
    }
   },
   {
@@ -271,34 +295,24 @@
    "type": "exercise",
    "ex": {
     "id": "1-p14-e07",
-    "kind": "fill",
+    "kind": "code",
     "title": "Fila por columna",
-    "prompt": "Completa para construir la matriz `H` de 3×4 cuyo elemento (i,j) es el **producto de su fila por su columna**. La última línea muestra el elemento (3,4).",
+    "prompt": "Construye con `Table` la matriz `H` de 3 filas y 4 columnas cuyo elemento (i,j) es el **producto de su fila por su columna**. En otra línea, muestra el elemento (3,4).",
     "difficulty": 1,
     "cmds": [
      "Table"
     ],
     "real": false,
     "source": null,
-    "template": "H = Table[__1__, {i, 1, 3}, {__2__, 1, 4}];\nH[[3, 4]]",
-    "blanks": [
-     [
-      "i*j",
-      "i j",
-      "j*i",
-      "j i"
-     ],
-     [
-      "j"
-     ]
-    ],
+    "solution": "H = Table[i*j, {i, 1, 3}, {j, 1, 4}];\nH[[3, 4]]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
        "expr": "H",
-       "expected": "{{1, 2, 3, 4}, {2, 4, 6, 8}, {3, 6, 9, 12}}"
+       "expected": "{{1, 2, 3, 4}, {2, 4, 6, 8}, {3, 6, 9, 12}}",
+       "msg": "`H` no es la matriz pedida: fórmula `i*j`, con i de 1 a 3 y j de 1 a 4."
       },
       {
        "type": "expr",
@@ -306,9 +320,12 @@
       }
      ]
     },
+    "requires": [
+     "Table"
+    ],
     "hints": [
-     "La fórmula usa las dos variables de los iteradores.",
-     "Fórmula `i*j`; el segundo iterador recorre `j`."
+     "La fórmula usa las dos variables de los iteradores: `i*j`.",
+     "`H = Table[i*j, {i, 1, 3}, {j, 1, 4}];` y luego `H[[3, 4]]`."
     ],
     "explain": "El primer iterador (`i`) manda en las filas y el segundo (`j`) en las columnas."
    }
@@ -515,19 +532,15 @@
   {
    "type": "explain",
    "title": "Mensajes en clave con matrices",
-   "md": "La práctica usa un código sencillo: cada letra es un número.\n\n`_`=0, a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10, k=11, l=12, m=13, n=14, ñ=15, o=16, p=17, q=18, r=19, s=20, t=21, u=22, v=23, w=24, x=25, y=26, z=27.\n\nPasos para **codificar**:\n\n- Escribe el mensaje en números y repártelo **por filas** en una matriz `M` (si falta, se rellena con 0).\n- Multiplica por la matriz de codificación por la derecha: `M.Q`.\n\nPara **decodificar** se deshace el producto con la inversa: `(M.Q).Inverse[Q]` vuelve a ser `M`.\n\nEn el ejemplo, «hola» = 8, 16, 12, 1 en filas de 2. La última celda convierte los números en letras: como la lista `alfabeto` empieza en `_` (que vale 0), la letra del número n está en la posición n + 1.",
+   "md": "La práctica usa un código sencillo: cada letra es un número.\n\n`_`=0, a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10, k=11, l=12, m=13, n=14, ñ=15, o=16, p=17, q=18, r=19, s=20, t=21, u=22, v=23, w=24, x=25, y=26, z=27.\n\nPasos para **codificar**:\n\n- Escribe el mensaje en números y repártelo **por filas** en una matriz `M` (si falta, se rellena con 0).\n- Multiplica por la matriz de codificación por la derecha: `M.Q`.\n\nPara **decodificar** se deshace el producto con la inversa: `(M.Q).Inverse[Q]` vuelve a ser `M`.\n\nEn el ejemplo, «hola» = 8, 16, 12, 1 en filas de 2.\n\nPara pasar de números a letras sin mirar la tabla, en los ejercicios tendrás definida una lista `alfabeto` que empieza en `\"_\"`: como `_` vale 0, la letra del número n está en la posición n + 1. Por eso el texto se obtiene con `StringJoin[alfabeto[[Flatten[M] + 1]]]`.",
    "cells": [
     {
      "code": "Q = {{1, 2}, {1, 3}};\nM = {{8, 16}, {12, 1}};\nMcod = M.Q",
-     "note": "mensaje codificado"
+     "note": "«hola» codificado"
     },
     {
      "code": "Mcod.Inverse[Q]",
      "note": "decodificar: vuelve M"
-    },
-    {
-     "code": "alfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};\nStringJoin[alfabeto[[Flatten[Mcod.Inverse[Q]] + 1]]]",
-     "note": "de números a letras"
     }
    ]
   },
@@ -568,7 +581,7 @@
     "id": "1-p14-e14",
     "kind": "code",
     "title": "Descifra el mensaje recibido",
-    "prompt": "Con la matriz de codificación `W` (ya definida) se recibe el mensaje codificado\n\n35, 44, -9, 105, 36, 61, 0, 77, 75, -7, 0, 126, 0, 0, -12, 48\n\nque ya tienes escrito por filas en `M1`. Decodifícalo: calcula la matriz original `M` y conviértela en texto con la lista `alfabeto` (ya definida, empieza en `\"_\"`).",
+    "prompt": "Con la matriz de codificación `W` (ya definida) se recibe el mensaje codificado\n\n35, 44, -9, 105, 36, 61, 0, 77, 75, -7, 0, 126, 0, 0, -12, 48\n\nque ya tienes guardado por filas en la matriz `M1` (4×4). Decodifícalo: calcula la matriz original `M` y conviértela en texto con la lista `alfabeto` (ya definida, empieza en `\"_\"`).",
     "difficulty": 4,
     "cmds": [
      "Inverse",
@@ -577,9 +590,8 @@
     ],
     "real": true,
     "source": "Práctica 14 · P4",
-    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
-    "starter": "M1 = {{35, 44, -9, 105}, {36, 61, 0, 77}, {75, -7, 0, 126}, {0, 0, -12, 48}};\n",
-    "solution": "M1 = {{35, 44, -9, 105}, {36, 61, 0, 77}, {75, -7, 0, 126}, {0, 0, -12, 48}};\nM = M1.Inverse[W];\nStringJoin[alfabeto[[Flatten[M] + 1]]]",
+    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nM1 = {{35, 44, -9, 105}, {36, 61, 0, 77}, {75, -7, 0, 126}, {0, 0, -12, 48}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
+    "solution": "M = M1.Inverse[W];\nStringJoin[alfabeto[[Flatten[M] + 1]]]",
     "check": {
      "type": "any",
      "checks": [
@@ -610,7 +622,7 @@
     "id": "1-p14-e15",
     "kind": "code",
     "title": "Otro mensaje, ahora con Q",
-    "prompt": "Versión de clase del mismo ejercicio. Con la matriz de codificación `Q` (ya definida) llega el mensaje que tienes en `Menc`, una matriz de 5 filas. Devuelve el **texto** descifrado (la lista `alfabeto` ya está definida).",
+    "prompt": "Versión de clase del mismo ejercicio. Con la matriz de codificación `Q` (ya definida) llega el mensaje que ya tienes guardado en `Menc`, una matriz de 5 filas y 4 columnas. Devuelve el **texto** descifrado (la lista `alfabeto` ya está definida).",
     "difficulty": 3,
     "cmds": [
      "Inverse",
@@ -620,9 +632,8 @@
     ],
     "real": true,
     "source": "Práctica 14 · P3 (versión de clase)",
-    "setup": "Q = {{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
-    "starter": "Menc = {{8, 96, 17, 80}, {24, 100, 13, 80}, {-2, 68, 21, 48}, {68, 85, 8, 36}, {7, 104, 19, 87}};\n",
-    "solution": "Menc = {{8, 96, 17, 80}, {24, 100, 13, 80}, {-2, 68, 21, 48}, {68, 85, 8, 36}, {7, 104, 19, 87}};\nMdec = Menc.Inverse[Q];\nStringJoin[alfabeto[[Flatten[Mdec] + 1]]]",
+    "setup": "Q = {{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}};\nMenc = {{8, 96, 17, 80}, {24, 100, 13, 80}, {-2, 68, 21, 48}, {68, 85, 8, 36}, {7, 104, 19, 87}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
+    "solution": "Mdec = Menc.Inverse[Q];\nStringJoin[alfabeto[[Flatten[Mdec] + 1]]]",
     "check": {
      "type": "expr",
      "expected": "\"matematicas_aeronave\"",

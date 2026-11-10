@@ -108,38 +108,38 @@
   {
    "type": "explain",
    "title": "Qué significa: un límite",
-   "md": "Una integral impropia es el **límite** de integrales normales: integras hasta un punto `b` y luego mandas `b` al infinito.\n\n- Si el límite es un número: la integral es **convergente** y vale ese número.\n- Si el límite es infinito o no existe: es **divergente** (no tiene valor).\n\nMathematica hace ese límite por ti cuando escribes `Infinity`, pero conviene verlo una vez. `Assumptions -> b > 1` le dice que `b` es un número mayor que 1, para que no devuelva el resultado con condiciones.",
+   "md": "Una integral impropia es el **límite** de integrales normales: integras hasta un punto `b` y luego mandas `b` al infinito.\n\n- Si el límite es un número: la integral es **convergente** y vale ese número.\n- Si el límite es infinito o no existe: es **divergente** (no tiene valor).\n\nMathematica hace ese límite por ti cuando escribes `Infinity`, pero conviene verlo una vez. En la primera celda, `Assumptions -> b > 1` le dice que `b` es un número mayor que 1, para que no devuelva el resultado con condiciones; sale una expresión con `b`. La segunda celda calcula su límite.\n\nLa tercera hace lo mismo con la función `1/x`: su integral entre 1 y `b` es `Log[b]`, que crece sin parar.",
    "cells": [
     {
      "code": "Integrate[1/x^2, {x, 1, b}, Assumptions -> b > 1]",
      "note": "integral normal hasta b"
     },
     {
-     "code": "Limit[Integrate[1/x^2, {x, 1, b}, Assumptions -> b > 1], b -> Infinity]",
-     "note": "1: converge"
+     "code": "Limit[1 - 1/b, b -> Infinity]",
+     "note": "1: la integral converge y vale 1"
     },
     {
-     "code": "Limit[Integrate[1/x, {x, 1, b}, Assumptions -> b > 1], b -> Infinity]",
-     "note": "infinito: diverge"
+     "code": "Limit[Log[b], b -> Infinity]",
+     "note": "infinito: la de 1/x diverge"
     }
    ]
   },
   {
    "type": "explain",
    "title": "Cómo se ve una integral divergente",
-   "md": "Cuando la integral diverge, **no obtienes un número finito**. Las señales son:\n\n- Con `Integrate`: el resultado es `Infinity` (o `-Infinity`, `Indeterminate`…), o en Mathematica de escritorio un aviso `Integrate::idiv` que dice «does not converge» y la integral se queda sin calcular.\n- Con `NIntegrate`: avisos en rojo (`NIntegrate::slwcon`, `NIntegrate::ncvb`) y un número enorme o sin sentido. Ese número **no** es la respuesta.\n\nCualquiera de esas señales significa «divergente». En el examen la pregunta dice qué escribir entonces: casi siempre **0** («Put 0 if divergent»), algún año 999. Lee el enunciado.",
+   "md": "Cuando la integral diverge, **no obtienes un número finito**. Las señales son:\n\n- Con `Integrate`: el resultado es `Infinity` (o `-Infinity`, `Indeterminate`…), o en Mathematica de escritorio un aviso `Integrate::idiv` que dice «does not converge» y la integral se queda sin calcular.\n- Con `NIntegrate`: avisos en rojo (`NIntegrate::slwcon`, `NIntegrate::ncvb`) y un número enorme o sin sentido. Ese número **no** es la respuesta.\n\nCualquiera de esas señales significa «divergente». En el examen la pregunta dice qué escribir entonces: casi siempre **0** («Put 0 if divergent»), algún año 999. Lee el enunciado.\n\nUna regla para oler divergencias antes de calcular: la integral de `1/x^p` entre 1 e infinito converge solo si **p > 1**. Con p = 1 (la función 1/x) ya diverge. Compruébalo en las tres celdas.",
    "cells": [
     {
      "code": "Integrate[1/x, {x, 1, Infinity}]",
-     "note": "no hay número finito: divergente"
+     "note": "p = 1: no hay número finito, divergente"
     },
     {
      "code": "Integrate[1/Sqrt[x], {x, 1, Infinity}]",
-     "note": "divergente también"
+     "note": "p = 1/2: divergente también"
     },
     {
      "code": "Integrate[1/x^(3/2), {x, 1, Infinity}]",
-     "note": "esta sí converge: 2"
+     "note": "p = 3/2: converge y vale 2"
     }
    ]
   },
@@ -147,24 +147,31 @@
    "type": "exercise",
    "ex": {
     "id": "1-p11-e03",
-    "kind": "mcq",
-    "title": "¿Para qué exponentes converge?",
-    "prompt": "Prueba en el cuaderno varias integrales de la forma `Integrate[1/x^p, {x, 1, Infinity}]` (por ejemplo p = 1/2, 1, 3/2, 2). ¿Cuándo convergen?",
+    "kind": "code",
+    "title": "El límite, paso a paso",
+    "prompt": "Calcula la integral de `Exp[-3 x]` entre 0 e infinito **como un límite**: integra entre 0 y `b` y, sobre ese resultado, toma el límite cuando `b` tiende a infinito con `Limit`.",
     "difficulty": 2,
     "cmds": [
+     "Limit",
      "Integrate",
      "Infinity"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "Solo cuando p > 1",
-     "Para cualquier p > 0",
-     "Solo cuando p < 1",
-     "Nunca: el intervalo es infinito"
+    "solution": "Limit[Integrate[Exp[-3 x], {x, 0, b}], b -> Infinity]",
+    "check": {
+     "type": "expr",
+     "expected": "1/3"
+    },
+    "requires": [
+     "Limit",
+     "Integrate"
     ],
-    "answer": 0,
-    "explain": "Con p > 1 la función cae lo bastante rápido y el área es finita. Con p = 1 (la función 1/x) ya diverge. Este criterio te servirá para oler divergencias antes de calcular."
+    "hints": [
+     "Por dentro: `Integrate[Exp[-3 x], {x, 0, b}]`. Por fuera: `Limit[..., b -> Infinity]`.",
+     "`Limit[Integrate[Exp[-3 x], {x, 0, b}], b -> Infinity]`"
+    ],
+    "explain": "Hasta `b` la integral vale (1 − e^(−3b))/3; cuando b crece, la exponencial desaparece y queda 1/3. Es lo mismo que escribir directamente `Infinity` como extremo."
    }
   },
   {
@@ -201,7 +208,7 @@
   {
    "type": "explain",
    "title": "Cuando la función se dispara",
-   "md": "El otro tipo de impropia: el intervalo es finito, pero la función se va a infinito en un punto (una asíntota vertical). Se escribe igual y Mathematica se encarga.\n\n- `1/Sqrt[x]` se dispara en 0, pero su integral entre 0 y 1 converge.\n- `1/x` también se dispara en 0, y su integral diverge.\n\n**Cuidado con las asíntotas en medio del intervalo.** Si la función se dispara en un punto interior, hay que partir la integral en ese punto y estudiar cada trozo por separado. La integral completa converge solo si convergen **todos** los trozos. Dibujar la función antes de integrar te avisa de dónde están los problemas.",
+   "md": "El otro tipo de impropia: el intervalo es finito, pero la función se va a infinito en un punto (una asíntota vertical). Se escribe igual y Mathematica se encarga.\n\n- `1/Sqrt[x]` se dispara en 0, pero su integral entre 0 y 1 converge.\n- `1/x` también se dispara en 0, y su integral diverge.\n\n**Cuidado con las asíntotas en medio del intervalo.** Si la función se dispara en un punto interior, hay que partir la integral en ese punto y estudiar cada trozo por separado. La integral completa converge solo si convergen **todos** los trozos. Dibujar la función antes de integrar te avisa de dónde están los problemas.\n\nEjemplo clásico: `1/(x - 2)^2` entre 0 y 4. Quien aplica la regla de Barrow sin mirar obtiene −1, imposible para una función positiva. La asíntota está en x = 2, dentro del intervalo, y el primer trozo ya diverge: la integral es divergente.",
    "cells": [
     {
      "code": "Integrate[1/Sqrt[x], {x, 0, 1}]",
@@ -253,37 +260,38 @@
    "type": "exercise",
    "ex": {
     "id": "1-p11-e06",
-    "kind": "mcq",
-    "title": "La trampa de la asíntota interior",
-    "prompt": "Se quiere la integral de `1/(x - 2)^2` entre 0 y 4. Un compañero aplica la regla de Barrow sin mirar la gráfica y obtiene −1. ¿Cuál es la respuesta correcta?",
+    "kind": "code",
+    "title": "Asíntota en medio: parte la integral",
+    "prompt": "La función `1/Sqrt[Abs[x - 1]]` se dispara en x = 1, dentro del intervalo [0, 3]. Pártela ahí: a la izquierda de 1 la función es `1/Sqrt[1 - x]` y a la derecha es `1/Sqrt[x - 1]`.\n\nCalcula la integral de cada trozo (de 0 a 1 y de 1 a 3) y devuelve la **suma** de las dos.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "Es divergente: la función se dispara en x = 2, dentro del intervalo, y los trozos [0,2] y [2,4] divergen",
-     "Vale −1, Barrow no falla nunca",
-     "Vale 1, porque un área no puede ser negativa",
-     "Vale 0 por simetría"
+    "solution": "Integrate[1/Sqrt[1 - x], {x, 0, 1}] + Integrate[1/Sqrt[x - 1], {x, 1, 3}]",
+    "check": {
+     "type": "expr",
+     "expected": "2 + 2 Sqrt[2]"
+    },
+    "requires": [
+     "Integrate"
     ],
-    "answer": 0,
-    "explain": "Una función positiva no puede tener integral −1: la pista de que algo va mal. Barrow solo vale si la función es continua en todo el intervalo. Aquí hay que partir en x = 2 y los dos trozos divergen."
+    "hints": [
+     "Dos integrales: `Integrate[1/Sqrt[1 - x], {x, 0, 1}]` y `Integrate[1/Sqrt[x - 1], {x, 1, 3}]`.",
+     "Súmalas en la misma línea con `+`."
+    ],
+    "explain": "Los dos trozos convergen (2 y 2√2), así que la integral completa converge y vale 2 + 2√2 ≈ 4.83. Si uno solo de los trozos divergiera, toda la integral sería divergente."
    }
   },
   {
    "type": "explain",
    "title": "Respuestas en decimal: // N y NIntegrate",
-   "md": "El examen pide números decimales. Dos caminos:\n\n- `Integrate[...] // N` calcula el valor exacto y lo pasa a decimal. Es el patrón de esta práctica.\n- `NIntegrate[...]` integra numéricamente desde el principio. Úsalo cuando `Integrate` no encuentra primitiva o tarda mucho.\n\nSi el resultado exacto ya es un número con `Pi`, raíces, etc., `// N` basta. Si te piden 6 cifras, copia las 6 primeras del decimal que sale.",
+   "md": "El examen pide números decimales. Dos caminos:\n\n- `Integrate[...] // N` calcula el valor exacto y lo pasa a decimal. Es el patrón de esta práctica.\n- `NIntegrate[...]` integra numéricamente desde el principio. Úsalo cuando `Integrate` no encuentra primitiva o tarda mucho.\n\nLa integral de las celdas (la campana de Gauss en toda la recta) vale exactamente la raíz de π: los dos caminos dan 1.77245. Si te piden 6 cifras, copia las 6 primeras del decimal que sale.",
    "cells": [
     {
-     "code": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}]",
-     "note": "exacto"
-    },
-    {
      "code": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}] // N",
-     "note": "en decimal"
+     "note": "exacto y luego decimal"
     },
     {
      "code": "NIntegrate[Exp[-x^2], {x, -Infinity, Infinity}]",
@@ -350,36 +358,24 @@
    "type": "exercise",
    "ex": {
     "id": "1-p11-e08",
-    "kind": "fill",
-    "title": "Completa los trozos",
-    "prompt": "Completa la definición de la función que vale `-x` si x < 0 y `x^2` si x ≥ 0. La segunda línea la comprueba en dos puntos.",
-    "difficulty": 1,
+    "kind": "code",
+    "title": "Tu primera función a trozos",
+    "prompt": "Define con `Piecewise` la función `f` que vale `-x` si x < 0 y `x^2` si x ≥ 0. En otra línea, calcula `f[-2] + f[3]`.",
+    "difficulty": 2,
     "cmds": [
      "Piecewise"
     ],
     "real": false,
     "source": null,
-    "template": "f[x_] := Piecewise[{{__1__, x < 0}, {x^2, __2__}}]\nf[-2] + f[3]",
-    "blanks": [
-     [
-      "-x",
-      "-1*x",
-      "-1 x"
-     ],
-     [
-      "x >= 0",
-      "x>=0",
-      "0 <= x",
-      "0<=x"
-     ]
-    ],
+    "solution": "f[x_] := Piecewise[{{-x, x < 0}, {x^2, x >= 0}}]\nf[-2] + f[3]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
        "expr": "{f[-2], f[0], f[3]}",
-       "expected": "{2, 0, 9}"
+       "expected": "{2, 0, 9}",
+       "msg": "`f` no vale lo que debe en −2, 0 o 3. Revisa los dos pares `{fórmula, condición}`."
       },
       {
        "type": "expr",
@@ -387,11 +383,14 @@
       }
      ]
     },
-    "hints": [
-     "Cada par es `{fórmula, condición}`.",
-     "Primer hueco: `-x`. Segundo: `x >= 0`."
+    "requires": [
+     "Piecewise"
     ],
-    "explain": "`f[-2]` usa el primer trozo (vale 2) y `f[3]` el segundo (vale 9)."
+    "hints": [
+     "`f[x_] := Piecewise[{{fórmula1, condición1}, {fórmula2, condición2}}]`",
+     "`f[x_] := Piecewise[{{-x, x < 0}, {x^2, x >= 0}}]` y luego `f[-2] + f[3]`."
+    ],
+    "explain": "`f[-2]` usa el primer trozo (vale 2) y `f[3]` el segundo (vale 9). Mayor o igual se escribe `>=`."
    }
   },
   {
@@ -604,7 +603,7 @@
   {
    "type": "explain",
    "title": "La función Gamma",
-   "md": "Algunas integrales impropias salen tanto en ingeniería que tienen nombre. La más famosa es la **función Gamma**:\n\nΓ(x) = integral de `t^(x - 1) Exp[-t]` entre 0 e infinito.\n\nEn Mathematica es `Gamma[x]`. Lo que debes saber:\n\n- Para un entero n, `Gamma[n]` es el factorial de n − 1: `Gamma[5]` = 4! = 24. Gamma es el factorial extendido a números no enteros.\n- `Gamma[1/2]` vale `Sqrt[Pi]`.\n- En 0, −1, −2, … no existe: Mathematica devuelve `ComplexInfinity`. En la gráfica son las asíntotas verticales.",
+   "md": "Algunas integrales impropias salen tanto en ingeniería que tienen nombre. La más famosa es la **función Gamma**:\n\nΓ(x) = integral de `t^(x - 1) Exp[-t]` entre 0 e infinito.\n\nEn Mathematica es `Gamma[x]`. Lo que debes saber:\n\n- Para un entero n, `Gamma[n]` es el factorial de n − 1: `Gamma[5]` = 4! = 24. Gamma es el factorial extendido a números no enteros.\n- `Gamma[1/2]` vale `Sqrt[Pi]`.\n- En 0, −1, −2, … no existe (tiene asíntotas verticales): Mathematica devuelve `ComplexInfinity`.",
    "cells": [
     {
      "code": "Integrate[t^4 Exp[-t], {t, 0, Infinity}]",
@@ -617,10 +616,6 @@
     {
      "code": "{Gamma[1/2], Gamma[2.3]}",
      "note": "también con no enteros"
-    },
-    {
-     "code": "Plot[Gamma[x], {x, -3, 5}, PlotRange -> {-10, 10}]",
-     "note": "asíntotas en 0, −1, −2…"
     }
    ]
   },
@@ -628,48 +623,61 @@
    "type": "exercise",
    "ex": {
     "id": "1-p11-e14",
-    "kind": "predict",
-    "title": "Gamma y el factorial",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "kind": "code",
+    "title": "Un factorial con Gamma",
+    "prompt": "Calcula 6! (factorial de 6) usando la función `Gamma`.",
     "difficulty": 1,
     "cmds": [
      "Gamma"
     ],
     "real": false,
     "source": null,
-    "code": "Gamma[4]",
-    "options": [
-     "6",
-     "24",
-     "4",
-     "12"
+    "solution": "Gamma[7]",
+    "check": {
+     "type": "expr",
+     "expected": "720"
+    },
+    "requires": [
+     "Gamma"
     ],
-    "answer": 0,
-    "explain": "`Gamma[n]` = (n − 1)!: `Gamma[4]` = 3! = 6. El despiste típico es contestar 4! = 24."
+    "forbids": [
+     "Factorial"
+    ],
+    "hints": [
+     "`Gamma[n]` es el factorial de n − 1.",
+     "`Gamma[7]`"
+    ],
+    "explain": "`Gamma[7]` = 6! = 720. El despiste típico es escribir `Gamma[6]`, que es 5! = 120."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p11-e15",
-    "kind": "predict",
+    "kind": "code",
     "title": "Gamma en un entero negativo",
-    "prompt": "El primer apartado de la pregunta real pedía Γ(−5). ¿Qué devuelve esta celda?",
-    "difficulty": 2,
+    "prompt": "El primer apartado de la pregunta real pedía Γ(−5). Calcúlalo y fíjate en lo que devuelve.",
+    "difficulty": 1,
     "cmds": [
      "Gamma"
     ],
     "real": true,
     "source": "Práctica 11 · P4 a)",
-    "code": "Gamma[-5]",
-    "options": [
-     "`ComplexInfinity`: Γ no existe en los enteros negativos",
-     "-120",
-     "120",
-     "0"
+    "solution": "Gamma[-5]",
+    "check": {
+     "type": "expr",
+     "expected": "ComplexInfinity",
+     "compare": "same",
+     "msg": "Calcula exactamente `Gamma[-5]`."
+    },
+    "requires": [
+     "Gamma"
     ],
-    "answer": 0,
-    "explain": "En 0 y en los enteros negativos Γ tiene asíntotas: no hay valor. Por eso esa casilla no se puntuaba en la prueba."
+    "hints": [
+     "Es una sola llamada a `Gamma` con el argumento −5.",
+     "`Gamma[-5]`"
+    ],
+    "explain": "Devuelve `ComplexInfinity`: en 0 y en los enteros negativos Γ tiene asíntotas y no hay valor. Por eso esa casilla no se puntuaba en la prueba."
    }
   },
   {

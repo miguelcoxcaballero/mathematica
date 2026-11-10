@@ -17,11 +17,15 @@ from .conv import Conv, ConvError, S, is_free_of
 KERNEL = None
 
 # ------------------------------------------------------------ time budgets
-# SymPy cannot be interrupted from outside in the browser (no threads/signals), so every
-# SymPy object creation ticks a counter and, every few hundred objects, compares the clock
-# with (a) the innermost `budget(...)` deadline and (b) the kernel's cell deadline.
+# Neither SymPy nor Mathics can be interrupted from outside in the browser (no threads/signals), so a
+# watchdog runs inside the interpreter: sys.monitoring JUMP events (= every loop iteration of any pure
+# Python code) tick a counter and, every few thousand ticks, compare the clock with
+#   (a) the innermost `budget(...)` deadline -> SympyTimeout (an Exception: the builtin gives up), and
+#   (b) the kernel's cell deadline           -> core.Deadline (a BaseException: the cell is aborted).
+# Where sys.monitoring is missing, a tick in SymPy's Basic.__new__ covers (most of) SymPy.
 _TICK = [0]
 _BUDGET = [None]
+_WATCHDOG = [None]
 
 
 class SympyTimeout(Exception):
@@ -43,7 +47,43 @@ def _tick_check():
         raise SympyTimeout()
     k = KERNEL
     if k is not None and k._deadline is not None and now > k._deadline:
+        if _WATCHDOG[0] == "monitoring":
+            from .core import Deadline
+
+            raise Deadline()
         raise SympyTimeout()
+
+
+def _install_watchdog():
+    if _WATCHDOG[0]:
+        return
+    try:
+        import sys
+
+        mon = sys.monitoring
+        tid = None
+        for cand in (4, 3, 5):
+            if mon.get_tool(cand) is None:
+                tid = cand
+                break
+        if tid is None:
+            raise RuntimeError("no free tool id")
+        mon.use_tool_id(tid, "wlkernel-watchdog")
+        tick = _TICK
+
+        def on_jump(code, offset, dest):
+            tick[0] += 1
+            if not (tick[0] & 2047):
+                _tick_check()
+
+        mon.register_callback(tid, mon.events.JUMP, on_jump)
+        mon.set_events(tid, mon.events.JUMP)
+        _WATCHDOG[0] = "monitoring"
+        return
+    except Exception:
+        pass
+    _install_sympy_tick()
+    _WATCHDOG[0] = "sympy-tick"
 
 
 def _install_sympy_tick():
@@ -66,6 +106,20 @@ def _install_sympy_tick():
 
     Basic.__new__ = __new__
     Basic._wlx_tick = True
+
+
+# Time budgets (seconds) for Mathics' own heavy builtins: when exceeded the call is left unevaluated
+# (as Mathematica does when it cannot do something) instead of eating the whole cell time limit.
+BUILTIN_BUDGETS = {
+    "System`Integrate": 10.0, "System`Solve": 12.0, "System`Limit": 8.0, "System`Simplify": 8.0,
+    "System`FullSimplify": 10.0, "System`Sum": 8.0, "System`Product": 8.0, "System`Factor": 8.0,
+    "System`Apart": 8.0, "System`Together": 8.0, "System`Series": 8.0, "System`Cancel": 8.0,
+    "System`Expand": 10.0, "System`Eigenvalues": 10.0, "System`Eigenvectors": 10.0, "System`Eigensystem": 10.0,
+    "System`Inverse": 10.0, "System`Det": 10.0, "System`MatrixExp": 10.0, "System`RowReduce": 10.0,
+    "System`NullSpace": 10.0, "System`LinearSolve": 10.0, "System`TrigExpand": 8.0, "System`TrigReduce": 8.0,
+    "System`PossibleZeroQ": 4.0,
+}
+SKIP_ONCE = {}
 
 
 class budget:
@@ -1868,17 +1922,35 @@ def _has_head(e, names):
     return False
 
 
+def _degenerate_cond(cond):
+    """True for conditions that only hold on exceptional parameter values (equalities)."""
+    if cond is sp.true:
+        return False
+    if isinstance(cond, sp.Eq):
+        return True
+    if isinstance(cond, (sp.And, sp.Or)):
+        if isinstance(cond, sp.And):
+            return any(_degenerate_cond(a) for a in cond.args)
+        return all(_degenerate_cond(a) for a in cond.args)
+    return False
+
+
 def _generic_branch(r, xs):
-    """Piecewise whose conditions only involve parameters -> the generic branch (as Mathematica does)."""
+    """Piecewise whose conditions only involve parameters -> the generic branch (as Mathematica does):
+    the first branch whose condition is not an exceptional equality (a == 0 ...)."""
     if isinstance(r, sp.Piecewise):
         if all(not (cond.has(xs)) for _, cond in r.args):
+            conds = [cond for _, cond in r.args]
             best = None
             for val, cond in r.args:
-                if cond is sp.true or isinstance(cond, sp.Ne) or (isinstance(cond, (sp.And, sp.Or)) and all(isinstance(a, sp.Ne) for a in cond.args)):
+                if _degenerate_cond(cond):
+                    continue
+                if cond is sp.true or cond.has(sp.Ne) or all(_degenerate_cond(c2) for c2 in conds if c2 is not cond):
                     best = val
                     break
-            if best is not None:
+            if best is not None and not best.has(sp.Integral):
                 return _generic_branch(best, xs)
+            return r
     if isinstance(r, sp.Basic) and r.has(sp.Piecewise) and not isinstance(r, sp.Piecewise):
         try:
             return r.replace(lambda e: isinstance(e, sp.Piecewise), lambda e: _generic_branch(e, xs))
@@ -1910,7 +1982,11 @@ class IntQ(XB):
         try:
             with budget(10.0):
                 r = self._go(f, spec, assum, evaluation)
+        except SympyTimeout:
+            SKIP_ONCE["System`Integrate"] = True
+            r = None
         except Exception:
+            _dbg()
             r = None
         if r is None:
             return SymbolFalse
@@ -2228,7 +2304,7 @@ def _init_numpy_extra():
         pass
 
 
-BUILTINS = [LaplaceTransform, InverseLaplaceTransform, SeriesQ, SeriesGet, DSolve, NDSolve, InterpolatingFunction, Interpolation, NSolve, Residue,
+BUILTINS = [LaplaceTransform, InverseLaplaceTransform, SeriesQ, SeriesGet, DSolve, NDSolve, InterpolatingFunction, Interpolation, Residue,
             FourierTransform, InverseFourierTransform, FourierSinTransform, FourierCosTransform,
             InverseFourierSinTransform, InverseFourierCosTransform, FourierTrigSeries, FourierSeries,
             FourierCoefficient, FourierSinCoefficient, FourierCosCoefficient, FourierSinSeries, FourierCosSeries,
@@ -2250,9 +2326,12 @@ def contribute(kernel, classes):
 def install(kernel):
     global KERNEL
     KERNEL = kernel
-    _install_sympy_tick()
+    _install_watchdog()
     _init_numpy_extra()
     contribute(kernel, BUILTINS)
+    from . import solve
+
+    solve.install(kernel)
     from . import gfx
 
     gfx.install(kernel)

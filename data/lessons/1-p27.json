@@ -1,0 +1,616 @@
+{
+ "id": "1-p27",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo II",
+ "order": 27,
+ "title": "Series de Fourier",
+ "summary": "Definir una función a trozos con Piecewise, extenderla de forma periódica con Mod, obtener sus polinomios de Fourier con FourierTrigSeries y comprobar el teorema de Dirichlet y el fenómeno de Gibbs junto a una discontinuidad.",
+ "minutes": 50,
+ "commands": [
+  "FourierTrigSeries",
+  "Mod"
+ ],
+ "uses": [
+  "Piecewise",
+  "Plot",
+  "Integrate",
+  "Limit",
+  "Abs",
+  "N",
+  "Table",
+  "Sin",
+  "Cos"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Señales periódicas y funciones a trozos",
+   "md": "Una vibración, una señal eléctrica o la carga sobre una pala que gira son **periódicas**: se repiten cada cierto tiempo. La idea de Fourier es que cualquier función periódica, incluso con saltos, se puede aproximar sumando senos y cosenos. Es la base del análisis de vibraciones y del tratamiento de señales.\n\nLas funciones de esta práctica están definidas **a trozos**. Se escriben con `Piecewise`:\n\n`f[x_] := Piecewise[{{valor1, condición1}, {valor2, condición2}}]`\n\n- Cada trozo es un par `{valor, condición}`; todos van dentro de una lista (por eso las dobles llaves).\n- Las condiciones se encadenan como en matemáticas: `-2 <= x < -1/2`.\n- Fuera de todos los trozos, `Piecewise` vale `0`.",
+   "cells": [
+    {
+     "code": "g[x_] := Piecewise[{{x^2, x < 0}, {2, x >= 0}}]\n{g[-3], g[0], g[5]}",
+     "note": "cada punto usa el trozo cuya condición cumple"
+    },
+    {
+     "code": "Plot[g[x], {x, -2, 2}]",
+     "note": "se dibuja como cualquier función: se ve el salto en 0"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e01",
+    "kind": "code",
+    "title": "Tu primera función a trozos",
+    "prompt": "Define con `Piecewise` la función `p[x_]` que vale `1` si `0 <= x < 1` y `3` si `1 <= x < 2`. Después evalúa `p[5]`.",
+    "difficulty": 1,
+    "cmds": [
+     "Piecewise"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "p[x_] := Piecewise[{{1, 0 <= x < 1}, {3, 1 <= x < 2}}]\np[5]",
+    "check": {
+     "type": "value",
+     "expr": "{p[0], p[0.5], p[1], p[1.5], p[5], p[-1]}",
+     "expected": "{1, 1, 3, 3, 0, 0}",
+     "compare": "numeric",
+     "tol": 1e-09
+    },
+    "requires": [
+     "Piecewise"
+    ],
+    "hints": [
+     "Cada trozo es `{valor, condición}` y todos van dentro de una lista: dobles llaves.",
+     "`p[x_] := Piecewise[{{1, 0 <= x < 1}, {3, 1 <= x < 2}}]`"
+    ],
+    "explain": "`p[5]` da `0`: 5 no cumple ninguna condición y `Piecewise` devuelve 0 por defecto. Por eso una función definida solo en un intervalo vale 0 fuera: habrá que extenderla."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e02",
+    "kind": "code",
+    "title": "La función de la práctica",
+    "prompt": "Considera la función `f(x)` definida por:\n\n- `2 x + 4` si `-2 <= x < -1/2`\n- `1` si `-1/2 <= x < 2`\n\na) Defínela como `f[x_]` usando `Piecewise` y represéntala en `[-2, 2]` con `Plot`.",
+    "difficulty": 2,
+    "cmds": [
+     "Piecewise",
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 a)",
+    "solution": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nPlot[f[x], {x, -2, 2}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{f[-2], f[-1], f[-0.5], f[0], f[1.9], f[3]}",
+       "expected": "{0, 2, 1, 1, 1, 0}",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1
+      }
+     ]
+    },
+    "requires": [
+     "Piecewise",
+     "Plot"
+    ],
+    "hints": [
+     "`f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]`",
+     "Después `Plot[f[x], {x, -2, 2}]`. La última línea debe ser el gráfico."
+    ],
+    "explain": "Dos pares `{valor, condición}` dentro de una lista. En `x = -1/2` la función salta de 3 a 1: esa discontinuidad es la protagonista de la práctica."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e03",
+    "kind": "fix",
+    "title": "Piecewise mal escrito",
+    "prompt": "Esta celda quiere definir `g[x]`, que vale `x` si `-1 <= x < 0` y `1` si `0 <= x < 1`, y sumar `g[-0.5] + g[0.5]`. Tiene **dos errores**: corrígela.",
+    "difficulty": 2,
+    "cmds": [
+     "Piecewise"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "g[x_] := piecewise[{x, -1 <= x < 0}, {1, 0 <= x < 1}]\ng[-0.5] + g[0.5]",
+    "solution": "g[x_] := Piecewise[{{x, -1 <= x < 0}, {1, 0 <= x < 1}}]\ng[-0.5] + g[0.5]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "0.5",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "value",
+       "expr": "{g[-0.5], g[0.5], g[2]}",
+       "expected": "{-0.5, 1, 0}",
+       "compare": "numeric",
+       "tol": 1e-09
+      }
+     ]
+    },
+    "requires": [
+     "Piecewise"
+    ],
+    "hints": [
+     "`Piecewise` se escribe con mayúscula.",
+     "Los pares `{valor, condición}` van todos dentro de **una** lista: faltan las llaves exteriores."
+    ],
+    "explain": "`Piecewise[{{x, ...}, {1, ...}}]`: mayúscula inicial y dobles llaves. Sin la lista exterior, Mathematica interpreta el segundo par como «valor por defecto» y la función sale mal sin avisar."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Extensión periódica con Mod",
+   "md": "Una función definida solo en `[a, b[` se convierte en periódica (periodo `b - a`) con el truco del enunciado: sustituir `x` por\n\n`a + Mod[x - a, b - a]`\n\n`Mod[m, n]` es el **resto** de dividir `m` entre `n`: siempre cae entre `0` y `n`. Así, esa expresión «devuelve» cualquier `x` al punto equivalente dentro del intervalo base.\n\nLas celdas lo hacen con un ejemplo mínimo: `p` vale `x` en `[0, 1[`; aquí `a = 0` y el periodo es 1, así que la extensión es `p[Mod[x, 1]]` y sale un diente de sierra.\n\nPara la función de la práctica, `a = -2` y `b = 2`: la expresión es `-2 + Mod[x + 2, 4]`. Por ejemplo `x = 141` → `Mod[143, 4] = 3` → `-2 + 3 = 1`: el punto 141 equivale al 1.",
+   "cells": [
+    {
+     "code": "{Mod[7, 4], Mod[8, 4], Mod[-1, 4]}",
+     "note": "restos de dividir entre 4"
+    },
+    {
+     "code": "p[x_] := Piecewise[{{x, 0 <= x < 1}}]\nPE[x_] := p[Mod[x, 1]]\nPlot[PE[x], {x, -3, 3}]",
+     "note": "la rampa repetida cada unidad"
+    },
+    {
+     "code": "-2 + Mod[141 + 2, 4]",
+     "note": "el punto de [-2, 2[ equivalente a 141"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e04",
+    "kind": "code",
+    "title": "Extiende la función",
+    "prompt": "La función `f[x]` de la práctica ya está definida en `[-2, 2[`.\n\nb) Extiéndela a toda la recta real de forma 4-periódica: define `FE[x_]` sustituyendo `x` por `a + Mod[x - a, b - a]`. Después representa `FE` entre `-6` y `6`.",
+    "difficulty": 3,
+    "cmds": [
+     "Mod",
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 b)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]",
+    "solution": "FE[x_] := f[-2 + Mod[x + 2, 4]]\nPlot[FE[x], {x, -6, 6}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{FE[141], FE[142], FE[142.04], FE[-3], FE[5.5]}",
+       "expected": "{1, 0, 0.08, 1, 1}",
+       "compare": "numeric",
+       "tol": 1e-07
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1
+      }
+     ]
+    },
+    "requires": [
+     "Mod"
+    ],
+    "hints": [
+     "Aquí `a = -2` y `b - a = 4`: la expresión es `-2 + Mod[x + 2, 4]`.",
+     "`FE[x_] := f[-2 + Mod[x + 2, 4]]` y luego `Plot[FE[x], {x, -6, 6}]`."
+    ],
+    "explain": "`x - a` es `x + 2` porque `a = -2`. Ahora `FE[141] = 1` y `FE[142] = 0`: 142 equivale a `-2`, justo donde empieza la rampa."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "FourierTrigSeries: sumas de senos y cosenos",
+   "md": "`FourierTrigSeries[f, x, n]` devuelve el **polinomio de Fourier de grado `n`**: una constante más senos y cosenos de `x`, `2 x`, ..., `n x`.\n\n- `f` = la función (expresión en `x`).\n- `x` = la variable.\n- `n` = hasta qué armónico se suma. Más armónicos, mejor aproximación.\n\nPor defecto supone que la función tiene periodo `2 Pi` y trabaja en `[-Pi, Pi]`.",
+   "cells": [
+    {
+     "code": "FourierTrigSeries[x, x, 3]",
+     "note": "función impar: solo senos"
+    },
+    {
+     "code": "FourierTrigSeries[x^2, x, 2]",
+     "note": "función par: constante y cosenos"
+    },
+    {
+     "code": "S3[x_] = FourierTrigSeries[x, x, 3];\nPlot[{x, S3[x]}, {x, -Pi, Pi}]",
+     "note": "la recta y su aproximación con 3 armónicos"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e05",
+    "kind": "code",
+    "title": "Tu primer polinomio de Fourier",
+    "prompt": "Obtén el polinomio de Fourier de grado 2 de la función `Abs[x]` (en `[-Pi, Pi]`, periodo `2 Pi`).",
+    "difficulty": 2,
+    "cmds": [
+     "FourierTrigSeries",
+     "Abs"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "FourierTrigSeries[Abs[x], x, 2]",
+    "check": {
+     "type": "expr",
+     "expected": "Pi/2 - 4 Cos[x]/Pi"
+    },
+    "requires": [
+     "FourierTrigSeries"
+    ],
+    "hints": [
+     "`FourierTrigSeries[función, x, grado]`",
+     "`FourierTrigSeries[Abs[x], x, 2]`"
+    ],
+    "explain": "Sale `Pi/2 - 4 Cos[x]/Pi`: `Abs[x]` es par (solo cosenos) y su coeficiente de `Cos[2 x]` es cero."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Los coeficientes, a mano",
+   "md": "Lo que hace `FourierTrigSeries` por dentro (para periodo `2 Pi`) es calcular con integrales los **coeficientes de Fourier**:\n\n- `a0/2 = (1/(2 Pi)) Integrate[f, {x, -Pi, Pi}]` (el valor medio).\n- `a_n = (1/Pi) Integrate[f Cos[n x], {x, -Pi, Pi}]` (coeficiente de `Cos[n x]`).\n- `b_n = (1/Pi) Integrate[f Sin[n x], {x, -Pi, Pi}]` (coeficiente de `Sin[n x]`).\n\nNo hace falta calcularlos a mano en la prueba, pero conviene saber de dónde salen los números. Compruébalo con la onda cuadrada.",
+   "cells": [
+    {
+     "code": "q[x_] := Piecewise[{{-1, -Pi <= x < 0}, {1, 0 <= x < Pi}}]\nTable[(1/Pi) Integrate[q[x] Sin[n x], {x, -Pi, Pi}], {n, 1, 5}]",
+     "note": "coeficientes b_1 ... b_5"
+    },
+    {
+     "code": "FourierTrigSeries[q[x], x, 5]",
+     "note": "los mismos números delante de cada seno"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e06",
+    "kind": "code",
+    "title": "Un coeficiente con Integrate",
+    "prompt": "La onda cuadrada `q[x]` ya está definida (`-1` en `[-Pi, 0[` y `1` en `[0, Pi[`). Calcula con una integral su coeficiente de Fourier `b_3`, el que multiplica a `Sin[3 x]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Sin"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "q[x_] := Piecewise[{{-1, -Pi <= x < 0}, {1, 0 <= x < Pi}}]",
+    "solution": "(1/Pi) Integrate[q[x] Sin[3 x], {x, -Pi, Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "4/(3 Pi)"
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`b_n = (1/Pi) Integrate[f Sin[n x], {x, -Pi, Pi}]` con `n = 3`.",
+     "`(1/Pi) Integrate[q[x] Sin[3 x], {x, -Pi, Pi}]`"
+    ],
+    "explain": "`4/(3 Pi)`, el mismo número que acompaña a `Sin[3 x]` en `FourierTrigSeries[q[x], x, 5]`."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Otro periodo: FourierParameters",
+   "md": "La función de la práctica tiene periodo `T = 4`, no `2 Pi`. Se le indica con una opción:\n\n`FourierTrigSeries[f[x], x, n, FourierParameters -> {1, 2 Pi/T}]`\n\nCon `T = 4` queda `{1, 2 Pi/4}` y el desarrollo se hace en `[-2, 2]`, con senos y cosenos de `Pi x/2`, `2 Pi x/2`, ... En la celda se prueba con la función `x` y periodo `T = 2`.\n\nDos detalles de los cuadernos resueltos:\n\n- Se desarrolla la función **inicial** `f[x]` (la del intervalo base), no la extendida `FE`. El polinomio que sale ya es periódico él solo.\n- Se guarda con `=` y no con `:=`: `F4[x_] = FourierTrigSeries[...];`. Así las integrales se calculan una sola vez. Con `:=` se recalcularían en cada evaluación (y fallaría al meter un número en lugar de `x`).",
+   "cells": [
+    {
+     "code": "FourierTrigSeries[x, x, 2, FourierParameters -> {1, 2 Pi/2}]",
+     "note": "periodo 2: aparecen Sin[Pi x] y Sin[2 Pi x]"
+    },
+    {
+     "code": "G2[x_] = FourierTrigSeries[x, x, 2, FourierParameters -> {1, 2 Pi/2}];\nG2[0.5]",
+     "note": "guardado con = y evaluado en un punto"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e07",
+    "kind": "code",
+    "title": "Ajusta el periodo",
+    "prompt": "La función `f[x]` de la práctica (periodo 4, intervalo base `[-2, 2[`) ya está definida. Define su polinomio de Fourier de grado 4 como `F4[x_]` (con `=`) y evalúalo en `x = 1` en decimal.",
+    "difficulty": 2,
+    "cmds": [
+     "FourierTrigSeries"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]",
+    "solution": "F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];\nF4[1] // N",
+    "check": {
+     "type": "expr",
+     "expected": "0.9137287832",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "FourierTrigSeries",
+     "FourierParameters"
+    ],
+    "hints": [
+     "El tercer argumento es el grado; la opción es `FourierParameters -> {1, 2 Pi/T}` con `T` = periodo.",
+     "`F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];` y después `F4[1] // N`."
+    ],
+    "explain": "Grado 4 y periodo 4 (coinciden por casualidad). `F4[1] ≈ 0.913729`, cerca de `f[1] = 1`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e08",
+    "kind": "code",
+    "title": "Polinomios de grado 4 y 10",
+    "prompt": "Con `f[x]` ya definida (periodo 4):\n\nc) Halla los polinomios de Fourier de grado 4 y 10 de `f`. Llámalos `F4` y `F10` (defínelos con `=`).\n\n(En la prueba se pide también `F50`, que se obtiene igual cambiando el grado. Aquí lo tendrás ya calculado en los ejercicios siguientes, porque en el navegador tarda.)",
+    "difficulty": 3,
+    "cmds": [
+     "FourierTrigSeries"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 c)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]",
+    "solution": "F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];\nF10[x_] = FourierTrigSeries[f[x], x, 10, FourierParameters -> {1, 2 Pi/4}];",
+    "check": {
+     "type": "value",
+     "expr": "{F4[142], F10[142]} // N",
+     "expected": "{0.6123654359, 0.5077642099}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "FourierTrigSeries",
+     "FourierParameters"
+    ],
+    "hints": [
+     "`F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];`",
+     "Para `F10` solo cambia el grado: `10` en lugar de `4`."
+    ],
+    "explain": "Mismo comando, distinto grado. Terminar en `;` evita que se imprima la expresión larguísima de senos y cosenos."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e09",
+    "kind": "code",
+    "title": "En un punto de continuidad",
+    "prompt": "Ya están definidas `FE[x]` y los polinomios de Fourier `F4[x]`, `F10[x]` y `F50[x]`.\n\nd) Completa la tabla: calcula `FE(141)`, `F4(141)`, `F10(141)` y `F50(141)`. Deja como salida la lista `{FE[141], F4[141], F10[141], F50[141]}` en decimal.",
+    "difficulty": 2,
+    "cmds": [
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 d)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]\ncA = Table[N[-Sin[n Pi/4]/(n Pi/2) + (Cos[n Pi/4] - (-1)^n)/(n Pi/2)^2], {n, 50}];\ncB = Table[N[-Cos[n Pi/4]/(n Pi/2) - Sin[n Pi/4]/(n Pi/2)^2 - (-1)^n/(n Pi)], {n, 50}];\nFS[m_] := N[1.1875 + Sum[cA[[n]] Cos[n Pi x/2] + cB[[n]] Sin[n Pi x/2], {n, 1, m}]]\nF4[x_] = FS[4]; F10[x_] = FS[10]; F50[x_] = FS[50];",
+    "solution": "{FE[141], F4[141], F10[141], F50[141]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 0.9137287832, 1.0465540909, 1.0095177323}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "Solo hay que evaluar las cuatro funciones en 141 y juntarlas en una lista.",
+     "`{FE[141], F4[141], F10[141], F50[141]} // N`"
+    ],
+    "explain": "1, 0.913729, 1.04655, 1.00952: en un punto de **continuidad**, al subir el grado el polinomio se acerca al valor de la función."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "En un salto: el teorema de Dirichlet",
+   "md": "En un punto donde la función **salta**, la serie de Fourier no converge al valor de la función sino al **punto medio** de los dos límites laterales. Es el teorema de Dirichlet.\n\nPruébalo con la onda cuadrada `q` (vale −1 a la izquierda de 0 y 1 a la derecha): sus polinomios de Fourier valen 0 en `x = 0`, justo la semisuma de −1 y 1.\n\nEn la práctica el salto está en `x = 142`: `FE` vale 1 por la izquierda (final del tramo constante) y 0 por la derecha (inicio de la rampa). Los límites laterales se piden con `Limit` y la opción `Direction`:\n\n- `Limit[FE[x], x -> 142, Direction -> 1]` → por la **izquierda** (da 1).\n- `Limit[FE[x], x -> 142, Direction -> -1]` → por la **derecha** (da 0).\n\nEn versiones recientes de Mathematica también se escribe `Direction -> \"FromBelow\"` y `Direction -> \"FromAbove\"`. Una comprobación rápida sin `Limit` es evaluar la función un poco antes y un poco después del salto.",
+   "cells": [
+    {
+     "code": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]\n{q[-0.001], q[0.001]}",
+     "note": "justo antes y justo después del salto"
+    },
+    {
+     "code": "S9[x_] = FourierTrigSeries[q[x], x, 9];\nS9[0]",
+     "note": "el polinomio de grado 9 en el salto: el punto medio"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e10",
+    "kind": "code",
+    "title": "Límites laterales en 142",
+    "prompt": "La función extendida `FE[x]` de la práctica ya está definida.\n\ne) Estima sus límites laterales en `x = 142` evaluándola muy cerca del salto: deja como salida la lista `{FE[142 - 0.001], FE[142 + 0.001]}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Mod"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 e)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]",
+    "solution": "{FE[142 - 0.001], FE[142 + 0.001]}",
+    "check": {
+     "type": "expr",
+     "expected": "{1, 0.002}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "Solo hay que evaluar `FE` en dos puntos y ponerlos en una lista.",
+     "`{FE[142 - 0.001], FE[142 + 0.001]}`"
+    ],
+    "explain": "Por la izquierda vale 1 y por la derecha prácticamente 0 (0.002, porque ya empieza la rampa `2 x + 4`). Límites laterales: 1 y 0; además `FE(142) = 0`. En Mathematica los da exactos `Limit[FE[x], x -> 142, Direction -> 1]` y `Direction -> -1`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e11",
+    "kind": "code",
+    "title": "En el punto de discontinuidad",
+    "prompt": "Ya están definidas `FE[x]`, `F4[x]`, `F10[x]` y `F50[x]`.\n\ne) Calcula `F4(142)`, `F10(142)` y `F50(142)`. Deja como salida la lista `{F4[142], F10[142], F50[142]}` en decimal.",
+    "difficulty": 2,
+    "cmds": [
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 e)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]\ncA = Table[N[-Sin[n Pi/4]/(n Pi/2) + (Cos[n Pi/4] - (-1)^n)/(n Pi/2)^2], {n, 50}];\ncB = Table[N[-Cos[n Pi/4]/(n Pi/2) - Sin[n Pi/4]/(n Pi/2)^2 - (-1)^n/(n Pi)], {n, 50}];\nFS[m_] := N[1.1875 + Sum[cA[[n]] Cos[n Pi x/2] + cB[[n]] Sin[n Pi x/2], {n, 1, m}]]\nF4[x_] = FS[4]; F10[x_] = FS[10]; F50[x_] = FS[50];",
+    "solution": "{F4[142], F10[142], F50[142]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{0.6123654359, 0.5077642099, 0.5016999911}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "`{F4[142], F10[142], F50[142]} // N`"
+    ],
+    "explain": "0.612365, 0.507764, 0.501700: no se acercan a `FE(142) = 0` ni a 1, sino a **0.5**, la semisuma de los límites laterales. Es el teorema de Dirichlet en números."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "El fenómeno de Gibbs",
+   "md": "Cerca de un salto, los polinomios de Fourier **se pasan**: hacen un pico por encima (y por debajo) de la función. Al subir el grado el pico se estrecha y se pega al salto, pero **su altura no disminuye**: se queda en torno al 9 % del tamaño del salto. Es el **fenómeno de Gibbs**.\n\nEn las celdas, la onda cuadrada vale 1 a la derecha de 0, pero su polinomio de grado 9 sube hasta 1.18 cerca del salto.\n\nPor eso, muy cerca de `x = 142`, el error `|FE(x) - F50(x)|` de la práctica no es pequeño aunque el grado sea 50.\n\nUn detalle que quita puntos en la tabla de la prueba: `FE` **no** vale 0 a la derecha de 142. Ahí empieza la rampa, así que `FE(142.04) = f(-1.96) = 0.08`. Hay que evaluar `FE` en cada punto, no suponerla.",
+   "cells": [
+    {
+     "code": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]\nS9[x_] = FourierTrigSeries[q[x], x, 9];\nPlot[{q[x], S9[x]}, {x, -Pi, Pi}]",
+     "note": "las oscilaciones junto al salto"
+    },
+    {
+     "code": "{q[0.3], S9[0.3]}",
+     "note": "la función vale 1; el polinomio se pasa"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e12",
+    "kind": "code",
+    "title": "La tabla de Gibbs",
+    "prompt": "Ya están definidas `FE[x]` y `F50[x]`.\n\nf) Para cada uno de los puntos `141.94, 141.96, 141.97, 142.03, 142.04, 142.06` calcula `FE(x)`, `F50(x)` y el error `|FE(x) - F50(x)|`.\n\nDeja como salida una tabla (lista de listas) con una fila `{FE[x], F50[x], Abs[FE[x] - F50[x]]}` por punto, en ese orden. Te será cómodo usar `Table` con una lista de valores: `Table[..., {xv, {141.94, 141.96, ...}}]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Table",
+     "Abs"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 f)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]\ncA = Table[N[-Sin[n Pi/4]/(n Pi/2) + (Cos[n Pi/4] - (-1)^n)/(n Pi/2)^2], {n, 50}];\ncB = Table[N[-Cos[n Pi/4]/(n Pi/2) - Sin[n Pi/4]/(n Pi/2)^2 - (-1)^n/(n Pi)], {n, 50}];\nFS[m_] := N[1.1875 + Sum[cA[[n]] Cos[n Pi x/2] + cB[[n]] Sin[n Pi x/2], {n, 1, m}]]\nF4[x_] = FS[4]; F10[x_] = FS[10]; F50[x_] = FS[50];",
+    "solution": "Table[{FE[xv], F50[xv], Abs[FE[xv] - F50[xv]]}, {xv, {141.94, 141.96, 141.97, 142.03, 142.04, 142.06}}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{1, 1.0124347327, 0.0124347327}, {1, 1.0949146241, 0.0949146241}, {1, 1.0563441551, 0.0563441551}, {0.06, 0.0079546078, 0.0520453922}, {0.08, -0.0039963724, 0.0839963724}, {0.12, 0.1097296804, 0.0102703196}}",
+     "compare": "numeric",
+     "tol": 2e-06
+    },
+    "hints": [
+     "Una fila: `{FE[xv], F50[xv], Abs[FE[xv] - F50[xv]]}`.",
+     "`Table[fila, {xv, {141.94, 141.96, 141.97, 142.03, 142.04, 142.06}}]` recorre la lista de puntos.",
+     "También vale escribir las seis filas a mano dentro de una lista."
+    ],
+    "explain": "Los errores (0.012, 0.095, 0.056, 0.052, 0.084, 0.010) suben y bajan en lugar de disminuir al acercarse al salto: son las oscilaciones de Gibbs. Fíjate en que `FE` vale 0.06, 0.08 y 0.12 a la derecha, no 0."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e13",
+    "kind": "code",
+    "title": "Ver las oscilaciones",
+    "prompt": "Con `FE[x]`, `F10[x]` y `F50[x]` ya definidas, represéntalas juntas entre `-6` y `6` para observar el fenómeno de Gibbs.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 27 · P2 f)",
+    "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]\ncA = Table[N[-Sin[n Pi/4]/(n Pi/2) + (Cos[n Pi/4] - (-1)^n)/(n Pi/2)^2], {n, 50}];\ncB = Table[N[-Cos[n Pi/4]/(n Pi/2) - Sin[n Pi/4]/(n Pi/2)^2 - (-1)^n/(n Pi)], {n, 50}];\nFS[m_] := N[1.1875 + Sum[cA[[n]] Cos[n Pi x/2] + cB[[n]] Sin[n Pi x/2], {n, 1, m}]]\nF4[x_] = FS[4]; F10[x_] = FS[10]; F50[x_] = FS[50];",
+    "solution": "Plot[{FE[x], F10[x], F50[x]}, {x, -6, 6}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 3,
+     "like": "Plot[{FE[x], F10[x], F50[x]}, {x, -6, 6}]",
+     "tol": 0.08
+    },
+    "requires": [
+     "Plot"
+    ],
+    "hints": [
+     "Varias funciones en un `Plot`: dentro de una lista.",
+     "`Plot[{FE[x], F10[x], F50[x]}, {x, -6, 6}]`"
+    ],
+    "explain": "En cada salto aparecen los «cuernos»: más estrechos con grado 50 que con grado 10, pero igual de altos."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p27-e14",
+    "kind": "code",
+    "title": "Otra función, el proceso completo",
+    "prompt": "Función a trozos de periodo 2 en el intervalo base `[-1, 1[`: vale `0` si `-1 <= x < 0` y `x` si `0 <= x < 1`.\n\nDefine `h[x_]` con `Piecewise`, su extensión 2-periódica `HE[x_]` con `Mod` y su polinomio de Fourier de grado 6, `H6[x_]` (con `=` y `FourierParameters` para periodo 2). Deja como salida la lista `{HE[7.5], H6[7.5]}` en decimal.",
+    "difficulty": 4,
+    "cmds": [
+     "Piecewise",
+     "Mod",
+     "FourierTrigSeries"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "h[x_] := Piecewise[{{0, -1 <= x < 0}, {x, 0 <= x < 1}}]\nHE[x_] := h[-1 + Mod[x + 1, 2]]\nH6[x_] = FourierTrigSeries[h[x], x, 6, FourierParameters -> {1, 2 Pi/2}];\n{HE[7.5], H6[7.5]} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{HE[7.5], HE[8.5], HE[-0.25]}",
+       "expected": "{0, 0.5, 0}",
+       "compare": "numeric",
+       "tol": 1e-08
+      },
+      {
+       "type": "expr",
+       "expected": "{0, -0.0258685680}",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "Piecewise",
+     "Mod",
+     "FourierTrigSeries"
+    ],
+    "hints": [
+     "Ahora `a = -1` y el periodo es `2`: `HE[x_] := h[-1 + Mod[x + 1, 2]]`.",
+     "`H6[x_] = FourierTrigSeries[h[x], x, 6, FourierParameters -> {1, 2 Pi/2}];`",
+     "Última línea: `{HE[7.5], H6[7.5]} // N`."
+    ],
+    "explain": "Es la plantilla de la práctica con otros datos: `Piecewise` → `Mod` con `a` y `T` → `FourierTrigSeries` con `2 Pi/T`. `7.5` equivale a `-0.5`, donde la función vale 0 y el polinomio de grado 6 da −0.0259: cerca, pero aún oscila."
+   }
+  }
+ ]
+}

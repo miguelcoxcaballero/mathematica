@@ -50,33 +50,49 @@
    "type": "exercise",
    "ex": {
     "id": "1-p18-e01",
-    "kind": "predict",
-    "title": "¿Qué matriz sale?",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve la segunda línea?",
+    "kind": "code",
+    "title": "Define y monta la matriz",
+    "prompt": "Define la aplicación lineal `f[x_, y_]` que vale `{x + y, x - y, 2 x}` y calcula su matriz asociada respecto de las bases canónicas.",
     "difficulty": 1,
     "cmds": [
-     "Transpose"
+     "Transpose",
+     "SetDelayed"
     ],
     "real": false,
     "source": null,
-    "code": "f[x_, y_] := {x + y, x - y, 2 x}\nTranspose[{f[1, 0], f[0, 1]}]",
-    "options": [
-     "{{1, 1, 2}, {1, -1, 0}}",
-     "{{1, 1}, {1, -1}, {2, 0}}",
-     "{{1, 0}, {0, 1}}",
-     "{{2, 0, 2}}"
+    "solution": "f[x_, y_] := {x + y, x - y, 2 x}\nTranspose[{f[1, 0], f[0, 1]}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[a, b]",
+       "expected": "{a + b, a - b, 2 a}",
+       "msg": "Define `f[x_, y_] := {x + y, x - y, 2 x}` (guion bajo en los dos argumentos)."
+      },
+      {
+       "type": "expr",
+       "expected": "{{1, 1}, {1, -1}, {2, 0}}"
+      }
+     ]
+    },
+    "requires": [
+     "Transpose"
     ],
-    "answer": 1,
-    "explain": "`f[1, 0] = {1, 1, 2}` y `f[0, 1] = {1, -1, 0}` son las **columnas**. `Transpose` las coloca como columnas: matriz 3×2 (3 filas porque f llega a R³)."
+    "hints": [
+     "`f[x_, y_] := {x + y, x - y, 2 x}`",
+     "Dos variables → dos vectores canónicos: `Transpose[{f[1, 0], f[0, 1]}]`."
+    ],
+    "explain": "`f[1, 0] = {1, 1, 2}` y `f[0, 1] = {1, -1, 0}` son las **columnas**: matriz 3×2 (3 filas porque f llega a R³)."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p18-e02",
-    "kind": "fill",
-    "title": "Monta la matriz asociada",
-    "prompt": "Ya está definida `g[x_, y_, z_] := {2 x - z, x + y + z}`. Completa la celda para obtener su matriz asociada respecto de las bases canónicas.",
+    "kind": "code",
+    "title": "Matriz e imagen",
+    "prompt": "Ya está definida `g[x_, y_, z_] := {2 x - z, x + y + z}`. Guarda en `M` su matriz asociada y calcula la imagen de `(1, 1, 1)` **multiplicando por la matriz**.",
     "difficulty": 1,
     "cmds": [
      "Transpose"
@@ -84,20 +100,30 @@
     "real": false,
     "source": null,
     "setup": "g[x_, y_, z_] := {2 x - z, x + y + z}",
-    "template": "Transpose[{g[1, 0, 0], g[__1__], g[__2__]}]",
-    "blanks": [
-     [
-      "0, 1, 0"
-     ],
-     [
-      "0, 0, 1"
-     ]
-    ],
+    "solution": "M = Transpose[{g[1, 0, 0], g[0, 1, 0], g[0, 0, 1]}];\nM.{1, 1, 1}",
     "check": {
-     "type": "expr",
-     "expected": "{{2, 0, -1}, {1, 1, 1}}"
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "M",
+       "expected": "{{2, 0, -1}, {1, 1, 1}}",
+       "msg": "`M` debe ser `Transpose[{g[1, 0, 0], g[0, 1, 0], g[0, 0, 1]}]`."
+      },
+      {
+       "type": "expr",
+       "expected": "{1, 3}"
+      }
+     ]
     },
-    "explain": "Se evalúa `g` en los tres vectores canónicos, en orden. Las filas de la matriz son los coeficientes de cada componente: `2x - z` → `(2, 0, -1)`."
+    "requires": [
+     "Transpose"
+    ],
+    "hints": [
+     "`M = Transpose[{g[1, 0, 0], g[0, 1, 0], g[0, 0, 1]}];`",
+     "Última línea: `M.{1, 1, 1}`."
+    ],
+    "explain": "Las filas de `M` son los coeficientes de cada componente: `2x - z` → `(2, 0, -1)`. Y `M.{1, 1, 1}` coincide con `g[1, 1, 1]`."
    }
   },
   {
@@ -204,10 +230,6 @@
     {
      "code": "A.{1, 1} == 5 {1, 1}",
      "note": "comprobación de la definición"
-    },
-    {
-     "code": "Eigensystem[A]",
-     "note": "todo junto"
     }
    ]
   },
@@ -257,10 +279,6 @@
      "note": "vectores propios en columnas"
     },
     {
-     "code": "Inverse[P].A.P",
-     "note": "sale d"
-    },
-    {
      "code": "A == P.d.Inverse[P]",
      "note": "True: diagonalización correcta"
     }
@@ -270,28 +288,30 @@
    "type": "exercise",
    "ex": {
     "id": "1-p18-e06",
-    "kind": "order",
-    "title": "Diagonaliza, en orden",
-    "prompt": "Ordena las líneas para diagonalizar `A` y comprobar el resultado.",
+    "kind": "code",
+    "title": "Todo de una vez: Eigensystem",
+    "prompt": "Para `A = {{2, 0, 0}, {0, 3, 4}, {0, 4, 9}}` (ya definida), usa `Eigensystem` para guardar a la vez los valores propios en `vals` y los vectores propios en `vecs`.",
     "difficulty": 2,
     "cmds": [
-     "Eigenvalues",
-     "Eigenvectors",
-     "DiagonalMatrix"
+     "Eigensystem"
     ],
     "real": false,
     "source": null,
-    "lines": [
-     "A = {{4, 1}, {2, 3}};",
-     "d = DiagonalMatrix[Eigenvalues[A]];",
-     "P = Transpose[Eigenvectors[A]];",
-     "A == P.d.Inverse[P]"
-    ],
+    "setup": "A = {{2, 0, 0}, {0, 3, 4}, {0, 4, 9}};",
+    "solution": "{vals, vecs} = Eigensystem[A]",
     "check": {
-     "type": "expr",
-     "expected": "True"
+     "type": "satisfies",
+     "test": "ListQ[vals] && Length[vals] == 3 && MatrixQ[vecs] && Sort[vals] == {1, 2, 11} && MatrixRank[vecs] == 3 && A.vecs[[1]] == vals[[1]] vecs[[1]] && A.vecs[[2]] == vals[[2]] vecs[[2]] && A.vecs[[3]] == vals[[3]] vecs[[3]]",
+     "msg": "`vals` y `vecs` deben ser las dos partes de `Eigensystem[A]`, emparejadas."
     },
-    "explain": "Primero la matriz, luego `d` y `P` (las dos dependen de `A`), y al final la comprobación, que necesita las tres."
+    "requires": [
+     "Eigensystem"
+    ],
+    "hints": [
+     "`Eigensystem[A]` devuelve `{valores, vectores}`.",
+     "Se puede asignar a dos nombres de golpe: `{vals, vecs} = Eigensystem[A]`."
+    ],
+    "explain": "`vals = {11, 2, 1}` y `vecs` con sus vectores en el mismo orden. Asignar a una lista `{vals, vecs} = …` reparte cada parte en su variable."
    }
   },
   {
@@ -351,24 +371,30 @@
    "type": "exercise",
    "ex": {
     "id": "1-p18-e08",
-    "kind": "mcq",
-    "title": "Lee la salida",
-    "prompt": "`Eigenvalues[M]` devuelve `{2, 2, 5}` y `Eigenvectors[M]` devuelve `{{1, 0, 0}, {0, 0, 0}, {3, 1, 4}}`. ¿Qué concluyes?",
+    "kind": "code",
+    "title": "Dimensión de un subespacio propio",
+    "prompt": "`M = {{2, 1, 0}, {0, 2, 0}, {0, 0, 5}}` (ya definida) tiene el valor propio 2 **doble**. Calcula la dimensión de su subespacio propio.",
     "difficulty": 2,
     "cmds": [
-     "Eigenvectors",
-     "Eigenvalues"
+     "NullSpace",
+     "IdentityMatrix"
     ],
     "real": false,
     "source": null,
-    "options": [
-     "M es diagonalizable: hay tres vectores propios",
-     "M no es diagonalizable: el subespacio propio de λ = 2 tiene dimensión 1",
-     "M no tiene inversa",
-     "Hay un error de sintaxis en la matriz"
+    "setup": "M = {{2, 1, 0}, {0, 2, 0}, {0, 0, 5}};",
+    "solution": "Length[NullSpace[M - 2 IdentityMatrix[3]]]",
+    "check": {
+     "type": "expr",
+     "expected": "1"
+    },
+    "requires": [
+     "IdentityMatrix"
     ],
-    "answer": 1,
-    "explain": "El `{0, 0, 0}` indica que para el valor doble λ = 2 solo existe **un** vector propio independiente. Faltan vectores para formar `P`: no diagonalizable."
+    "hints": [
+     "Subespacio propio de λ = 2: `NullSpace[M - 2 IdentityMatrix[3]]`.",
+     "Su dimensión es el número de vectores: `Length[…]`."
+    ],
+    "explain": "Dimensión 1 para un valor propio doble: falta un vector propio, `M` **no es diagonalizable**. `Eigenvectors[M]` lo delata con un `{0, 0, 0}`."
    }
   },
   {

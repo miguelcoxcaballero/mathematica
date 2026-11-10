@@ -62,24 +62,28 @@
    "type": "exercise",
    "ex": {
     "id": "1-p22-e01",
-    "kind": "predict",
+    "kind": "code",
     "title": "Módulo de un vector",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "prompt": "Calcula el módulo del vector `{2, 3, 6}`.",
     "difficulty": 1,
     "cmds": [
      "Norm"
     ],
     "real": false,
     "source": null,
-    "code": "Norm[{3, 4}]",
-    "options": [
-     "7",
-     "5",
-     "25",
-     "{3, 4}"
+    "solution": "Norm[{2, 3, 6}]",
+    "check": {
+     "type": "expr",
+     "expected": "7"
+    },
+    "requires": [
+     "Norm"
     ],
-    "answer": 1,
-    "explain": "`Norm` da el módulo: la raíz de `3^2 + 4^2`, es decir `5`."
+    "hints": [
+     "`Norm[lista]` da el módulo del vector.",
+     "`Norm[{2, 3, 6}]`"
+    ],
+    "explain": "`Norm` da la raíz de `2^2 + 3^2 + 6^2 = 49`, es decir `7`. Es lo que usarás para medir el vector tangente."
    }
   },
   {
@@ -129,38 +133,31 @@
    "type": "exercise",
    "ex": {
     "id": "1-p22-e03",
-    "kind": "fill",
+    "kind": "code",
     "title": "Longitud de una circunferencia",
-    "prompt": "Completa la celda para calcular la longitud de la circunferencia de radio 3, `{3 Cos[t], 3 Sin[t]}`, dando una vuelta completa.",
+    "prompt": "Calcula con una integral la longitud de la circunferencia de radio 3, `{3 Cos[t], 3 Sin[t]}`, dando una vuelta completa (`t` de `0` a `2 Pi`). Da el valor numérico.",
     "difficulty": 1,
     "cmds": [
      "NIntegrate",
-     "Norm"
+     "Norm",
+     "D"
     ],
     "real": false,
     "source": null,
-    "template": "NIntegrate[Norm[D[{3 Cos[t], 3 Sin[t]}, __1__]], {t, 0, __2__}]",
-    "blanks": [
-     [
-      "t"
-     ],
-     [
-      "2 Pi",
-      "2Pi",
-      "2*Pi",
-      "2 π",
-      "2π"
-     ]
-    ],
+    "solution": "NIntegrate[Norm[D[{3 Cos[t], 3 Sin[t]}, t]], {t, 0, 2 Pi}]",
     "check": {
      "type": "expr",
      "expected": "6 Pi",
      "compare": "numeric",
      "tol": 0.0001
     },
+    "requires": [
+     "Norm",
+     "D"
+    ],
     "hints": [
-     "Se deriva respecto del parámetro de la curva.",
-     "Una vuelta completa: `t` va de `0` a `2 Pi`."
+     "Longitud = integral de `Norm[D[curva, t]]`.",
+     "`NIntegrate[Norm[D[{3 Cos[t], 3 Sin[t]}, t]], {t, 0, 2 Pi}]`"
     ],
     "explain": "Sale `2 Pi · 3 = 18.85`, la longitud de siempre. La receta funciona con cualquier curva."
    }
@@ -385,32 +382,9 @@
    "type": "exercise",
    "ex": {
     "id": "1-p22-e09",
-    "kind": "mcq",
-    "title": "¿Cuál es el integrando del trabajo?",
-    "prompt": "Con `x`, `y`, `z` ya asignadas en función de `t`, ¿qué expresión hay que integrar para obtener el **trabajo** del campo `F`?",
-    "difficulty": 1,
-    "cmds": [
-     "D"
-    ],
-    "real": false,
-    "source": null,
-    "options": [
-     "`F[x, y, z] * Norm[D[{x, y, z}, t]]`",
-     "`F[x, y, z].D[{x, y, z}, t]`",
-     "`Norm[F[x, y, z]]`",
-     "`D[F[x, y, z], t]`"
-    ],
-    "answer": 1,
-    "explain": "Trabajo = campo · vector tangente (producto escalar con `.`). El `Norm` del tangente es para campos **escalares** (masa, longitud)."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p22-e10",
-    "kind": "order",
-    "title": "La receta del trabajo, en orden",
-    "prompt": "Ordena las líneas para calcular el trabajo del campo `F = (y, -x, z)` a lo largo de la hélice `(Cos[t], Sin[t], t)`, con `t` de `0` a `2 Pi`.",
+    "kind": "code",
+    "title": "La receta del trabajo",
+    "prompt": "Calcula el trabajo del campo `F = (y, -x, z)` a lo largo de la hélice `(Cos[t], Sin[t], t)`, con `t` de `0` a `2 Pi`. Sigue la receta: define `F[x_, y_, z_]`, asigna `x`, `y`, `z`, construye el integrando e integra.",
     "difficulty": 2,
     "cmds": [
      "NIntegrate",
@@ -418,25 +392,28 @@
     ],
     "real": false,
     "source": null,
-    "lines": [
-     "F[x_, y_, z_] := {y, -x, z}",
-     "x = Cos[t]; y = Sin[t]; z = t;",
-     "integrando = F[x, y, z].D[{x, y, z}, t];",
-     "NIntegrate[integrando, {t, 0, 2 Pi}]"
-    ],
+    "solution": "F[x_, y_, z_] := {y, -x, z}\nx = Cos[t]; y = Sin[t]; z = t;\nintegrando = F[x, y, z].D[{x, y, z}, t];\nNIntegrate[integrando, {t, 0, 2 Pi}]",
     "check": {
      "type": "expr",
      "expected": "2 Pi (Pi - 1)",
      "compare": "numeric",
      "tol": 0.0001
     },
-    "explain": "Definir el campo, parametrizar, construir el integrando (campo · tangente) e integrar. Siempre en ese orden."
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "Primera línea: `F[x_, y_, z_] := {y, -x, z}`. Segunda: `x = Cos[t]; y = Sin[t]; z = t;`",
+     "Integrando: `F[x, y, z].D[{x, y, z}, t]` (campo · tangente, con el punto).",
+     "`NIntegrate[integrando, {t, 0, 2 Pi}]`"
+    ],
+    "explain": "Definir el campo, parametrizar, construir el integrando (campo · tangente) e integrar. Siempre en ese orden, y **sin** `Norm`: eso era para campos escalares."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e11",
+    "id": "1-p22-e10",
     "kind": "code",
     "title": "Trabajo al dar una vuelta",
     "prompt": "Calcula el trabajo del campo plano `F(x, y) = (-y, x)` a lo largo de la circunferencia unidad `x = Cos[t]`, `y = Sin[t]`, con `t` de `0` a `2 Pi`.",
@@ -467,7 +444,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e12",
+    "id": "1-p22-e11",
     "kind": "code",
     "title": "Trabajo a lo largo de una hélice elíptica",
     "prompt": "Dado el campo de fuerzas\n\n`F = (y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z])`\n\ny el arco de curva `C(t) = (Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t)` con `t` entre `Pi/5` y `6 Pi`, halla el **trabajo** realizado por `F` a lo largo de `C` desde `C(Pi/5)` hasta `C(6 Pi)` mediante una integral en la variable `t`.",
@@ -499,10 +476,11 @@
   {
    "type": "explain",
    "title": "Divergencia y rotacional: Div y Curl",
-   "md": "Dos operadores sobre un campo vectorial `F`:\n\n- `Div[F, {x, y, z}]` → la **divergencia**, un número en cada punto (suma de las derivadas de cada componente respecto de su variable).\n- `Curl[F, {x, y, z}]` → el **rotacional**, un vector.\n\nEl segundo argumento es la lista de variables, igual que en `Grad`. Para evaluar en un punto, usa reglas: `/. {x -> 1, y -> -2, z -> 1}`.\n\nLo importante: **si el rotacional es `{0, 0, 0}`, el campo es conservativo**. Entonces el trabajo no depende del camino, solo de los puntos inicial y final.\n\nLas variables tienen que estar libres: si vienes de parametrizar, haz antes `Clear[x, y, z]`.",
+   "md": "Dos operadores sobre un campo vectorial `F`:\n\n- `Div[F, {x, y, z}]` → la **divergencia**, un número en cada punto (suma de las derivadas de cada componente respecto de su variable).\n- `Curl[F, {x, y, z}]` → el **rotacional**, un vector.\n\nEl segundo argumento es la lista de variables, igual que en `Grad`. Para evaluar en un punto, usa reglas: `/. {x -> 1, y -> 2, z -> 3}`.\n\nLo importante: **si el rotacional es `{0, 0, 0}`, el campo es conservativo**. Entonces el trabajo no depende del camino, solo de los puntos inicial y final.\n\nLas variables tienen que estar libres: si vienes de parametrizar, haz antes `Clear[x, y, z]`.",
    "cells": [
     {
-     "code": "Div[{x^2 y, y z, x z^2}, {x, y, z}]"
+     "code": "Div[{x^2 y, y z, x z^2}, {x, y, z}] /. {x -> 1, y -> 2, z -> 3}",
+     "note": "divergencia, evaluada en el punto (1, 2, 3)"
     },
     {
      "code": "Curl[{-y, x, 0}, {x, y, z}]",
@@ -511,17 +489,13 @@
     {
      "code": "Curl[{y z, x z, x y}, {x, y, z}]",
      "note": "rotacional nulo: campo conservativo"
-    },
-    {
-     "code": "Div[{x^2 y, y z, x z^2}, {x, y, z}] /. {x -> 1, y -> 2, z -> 3}",
-     "note": "divergencia en el punto (1, 2, 3)"
     }
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e13",
+    "id": "1-p22-e12",
     "kind": "code",
     "title": "Divergencia en un punto",
     "prompt": "El campo `F[x, y, z]` del ejercicio anterior ya está definido:\n\n`F[x_, y_, z_] := {y Cos[x z] - x y z Sin[x z], x Cos[x z], -x^2 y Sin[x z]}`\n\nCalcula su **divergencia** y evalúala en el punto `(1, -2, 1)`. Da el valor numérico.",
@@ -554,7 +528,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e14",
+    "id": "1-p22-e13",
     "kind": "code",
     "title": "¿Es conservativo?",
     "prompt": "Con el mismo campo `F[x, y, z]` (ya definido), calcula su **rotacional**.",
@@ -606,30 +580,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e15",
-    "kind": "mcq",
-    "title": "Rotacional nulo",
-    "prompt": "Has calculado `Curl[F[x, y, z], {x, y, z}]` y sale `{0, 0, 0}`. ¿Qué puedes afirmar?",
-    "difficulty": 1,
-    "cmds": [
-     "Curl"
-    ],
-    "real": false,
-    "source": null,
-    "options": [
-     "Que el campo es nulo en todos los puntos.",
-     "Que el campo es conservativo: tiene potencial y el trabajo solo depende de los extremos.",
-     "Que la divergencia también es cero.",
-     "Que el trabajo a lo largo de cualquier curva es cero."
-    ],
-    "answer": 1,
-    "explain": "Rotacional nulo ⇔ campo conservativo. El trabajo es cero solo en curvas **cerradas**; entre dos puntos distintos vale `U(final) - U(inicial)`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p22-e16",
+    "id": "1-p22-e14",
     "kind": "code",
     "title": "Potencial del campo de la práctica",
     "prompt": "El campo `F[x, y, z]` de la práctica ya está definido (el de los ejercicios anteriores). Calcula su función potencial `U(x, y, z)` que vale cero en `(0, 0, 0)`, **guárdala en `U`** y evalúala en `(1, -2, 1)` (valor numérico como última salida).",
@@ -673,7 +624,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e17",
+    "id": "1-p22-e15",
     "kind": "code",
     "title": "Extremos del arco",
     "prompt": "La curva es `C(t) = (Cos[t]/Sqrt[5], Sin[t]/Sqrt[3], t)`. Calcula las coordenadas numéricas de sus extremos `C(Pi/5)` y `C(6 Pi)`. Deja como salida la lista `{Pini, Pfin}` (cada uno es una lista de 3 números).",
@@ -701,7 +652,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e18",
+    "id": "1-p22-e16",
     "kind": "code",
     "title": "Trabajo como diferencia de potencial",
     "prompt": "Ya están definidos el potencial `U = x y Cos[x z]` y los extremos del arco, `Pini` y `Pfin` (listas de 3 números: `C(Pi/5)` y `C(6 Pi)`).\n\nCalcula el trabajo de `F` desde `Pini` hasta `Pfin` **sin integrar**: `W = U(final) - U(inicial)`.",
@@ -735,7 +686,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p22-e19",
+    "id": "1-p22-e17",
     "kind": "code",
     "title": "Examen: longitud y trabajo",
     "prompt": "Considera el campo de fuerzas `V = (2 x + 2 y^2 - z, x^2 y z, y^2 - 3 z)` y el arco de curva\n\n`r(t) = (5/2 Sin[t/3], Sqrt[5^(t + 1)], Log[t + 1])`, con `t` entre `1/(3 Pi)` y `4 Pi/3`.\n\na) Calcula la longitud `L` de ese arco. b) Calcula el trabajo `W` realizado por una partícula que se desplaza sobre el arco sometida al campo `V`.\n\nDeja como última salida la lista `{L, W}`.",

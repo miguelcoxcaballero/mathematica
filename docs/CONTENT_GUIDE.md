@@ -1,5 +1,12 @@
 # Guía para autores de contenido (lecciones y simulacros)
 
+> **CAMBIO OBLIGATORIO (petición expresa del usuario, ver SPEC §11): nada tipo test; TODO se teclea.**
+> Solo ejercicios `code` (y `fix`). No escribas más `mcq`, `predict`, `fill` ni `order`; convierte los que ya tengas en
+> ejercicios `code` o en celdas de explicación. Las celdas de los pasos `explain` las teclea el alumno carácter a
+> carácter (aparecen en gris y se vuelven negras): hazlas CORTAS (1–3 líneas), sin comentarios `(* *)` dentro, y pon la
+> explicación de cada línea en `md`/`note`. Menos celdas, mejor elegidas; más ejercicios `code` graduados.
+
+
 Lee antes `docs/SPEC.md` §5, §6 y §9 (esquema exacto). Aquí va el criterio de calidad.
 
 ## Quién es el alumno

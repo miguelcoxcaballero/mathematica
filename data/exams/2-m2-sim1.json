@@ -1,0 +1,277 @@
+{
+ "id": "2-m2-sim1",
+ "year": 2,
+ "subject": "Matemáticas II",
+ "title": "Simulacro 1 · examen de Mathematica (modelo 2021)",
+ "durationMin": 75,
+ "intro": "**Cómo es el examen real (ExPL de Matemáticas II).** Se hace en aula informática, con Mathematica abierto, y las respuestas se teclean en la herramienta Exámenes de PoliformaT. Dura 1 h 15 min. Casi todo son **valores numéricos** que se escriben en casillas y se corrigen solos por rango de tolerancia.\n\n**Qué se permite.** Libro, apuntes, guiones y tus propios cuadernos de Mathematica (tu formulario con las plantillas de cada práctica). Al acabar se sube el cuaderno `.nb` con las resoluciones.\n\n**Cómo responder aquí.** Resuelve en el cuaderno de al lado y copia cada número en su casilla, con punto decimal y 6 cifras significativas salvo que el apartado diga otra cosa. Cada casilla admite un error relativo del 0,1 %.\n\n**Consejos de tiempo.**\n\n- 8 preguntas en 75 min: unos 9 min por pregunta. Si una se atasca, pasa a la siguiente y vuelve al final.\n- Empieza por las que son plantilla directa (mezclas, sistema con autovalores, Laplace) y deja la cuerda forzada para cuando tengas el resto.\n- Usa `Clear[...]` al cambiar de pregunta: una `y`, una `a` o una `f` que quedó definida estropea la siguiente.\n- Antes de teclear un número mira si tiene sentido (un tiempo negativo o 18000 g en un depósito de 500 l no lo tienen).\n\nEste simulacro reproduce la estructura del examen del 15/01/2021 (preguntas P2 a P8) con sus datos reales. La P1 de aquel examen no se conserva: aquí se sustituye por una de la práctica 1. Los apartados marcados como **adaptado** son añadidos.",
+ "source": "Estructura y datos reales del examen ExPL del 15/01/2021 (P2–P8, reconstruidos del cuaderno entregado); P1 y los apartados marcados como adaptados proceden de los guiones PL1–PL9.",
+ "questions": [
+  {
+   "title": "P1 · Ecuación exacta (PL1)",
+   "prompt": "Considera la ecuación diferencial `(y^2 E^(x y^2) + 4 x^3) dx + (2 x y E^(x y^2) - 3 y^2) dy = 0`.\n\nComprueba que es exacta y calcula su potencial `U(x, y)` con la fórmula del guion tomando `(x0, y0) = (0, 0)`, de modo que `U(0, 0) = 0`. Las soluciones son las curvas `U(x, y) = C`.\n\n(Datos adaptados: ejercicio 3a del guion PL1.)",
+   "points": 1.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `U(1, 1)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 1.718282,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[P, Q, U, x, y, s, x0, y0]\nP[x_, y_] = y^2*Exp[x*y^2] + 4 x^3;     (* lo que multiplica a dx *)\nQ[x_, y_] = 2 x*y*Exp[x*y^2] - 3 y^2;   (* lo que multiplica a dy *)\nD[P[x, y], y] - D[Q[x, y], x] // Simplify   (* da 0: la ecuación es exacta *)\nx0 = 0; y0 = 0;   (* punto de partida de la fórmula: así U(0,0) = 0 *)\nU[x_, y_] = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]\nU[1, 1] // N",
+     "explain": "Una ecuación `P dx + Q dy = 0` es exacta si `D[P, y] == D[Q, x]`. Entonces el potencial es `Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]`: sale `-1 + x^4 - y^3 + E^(x y^2)` y `U(1,1) = E - 1`. Error típico: integrar `Q[x, s]` en vez de `Q[x0, s]` en la segunda integral (se cuenta dos veces el término común)."
+    },
+    {
+     "label": "b)",
+     "prompt": "La curva solución que pasa por el punto `(1, 1)` corta a la recta `x = 0` en un único punto real. Da su ordenada `y`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -1.197746,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[P, Q, U, x, y, s, x0, y0]\nP[x_, y_] = y^2*Exp[x*y^2] + 4 x^3;     (* lo que multiplica a dx *)\nQ[x_, y_] = 2 x*y*Exp[x*y^2] - 3 y^2;   (* lo que multiplica a dy *)\nD[P[x, y], y] - D[Q[x, y], x] // Simplify   (* da 0: la ecuación es exacta *)\nx0 = 0; y0 = 0;   (* punto de partida de la fórmula: así U(0,0) = 0 *)\nU[x_, y_] = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]\nc = U[1, 1];   (* la solución por (1,1) es U(x,y) = U(1,1) *)\ny /. FindRoot[U[0, y] == c, {y, -1}]",
+     "explain": "La constante de la solución que pasa por un punto es el valor de `U` en ese punto. Después se pone `x = 0` y queda `-y^3 == E - 1`, que tiene una sola raíz real (negativa). Con `Solve` salen también dos raíces complejas: en la casilla va la real."
+    }
+   ]
+  },
+  {
+   "title": "P2 · Problema de mezclas (PL2)",
+   "prompt": "Un depósito de `500` l de capacidad está lleno hasta la mitad con una disolución que contiene `0.4` g de soluto. Entran `4` l/min de una disolución con `0.5` g/l y salen `2` l/min de la mezcla, que se remueve continuamente.\n\nLlama `y(t)` a los gramos de soluto en el instante `t` (min). La ecuación es lineal: `y' + (fs/v(t)) y = fe pe`, con `v(t)` el volumen.\n\n(Datos reales del examen de 2021.)",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Instante (en minutos) en que el depósito se llena.",
+     "answerType": "numeric",
+     "value": 125,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "Clear[v, P, Q, y, yf, t, C1]\nVmax = 500; V0 = Vmax/2; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs)*t;   (* litros que hay en el instante t *)\ntll = t /. Flatten[Solve[v[t] == Vmax, t]]",
+     "explain": "El volumen crece a `fe - fs = 2` l/min desde 250 l: `v(t) = 250 + 2 t`. Se llena cuando `v(t) == 500`. Fíjate en el doble igual dentro de `Solve` y en `/. Flatten[...]` para sacar el número de la regla."
+    },
+    {
+     "label": "b)",
+     "prompt": "Gramos de soluto que hay en el depósito en el instante de llenado, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 187.7,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[v, P, Q, y, yf, t, C1]\nVmax = 500; V0 = Vmax/2; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs)*t;   (* litros que hay en el instante t *)\nP[t_] = fs/v[t]; Q[t_] = fe*pe;   (* y' + P y = Q, con y = gramos de soluto *)\ny[t_, C1_] = Exp[Integrate[-P[t], t]]*(C1 + Integrate[Exp[Integrate[P[t], t]]*Q[t], t]) // Simplify\nsolC1 = Solve[y[0, C1] == c0, C1];   (* condición inicial *)\nyf[t_] = y[t, C1] /. Flatten[solC1]\ntll = t /. Flatten[Solve[v[t] == Vmax, t]];\nyf[tll]",
+     "explain": "Es la fórmula de la lineal del guion PL2 con `P = fs/v` y `Q = fe*pe`; la constante sale de `y(0) = 0.4`. Error típico (le pasó al alumno de 2021 y obtuvo 18229 g): escribir `Exp[Integrate[P[t], t]*Q[t]]`, con la `Q` dentro de la exponencial. `Q` multiplica fuera: `Exp[Integrate[P[t], t]]*Q[t]`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Instante (en minutos) en que el depósito contiene `110` g de soluto, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 66.38182,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[v, P, Q, y, yf, t, C1]\nVmax = 500; V0 = Vmax/2; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs)*t;   (* litros que hay en el instante t *)\nP[t_] = fs/v[t]; Q[t_] = fe*pe;   (* y' + P y = Q, con y = gramos de soluto *)\ny[t_, C1_] = Exp[Integrate[-P[t], t]]*(C1 + Integrate[Exp[Integrate[P[t], t]]*Q[t], t]) // Simplify\nsolC1 = Solve[y[0, C1] == c0, C1];   (* condición inicial *)\nyf[t_] = y[t, C1] /. Flatten[solC1]\nt110 = Solve[yf[t] == 110, t]   (* dos raíces: solo vale la positiva *)\ntf = Max[t /. t110]",
+     "explain": "Se resuelve `yf[t] == 110`. `Solve` da dos raíces y una es negativa: el tiempo válido es el positivo (y menor que 125 min, antes de que rebose). También sirve `FindRoot[yf[t] == 110, {t, 60}]`."
+    },
+    {
+     "label": "d)",
+     "prompt": "Concentración (g/l) en ese instante, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.2873837,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[v, P, Q, y, yf, t, C1]\nVmax = 500; V0 = Vmax/2; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs)*t;   (* litros que hay en el instante t *)\nP[t_] = fs/v[t]; Q[t_] = fe*pe;   (* y' + P y = Q, con y = gramos de soluto *)\ny[t_, C1_] = Exp[Integrate[-P[t], t]]*(C1 + Integrate[Exp[Integrate[P[t], t]]*Q[t], t]) // Simplify\nsolC1 = Solve[y[0, C1] == c0, C1];   (* condición inicial *)\nyf[t_] = y[t, C1] /. Flatten[solC1]\ntf = Max[t /. Solve[yf[t] == 110, t]];\n110/v[tf]",
+     "explain": "Concentración = cantidad / volumen, las dos en el mismo instante: `110/v[tf]`. Error típico: dividir entre el volumen inicial (250) o el final (500) en vez de `v[tf]`."
+    }
+   ]
+  },
+  {
+   "title": "P3 · Coeficientes indeterminados (PL3)",
+   "prompt": "Halla `a`, `b`, `c`, `d` para que `yp(x) = a E^(-x) Cos[3 x] + b E^(-x) Sin[3 x] + c Cos[3 x] + d Sin[3 x]` sea solución particular de `y''' - y'' + 3 y' - 2 y = 5 E^(-x) Sin[3 x]`.\n\n(Datos reales del examen de 2021. Salen `c = d = 0`.)",
+   "points": 1.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `a`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.01764706,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[a, b, c, d, x, yp]\nyp[x_] = a*Exp[-x]*Cos[3 x] + b*Exp[-x]*Sin[3 x] + c*Cos[3 x] + d*Sin[3 x];\n(* se sustituye en la ecuación (todo a un lado) y se desarrolla *)\nD[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x]*Sin[3 x] // Expand\n(* el coeficiente de cada función distinta debe ser 0 *)\nsolabcd = Solve[{7 c - 18 d == 0, 18 c + 7 d == 0, 29 a - 3 b == 0, 3 a + 29 b - 5 == 0}, {a, b, c, d}]\na /. Flatten[solabcd] // N",
+     "explain": "Se sustituye `yp` en la ecuación, se pasa todo a un lado y con `Expand` se agrupa por funciones: `Cos[3 x]`, `Sin[3 x]`, `E^(-x) Cos[3 x]` y `E^(-x) Sin[3 x]`. Cada coeficiente se iguala a 0 y `Solve` da `a = 3/170`. Error típico: olvidar pasar el segundo miembro (el `-5` en la ecuación de `E^(-x) Sin[3 x]`)."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de `b`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.1705882,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[a, b, c, d, x, yp]\nyp[x_] = a*Exp[-x]*Cos[3 x] + b*Exp[-x]*Sin[3 x] + c*Cos[3 x] + d*Sin[3 x];\n(* se sustituye en la ecuación (todo a un lado) y se desarrolla *)\nD[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x]*Sin[3 x] // Expand\n(* el coeficiente de cada función distinta debe ser 0 *)\nsolabcd = Solve[{7 c - 18 d == 0, 18 c + 7 d == 0, 29 a - 3 b == 0, 3 a + 29 b - 5 == 0}, {a, b, c, d}]\nb /. Flatten[solabcd] // N",
+     "explain": "Del mismo sistema sale `b = 29/170`. Comprueba siempre al final: `yp` con esos valores, sustituida en la ecuación y con `Simplify`, debe dar 0. No uses `C` ni `D` como nombres de coeficientes: están reservados en Mathematica."
+    }
+   ]
+  },
+  {
+   "title": "P4 · Variación de constantes (PL3)",
+   "prompt": "Para la ecuación `y'' + 9 y = 1/Cos[x]` se busca una solución particular `yp(x) = C1(x) Cos[3 x] + C2(x) Sin[3 x]` por el método de variación de constantes (Lagrange).\n\nHalla `C1'(x)` y `C2'(x)` resolviendo el sistema del método e intégralas.\n\n(Datos reales del examen de 2021. Se piden diferencias porque así el resultado no depende de la constante de integración.)",
+   "points": 1.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `C1(Pi/3) - C1(1/3)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.216452,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[y1, y2, K1, K2, C1x, C2x, x, sis]\ny1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];   (* soluciones de la homogénea y'' + 9 y = 0 *)\n(* K1 y K2 son las derivadas C1'(x) y C2'(x) *)\nsis = Solve[{K1*y1[x] + K2*y2[x] == 0, K1*D[y1[x], x] + K2*D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify\nC1x[x_] = Integrate[K1 /. Flatten[sis], x];\nC2x[x_] = Integrate[K2 /. Flatten[sis], x];\nC1x[Pi/3] - C1x[1/3] // N",
+     "explain": "El sistema es `C1' y1 + C2' y2 = 0`, `C1' y1' + C2' y2' = f(x)`, con `f` el segundo miembro (el coeficiente de `y''` es 1). Sale `C1' = -Sin[3 x]/(3 Cos[x])` y se integra. Error típico: poner el `1/Cos[x]` en la primera ecuación en lugar de en la segunda."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de `C2(1/3) - C2(Pi/3)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.1554029,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[y1, y2, K1, K2, C1x, C2x, x, sis]\ny1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];   (* soluciones de la homogénea y'' + 9 y = 0 *)\n(* K1 y K2 son las derivadas C1'(x) y C2'(x) *)\nsis = Solve[{K1*y1[x] + K2*y2[x] == 0, K1*D[y1[x], x] + K2*D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify\nC1x[x_] = Integrate[K1 /. Flatten[sis], x];\nC2x[x_] = Integrate[K2 /. Flatten[sis], x];\nC2x[1/3] - C2x[Pi/3] // N",
+     "explain": "`C2' = Cos[3 x]/(3 Cos[x])`, cuya integral es `(Sin[2 x] - x)/3`. Ojo al orden de la resta que pide el enunciado (aquí es `1/3` menos `Pi/3`): cambiarlo cambia el signo."
+    }
+   ]
+  },
+  {
+   "title": "P5 · Sistema homogéneo con autovalores dados (PL5)",
+   "prompt": "Considera el sistema `Y' = A Y`, con `A` una matriz 3×3 de autovalores `(-4, 2, 0)` y autovectores respectivos `(2, 3, 4)`, `(0, 1, 1)` y `(-1, 2, -2)`. Calcula la solución `Y(t) = (y1(t), y2(t), y3(t))` que cumple `Y(0) = (0, 1, -1)`.\n\n(Datos reales del examen de 2021; el apartado d) es adaptado.)",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `y1(0.5)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.4940941,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[sol, solF, y1f, y2f, y3f, C1, C2, C3, t]\n{L1, L2, L3} = {-4, 2, 0};                         (* autovalores *)\n{v1, v2, v3} = {{2, 3, 4}, {0, 1, 1}, {-1, 2, -2}};  (* autovectores *)\nsol[t_] = C1*v1*Exp[L1*t] + C2*v2*Exp[L2*t] + C3*v3*Exp[L3*t];   (* solución general *)\nsolCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]\n{y1f[t_], y2f[t_], y3f[t_]} = sol[t] /. Flatten[solCs]\ny1f[0.5]",
+     "explain": "Con autovalores distintos la solución general es `C1 v1 E^(L1 t) + C2 v2 E^(L2 t) + C3 v3 E^(L3 t)`. Las constantes salen de `Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]` (da `2/7`, `-1`, `4/7`). Error típico (el del alumno de 2021): evaluar una función que aún lleva `C1`, `C2`, `C3` sin sustituir."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de `y2(1)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -6.2305,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[sol, solF, y1f, y2f, y3f, C1, C2, C3, t]\n{L1, L2, L3} = {-4, 2, 0};                         (* autovalores *)\n{v1, v2, v3} = {{2, 3, 4}, {0, 1, 1}, {-1, 2, -2}};  (* autovectores *)\nsol[t_] = C1*v1*Exp[L1*t] + C2*v2*Exp[L2*t] + C3*v3*Exp[L3*t];   (* solución general *)\nsolCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]\n{y1f[t_], y2f[t_], y3f[t_]} = sol[t] /. Flatten[solCs]\ny2f[1] // N",
+     "explain": "`y2(t) = 8/7 + 6 E^(-4 t)/7 - E^(2 t)`. Es la segunda componente del vector solución: se saca con `[[2]]` o, como aquí, asignando las tres componentes de golpe con `{y1f[t_], y2f[t_], y3f[t_]} = ...`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Instante `t > 0` en el que `y3(t) = -2`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.1760969,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[sol, solF, y1f, y2f, y3f, C1, C2, C3, t]\n{L1, L2, L3} = {-4, 2, 0};                         (* autovalores *)\n{v1, v2, v3} = {{2, 3, 4}, {0, 1, 1}, {-1, 2, -2}};  (* autovectores *)\nsol[t_] = C1*v1*Exp[L1*t] + C2*v2*Exp[L2*t] + C3*v3*Exp[L3*t];   (* solución general *)\nsolCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]\n{y1f[t_], y2f[t_], y3f[t_]} = sol[t] /. Flatten[solCs]\nt /. FindRoot[y3f[t] == -2, {t, 0}]",
+     "explain": "La ecuación mezcla `E^(-4 t)` y `E^(2 t)`: no se despeja a mano, se usa `FindRoot[ecuación, {t, valor inicial}]`. Dibuja antes `Plot[y3f[t], {t, 0, 1}]` para elegir un valor inicial cercano; `y3` empieza en `-1` y decrece."
+    },
+    {
+     "label": "d)",
+     "prompt": "**Adaptado.** Valor al que tiende `y1(t)` cuando `t` tiende a infinito, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.5714286,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "Clear[sol, solF, y1f, y2f, y3f, C1, C2, C3, t]\n{L1, L2, L3} = {-4, 2, 0};                         (* autovalores *)\n{v1, v2, v3} = {{2, 3, 4}, {0, 1, 1}, {-1, 2, -2}};  (* autovectores *)\nsol[t_] = C1*v1*Exp[L1*t] + C2*v2*Exp[L2*t] + C3*v3*Exp[L3*t];   (* solución general *)\nsolCs = Solve[sol[0] == {0, 1, -1}, {C1, C2, C3}]\n{y1f[t_], y2f[t_], y3f[t_]} = sol[t] /. Flatten[solCs]\nLimit[y1f[t], t -> Infinity] // N",
+     "explain": "`y1(t) = -4/7 + 4 E^(-4 t)/7`: el autovector de `E^(2 t)` tiene primera componente 0, así que en `y1` solo quedan el término constante (autovalor 0) y uno que se apaga. El límite es `-4/7`."
+    }
+   ]
+  },
+  {
+   "title": "P6 · Transformada de Laplace con función a trozos (PL6)",
+   "prompt": "Sea `f(t) = 0` si `t < 0`, `Sin[2 t]` si `0 <= t < 3` y `t - 3` si `t >= 3`. Considera el problema `y'' + y = f(t) + 5`, `y(0) = 10`, `y'(0) = 0`, y llama `Y(s)` a la transformada de Laplace de su solución.\n\n(Datos reales del examen de 2021, que pedía `Y(2.3)`; los apartados a) y c) son adaptados.)",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "**Adaptado.** Valor de la transformada de Laplace de `f` en `s = 2.3`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.2153372,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s];\nF[2.3] // Chop   (* Chop quita restos imaginarios del orden de 10^-17 *)",
+     "explain": "Una función a trozos se define con `Piecewise` (o con `UnitStep`) y se transforma con `LaplaceTransform[f[t], t, s]`: variable original, variable nueva. Luego se evalúa en `s = 2.3`. Error típico: intercambiar `t` y `s` en el comando."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de `Y(2.3)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 4.036447,
+     "tol": 0.001,
+     "points": 0.6,
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s] // ComplexExpand // Simplify;   (* TL de f, en forma real *)\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = (LaplaceTransform[y''[t] + y[t], t, s] == F[s] + 5/s) /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\nY[2.3]",
+     "explain": "No hace falta invertir: se transforma la ecuación, se sustituyen `y[0]` e `y'[0]` y se despeja `LaplaceTransform[y[t], t, s]` con `Solve`. Eso ya es `Y(s)`: `(10 s + F(s) + 5/s)/(s^2 + 1)`. Error típico: olvidar las condiciones iniciales y dejar `y[0]`, `y'[0]` simbólicos."
+    },
+    {
+     "label": "c)",
+     "prompt": "**Adaptado.** Valor de la solución en `t = 4`, es decir `y(4)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 0.8974619,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s] // ComplexExpand // Simplify;   (* TL de f, en forma real *)\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = (LaplaceTransform[y''[t] + y[t], t, s] == F[s] + 5/s) /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\n(* ExpandAll separa los sumandos con E^(-3 s) para invertir cada uno *)\nys[t_] = InverseLaplaceTransform[ExpandAll[Y[s]], s, t];\nys[4.]",
+     "explain": "La solución es la transformada inversa de `Y(s)`. Los términos con `E^(-3 s)` dan funciones retardadas multiplicadas por `HeavisideTheta[t - 3]`, que solo actúan a partir de `t = 3`. Si el resultado sale con números complejos, pásalo a real con `// ComplexExpand // Simplify`."
+    }
+   ]
+  },
+  {
+   "title": "P7 · EDP reducible, método iterativo (PL8)",
+   "prompt": "Halla una solución particular de `(Dy + 1)(Dx - 2 Dy - 1) z = y E^(-2 x)` con el método iterativo: primero resuelve `(Dx - 2 Dy - 1) u = y E^(-2 x)` y después `(Dy + 1) z = u`. Usa en cada paso la fórmula del guion PL8, sin añadir constantes ni funciones arbitrarias.\n\n(Datos reales del examen de 2021; los puntos de evaluación son adaptados.)",
+   "points": 1.0,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `u(0, 1)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.1111111,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[f, int, u, x, y, C1]\n(* primer paso: (Dx - 2 Dy - 1) u = y E^(-2 x)  ->  a = 1, b = -2, c = -1 *)\na1 = 1; b1 = -2; c1 = -1; f[x_, y_] = y*Exp[-2 x];\nint[x_, C1_] = Exp[-c1*x/a1]/a1*Integrate[Exp[c1*x/a1]*f[x, (C1 + b1*x)/a1], x];\nu[x_, y_] = int[x, a1*y - b1*x] // Simplify   (* se deshace la característica C1 = a y - b x *)\nu[0, 1] // N",
+     "explain": "Para `(a Dx + b Dy + c) u = f` la fórmula es `E^(-c x/a)/a` por la integral en `x` de `E^(c x/a) f[x, (C1 + b x)/a]`, y al final `C1 -> a y - b x`. Aquí `a = 1`, `b = -2`, `c = -1` y sale `u = (2 - 3 y) E^(-2 x)/9`. Error típico: equivocar el signo de `b` o de `c` al leer el factor."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de la solución particular `z(0.5, 2)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": -0.04087549,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "Clear[f, int, u, x, y, C1]\n(* primer paso: (Dx - 2 Dy - 1) u = y E^(-2 x)  ->  a = 1, b = -2, c = -1 *)\na1 = 1; b1 = -2; c1 = -1; f[x_, y_] = y*Exp[-2 x];\nint[x_, C1_] = Exp[-c1*x/a1]/a1*Integrate[Exp[c1*x/a1]*f[x, (C1 + b1*x)/a1], x];\nu[x_, y_] = int[x, a1*y - b1*x] // Simplify   (* se deshace la característica C1 = a y - b x *)\n(* segundo paso: (Dy + 1) z = u. No hay Dx: se integra en y con x fija *)\nb2 = 1; c2 = 1;\nz[x_, y_] = Exp[-c2*y/b2]/b2*Integrate[Exp[c2*y/b2]*u[x, y], y] // Simplify\nz[0.5, 2]",
+     "explain": "En el factor `(Dy + 1)` no hay `Dx` (`a = 0`) y la fórmula tal cual dividiría por cero: se aplica cambiando los papeles de `x` e `y`, es decir, integrando en `y`. Sale `z = (5 - 3 y) E^(-2 x)/9`. Compruébalo sustituyendo en la ecuación desarrollada."
+    }
+   ]
+  },
+  {
+   "title": "P8 · Cuerda forzada con extremos móviles (PL9)",
+   "prompt": "Considera el problema `u_tt = a^2 u_xx + f(x, t)` en `0 < x < L`, con `a = Sqrt[3]`, `L = 5`, fuente `f(x, t) = x (5 - x)/5`, extremos `u(0, t) = 2 Sin[3 t]`, `u(L, t) = 0` y datos iniciales `u(x, 0) = 3 (UnitStep[x - 2] - UnitStep[x - 3])`, `u_t(x, 0) = 0`.\n\nResuélvelo con la plantilla 9.4.1 del guion PL9 usando **5 términos** (`nau = 5`).\n\n(Datos reales del examen de 2021. El cálculo tarda: evalúa la plantilla una sola vez y reutiliza `u`.)",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de `u(3, 6)`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 2.743512,
+     "tol": 0.001,
+     "points": 0.8,
+     "solution": "Clear[a, L, nau, f, psi1, psi2, phi1, phi2, u0, du0, u3, g, u10, du3, du10, An, Bn, u1, gn, u2, u, x, t, tau]\n(* datos. a con punto decimal: todo se calcula en numérico y va mucho más rápido *)\na = Sqrt[3.]; L = 5; nau = 5;\nf[x_, t_] = 1/5*x*(5 - x);\npsi1[t_] = 2*Sin[3*t]; psi2[t_] = 0;\nphi1[x_] = 3*(UnitStep[x - 2] - UnitStep[x - 3]); phi2[x_] = 0;\n(* plantilla 9.4.1: u = u1 + u2 + u3 *)\nu0[x_] = phi1[x]; du0[x_] = phi2[x];\nu3[x_, t_] = psi1[t] + (x/L)*(psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\nu10[x_] = u0[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = du0[x] - du3[x, 0];\nAn[n_Integer] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\ngn[n_Integer, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];\nu[3, 6] // N",
+     "explain": "La plantilla descompone `u = u1 + u2 + u3`: `u3` lleva los extremos móviles, `u1` es la onda libre con los datos iniciales corregidos y `u2` la respuesta a la fuente. Solo se cambian los datos (`a`, `L`, `nau`, `f`, `psi1`, `psi2`, `phi1`, `phi2`). Error típico: confundir `phi1`, `phi2` (posición y velocidad iniciales) con `psi1`, `psi2` (extremos)."
+    },
+    {
+     "label": "b)",
+     "prompt": "Instante `t` entre 2 y 3 en el que `u(2, t) = 0`, con 6 cifras significativas.",
+     "answerType": "numeric",
+     "value": 2.371937,
+     "tol": 0.001,
+     "points": 0.7,
+     "solution": "Clear[a, L, nau, f, psi1, psi2, phi1, phi2, u0, du0, u3, g, u10, du3, du10, An, Bn, u1, gn, u2, u, x, t, tau]\n(* datos. a con punto decimal: todo se calcula en numérico y va mucho más rápido *)\na = Sqrt[3.]; L = 5; nau = 5;\nf[x_, t_] = 1/5*x*(5 - x);\npsi1[t_] = 2*Sin[3*t]; psi2[t_] = 0;\nphi1[x_] = 3*(UnitStep[x - 2] - UnitStep[x - 3]); phi2[x_] = 0;\n(* plantilla 9.4.1: u = u1 + u2 + u3 *)\nu0[x_] = phi1[x]; du0[x_] = phi2[x];\nu3[x_, t_] = psi1[t] + (x/L)*(psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\nu10[x_] = u0[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = du0[x] - du3[x, 0];\nAn[n_Integer] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\ngn[n_Integer, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];\nt /. FindRoot[u[2, t], {t, 2, 3}]",
+     "explain": "Con `u` ya construida, `FindRoot[u[2, t], {t, 2, 3}]` busca el cero de `u(2, t)` empezando entre 2 y 3. Dibuja antes `Plot[u[2, t], {t, 0, 5}]` para ver cuántos cortes hay y elegir bien el intervalo: hay varios ceros y el enunciado pide el que está entre 2 y 3."
+    }
+   ]
+  }
+ ]
+}

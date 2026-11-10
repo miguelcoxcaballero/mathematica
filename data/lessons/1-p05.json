@@ -1,0 +1,802 @@
+{
+ "id": "1-p05",
+ "year": 1,
+ "subject": "Matemáticas I",
+ "block": "Cálculo I",
+ "order": 5,
+ "title": "Complejos, logaritmos y determinaciones",
+ "summary": "Operar con complejos, módulo y argumento, giros con E^(I θ), y el bloque vueltas/arg del examen entendido línea a línea: funciones puras, If y FixedPoint para hallar cualquier determinación.",
+ "minutes": 45,
+ "commands": [
+  "Re",
+  "Im",
+  "Conjugate",
+  "Arg",
+  "Function",
+  "Slot",
+  "If",
+  "FixedPoint",
+  "Sign",
+  "NestWhileList"
+ ],
+ "uses": [
+  "I",
+  "E",
+  "Pi",
+  "Abs",
+  "Log",
+  "Exp",
+  "N",
+  "Degree",
+  "Sqrt",
+  "Set",
+  "SetDelayed",
+  "Blank",
+  "Length",
+  "Part"
+ ],
+ "steps": [
+  {
+   "type": "explain",
+   "title": "Complejos: giros y vueltas",
+   "md": "Los números complejos son la herramienta natural para todo lo que gira u oscila: fasores, vibraciones, estabilidad de un sistema de control. Multiplicar por un complejo es **girar y escalar** a la vez.\n\nEn el examen de Mathematica de 1º cae siempre el mismo ejercicio tipo: dado un complejo, calcular su módulo, su argumento principal, una determinación concreta del argumento (o del logaritmo) y girarlo un ángulo. Se suele resolver copiando un bloque de código (`vueltas` y `arg`) sin entenderlo. Aquí lo vas a entender línea a línea.\n\nAl acabar sabrás:\n- operar con complejos y sacar `Re`, `Im`, `Abs` y `Arg`;\n- girar un complejo multiplicando por `E^(I θ)`;\n- usar funciones puras (`#`, `&`), `If` y `FixedPoint` para buscar «el primer n que cumple algo»;\n- calcular cualquier determinación del argumento y del logaritmo.",
+   "cells": [
+    {
+     "code": "z = 3 + 4 I"
+    },
+    {
+     "code": "{Abs[z], Arg[z]} // N",
+     "note": "Módulo y argumento (en radianes)"
+    },
+    {
+     "code": "z E^(I Pi/2)",
+     "note": "El mismo complejo girado 90° en sentido antihorario"
+    }
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Escribir y operar con complejos",
+   "md": "La unidad imaginaria es `I` mayúscula. Un complejo en forma binómica se escribe `a + b I`, con el producto implícito de siempre: `3 + 4 I`, `Pi I`, `Sqrt[2] I`.\n\nSumas, productos, cocientes y potencias funcionan sin hacer nada especial, y el resultado sale simplificado en la forma `a + b I`. Si los datos son exactos, el resultado también.\n\nPara extraer partes:\n- `Re[z]` da la parte real e `Im[z]` la parte imaginaria (sin la i).\n- `Conjugate[z]` da el conjugado.\n\nSi el resultado exacto queda ilegible (con `Pi` o raíces sin operar), `// N` lo deja en forma binómica decimal. Es lo que se hace siempre en el examen.",
+   "cells": [
+    {
+     "code": "(1 + 2 I)/(3 - 4 I)",
+     "note": "Un cociente, exacto"
+    },
+    {
+     "code": "z = (2 + 3 I)^5/(-2 + Pi I)^4",
+     "note": "Exacto, pero ilegible"
+    },
+    {
+     "code": "z // N",
+     "note": "Forma binómica decimal"
+    },
+    {
+     "code": "{Re[z], Im[z]} // N",
+     "note": "Parte real y parte imaginaria por separado"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e01",
+    "kind": "code",
+    "title": "Un producto de complejos",
+    "prompt": "Calcula el producto (2 + i)·(1 − 3i).",
+    "difficulty": 1,
+    "cmds": [
+     "I"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "(2 + I) (1 - 3 I)",
+    "check": {
+     "type": "expr",
+     "expected": "5 - 5 I",
+     "msg": "No coincide. Cada factor va entre paréntesis y la unidad imaginaria es `I` mayúscula."
+    },
+    "hints": [
+     "La unidad imaginaria es `I`; `3 I` es «3 por I».",
+     "`(2 + I) (1 - 3 I)`: el espacio entre los paréntesis es el producto."
+    ],
+    "explain": "(2 + i)(1 − 3i) = 2 − 6i + i − 3i² = 5 − 5i. Mathematica lo opera y lo deja en forma binómica."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e02",
+    "kind": "fix",
+    "title": "Parte real de un cociente",
+    "prompt": "Queremos la parte real de (2 + 3i)/(1 − i), que es −1/2. Corrige los errores de escritura.",
+    "difficulty": 1,
+    "cmds": [
+     "I",
+     "Re"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "z = (2 + 3i)/(1 - i)\nre[z]",
+    "solution": "z = (2 + 3 I)/(1 - I)\nRe[z]",
+    "check": {
+     "type": "expr",
+     "expected": "-1/2"
+    },
+    "requires": [
+     "Re"
+    ],
+    "hints": [
+     "La unidad imaginaria es `I` mayúscula. Con `i` minúscula es un símbolo cualquiera.",
+     "La función parte real es `Re`, con mayúscula."
+    ],
+    "explain": "`I` y `Re` con mayúscula. El cociente vale −1/2 + (5/2) i y `Re` se queda con −1/2."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Módulo y argumento",
+   "md": "Un complejo también se describe por su **módulo** (distancia al origen) y su **argumento** (ángulo con el eje real positivo):\n- `Abs[z]` — módulo. Es el mismo `Abs` del valor absoluto.\n- `Arg[z]` — argumento **principal**, en radianes, siempre en el intervalo (−π, π].\n\nPara verlo en grados, divide entre `Degree`: `Arg[z]/Degree`.\n\nCon módulo y argumento se escribe la forma exponencial: z = |z|·e^(iθ), es decir, `Abs[z] E^(I Arg[z])`.\n\nFíjate en el intervalo: para puntos del semiplano inferior, `Arg` da ángulos **negativos**. El argumento principal de `-1 - I` es −3π/4, no 5π/4. Son el mismo ángulo dando la vuelta por el otro lado; de eso tratan las «determinaciones» que vienen después.",
+   "cells": [
+    {
+     "code": "z = 1 + Sqrt[3] I;\n{Abs[z], Arg[z]}",
+     "note": "Módulo 2 y argumento π/3"
+    },
+    {
+     "code": "Arg[z]/Degree",
+     "note": "El argumento en grados"
+    },
+    {
+     "code": "Arg[-1 - I]",
+     "note": "Tercer cuadrante: argumento principal negativo"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e03",
+    "kind": "code",
+    "title": "Módulo y argumento en grados",
+    "prompt": "Calcula el módulo y el argumento principal **en grados** de `-2 + 2 I`. Devuelve una lista `{módulo, argumento en grados}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Abs",
+     "Arg",
+     "Degree"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "{Abs[-2 + 2 I], Arg[-2 + 2 I]/Degree}",
+    "check": {
+     "type": "expr",
+     "expected": "{2 Sqrt[2], 135}",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "No coincide. El módulo es `Abs[...]` y el argumento en grados es `Arg[...]/Degree`."
+    },
+    "requires": [
+     "Abs",
+     "Arg"
+    ],
+    "hints": [
+     "Módulo: `Abs[-2 + 2 I]`. Argumento: `Arg[-2 + 2 I]`, que sale en radianes.",
+     "Para pasar a grados se divide entre `Degree`."
+    ],
+    "explain": "Módulo 2√2 y argumento 135°: el punto (−2, 2) está en el segundo cuadrante, sobre la bisectriz."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e04",
+    "kind": "code",
+    "title": "Un argumento negativo",
+    "prompt": "Calcula, en grados, el argumento principal de `-1 - I`.\n\nAntes de ejecutar, piensa: el punto (−1, −1) está en el tercer cuadrante. ¿Saldrá 225° o −135°?",
+    "difficulty": 2,
+    "cmds": [
+     "Arg",
+     "Degree"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Arg[-1 - I]/Degree",
+    "check": {
+     "type": "expr",
+     "expected": "-135",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "No coincide. Usa `Arg[-1 - I]` y divide entre `Degree` para pasarlo a grados."
+    },
+    "requires": [
+     "Arg"
+    ],
+    "hints": [
+     "`Arg[-1 - I]` da el argumento en radianes.",
+     "`Arg[-1 - I]/Degree`"
+    ],
+    "explain": "Sale −135. Los ángulos 225° y −135° señalan al mismo punto, pero el argumento principal es el que cae en (−180°, 180°]: para llegar al tercer cuadrante, `Arg` gira en sentido horario."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Girar: multiplicar por E^(I θ)",
+   "md": "Multiplicar un complejo por `E^(I θ)` lo **gira** un ángulo θ alrededor del origen, sin cambiar su módulo.\n- θ positivo: giro **antihorario**.\n- θ negativo: giro **horario** (clockwise). Es el caso habitual en el examen, y el signo menos es lo que más se olvida.\n\nEl ángulo va en radianes. Si te lo dan en grados, multiplica por `Degree`: `E^(-I 30 Degree)`.\n\n`Exp[I θ]` y `E^(I θ)` son lo mismo.",
+   "cells": [
+    {
+     "code": "z = 1 + I;\nw = z E^(I Pi/2)",
+     "note": "Giro de 90° antihorario"
+    },
+    {
+     "code": "{Abs[w], Arg[w]}",
+     "note": "Mismo módulo que z (raíz de 2); el argumento pasa de π/4 a 3π/4"
+    },
+    {
+     "code": "z Exp[-I 30 Degree] // N",
+     "note": "30° en sentido horario: ángulo negativo"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e05",
+    "kind": "code",
+    "title": "Giro horario",
+    "prompt": "Gira `z = 3 + 4 I` un ángulo de 90° en sentido **horario**. Guarda el resultado en `w`.",
+    "difficulty": 2,
+    "cmds": [
+     "E",
+     "I",
+     "Degree"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "z = 3 + 4 I;\nw = z E^(-I 90 Degree)",
+    "check": {
+     "type": "value",
+     "expr": "w",
+     "expected": "4 - 3 I",
+     "msg": "`w` no es el giro pedido. Horario significa ángulo negativo: `z E^(-I 90 Degree)`."
+    },
+    "hints": [
+     "Girar es multiplicar por `E^(I θ)`. Horario: θ negativo.",
+     "90° en radianes es `90 Degree` (o `Pi/2`): `w = z E^(-I 90 Degree)`."
+    ],
+    "explain": "Sale 4 − 3i: el punto (3, 4) girado 90° en sentido horario pasa a (4, −3). Con el signo positivo habría ido a (−4, 3)."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Funciones puras e If",
+   "md": "Para entender `FixedPoint` hacen falta dos piezas pequeñas.\n\n**Función pura**: una función sin nombre, escrita sobre la marcha. `#` es el hueco donde entra el argumento y `&` marca dónde termina la función. `#^2 &` es «la función que eleva al cuadrado»: equivale a definir `f[x_] := x^2`, pero sin ponerle nombre.\n\n**If**: `If[condición, siCierto, siFalso]`. Evalúa la condición y devuelve el segundo argumento si es verdadera o el tercero si es falsa.\n\nCombinadas: `If[#^2 > 50, #, # + 1] &` es la función «si mi cuadrado pasa de 50, me quedo como estoy; si no, sumo 1». Aplicada a 7 da 8. Aplicada a 8 da 8: ya cumple y no se mueve.",
+   "cells": [
+    {
+     "code": "(#^2 &)[5]",
+     "note": "Función pura aplicada a 5"
+    },
+    {
+     "code": "If[3 > 2, \"mayor\", \"menor\"]"
+    },
+    {
+     "code": "If[#^2 > 50, #, # + 1] &[7]",
+     "note": "49 no pasa de 50: avanza a 8"
+    },
+    {
+     "code": "If[#^2 > 50, #, # + 1] &[8]",
+     "note": "64 sí pasa: se queda en 8"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e06",
+    "kind": "code",
+    "title": "Una función pura con If",
+    "prompt": "Escribe una función pura que haga esto: si su argumento es mayor que 10, lo devuelve tal cual; si no, devuelve su doble. Aplícala al número 6, todo en una línea.\n\nLa forma es `If[condición, siCierto, siFalso] &[6]`, con `#` en el lugar del argumento.",
+    "difficulty": 2,
+    "cmds": [
+     "If",
+     "Function",
+     "Slot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "If[# > 10, #, 2 #] &[6]",
+    "check": {
+     "type": "expr",
+     "expected": "12"
+    },
+    "requires": [
+     "If",
+     "Function",
+     "Slot"
+    ],
+    "hints": [
+     "La condición es `# > 10`. Si se cumple devuelve `#`; si no, `2 #`.",
+     "`If[# > 10, #, 2 #] &[6]`"
+    ],
+    "explain": "Con `#` = 6 la condición `6 > 10` es falsa, así que devuelve el tercer argumento: `2 #`, es decir, 12. Aplicada a 15 devolvería 15."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "FixedPoint: repetir hasta que no cambie",
+   "md": "`FixedPoint[f, x0]` aplica `f` a `x0`, luego al resultado, luego otra vez… y se detiene cuando el resultado **deja de cambiar**.\n- Primer argumento: la función (normalmente pura).\n- Segundo: el valor inicial.\n\nEl truco de la práctica: con `If[condición, #, # + 1] &` se construye un **contador** que avanza de uno en uno mientras la condición sea falsa y se queda quieto cuando se cumple. `FixedPoint` lo para justo ahí. Resultado: **el primer número que cumple la condición**.\n\n`FixedPointList` hace lo mismo, pero enseña todos los pasos.\n\nUn pariente: `NestWhileList[f, x0, prueba]` va guardando en una lista los valores mientras el último cumpla la `prueba`. El primero que no la cumple también queda en la lista, al final.",
+   "cells": [
+    {
+     "code": "FixedPoint[If[#^2 > 200, #, # + 1] &, 1]",
+     "note": "Primer natural cuyo cuadrado pasa de 200"
+    },
+    {
+     "code": "FixedPointList[If[#^2 > 200, #, # + 1] &, 12]",
+     "note": "Los pasos, empezando en 12"
+    },
+    {
+     "code": "NestWhileList[2 # &, 1, # < 100 &]",
+     "note": "Duplica mientras el último sea menor que 100"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e07",
+    "kind": "code",
+    "title": "Tu primer contador",
+    "prompt": "Halla con `FixedPoint` el primer natural n tal que 2^n > 1000.\n\nEl molde es `FixedPoint[If[condición, #, # + 1] &, 1]`: la condición se escribe con `#` en el lugar de n.",
+    "difficulty": 2,
+    "cmds": [
+     "FixedPoint",
+     "If",
+     "Slot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "FixedPoint[If[2^# > 1000, #, # + 1] &, 1]",
+    "check": {
+     "type": "expr",
+     "expected": "10"
+    },
+    "requires": [
+     "FixedPoint",
+     "If"
+    ],
+    "hints": [
+     "La condición es `2^# > 1000`.",
+     "`FixedPoint[If[2^# > 1000, #, # + 1] &, 1]`"
+    ],
+    "explain": "Da 10: 2^9 = 512 no llega y 2^10 = 1024 sí. El contador sube de uno en uno desde 1 y se detiene en el primero que cumple."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e08",
+    "kind": "code",
+    "title": "El primero que cumple",
+    "prompt": "Halla el primer natural k tal que `1/k^2 < 10^-4`. Usa `FixedPoint` con un contador que empiece en 1.",
+    "difficulty": 3,
+    "cmds": [
+     "FixedPoint",
+     "If",
+     "Function",
+     "Slot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "FixedPoint[If[1/#^2 < 10^-4, #, # + 1] &, 1]",
+    "check": {
+     "type": "expr",
+     "expected": "101"
+    },
+    "requires": [
+     "FixedPoint",
+     "If"
+    ],
+    "hints": [
+     "El molde es `FixedPoint[If[condición, #, # + 1] &, 1]`.",
+     "La condición, con `#` en vez de k: `1/#^2 < 10^-4`."
+    ],
+    "explain": "Sale 101. Para k = 100, 1/k² vale exactamente 10^-4, que no es menor; el primero que cumple es 101."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "Logaritmo complejo y determinaciones",
+   "md": "El logaritmo de un complejo es ln(z) = ln|z| + i·Arg(z): la parte real es el logaritmo del módulo y la parte imaginaria es el argumento. `Log[z]` da esa: la **determinación principal**.\n\nPero el argumento no es único. Si θ es un argumento de z, también lo son θ + 2π, θ − 2π, θ + 4π… (dar vueltas completas no cambia el punto). Cada elección da un logaritmo distinto e igual de válido:\n\n`Log[Abs[z]] + I (Arg[z] + 2 Pi k)`, con k entero.\n\nUna **determinación** es una forma de elegir k. La «determinación a» es la que tiene el argumento en el intervalo (a − π, a + π]. La principal es la determinación 0, con el argumento en (−π, π].\n\nEjemplo: «determinación 20» significa el argumento que cae entre 20 − π y 20 + π, es decir, entre 16.86 y 23.14.",
+   "cells": [
+    {
+     "code": "z = 1 + I;\nLog[z] // N",
+     "note": "Principal: ln|z| + i·π/4"
+    },
+    {
+     "code": "Log[Abs[z]] + I Arg[z] // N",
+     "note": "Lo mismo, construido a mano"
+    },
+    {
+     "code": "Log[Abs[z]] + I (Arg[z] + 2 Pi) // N",
+     "note": "Con una vuelta más (k = 1): otro logaritmo válido de z"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e09",
+    "kind": "code",
+    "title": "Otra rama del logaritmo",
+    "prompt": "Para `z = -2 I`, calcula en decimales el logaritmo cuyo argumento es el principal **más una vuelta** (k = 1).",
+    "difficulty": 3,
+    "cmds": [
+     "Log",
+     "Abs",
+     "Arg",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "z = -2 I;\nLog[Abs[z]] + I (Arg[z] + 2 Pi) // N",
+    "check": {
+     "type": "expr",
+     "expected": "Log[2] + 3 Pi I/2",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "No coincide. La parte real es `Log[Abs[z]]` y la imaginaria `Arg[z] + 2 Pi`."
+    },
+    "requires": [
+     "Arg",
+     "Log"
+    ],
+    "hints": [
+     "La fórmula es `Log[Abs[z]] + I (Arg[z] + 2 Pi k)` con k = 1.",
+     "`z = -2 I;` y después `Log[Abs[z]] + I (Arg[z] + 2 Pi) // N`."
+    ],
+    "explain": "Sale 0.693147 + 4.71239 i. El módulo es 2 (ln 2 = 0.693) y el argumento principal −π/2; con una vuelta más, 3π/2 = 4.712."
+   }
+  },
+  {
+   "type": "explain",
+   "title": "El bloque vueltas / arg, línea a línea",
+   "md": "Para una determinación `a` hay que encontrar cuántas vueltas `k` sumar a `Arg[z]` para caer en (a − π, a + π]. Es un «busca el primer k que cumple…»: trabajo para `FixedPoint`.\n\n```\nvueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]\n```\n\nLéelo así:\n- `#` es el contador de vueltas k. Empieza en `0`.\n- Condición: ¿está `Arg[z] + 2 k π` dentro de (a − π, a + π]? Mathematica admite la desigualdad doble tal cual.\n- Si se cumple, devuelve `#`: el contador se queda quieto y `FixedPoint` termina.\n- Si no, devuelve `# + Sign[a]`: una vuelta más en el sentido de `a`. `Sign[a]` vale +1 si a es positivo y −1 si es negativo, así que busca hacia arriba o hacia abajo según toque.\n- `arg[a, z]` es el argumento en la determinación a: el principal más 2π por el número de vueltas.\n\nEl logaritmo en la determinación a es `Log[Abs[z]] + I arg[a, z]`.",
+   "cells": [
+    {
+     "code": "vueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]",
+     "note": "Las dos definiciones del bloque. Tecléalas con calma: en el examen las escribirás tú"
+    },
+    {
+     "code": "vueltas[20, 1 + I]",
+     "note": "Hacen falta 3 vueltas"
+    },
+    {
+     "code": "arg[20, 1 + I] // N",
+     "note": "π/4 + 6π = 19.63, dentro de (16.86, 23.14]"
+    },
+    {
+     "code": "Log[Abs[1 + I]] + I arg[20, 1 + I] // N",
+     "note": "Determinación 20 del logaritmo"
+    }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e10",
+    "kind": "code",
+    "title": "Vueltas hacia atrás",
+    "prompt": "Las funciones `vueltas` y `arg` ya están definidas. Calcula cuántas vueltas hacen falta para la determinación **−30** del argumento de `1 + I`.\n\nAntes de ejecutar, piensa en el signo: ¿hay que sumar vueltas o restarlas?",
+    "difficulty": 2,
+    "cmds": [
+     "Sign",
+     "FixedPoint"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "vueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]",
+    "solution": "vueltas[-30, 1 + I]",
+    "check": {
+     "type": "expr",
+     "expected": "-5",
+     "msg": "No coincide. La llamada es `vueltas[determinación, complejo]`: primero el −30 y después `1 + I`."
+    },
+    "requires": [
+     "vueltas"
+    ],
+    "hints": [
+     "El primer argumento es la determinación y el segundo el complejo.",
+     "`vueltas[-30, 1 + I]`"
+    ],
+    "explain": "Sale −5: hay que restar cinco vueltas a π/4 para caer en (−30 − π, −30 + π]. Como la determinación es negativa, `Sign[a]` vale −1 y el contador va 0, −1, −2… Con una determinación positiva iría hacia arriba."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e11",
+    "kind": "code",
+    "title": "Una determinación del argumento",
+    "prompt": "Las funciones `vueltas` y `arg` ya están definidas. Calcula, en decimales, la determinación −15 del argumento de `-1 + I`.",
+    "difficulty": 3,
+    "cmds": [
+     "Arg",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "vueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]",
+    "solution": "arg[-15, -1 + I] // N",
+    "check": {
+     "type": "expr",
+     "expected": "3 Pi/4 - 6 Pi",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "No coincide. La llamada es `arg[determinación, complejo]`: primero el −15 y después el complejo."
+    },
+    "requires": [
+     "arg"
+    ],
+    "hints": [
+     "El primer argumento de `arg` es la determinación y el segundo el complejo.",
+     "`arg[-15, -1 + I] // N`"
+    ],
+    "explain": "Sale −16.4934: el argumento principal 3π/4 menos tres vueltas (k = −3). Es el único valor de la forma 3π/4 + 2πk que cae en (−15 − π, −15 + π]."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e12",
+    "kind": "code",
+    "title": "Práctica 5 · forma binómica",
+    "prompt": "Ejercicio real. Considera\n\nz = (2 + 3i)⁵ / (−2 + πi)⁴\n\nGuarda el complejo en `z` y calcula su forma binómica con 6 cifras significativas.",
+    "difficulty": 3,
+    "cmds": [
+     "I",
+     "Pi",
+     "N",
+     "Set"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 2a",
+    "solution": "z = (2 + 3 I)^5/(-2 + Pi I)^4;\nN[z, 6]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "N[z]",
+       "expected": "-2.786981774557633 + 1.5054626060406342 I",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "Revisa cómo has escrito `z`: paréntesis en numerador y denominador, `I` y `Pi` con mayúscula."
+      },
+      {
+       "type": "expr",
+       "expected": "-2.786981774557633 + 1.5054626060406342 I",
+       "compare": "numeric",
+       "tol": 0.0001,
+       "msg": "La última línea debe mostrar `z` en decimales: `N[z, 6]`."
+      }
+     ]
+    },
+    "requires": [
+     "N"
+    ],
+    "hints": [
+     "`z = (2 + 3 I)^5/(-2 + Pi I)^4;`",
+     "Segunda línea: `N[z, 6]` (o `z // N`)."
+    ],
+    "explain": "Resultado oficial: −2.78698 + 1.50546 i. Sin `N`, Mathematica deja `(122 - 597 I)/(-2 + I Pi)^4`: correcto, pero no sirve para rellenar la respuesta."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e13",
+    "kind": "code",
+    "title": "Práctica 5 · giro horario",
+    "prompt": "`z` ya está definido como en el apartado anterior. Realiza un giro **horario** de 4.2 radianes del afijo de z y guarda el resultado en `w`.",
+    "difficulty": 3,
+    "cmds": [
+     "E",
+     "I",
+     "Set"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 2b",
+    "setup": "z = (2 + 3 I)^5/(-2 + Pi I)^4;",
+    "solution": "w = z E^(-4.2 I)",
+    "check": {
+     "type": "value",
+     "expr": "N[w]",
+     "expected": "0.05422324015654656 - 3.1671351265978527 I",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`w` no es el giro pedido. Giro horario de 4.2 rad: multiplica por `E^(-4.2 I)`, con el signo menos."
+    },
+    "hints": [
+     "Girar θ radianes es multiplicar por `E^(I θ)`.",
+     "Sentido horario: ángulo negativo. `w = z E^(-4.2 I)`."
+    ],
+    "explain": "Resultado oficial: w = 0.0542232 − 3.16714 i. Como 4.2 ya es un decimal, el resultado sale directamente en decimales."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e14",
+    "kind": "code",
+    "title": "Práctica 5 · módulo y argumento de w",
+    "prompt": "`z` y `w` ya están definidos como en los apartados anteriores. Calcula el módulo de w, su argumento principal en radianes y su argumento principal en grados.\n\nDevuelve la lista `{módulo, argumento en radianes, argumento en grados}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Abs",
+     "Arg",
+     "Degree"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 2c",
+    "setup": "z = (2 + 3 I)^5/(-2 + Pi I)^4; w = z E^(-4.2 I);",
+    "solution": "{Abs[w], Arg[w], Arg[w]/Degree}",
+    "check": {
+     "type": "expr",
+     "expected": "{3.1675992596764937, -1.5536774035273924, -89.0191579469637}",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "No coincide. El orden pedido es {`Abs[w]`, `Arg[w]`, `Arg[w]/Degree`}."
+    },
+    "requires": [
+     "Abs",
+     "Arg"
+    ],
+    "hints": [
+     "Módulo: `Abs[w]`. Argumento principal: `Arg[w]` (radianes).",
+     "En grados: `Arg[w]/Degree`."
+    ],
+    "explain": "Resultados oficiales: |w| = 3.16760, Arg(w) = −1.55368 rad = −89.0192°. El módulo es el mismo que el de z: girar no lo cambia."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e15",
+    "kind": "code",
+    "title": "Práctica 5 · primer término menor que 10⁻⁸",
+    "prompt": "Sea la sucesión a_n = 1/(n³ + 3n² − 4n + 1). Halla el primer natural k tal que a_k < 10⁻⁸.\n\n1. Define la sucesión como función: `a[n_] = …`\n2. Guarda en `k` el resultado de un `FixedPoint` con contador.\n3. En la última línea devuelve `{k, 10^8 a[k - 1], 10^9 a[k]} // N` (los dos términos, escritos como pide el examen: a_(k−1) = ___ × 10⁻⁸ y a_k = ___ × 10⁻⁹).",
+    "difficulty": 4,
+    "cmds": [
+     "FixedPoint",
+     "If",
+     "Function",
+     "Slot",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 3",
+    "solution": "a[n_] = 1/(n^3 + 3 n^2 - 4 n + 1);\nk = FixedPoint[If[a[#] < 10^-8, #, # + 1] &, 1];\n{k, 10^8 a[k - 1], 10^9 a[k]} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "k",
+       "expected": "464",
+       "msg": "`k` debe ser el primer natural con `a[k] < 10^-8`: `k = FixedPoint[If[a[#] < 10^-8, #, # + 1] &, 1]`."
+      },
+      {
+       "type": "expr",
+       "expected": "{464, 1.0010600926062672, 9.946153810883255}",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "requires": [
+     "FixedPoint"
+    ],
+    "hints": [
+     "`a[n_] = 1/(n^3 + 3 n^2 - 4 n + 1);`",
+     "El contador: `k = FixedPoint[If[a[#] < 10^-8, #, # + 1] &, 1];` (tarda unos segundos: da 464 pasos).",
+     "Última línea: `{k, 10^8 a[k - 1], 10^9 a[k]} // N`."
+    ],
+    "explain": "Resultados oficiales: k = 464, a_463 = 1.00106 × 10⁻⁸ (todavía mayor que 10⁻⁸) y a_464 = 9.94615 × 10⁻⁹ (ya menor). El contador avanza de uno en uno hasta que se cumple la condición."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e16",
+    "kind": "code",
+    "title": "Práctica 5 · determinaciones del logaritmo",
+    "prompt": "Considera z = 3 + √2·i. Halla la determinación principal y las determinaciones −108 y 108 de ln(z).\n\nComo en el examen, escribe tú el bloque completo: las definiciones de `vueltas[a_, z_]` y `arg[a_, z_]`, el complejo `z` y, en la última línea, la lista `{principal, determinación −108, determinación 108}` en decimales.",
+    "difficulty": 5,
+    "cmds": [
+     "Log",
+     "Abs",
+     "Arg",
+     "FixedPoint",
+     "Sign",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 4",
+    "solution": "vueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]\nz = 3 + Sqrt[2] I;\n{Log[z], Log[Abs[z]] + I arg[-108, z], Log[Abs[z]] + I arg[108, z]} // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{vueltas[20, 1 + I], vueltas[-30, 1 + I]}",
+       "expected": "{3, -5}",
+       "msg": "Revisa la definición de `vueltas`: debe ser `FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]`."
+      },
+      {
+       "type": "expr",
+       "expected": "{1.1989476363991853 + 0.4405106630046985 I, 1.1989476363991853 - 106.37363955904827 I, 1.1989476363991853 + 107.25466088505767 I}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "No coincide. Cada determinación es `Log[Abs[z]] + I arg[a, z]`, con a = −108 y a = 108; la principal es `Log[z]`."
+      }
+     ]
+    },
+    "requires": [
+     "Log"
+    ],
+    "hints": [
+     "`vueltas[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]` y `arg[a_, z_] := Arg[z] + 2 Pi vueltas[a, z]`",
+     "Después el complejo: `z = 3 + Sqrt[2] I;`",
+     "La principal es `Log[z]`. La determinación a es `Log[Abs[z]] + I arg[a, z]`.",
+     "`{Log[z], Log[Abs[z]] + I arg[-108, z], Log[Abs[z]] + I arg[108, z]} // N`"
+    ],
+    "explain": "Resultados oficiales: principal 1.19895 + 0.440511 i; determinación −108: 1.19895 − 106.374 i; determinación 108: 1.19895 + 107.255 i. La parte real (ln|z|) no cambia: solo cambia el argumento, en 17 vueltas hacia cada lado."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p05-e17",
+    "kind": "code",
+    "title": "Práctica 5 · una lista que se dispara",
+    "prompt": "Construye una lista cuyo primer término sea 0 y en la que cada término sea π/2 **elevado al término anterior**, terminando cuando el valor obtenido sea mayor que 10⁹. Usa aproximaciones numéricas (empieza en `0.`).\n\nGuarda la lista en `lista` y devuelve `{número de iteraciones, último término que no supera 10^9}`.\n\nPista de planteamiento: `NestWhileList[f, x0, prueba]`, con una función pura para «π/2 elevado a #» y otra para «# no supera 10^9». El número de iteraciones es la longitud de la lista menos 1.",
+    "difficulty": 5,
+    "cmds": [
+     "NestWhileList",
+     "Function",
+     "Slot",
+     "Length",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 5 · Pregunta 6 (extra)",
+    "solution": "lista = NestWhileList[(Pi/2)^# &, 0., # <= 10^9 &];\n{Length[lista] - 1, lista[[-2]]}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Length[lista] == 11 && Abs[lista[[3]] - Pi/2] < 10^-6",
+       "msg": "`lista` debe empezar en 0 y aplicar `(Pi/2)^# &` hasta pasar de 10^9: en total, 11 términos."
+      },
+      {
+       "type": "expr",
+       "expected": "{10, 1861.285812449876}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "No coincide. Devuelve `{Length[lista] - 1, lista[[-2]]}`: el penúltimo término es el último que no supera 10^9."
+      }
+     ]
+    },
+    "requires": [
+     "NestWhileList"
+    ],
+    "hints": [
+     "La función es `(Pi/2)^# &` y la prueba para seguir, `# <= 10^9 &`.",
+     "`lista = NestWhileList[(Pi/2)^# &, 0., # <= 10^9 &];`",
+     "El último término ya se ha pasado de 10^9, así que el que te piden es el penúltimo: `lista[[-2]]`."
+    ],
+    "explain": "Resultados oficiales: 10 iteraciones y último término válido 1861.29. La lista crece despacio (0, 1, 1.57, 2.03, …, 16.67, 1861.29) y el siguiente término es del orden de 10^365: una torre de potencias se dispara de golpe."
+   }
+  }
+ ]
+}

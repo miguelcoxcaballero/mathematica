@@ -23,17 +23,19 @@ void main(){
   vec3 q=abs(vPos)-uHalf;
   if(max(q.x,max(q.y,q.z))>0.0||vUv.w<0.0) discard;
   vec3 n=normalize(vN); vec3 V=normalize(-vVP);
+  vec3 ng=normalize(cross(dFdx(vVP),dFdy(vVP)));
+  n=normalize(mix(ng*sign(dot(ng,n)+1e-6),n,smoothstep(0.72,0.93,abs(dot(n,ng)))));
   if(dot(n,V)<0.0) n=-n;
-  float d=0.30*max(dot(n,vec3(0.7071,0.0,0.7071)),0.0)+0.34*max(dot(n,vec3(0.5774,0.5774,0.5774)),0.0)+0.30*max(dot(n,vec3(0.0,0.7071,0.7071)),0.0);
+  float d=0.22*max(dot(n,vec3(0.7071,0.0,0.7071)),0.0)+0.27*max(dot(n,vec3(0.5774,0.5774,0.5774)),0.0)+0.22*max(dot(n,vec3(0.0,0.7071,0.7071)),0.0);
   vec3 base=vCol.rgb;
-  vec3 lit=base*(0.40+d)+base*vec3(0.55,0.62,0.86)*0.26*max(dot(n,vec3(-0.70,-0.52,0.49)),0.0);
+  vec3 lit=base*(0.56+d)+base*vec3(0.62,0.68,0.88)*0.22*max(dot(n,vec3(-0.70,-0.52,0.49)),0.0);
   vec3 Hh=normalize(V+vec3(0.5774,0.5774,0.5774));
-  lit+=vec3(0.16)*pow(max(dot(n,Hh),0.0),28.0);
+  lit+=vec3(0.13)*pow(max(dot(n,Hh),0.0),24.0);
   vec3 fw=fwidth(vUv.xyz)+1e-6;
   vec3 g=abs(fract(vUv.xyz-0.5)-0.5)/fw;
   float ln=min(g.x,min(g.y,g.z));
-  float mk=1.0-smoothstep(uLW-0.6,uLW+0.6,ln);
-  lit=mix(lit,lit*0.22,mk*0.78);
+  float mk=1.0-smoothstep(uLW-0.55,uLW+0.55,ln);
+  lit=mix(lit,lit*0.25,mk*0.62);
   gl_FragColor=vec4(min(lit,vec3(1.0)),vCol.a);
 }`;
 const VS_LINE = `
@@ -538,26 +540,36 @@ class Plot3D {
     if (Array.isArray(o.size)) { maxW = o.size[0] || DEF_W; fixedH = o.size[1] || null; } else if (fin(o.size) && o.size > 20) maxW = o.size;
     const W = Math.max(140, Math.min(maxW, avail || maxW));
     // proporción de la imagen: la de la caja proyectada desde el punto de vista inicial
-    const cam = this.camera(this.home, 1, 1, 1);
+    const q = this.extent(this.home);
+    const hasAxes = this.scene.axesOpt.some(Boolean);
+    const padX = hasAxes ? Math.min(46, W * 0.11) : 10, padY = hasAxes ? Math.min(34, W * 0.085) : 10;
+    const top = o.plotLabel ? 22 : 0;
+    const H = fixedH || Math.round(Math.max(W * 0.5, Math.min(W * 1.2, (W - 2 * padX) * q.h / q.w + 2 * padY + top)));
+    this.W = W; this.H = H; this.padX = padX; this.padY = padY; this.top = top;
+    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+    this.dpr = dpr;
+    this.canvas.width = Math.round(W * dpr); this.canvas.height = Math.round(H * dpr);
+    this.canvas.style.width = W + 'px'; this.canvas.style.height = H + 'px';
+    this.root.style.maxWidth = W + 'px';
+  }
+
+  /** Extensión en pantalla (a escala 1) de la caja vista desde `view`. */
+  extent(view) {
+    const cam = this.camera(view, 1, 0, 0);
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     const h = this.scene.half;
     for (let i = 0; i < 8; i++) {
       const q = cam.proj([(i & 1 ? 1 : -1) * h[0], (i & 2 ? 1 : -1) * h[1], (i & 4 ? 1 : -1) * h[2]]);
       x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]);
     }
-    const hasAxes = this.scene.axesOpt.some(Boolean);
-    const padX = hasAxes ? Math.min(46, W * 0.11) : 10, padY = hasAxes ? Math.min(34, W * 0.085) : 10;
-    const top = o.plotLabel ? 22 : 0;
-    const qw = (x1 - x0) || 1, qh = (y1 - y0) || 1;
-    let H = fixedH || Math.round(Math.max(W * 0.5, Math.min(W * 1.2, (W - 2 * padX) * qh / qw + 2 * padY + top)));
-    const s = Math.min((W - 2 * padX) / qw, (H - 2 * padY - top) / qh);
-    this.W = W; this.H = H; this.s0 = s;
-    this.cx = W / 2 - (x0 + x1) / 2 * s; this.cy = (H + top) / 2 + (y0 + y1) / 2 * s;
-    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-    this.dpr = dpr;
-    this.canvas.width = Math.round(W * dpr); this.canvas.height = Math.round(H * dpr);
-    this.canvas.style.width = W + 'px'; this.canvas.style.height = H + 'px';
-    this.root.style.maxWidth = W + 'px';
+    return { x0, x1, y0, y1, w: (x1 - x0) || 1, h: (y1 - y0) || 1 };
+  }
+  /** Encaje (como RotationAction -> "Fit"): escala y centro para que la caja quepa siempre en el lienzo. */
+  fit(view) {
+    const q = this.extent(view), W = this.W, H = this.H;
+    const s = Math.min((W - 2 * this.padX) / q.w, (H - 2 * this.padY - this.top) / q.h);
+    const z = view.zoom || 1;
+    return { s: s * z, cx: W / 2 - (q.x0 + q.x1) / 2 * s * z, cy: (H + this.top) / 2 - (q.y0 + q.y1) / 2 * s * z };
   }
 
   /** Cámara: base (r,u,b), ojo, y proyección a píxeles CSS (s = px por unidad en el plano central). */
@@ -721,7 +733,8 @@ class Plot3D {
     if (!ctx) return;
     if (this.canvas.isConnected) this.seen = true;
     const sc = this.scene, W = this.W, H = this.H, dpr = this.dpr, o = this.g.opts || {};
-    const s = this.s0 * this.view.zoom;
+    const ft = this.fit(this.view), s = ft.s;
+    this.cx = ft.cx; this.cy = ft.cy;
     const cam = this.camera(this.view, s, this.cx, this.cy);
     const P = cam.proj;
     const axes = this.chooseAxes(cam, P);
@@ -752,7 +765,7 @@ class Plot3D {
           gl.uniformMatrix3fv(pr.u.uView, false, new Float32Array([cam.r[0], cam.u[0], cam.b[0], cam.r[1], cam.u[1], cam.b[1], cam.r[2], cam.u[2], cam.b[2]]));
           gl.uniform3fv(pr.u.uEye, cam.e);
           gl.uniform3fv(pr.u.uHalf, half);
-          gl.uniform1f(pr.u.uLW, 0.5 * dpr);
+          gl.uniform1f(pr.u.uLW, 0.42 * dpr);
           for (let i = 0; i < 5; i++) (i < 4 ? gl.enableVertexAttribArray(i) : gl.disableVertexAttribArray(i));
           gl.bindBuffer(gl.ARRAY_BUFFER, b.pos); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
           gl.bindBuffer(gl.ARRAY_BUFFER, b.nrm); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);

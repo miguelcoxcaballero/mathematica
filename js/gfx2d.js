@@ -251,7 +251,7 @@ function contourLevels(p, fd) {
   if (Array.isArray(p.levels) && p.levels.length) return p.levels.filter(fin).slice().sort((a, b) => a - b);
   const lo = fd.rlo, hi = fd.rhi;
   if (!(hi > lo)) return [];
-  if (p.nlev && p.nlevExplicit !== false && p.nlev !== 10) {
+  if (p.nlev) {
     const n = Math.max(1, Math.min(60, Math.round(p.nlev))), out = [];
     for (let k = 1; k <= n; k++) out.push(lo + (hi - lo) * k / (n + 1));
     return out;
@@ -337,8 +337,19 @@ class Plot2D {
     const frame = anyTrue(o.frame);
     const axesOpt = Array.isArray(o.axes) ? [!!o.axes[0], !!o.axes[1]] : [!!o.axes, !!o.axes];
     const axX = axesOpt[0] && !frame, axY = axesOpt[1] && !frame;
-    const legends = prims.filter(p => p.t === 'legend' && p.items && p.items.length);
-    const legItems = [].concat(...legends.map(l => l.items));
+    const inX = axesOpt[0] && frame, inY = axesOpt[1] && frame;      // ejes interiores cuando además hay marco
+    const legends = prims.filter(p => p.t === 'legend');
+    const legItems = [].concat(...legends.map(l => l.items || []));
+    const barLeg = legends.find(l => l.bar) || null;
+    let bar = null;
+    if (barLeg) {
+      const fp = prims.find(p => p.t === 'field' && (p.mode === 'density' || p.mode === 'contour'));
+      if (fp) {
+        const fd = fieldData(fp);
+        const lo = fin(barLeg.bar.lo) ? barLeg.bar.lo : fd.rlo, hi = fin(barLeg.bar.hi) ? barLeg.bar.hi : fd.rhi;
+        if (hi > lo) bar = { lo, hi, cf: barLeg.bar.cf || fp.cf || 'def', levels: fp.mode === 'contour' ? contourLevels(fp, fd) : null };
+      }
+    }
     const al = o.axesLabel || [];
     const fl = o.frameLabel || [];
     const tk = o.ticks;
@@ -350,7 +361,10 @@ class Plot2D {
     this._lastW = avail;
     let maxW = DEF_W, fixedH = null;
     if (Array.isArray(o.size)) { maxW = o.size[0] || DEF_W; fixedH = o.size[1] || null; } else if (fin(o.size) && o.size > 20) maxW = o.size;
-    const legW = legItems.length ? Math.min(180, Math.max(...legItems.map(it => textW(it.label || '', 12))) + 44) : 0;
+    let barTicks = null;
+    if (bar) { barTicks = niceTicks(bar.lo, bar.hi, 5); }
+    const legW = bar ? 30 + Math.max(...barTicks.major.map(v => textW(fmtTick(v, barTicks.step), 11)), 10)
+      : legItems.length ? Math.min(180, Math.max(...legItems.map(it => textW(it.label || '', 12))) + 44) : 0;
     const room = avail || maxW + legW;
     const legRight = legW > 0 && room - legW >= 250;
     let W = Math.max(120, Math.min(maxW, room - (legRight ? legW : 0)));
@@ -368,9 +382,10 @@ class Plot2D {
     const aspect = fin(o.aspect) && o.aspect > 0 ? o.aspect : null;
     let mL = 4, mR = 8, mT = 6, mB = 4;
     if (o.plotLabel) mT += 20;
+    const hasRaster = prims.some(p => p.t === 'field' && p.mode !== 'implicit');   // lectura fuera del área (encima)
     let Wp, Hp, xt, yt, xLabs, yLabs;
     const mkTicks = () => {
-      const tx = Math.max(3, Math.min(8, Math.round(Wp / 62))), tyN = Math.max(3, Math.min(7, Math.round(Hp / 40)));
+      const tx = Math.max(Wp > 200 ? 5 : 3, Math.min(8, Math.round(Wp / 62))), tyN = Math.max(3, Math.min(7, Math.round(Hp / 40)));
       xt = niceTicks(X0, X1, tx);
       if (logy) {
         const major = [], minor = [];
@@ -386,7 +401,7 @@ class Plot2D {
       if (Array.isArray(tkY)) yLabs = tkY.filter(t => t[0] >= Y0 && t[0] <= Y1).map(t => [ty(t[0]), t[1] == null ? '' : String(t[1])]);
       else if (tkY === false) yLabs = [];
       else if (logy) {
-        yLabs = yt.major.filter((v, i) => i % yt.skip === 0).map(k => [k, (k >= -3 && k <= 4) ? String(+Math.pow(10, k).toPrecision(1)) : '10' + sup(k)]);
+        yLabs = yt.major.filter((v, i) => i % yt.skip === 0).map(k => [k, (k >= -3 && k <= 3) ? String(+Math.pow(10, k).toPrecision(1)) : '10' + sup(k)]);
       } else yLabs = yt.major.map(v => [v, fmtTick(v, yt.step)]);
       if (Array.isArray(tkX)) xt = { major: xLabs.map(t => t[0]), minor: [], step: 1 };
       if (Array.isArray(tkY)) yt = { major: yLabs.map(t => t[0]), minor: [], step: 1 };
@@ -404,7 +419,7 @@ class Plot2D {
       if (Hp < 24) Hp = 24;
       mkTicks();
       const ylw = yLabs.length ? Math.max(...yLabs.map(t => textW(t[1], TF))) : 0;
-      let nL = 4, nR = 8, nT = o.plotLabel ? 26 : 6, nB = 4;
+      let nL = 4, nR = 8, nT = (o.plotLabel ? 26 : 6) + (hasRaster && !o.plotLabel ? 9 : 0), nB = 4;
       if (frame) {
         nL = ylw + 9 + (fl[1] ? 18 : 0);
         nB = (xLabs.length ? 17 : 5) + (fl[0] ? 18 : 0);
@@ -430,13 +445,13 @@ class Plot2D {
     Wp = Math.round(Math.max(40, W - mL - mR));
     Hp = Math.round(Hp);
     const H = mT + Hp + Math.ceil(mB);
-    const legBelowH = (!legRight && legItems.length) ? legItems.length * 18 + 8 : 0;
+    const legBelowH = (!legRight && legItems.length && !bar) ? legItems.length * 18 + 8 : 0;
     const totalW = Math.round(W + (legRight ? legW : 0)), totalH = Math.max(H, legRight ? legItems.length * 18 + 8 : 0) + legBelowH;
 
     const sx = x => mL + (x - X0) / (X1 - X0) * Wp;
     const syT = t => mT + (1 - (t - TY0) / (TY1 - TY0)) * Hp;
     const sy = y => syT(ty(y));
-    this.map = { sx, sy, X0, X1, Y0, Y1, mL, mT, Wp, Hp, logy, TY0, TY1 };
+    this.map = { sx, sy, X0, X1, Y0, Y1, mL, mT, Wp, Hp, logy, TY0, TY1, hasRaster };
 
     // ---- SVG
     const svg = S('svg', { width: totalW, height: totalH, viewBox: `0 0 ${totalW} ${totalH}`, class: 'wl-svg', role: 'img' }, null);
@@ -460,6 +475,8 @@ class Plot2D {
 
     // ---- primitivas
     const body = S('g', { 'clip-path': `url(#${uid})` }, svg);
+    this.over = null;        // puntos y textos cuyo centro cae dentro no se recortan (como en Mathematica)
+    this.svg = svg;
     this.curves = [];
     this.fields = [];
     let autoIdx = 0;
@@ -482,6 +499,9 @@ class Plot2D {
       for (const v of xt.minor) { const X = hx(sx(v)); d += `M${X} ${xb}v${-TS}M${X} ${xtp}v${TS}`; }
       for (const v of yt.major) { const Y = hx(syT(v)); d += `M${yl} ${Y}h${TL}M${yr} ${Y}h${-TL}`; }
       for (const v of yt.minor) { const Y = hx(syT(v)); d += `M${yl} ${Y}h${TS}M${yr} ${Y}h${-TS}`; }
+      // ejes interiores (sin números) si Axes -> True junto al marco y el origen cae dentro
+      if (inX && oyPx > mT + 1 && oyPx < mT + Hp - 1) { d += `M${mL} ${oyPx}H${mL + Wp}`; for (const v of xt.major) { const X = hx(sx(v)); d += `M${X} ${oyPx}v${-TS}`; } }
+      if (inY && oxPx > mL + 1 && oxPx < mL + Wp - 1) { d += `M${oxPx} ${mT}V${mT + Hp}`; for (const v of yt.major) { const Y = hx(syT(v)); d += `M${oxPx} ${Y}h${TS}`; } }
       if (d) S('path', { d }, ax);
       for (const [v, s] of xLabs) { const t = S('text', { x: r2(sx(v)), y: mT + Hp + 13.5, 'text-anchor': 'middle' }, lab); richText(t, s, TF); }
       for (const [v, s] of yLabs) { const t = S('text', { x: mL - 5, y: r2(syT(v) + 3.8), 'text-anchor': 'end' }, lab); richText(t, s, TF); }
@@ -525,7 +545,28 @@ class Plot2D {
     }
 
     // ---- leyenda
-    if (legItems.length) {
+    if (bar && legRight) {
+      const bx = W + 8, bw = 12, bh = Math.min(Hp, 220), by = mT + (Hp - bh) / 2;
+      const L = lut(bar.cf), gid = uid + 'g';
+      const lg = S('g', { 'font-size': 11, fill: AXC }, svg);
+      if (bar.levels && bar.levels.length) {
+        const lv = [bar.lo, ...bar.levels.filter(v => v > bar.lo && v < bar.hi), bar.hi];
+        for (let k = 0; k < lv.length - 1; k++) {
+          const t0 = (lv[k] - bar.lo) / (bar.hi - bar.lo), t1 = (lv[k + 1] - bar.lo) / (bar.hi - bar.lo);
+          S('rect', { x: bx, y: r2(by + bh * (1 - t1)), width: bw, height: r2(bh * (t1 - t0) + 0.4), fill: lutCss(L, (t0 + t1) / 2) }, lg);
+        }
+      } else {
+        const gr = S('linearGradient', { id: gid, x1: 0, y1: 1, x2: 0, y2: 0 }, defs);
+        for (let k = 0; k <= 16; k++) S('stop', { offset: k / 16, 'stop-color': lutCss(L, k / 16) }, gr);
+        S('rect', { x: bx, y: by, width: bw, height: bh, fill: `url(#${gid})` }, lg);
+      }
+      S('rect', { x: bx + 0.5, y: Math.round(by) + 0.5, width: bw, height: Math.round(bh), fill: 'none', stroke: AXC, 'stroke-width': 0.8, 'shape-rendering': 'crispEdges' }, lg);
+      for (const v of barTicks.major) {
+        const Y = by + bh * (1 - (v - bar.lo) / (bar.hi - bar.lo));
+        S('line', { x1: bx + bw, x2: bx + bw + 3, y1: r2(Y), y2: r2(Y), stroke: AXC, 'stroke-width': 0.8 }, lg);
+        S('text', { x: bx + bw + 6, y: r2(Y + 3.8) }, lg).textContent = fmtTick(v, barTicks.step);
+      }
+    } else if (legItems.length) {
       const lg = S('g', { 'font-size': 12, fill: '#333' }, svg);
       const lx = legRight ? W + 10 : mL + 6;
       let ly = legRight ? Math.max(4, mT + Hp / 2 - legItems.length * 9) : H + 6;
@@ -534,7 +575,10 @@ class Plot2D {
         if (it.swatch || it.kind === 'swatch') S('rect', { x: lx, y: ly + 3, width: 12, height: 12, fill: c, 'fill-opacity': it.opacity == null ? 0.6 : it.opacity, stroke: darker(c, 0.2), 'stroke-width': 0.8 }, lg);
         else if (it.kind === 'point') S('circle', { cx: lx + 10, cy: ly + 9, r: 3, fill: c }, lg);
         else S('line', { x1: lx, x2: lx + 20, y1: ly + 9, y2: ly + 9, stroke: c, 'stroke-width': Math.min(3, it.width || 1.6), 'stroke-dasharray': it.dash ? it.dash.join(' ') : null }, lg);
-        richText(S('text', { x: lx + 26, y: ly + 13 }, lg), it.label || '', 12);
+        let lbl = String(it.label || '');
+        const maxLab = (legRight ? legW - 34 : W - 40);
+        if (textW(lbl, 12) > maxLab) { while (lbl.length > 4 && textW(lbl + '…', 12) > maxLab) lbl = lbl.slice(0, -1); lbl += '…'; }
+        richText(S('text', { x: lx + 26, y: ly + 13 }, lg), lbl, 12);
         ly += 18;
       }
     }
@@ -565,13 +609,14 @@ class Plot2D {
         S('path', { d, fill: 'none', stroke: color, 'stroke-width': r2(w), 'stroke-linejoin': 'round', 'stroke-linecap': p.dash ? 'butt' : 'round',
           'stroke-dasharray': p.dash ? p.dash.map(r2).join(' ') : null, 'stroke-opacity': p.opacity != null && p.opacity < 1 ? p.opacity : null }, body);
         if (p.arrow) this.arrowHead(body, px, py, p.arrow, color, w, p.opacity);
-        if (n > 1 && !p.arrow) this.curves.push({ px, py, xs, ys, color });
+        if (n > 1 && !p.arrow && !p.nohover) this.curves.push({ px, py, xs, ys, color });
         break;
       }
       case 'points': {
         const xs = p.x || [], ys = p.y || [], r = Math.max(0.8, (p.psize || 4.5) / 2);
         const color = p.color || PALETTE[0];
-        const gg = S('g', { fill: color, 'fill-opacity': p.opacity != null && p.opacity < 1 ? p.opacity : null }, body);
+        const big = r > 2.6 && Math.min(xs.length, ys.length) <= 400;
+        const gg = S('g', { fill: color, 'fill-opacity': p.opacity != null && p.opacity < 1 ? p.opacity : null }, big ? this.svg : body);
         const n = Math.min(xs.length, ys.length);
         const px = new Float32Array(n), py = new Float32Array(n);
         for (let i = 0; i < n; i++) {
@@ -580,6 +625,7 @@ class Plot2D {
           const X = sx(xs[i]), Y = sy(ys[i]);
           if (X !== X || Y !== Y) continue;
           px[i] = X; py[i] = Y;
+          if (big && (X < m.mL - 0.5 || X > m.mL + m.Wp + 0.5 || Y < m.mT - 0.5 || Y > m.mT + m.Hp + 0.5)) continue;
           S('circle', { cx: r2(clampPx(X)), cy: r2(clampPx(Y)), r: r2(r) }, gg);
         }
         this.curves.push({ px, py, xs, ys, color, pts: true });
@@ -617,6 +663,8 @@ class Plot2D {
         const off = p.off || [0, 0], size = p.size || 12;
         const anchor = off[0] < -0.3 ? 'start' : off[0] > 0.3 ? 'end' : 'middle';
         const X = sx(p.x) - (off[0] || 0) * 2, Y = sy(p.y) + size * 0.35 + (off[1] || 0) * size * 0.62;
+        const inside = X >= m.mL - 1 && X <= m.mL + m.Wp + 1 && Y >= m.mT - 1 && Y <= m.mT + m.Hp + size;
+        if (inside) body = this.svg;
         const t = S('text', { x: r2(X), y: r2(Y), 'text-anchor': anchor, fill: p.color || '#000', 'font-size': size,
           'font-weight': p.bold ? 600 : null, 'font-style': p.italic ? 'italic' : null }, body);
         richText(t, p.text, size);
@@ -789,13 +837,11 @@ class Plot2D {
   hover(svg, uid) {
     const m = this.map;
     const layer = S('g', { 'pointer-events': 'none', visibility: 'hidden' }, svg);
-    const hl = S('line', { stroke: '#8a8fa3', 'stroke-width': 0.7, 'stroke-dasharray': '3 3', 'shape-rendering': 'crispEdges' }, layer);
-    const vl = S('line', { stroke: '#8a8fa3', 'stroke-width': 0.7, 'stroke-dasharray': '3 3', 'shape-rendering': 'crispEdges' }, layer);
-    const dot = S('circle', { r: 3.6, fill: '#fff', 'stroke-width': 1.8 }, layer);
-    const tip = S('g', null, layer);
-    const tipBg = S('rect', { rx: 4, ry: 4, fill: '#1c1f2b', 'fill-opacity': 0.88, height: 19 }, tip);
-    const tipTx = S('text', { fill: '#fff', 'font-size': 11, y: 13.2, x: 7 }, tip);
-    tipTx.style.fontVariantNumeric = 'tabular-nums';
+    const hl = S('line', { class: 'wl-cross', stroke: '#9b9b9b', 'stroke-width': 0.7, 'stroke-dasharray': '3 3' }, layer);
+    const vl = S('line', { class: 'wl-cross', stroke: '#9b9b9b', 'stroke-width': 0.7, 'stroke-dasharray': '3 3' }, layer);
+    const dot = S('circle', { class: 'wl-dot', r: 3.4, fill: '#fff', 'stroke-width': 1.6 }, layer);
+    // lectura: texto pequeño gris con halo blanco (sin panel)
+    const tipTx = S('text', { class: 'wl-readout', fill: '#6a6a6a', 'font-size': 11, stroke: '#fff', 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' }, layer);
     const inv = (px, py) => {
       const x = m.X0 + (px - m.mL) / m.Wp * (m.X1 - m.X0);
       const t = m.TY0 + (1 - (py - m.mT) / m.Hp) * (m.TY1 - m.TY0);
@@ -849,14 +895,15 @@ class Plot2D {
       hl.setAttribute('x1', m.mL); hl.setAttribute('x2', m.mL + m.Wp); hl.setAttribute('y1', r2(py)); hl.setAttribute('y2', r2(py));
       vl.setAttribute('y1', m.mT); vl.setAttribute('y2', m.mT + m.Hp); vl.setAttribute('x1', r2(px)); vl.setAttribute('x2', r2(px));
       tipTx.textContent = label;
-      const tw = textW(label, 11) + 14;
-      tipBg.setAttribute('width', r2(tw));
-      let tx = px + 10, tyy = py - 26;
+      const tw = textW(label, 11);
+      let tx = px + 8, tyy = py - 8;
       const W = svg.viewBox.baseVal.width;
-      if (tx + tw > W - 2) tx = px - tw - 10;
-      if (tx < 2) tx = 2;
-      if (tyy < 2) tyy = py + 12;
-      tip.setAttribute('transform', `translate(${r2(tx)} ${r2(tyy)})`);
+      if (m.hasRaster) { tx = m.mL + m.Wp - tw; tyy = m.mT - 4; } else {
+        if (tx + tw > W - 2) tx = px - tw - 8;
+        if (tx < 2) tx = 2;
+        if (tyy < 12) tyy = py + 16;
+      }
+      tipTx.setAttribute('x', r2(tx)); tipTx.setAttribute('y', r2(tyy));
       layer.setAttribute('visibility', 'visible');
     };
     svg.addEventListener('pointermove', move);

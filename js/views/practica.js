@@ -7,12 +7,12 @@ import { store } from '../store.js';
 import * as data from '../data.js';
 import * as fx from '../fx.js';
 import {
-  mountExercise, ensureCss, h, mdInline, yearBadge, yearOf, cmdChip, diffDots, safe, play, exStatus, newSeed, shuffled, startKernel,
+  mountExercise, isPractice, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
 } from '../exercise.js';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];
-const KERNEL_KINDS = new Set(['code', 'fix', 'fill']);
+const KERNEL_KINDS = new Set(['code', 'fix', 'fill', 'order']);
 
 let V = null; // mounted view state
 let indexP = null;
@@ -40,6 +40,7 @@ function loadIndex() {
       const list = [];
       (lesson.steps || []).forEach((step, si) => {
         if (!step || step.type !== 'exercise' || !step.ex || !step.ex.id || !step.ex.kind) return;
+        if (!isPractice(step.ex)) return; // notes and type-and-observe steps (old mcq/predict) are not exercises
         const it = { ex: step.ex, lesson, unit, step: si, pos: (unit ? unit.pos : 1000 + li) * 1000 + si, year: yearOf(lesson) };
         items.push(it); list.push(it); byId.set(step.ex.id, it);
         for (const c of new Set(step.ex.cmds || [])) { if (!byCmd.has(c)) byCmd.set(c, []); byCmd.get(c).push(it); }
@@ -140,7 +141,7 @@ async function mount(el, params) {
   let idx;
   try { idx = await loadIndex(); } catch (e) { idx = null; }
   if (V !== me) return;
-  if (!idx) { root.replaceChildren(empty('🛠', 'No se han podido cargar los ejercicios', 'Comprueba la conexión y vuelve a intentarlo.', [h('button', { class: 'btn primary', type: 'button', onclick: () => { indexP = null; mount(el, params); } }, 'Reintentar')])); return; }
+  if (!idx) { root.replaceChildren(empty('', 'No se han podido cargar los ejercicios', 'Comprueba la conexión y vuelve a intentarlo.', [h('button', { class: 'btn primary', type: 'button', onclick: () => { indexP = null; mount(el, params); } }, 'Reintentar')])); return; }
   me.idx = idx;
   if (p.mode === 'comando') startCommand(me, p.name || p.cmd || p.id);
   else if (p.mode === 'tema') startTopic(me, p.lessonId || p.tema || p.id);
@@ -158,7 +159,7 @@ function unmount() {
 }
 
 function empty(ic, title, text, actions) {
-  return h('div', { class: 'lx-empty card' }, h('div', { class: 'lx-empty-ic' }, ic), h('h2', null, title), h('p', { class: 'muted' }, text), h('div', { class: 'row' }, actions || []));
+  return h('div', { class: 'lx-empty' }, h('h2', null, title), h('p', { class: 'muted' }, text), h('div', { class: 'row' }, actions || []));
 }
 
 /* ============================================================ hub */
@@ -188,18 +189,15 @@ function renderHub(me) {
     nBtns.appendChild(b);
   }
   const cards = h('div', { class: 'pr-modes' },
-    h('a', { class: 'pr-mode pr-mode--cmd card', href: '#pr-cmds', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-cmds')); const s = root.querySelector('.pr-search'); if (s) s.focus({ preventScroll: true }); } },
-      h('span', { class: 'pr-mode-ic', 'aria-hidden': 'true' }, '🎯'),
+    h('a', { class: 'pr-mode pr-mode--cmd', href: '#pr-cmds', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-cmds')); const s = root.querySelector('.pr-search'); if (s) s.focus({ preventScroll: true }); } },
       h('h2', null, 'Por comando'),
-      h('p', null, 'Elige un comando y practícalo con ejercicios de todas las prácticas, de fácil a difícil.'),
+      h('p', null, 'Elige un comando y escribe ejercicios de todas las prácticas que lo usan, de fácil a difícil.'),
       h('span', { class: 'pr-mode-meta' }, `${cmds.length} comandos con ejercicios`)),
-    h('a', { class: 'pr-mode pr-mode--tema card', href: '#pr-temas', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-temas')); } },
-      h('span', { class: 'pr-mode-ic', 'aria-hidden': 'true' }, '📚'),
+    h('a', { class: 'pr-mode pr-mode--tema', href: '#pr-temas', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-temas')); } },
       h('h2', null, 'Por tema'),
       h('p', null, 'Todos los ejercicios de una práctica concreta, incluidos los reales de examen.'),
       h('span', { class: 'pr-mode-meta' }, `${idx.lessons.length} temas · ${idx.items.length} ejercicios`)),
-    h('div', { class: 'pr-mode pr-mode--rand card' },
-      h('span', { class: 'pr-mode-ic', 'aria-hidden': 'true' }, '🎲'),
+    h('div', { class: 'pr-mode pr-mode--rand' },
       h('h2', null, 'Aleatoria sobre lo ya estudiado'),
       h('p', null, 'Mezcla temas y cursos, y te pone delante lo que más te cuesta o hace tiempo que no tocas.'),
       studiedPool.length
@@ -221,11 +219,11 @@ function renderHub(me) {
   const grid = h('div', { class: 'pr-grid' });
   const none = h('p', { class: 'muted pr-none', hidden: true }, 'Ningún comando coincide con la búsqueda.');
   const tiles = cmds.map((c) => {
-    const t = h('a', { class: `pr-tile l${c.lv}`, href: `#/practica/comando/${encodeURIComponent(c.name)}`, title: `${c.name} · ${LEVEL_NAME[c.lv]}${c.desc ? ' — ' + c.desc : ''}` },
-      h('span', { class: 'pr-tile-top' }, h('code', { class: 'pr-tile-name' }, c.name), c.year === 1 || c.year === 2 ? yearBadge(c.year) : null),
-      h('span', { class: 'pr-tile-lv' }, h('i', { class: 'pr-lvdot' }), LEVEL_NAME[c.lv]),
-      h('span', { class: 'pr-tile-bar' }, h('i', { style: { width: `${Math.round(100 * c.ok / c.n)}%` } })),
-      h('span', { class: 'pr-tile-n' }, `${c.n} ${c.n === 1 ? 'ejercicio' : 'ejercicios'}`, c.ok ? h('b', null, ` · ${c.ok} ✓`) : null));
+    const t = h('a', { class: `pr-tile l${c.lv}`, href: `#/practica/comando/${encodeURIComponent(c.name)}`, title: `${c.name} · ${LEVEL_NAME[c.lv]} · ${c.n} ${c.n === 1 ? 'ejercicio' : 'ejercicios'}${c.desc ? ' — ' + c.desc : ''}` },
+      h('i', { class: 'pr-lvdot', 'aria-hidden': 'true' }),
+      h('span', { class: 'pr-tile-name' }, c.name),
+      c.year === 1 || c.year === 2 ? yearBadge(c.year) : null,
+      h('span', { class: 'pr-tile-n', title: `${c.ok} resueltos de ${c.n}` }, `${c.ok}/${c.n}`));
     t._c = c;
     grid.appendChild(t);
     return t;
@@ -246,7 +244,7 @@ function renderHub(me) {
   search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const first = tiles.find((t) => !t.hidden); if (first) location.hash = first.getAttribute('href'); } });
   fRow.addEventListener('click', (e) => { const b = e.target.closest('.pr-filter'); if (!b) return; filt = b.dataset.f; for (const x of fRow.children) x.classList.toggle('on', x === b); apply(); });
   const cmdSec = h('section', { class: 'pr-sec', id: 'pr-cmds' },
-    h('div', { class: 'pr-sec-h' }, h('h2', null, 'Práctica específica por comando'), h('span', { class: 'muted' }, 'El color indica tu dominio')),
+    h('div', { class: 'pr-sec-h' }, h('h2', null, 'Práctica específica por comando'), h('span', { class: 'muted pr-legend' }, h('i', { class: 'pr-lvdot l0' }), 'por aprender', h('i', { class: 'pr-lvdot l1' }), 'visto', h('i', { class: 'pr-lvdot l2' }), 'en práctica', h('i', { class: 'pr-lvdot l3' }), 'dominado')),
     h('div', { class: 'pr-tools' }, search, fRow),
     cmds.length ? grid : h('p', { class: 'muted' }, 'Todavía no hay ejercicios publicados.'), none);
 
@@ -283,7 +281,7 @@ function scrollToEl(el) { if (el) window.scrollTo({ top: el.getBoundingClientRec
 function startCommand(me, name) {
   const list = me.idx.byCmd.get(name) || [];
   if (!list.length) {
-    me.root.replaceChildren(empty('🔍', `Aún no hay ejercicios de ${name || 'ese comando'}`, 'Puede que el comando se practique dentro de otros ejercicios o que su lección todavía no esté publicada.',
+    me.root.replaceChildren(empty('', `Aún no hay ejercicios de ${name || 'ese comando'}`, 'Puede que el comando se practique dentro de otros ejercicios o que su lección todavía no esté publicada.',
       [h('a', { class: 'btn primary', href: '#/practica' }, 'Elegir otro comando'), name ? h('a', { class: 'btn', href: `#/comandos/${encodeURIComponent(name)}` }, 'Ver la ficha del comando') : null]));
     return;
   }
@@ -301,7 +299,7 @@ function startTopic(me, id) {
   const list = me.idx.byLesson.get(id) || [];
   const lesson = me.idx.lessons.find((l) => l.id === id);
   if (!list.length || !lesson) {
-    me.root.replaceChildren(empty('🛠', 'Este tema aún no tiene ejercicios', 'Su lección todavía no está publicada. Mientras tanto puedes practicar otro tema.', [h('a', { class: 'btn primary', href: '#/practica' }, 'Elegir otro tema')]));
+    me.root.replaceChildren(empty('', 'Este tema aún no tiene ejercicios', 'Su lección todavía no está publicada. Mientras tanto puedes practicar otro tema.', [h('a', { class: 'btn primary', href: '#/practica' }, 'Elegir otro tema')]));
     return;
   }
   runSession(me, {
@@ -315,7 +313,7 @@ function startTopic(me, id) {
 function startRandom(me, query) {
   const pool = me.idx.items.filter(studied);
   if (!pool.length) {
-    me.root.replaceChildren(empty('🎲', 'Todavía no has estudiado nada', 'La práctica aleatoria solo usa ejercicios de lecciones que ya has empezado o de comandos que ya has visto. Empieza una lección y vuelve: aquí se mezclará todo lo que vayas aprendiendo.',
+    me.root.replaceChildren(empty('', 'Todavía no has estudiado nada', 'La práctica aleatoria solo usa ejercicios de lecciones que ya has empezado o de comandos que ya has visto. Empieza una lección y vuelve: aquí se mezclará todo lo que vayas aprendiendo.',
       [h('a', { class: 'btn primary', href: firstLessonHref(me.idx) }, 'Empezar la primera lección'), h('a', { class: 'btn', href: '#/indice' }, 'Ver el índice')]));
     return;
   }
@@ -343,10 +341,9 @@ function renderRandomIntro(me, pool) {
     btns.appendChild(b);
   }
   me.root.replaceChildren(
-    h('header', { class: 'pr-shead' }, h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica', 'aria-label': 'Volver a práctica' }, '‹'),
+    h('header', { class: 'pr-shead' }, h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica' }, '← Práctica'),
       h('div', { class: 'lp-titles' }, h('div', { class: 'lp-crumbs' }, 'Práctica'), h('h1', { class: 'lp-title' }, 'Aleatoria sobre lo ya estudiado'))),
-    h('div', { class: 'card pr-intro' },
-      h('div', { class: 'pr-intro-ic', 'aria-hidden': 'true' }, '🎲'),
+    h('div', { class: 'pr-intro' },
       h('p', { class: 'pr-intro-t' }, 'Una sesión corta con ejercicios mezclados de todo lo que llevas visto. Mezclar temas cuesta más que repetir uno solo… y por eso se te queda.'),
       h('div', { class: 'lp-end-stats' }, stat(String(pool.length), 'ejercicios disponibles'), stat(String(lessons.size), lessons.size === 1 ? 'tema' : 'temas'), stat(String(pending), 'para repasar'), stat(String(fresh), 'sin estrenar')),
       h('h3', null, '¿Cuántos ejercicios?'), btns,
@@ -361,15 +358,15 @@ function runSession(me, cfg) {
   const snap = (it) => { for (const c of it.ex.cmds || []) if (!S.cmd0.has(c)) S.cmd0.set(c, cmdLv(c)); };
 
   const okEl = h('b', { class: 'pr-m-ok' }, '0'), badEl = h('b', { class: 'pr-m-bad' }, '0'), xpEl = h('b', { class: 'pr-m-xp' }, '+0');
-  const finishBtn = h('button', { class: 'btn ghost pr-finish', type: 'button' }, 'Terminar');
+  const finishBtn = h('button', { class: 'lx-link pr-finish', type: 'button' }, 'Terminar');
   const head = h('header', { class: 'pr-shead' },
-    h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica', 'aria-label': 'Volver a práctica' }, '‹'),
+    h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica' }, '← Práctica'),
     h('div', { class: 'lp-titles' }, h('div', { class: 'lp-crumbs' }, cfg.year ? yearBadge(cfg.year) : null, h('span', null, cfg.kicker)), h('h1', { class: 'lp-title' }, cfg.title)),
-    h('div', { class: 'pr-meters', 'aria-live': 'polite' }, h('span', { title: 'Aciertos' }, '✓ ', okEl), h('span', { title: 'Fallos, saltos y soluciones vistas' }, '✗ ', badEl), h('span', { title: 'XP de esta sesión' }, xpEl, ' XP')),
+    h('div', { class: 'pr-meters', 'aria-live': 'polite' }, h('span', { title: 'Aciertos' }, okEl, ' bien'), h('span', { title: 'Fallos, saltos y soluciones vistas' }, badEl, ' mal'), h('span', { title: 'XP de esta sesión' }, xpEl, ' XP')),
     finishBtn);
   const bar = h('i');
   const count = h('span', { class: 'lp-count' });
-  const prog = h('div', { class: 'lp-prog' }, h('div', { class: `progress${cfg.year ? ' y' + cfg.year : ''}` }, bar), count);
+  const prog = h('div', { class: 'lp-prog' }, h('div', { class: 'progress' }, bar), count);
   const stage = h('section', { class: 'pr-stage' });
   const skipBtn = h('button', { class: 'btn ghost pr-skip', type: 'button' }, 'Saltar');
   const nextBtn = h('button', { class: 'btn primary lp-next', type: 'button' }, 'Siguiente →');
@@ -400,7 +397,7 @@ function runSession(me, cfg) {
     const src = h('div', { class: 'pr-src' },
       yearBadge(it.year),
       h('span', { class: 'pr-src-t' }, [unit && unit.practice, it.lesson.title].filter(Boolean).join(' · ')),
-      h('a', { class: 'pr-src-a', href: `#/leccion/${encodeURIComponent(it.lesson.id)}/${explainStep(it) + 1}`, title: 'Abrir la explicación de la lección' }, 'Repasar la teoría ↗'));
+      h('a', { class: 'pr-src-a', href: `#/leccion/${encodeURIComponent(it.lesson.id)}/${explainStep(it)}`, title: 'Abrir la explicación de la lección' }, 'Repasar la teoría'));
     const host = h('div', { class: 'pr-exhost' });
     const wrap = h('div', { class: 'lp-step lp-in-r' }, src, host);
     stage.replaceChildren(wrap);
@@ -411,7 +408,7 @@ function runSession(me, cfg) {
     hint.textContent = '';
     // a new variant every time the exercise comes up again
     me.widget = mountExercise(host, it.ex, {
-      mode: 'practice', seed: newSeed(), year: it.year, lesson: it.lesson, hotkeys: true,
+      mode: 'practice', seed: newSeed(), year: it.year, lesson: it.lesson,
       onDone: (res) => {
         if (S.current.it !== it || S.current.done) return;
         S.current.done = true;
@@ -421,10 +418,11 @@ function runSession(me, cfg) {
         skipBtn.hidden = true;
         nextBtn.disabled = false; nextBtn.classList.add('lx-pulse');
         hint.textContent = 'Enter o → para seguir';
-        if (res.ok) setTimeout(() => { if (S.current.it === it && !typingNow()) nextBtn.focus({ preventScroll: true }); }, 60);
+        setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
       },
     });
     S.seen.add(it.ex.id);
+    if (!window.matchMedia('(pointer: coarse)').matches) setTimeout(() => { if (S.current && S.current.it === it && me.widget) safe(() => me.widget.focus()); }, 320);
     const top = root.getBoundingClientRect().top + window.scrollY - 70;
     if (window.scrollY > top) window.scrollTo({ top: Math.max(0, top) });
   };
@@ -465,18 +463,17 @@ function runSession(me, cfg) {
     const acc = ok / n;
     const mins = Math.max(1, Math.round((Date.now() - S.t0) / 60000));
     const improved = [...S.cmd0.entries()].map(([c, lv0]) => ({ c, lv0, lv1: cmdLv(c) })).filter((x) => x.lv1 > x.lv0);
-    const ringEl = typeof fx.ring === 'function' ? safe(() => fx.ring({ pct: acc, size: 132, stroke: 11, color: acc >= 0.8 ? 'var(--ok)' : acc >= 0.5 ? 'var(--warn)' : 'var(--bad)', color2: 'var(--accent-2)', label: `${Math.round(acc * 100)}%`, sub: 'aciertos' }), null) : null;
     const msg = acc === 1 ? 'Sesión perfecta. Sube la dificultad o cambia de tema.' : acc >= 0.8 ? 'Muy bien. Repasa los fallos y lo tienes.' : acc >= 0.5 ? 'Vas por buen camino: repite las falladas ahora que las tienes frescas.' : 'Este tema necesita otra vuelta. Repite las falladas con las pistas a mano.';
     const wrap = h('div', { class: 'lp-step lp-in pr-sum' });
-    wrap.appendChild(h('div', { class: `lp-end-hero card${acc >= 0.8 ? ' is-complete' : ''}` },
-      ringEl || h('div', { class: 'lp-end-big' }, `${Math.round(acc * 100)}%`),
+    wrap.appendChild(h('div', { class: `lp-end-hero${acc >= 0.8 ? ' is-complete' : ''}` },
+      h('div', { class: 'lp-end-big' }, h('b', null, `${Math.round(acc * 100)}`), h('span', null, '%'), h('small', null, 'aciertos')),
       h('div', { class: 'lp-end-txt' },
         h('div', { class: 'lp-kicker' }, cfg.endless ? `Ronda ${S.round} terminada` : 'Sesión terminada'),
         h('h2', null, `${ok} de ${n} ${n === 1 ? 'ejercicio resuelto' : 'ejercicios resueltos'}`),
         h('p', { class: 'muted' }, msg),
         h('div', { class: 'lp-end-stats' }, stat(`${first}`, 'a la primera'), stat(`+${S.xp}`, 'XP ganado'), stat(`${mins} min`, 'de práctica')))));
     if (improved.length) {
-      wrap.appendChild(h('div', { class: 'card lp-end-card' }, h('h3', null, 'Comandos que han subido de nivel'),
+      wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, 'Comandos que han subido de nivel'),
         h('div', { class: 'pr-improved' }, improved.map((x) => h('span', { class: 'pr-imp' }, cmdChip(x.c), h('small', { class: 'muted' }, `${LEVEL_NAME[x.lv0]} → `), h('small', { class: `pr-imp-to l${x.lv1}` }, LEVEL_NAME[x.lv1]))))));
     }
     if (failed.length) {
@@ -485,17 +482,17 @@ function runSession(me, cfg) {
       for (const r of failed) {
         if (seen.has(r.it.ex.id)) continue; seen.add(r.it.ex.id);
         list.appendChild(h('li', null,
-          h('span', { class: `lp-weak-st ${r.revealed ? 'st-review' : 'st-tried'}` }, r.revealed ? '↻' : r.skipped ? '⤼' : '✗'),
+          h('span', { class: `lp-weak-st ${r.revealed ? 'st-review' : 'st-tried'}` }, r.revealed ? '↻' : r.skipped ? '–' : '✗'),
           h('span', { class: 'lp-weak-t' }, r.it.ex.title || 'Ejercicio', h('small', { class: 'muted' }, ` · ${r.it.lesson.title}${r.revealed ? ' · viste la solución' : r.skipped ? ' · saltado' : ''}`)),
           h('span', { class: 'pr-weak-cmds' }, (r.it.ex.cmds || []).slice(0, 3).map(cmdChip))));
       }
-      wrap.appendChild(h('div', { class: 'card lp-end-card' }, h('h3', null, 'Para repetir'), list));
+      wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, 'Para repetir'), list));
     }
     const actions = h('div', { class: 'lp-end-actions' });
     if (failed.length) {
       const ids = new Set();
       const items = failed.map((r) => r.it).filter((it) => !ids.has(it.ex.id) && ids.add(it.ex.id));
-      actions.appendChild(h('button', { class: 'btn primary', type: 'button', onclick: () => restart(items, true) }, `↻ Repetir las falladas (${items.length})`));
+      actions.appendChild(h('button', { class: 'btn primary', type: 'button', onclick: () => restart(items, true) }, `Repetir las falladas (${items.length})`));
     }
     actions.appendChild(h('button', { class: `btn${failed.length ? '' : ' primary'}`, type: 'button', onclick: () => restart(null, false) }, cfg.endless ? 'Otra ronda (nuevas variantes) →' : 'Otra sesión →'));
     if (cfg.lessonId) actions.appendChild(h('a', { class: 'btn ghost', href: `#/leccion/${encodeURIComponent(cfg.lessonId)}` }, 'Ir a la lección'));
@@ -504,7 +501,7 @@ function runSession(me, cfg) {
     wrap.appendChild(actions);
     root.replaceChildren(head, wrap);
     finishBtn.hidden = true;
-    if (acc >= 0.8) { play('unlock'); safe(() => fx.confetti({ y: 0.35, count: acc === 1 ? 170 : 90 })); } else play('click');
+    play(acc >= 0.8 ? 'unlock' : 'click');
     window.scrollTo({ top: 0 });
   }
 
@@ -530,11 +527,4 @@ function explainStep(it) {
   for (let i = it.step - 1; i >= 0; i--) if (steps[i] && steps[i].type === 'explain') return i;
   return it.step;
 }
-function typingNow() {
-  const a = document.activeElement;
-  if (!a || a === document.body || !(a instanceof HTMLElement)) return false;
-  if (a.closest('.ex[data-state="ok"]')) return false;
-  return a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || !!a.closest('.cm-editor, [contenteditable="true"], [data-editor]');
-}
-
 export default { mount, unmount };

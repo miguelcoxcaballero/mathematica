@@ -1,16 +1,17 @@
-// views/leccion.js (LEARN) — lesson player.  #/leccion/<lessonId>[/<paso>]   (paso: 1-based)
+// views/leccion.js (LEARN) — lesson player.  #/leccion/<lessonId>[/<paso>]
+// <paso> is the 0-based step index (the number the store keeps in state.lesson[id].step and SHELL's lessonHref uses).
+// SPEC §11/§12: the page reads like Wolfram's "Fast Introduction": gray list of steps on the left (active one in red),
+// white content column, thin red title, short text and In/Out cells. Every cell of an explanation is a GHOST cell the
+// student types; exercises are empty cells checked by the kernel. A step is complete when everything is typed/solved.
 import { store } from '../store.js';
 import * as data from '../data.js';
 import { kernel } from '../kernel-client.js';
 import { createCell } from '../notebook.js';
 import * as fx from '../fx.js';
 import {
-  mountExercise, ensureCss, h, md, mdInline, esc, codeBlock, yearBadge, yearOf, cmdChip, safe, play, exStatus,
-  exclusive, kernelReady, startKernel, watchKernel, kernelPill, newSeed, levelOf,
+  mountExercise, mountGhost, exerciseMode, ensureCss, h, md, mdInline, codeBlock, yearBadge, yearOf, cmdChip, safe, play, exStatus,
+  exclusive, startKernel, watchKernel, kernelPill, newSeed, levelOf,
 } from '../exercise.js';
-
-const KIND_ICON = { code: '⌨', fix: '🔧', fill: '▭', order: '⇅', mcq: '◉', predict: '?' };
-const KIND_NAME = { code: 'Código', fix: 'Corregir', fill: 'Rellenar', order: 'Ordenar', mcq: 'Test', predict: 'Predecir' };
 
 let S = null; // state of the mounted lesson
 
@@ -30,17 +31,25 @@ function typing(t) {
   return t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || !!t.closest('.cm-editor, [contenteditable="true"], [data-editor]'));
 }
 
-function stepTitle(step, i) {
-  if (step.type === 'explain') return step.title || `Explicación ${i + 1}`;
-  const ex = step.ex || {};
-  return ex.title || `${KIND_NAME[ex.kind] || 'Ejercicio'}`;
+function stepKind(step) {
+  if (step.type === 'explain') return 'explain';
+  const m = exerciseMode(step.ex || {});
+  return m === 'code' ? 'exercise' : m; // 'exercise' | 'ghost' | 'note'
 }
-
+function stepTitle(step, i) {
+  if (step.type === 'explain') return step.title || `Paso ${i + 1}`;
+  const ex = step.ex || {};
+  return ex.title || (stepKind(step) === 'exercise' ? 'Ejercicio' : stepKind(step) === 'note' ? 'Nota' : 'Teclea y observa');
+}
+const typedMap = (S) => safe(() => (store.state.lesson[S.lesson.id] || {}).typed, null) || {};
 function stepStatus(S, i) {
   const step = S.lesson.steps[i];
-  if (step.type === 'explain') return S.visited.has(i) || i <= S.maxSeen ? 'seen' : 'todo';
-  return exStatus(step.ex && step.ex.id);
+  if (step.type === 'explain') return typedMap(S)[i] ? 'ok' : S.visited.has(i) || i <= S.maxSeen ? 'seen' : 'todo';
+  const st = exStatus(step.ex && step.ex.id);
+  if (stepKind(step) !== 'exercise') return st === 'ok' ? 'ok' : S.visited.has(i) || i <= S.maxSeen ? 'seen' : 'todo';
+  return st;
 }
+const stepDone = (S, i) => { const st = stepStatus(S, i); return st === 'ok' || st === 'review'; };
 
 async function mount(el, params) {
   ensureCss();
@@ -57,8 +66,7 @@ async function mount(el, params) {
   if (!lesson || !Array.isArray(lesson.steps) || !lesson.steps.length) {
     root.className = 'lp';
     root.innerHTML = '';
-    root.appendChild(h('div', { class: 'lx-empty card' },
-      h('div', { class: 'lx-empty-ic' }, '🛠'),
+    root.appendChild(h('div', { class: 'lx-empty' },
       h('h2', null, 'Esta lección aún no está publicada'),
       h('p', { class: 'muted' }, `No se ha encontrado el contenido de “${id || ''}”. Puede que todavía se esté escribiendo.`),
       h('div', { class: 'row' }, h('a', { class: 'btn primary', href: '#/indice' }, 'Ir al índice'), h('a', { class: 'btn', href: '#/practica' }, 'Practicar lo que ya sé'))));
@@ -76,69 +84,69 @@ async function mount(el, params) {
     idx: -1, widget: null, seenMarks: new Set(),
   });
   let idx = 0;
-  if (paso != null) idx = Math.max(0, Math.min(n, Math.round(paso) - 1));
+  if (paso != null) idx = Math.max(0, Math.min(n, Math.round(paso)));
   else if (saved && !saved.done && Number.isFinite(saved.step)) idx = Math.max(0, Math.min(n - 1, saved.step));
 
   /* ---------- skeleton ---------- */
   root.className = 'lp';
   if (year) root.dataset.year = year;
   root.innerHTML = '';
-  const crumbs = h('div', { class: 'lp-crumbs' }, yearBadge(year), h('span', { class: 'lp-crumb-t' }, [lesson.subject, lesson.block].filter(Boolean).join(' · ')));
-  const title = h('h1', { class: 'lp-title' }, lesson.title || lesson.id);
-  const xpEl = h('span', { class: 'lp-xp', title: 'XP ganado en esta sesión' }, '+0 XP');
-  const tocBtn = h('button', { class: 'btn ghost lp-toc-btn', type: 'button', 'aria-expanded': 'false', title: 'Lista de pasos' }, h('span', { 'aria-hidden': 'true' }, '☰'), h('span', { class: 'lp-toc-l' }, 'Pasos'));
-  const bar = h('i');
+  const crumbT = h('span', { class: 'lp-crumb-t' }, [lesson.subject, lesson.block].filter(Boolean).join(' · '));
+  const crumbs = h('div', { class: 'lp-crumbs' }, yearBadge(year), crumbT, h('span', { class: 'lp-crumb-l' }, lesson.title || lesson.id));
+  const xpEl = h('span', { class: 'lp-xp', title: 'XP ganado en esta sesión' }, '');
+  const tocBtn = h('button', { class: 'lx-link lp-toc-btn', type: 'button', 'aria-expanded': 'false', title: 'Lista de pasos' }, 'Pasos');
   const count = h('span', { class: 'lp-count' });
   const dots = h('nav', { class: 'lp-dots', 'aria-label': 'Pasos de la lección' });
-  const head = h('header', { class: 'lp-head' },
-    h('div', { class: 'lp-top' },
-      h('a', { class: 'lp-back', href: '#/indice', title: 'Volver al índice', 'aria-label': 'Volver al índice' }, '‹'),
-      h('div', { class: 'lp-titles' }, crumbs, title),
-      xpEl, tocBtn),
-    h('div', { class: 'lp-prog' }, h('div', { class: `progress${year ? ' y' + year : ''}` }, bar), count),
-    dots);
-  const side = h('aside', { class: 'lp-side', 'aria-label': 'Pasos' });
+  const head = h('header', { class: 'lp-head' }, h('div', { class: 'lp-top' }, crumbs, xpEl, tocBtn), h('div', { class: 'lp-prog' }, dots, count));
+
+  const side = h('aside', { class: 'lp-side', 'aria-label': 'Pasos de la lección' });
   const sideList = h('ol', { class: 'lp-steps' });
-  side.append(h('div', { class: 'lp-side-h' }, h('strong', null, 'Pasos'), h('button', { class: 'lp-side-x', type: 'button', 'aria-label': 'Cerrar' }, '×')), sideList);
+  const sideSub = h('span', { class: 'lp-side-sub' }, '');
+  side.append(
+    h('div', { class: 'lp-side-h' },
+      h('a', { class: 'lp-back', href: '#/indice', title: 'Volver al índice' }, '← Índice'),
+      h('button', { class: 'lp-side-x', type: 'button', 'aria-label': 'Cerrar' }, '×')),
+    h('div', { class: 'lp-side-lesson' }, sideSub, h('strong', null, lesson.title || lesson.id)),
+    sideList);
   const scrim = h('div', { class: 'lp-scrim' });
   const stage = h('section', { class: 'lp-stage' });
-  const prevBtn = h('button', { class: 'btn ghost lp-prev', type: 'button' }, '← Anterior');
-  const nextBtn = h('button', { class: 'btn primary lp-next', type: 'button' }, 'Siguiente →');
-  const navHint = h('span', { class: 'lp-nav-hint muted' });
-  const nav = h('footer', { class: 'lp-nav' }, prevBtn, navHint, nextBtn);
-  const main = h('div', { class: 'lp-main' }, stage);
-  root.append(head, main, nav);
+  const prevBtn = h('button', { class: 'btn ghost lp-prev', type: 'button' }, '‹ Anterior');
+  const skipBtn = h('button', { class: 'lx-link lp-skip', type: 'button', title: 'Pasar al siguiente sin completar este paso' }, 'saltar');
+  const nextBtn = h('button', { class: 'btn primary lp-next', type: 'button' }, 'Siguiente ›');
+  const navHint = h('span', { class: 'lp-nav-hint' });
+  const nav = h('footer', { class: 'lp-nav' }, prevBtn, navHint, skipBtn, nextBtn);
+  const col = h('div', { class: 'lp-col' }, head, stage, nav);
+  root.append(col);
   if (year) side.dataset.year = year;
-  Object.assign(me, { stage, bar, count, dots, sideList, prevBtn, nextBtn, navHint, xpEl, side, tocBtn });
+  Object.assign(me, { stage, count, dots, sideList, prevBtn, nextBtn, skipBtn, navHint, xpEl, side, tocBtn });
   // The step list is a docked column on wide screens and a drawer otherwise. The drawer lives in <body>:
   // the shell animates the view container with a transform, which would capture position:fixed descendants.
-  const mq = window.matchMedia('(min-width: 1380px)');
+  const mq = window.matchMedia('(min-width: 1180px)');
   const placeSide = () => {
     side.classList.remove('is-open'); scrim.classList.remove('is-open'); tocBtn.setAttribute('aria-expanded', 'false');
-    if (mq.matches) { scrim.remove(); main.insertBefore(side, stage); side.classList.add('is-docked'); } else { side.classList.remove('is-docked'); document.body.append(scrim, side); }
+    if (mq.matches) { scrim.remove(); root.insertBefore(side, col); side.classList.add('is-docked'); root.classList.add('lp--docked'); } else { side.classList.remove('is-docked'); root.classList.remove('lp--docked'); document.body.append(scrim, side); }
   };
   placeSide();
   safe(() => mq.addEventListener('change', placeSide));
   me.cleanup.push(() => { safe(() => mq.removeEventListener('change', placeSide)); side.remove(); scrim.remove(); });
 
-  // step list + dots
+  // step list + thin progress segments
   let exN = 0;
+  me.exNo = [];
   lesson.steps.forEach((step, i) => {
-    const isEx = step.type === 'exercise';
-    if (isEx) exN++;
+    const kind = stepKind(step);
+    if (kind === 'exercise') exN++;
+    me.exNo[i] = exN;
     const ex = step.ex || {};
-    const d = h('button', { class: `lp-dot ${isEx ? 'is-ex' : 'is-exp'}${ex.real ? ' is-real' : ''}`, type: 'button', title: `${i + 1}. ${stepTitle(step, i)}`, 'aria-label': `Paso ${i + 1}: ${stepTitle(step, i)}`, dataset: { i } });
-    dots.appendChild(d);
-    const li = h('li', null, h('button', { class: 'lp-stepbtn', type: 'button', dataset: { i } },
-      h('span', { class: 'lp-step-ic', 'aria-hidden': 'true' }, isEx ? (KIND_ICON[ex.kind] || '✎') : '📖'),
-      h('span', { class: 'lp-step-t' }, h('span', { class: 'lp-step-name' }, stepTitle(step, i)), h('small', null, isEx ? `Ejercicio ${exN}${ex.real ? ' · REAL' : ''}` : 'Explicación')),
-      h('span', { class: 'lp-step-st', 'aria-hidden': 'true' })));
-    sideList.appendChild(li);
+    dots.appendChild(h('button', { class: 'lp-dot', type: 'button', title: `${i + 1}. ${stepTitle(step, i)}`, 'aria-label': `Paso ${i + 1}: ${stepTitle(step, i)}`, dataset: { i } }));
+    sideList.appendChild(h('li', null, h('button', { class: `lp-stepbtn is-${kind}`, type: 'button', dataset: { i } },
+      h('span', { class: 'lp-step-name' }, stepTitle(step, i)),
+      kind === 'exercise' ? h('span', { class: 'lp-step-k' }, ex.real ? 'real' : 'ejercicio') : null,
+      h('span', { class: 'lp-step-st', 'aria-hidden': 'true' }))));
   });
   me.exTotal = exN;
-  const endDot = h('button', { class: 'lp-dot is-end', type: 'button', title: 'Resumen de la lección', 'aria-label': 'Resumen', dataset: { i: n } });
-  dots.appendChild(endDot);
-  sideList.appendChild(h('li', null, h('button', { class: 'lp-stepbtn is-end', type: 'button', dataset: { i: n } }, h('span', { class: 'lp-step-ic' }, '🏁'), h('span', { class: 'lp-step-t' }, h('span', { class: 'lp-step-name' }, 'Resumen'), h('small', null, 'Qué has aprendido')), h('span', { class: 'lp-step-st' }))));
+  dots.appendChild(h('button', { class: 'lp-dot is-end', type: 'button', title: 'Resumen de la lección', 'aria-label': 'Resumen', dataset: { i: n } }));
+  sideList.appendChild(h('li', null, h('button', { class: 'lp-stepbtn is-end', type: 'button', dataset: { i: n } }, h('span', { class: 'lp-step-name' }, 'Resumen'), h('span', { class: 'lp-step-st' }))));
 
   const closeToc = () => { side.classList.remove('is-open'); scrim.classList.remove('is-open'); tocBtn.setAttribute('aria-expanded', 'false'); };
   const onPick = (e) => { const b = e.target.closest('[data-i]'); if (!b) return; closeToc(); go(+b.dataset.i); };
@@ -148,14 +156,14 @@ async function mount(el, params) {
   scrim.addEventListener('click', closeToc);
   side.querySelector('.lp-side-x').addEventListener('click', closeToc);
   prevBtn.addEventListener('click', () => go(me.idx - 1));
-  nextBtn.addEventListener('click', () => { if (me.idx >= n) return; go(me.idx + 1); });
+  nextBtn.addEventListener('click', () => { if (me.idx < n && !nextBtn.disabled) go(me.idx + 1); });
+  skipBtn.addEventListener('click', () => { if (me.idx < n) go(me.idx + 1); });
 
   const onKey = (e) => {
     if (S !== me || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'Escape' && side.classList.contains('is-open')) { closeToc(); return; }
     if (typing(e.target) || document.querySelector('.fx-level, dialog[open]')) return;
-    if (e.target instanceof HTMLElement && e.target.closest('.ex-order')) return;
-    if (e.key === 'ArrowRight') { e.preventDefault(); if (me.idx < n) go(me.idx + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); if (me.idx > 0) go(me.idx - 1); }
+    if (e.key === 'ArrowRight') { if (me.idx < n && !nextBtn.disabled) { e.preventDefault(); go(me.idx + 1); } } else if (e.key === 'ArrowLeft') { if (me.idx > 0) { e.preventDefault(); go(me.idx - 1); } }
   };
   document.addEventListener('keydown', onKey);
   me.cleanup.push(() => document.removeEventListener('keydown', onKey));
@@ -167,13 +175,12 @@ async function mount(el, params) {
   // course (for "next lesson" and the practice label) — not blocking
   data.loadCourse().then((course) => {
     if (S !== me) return;
-    me.course = course;
     const units = flatUnits(course);
     const k = units.findIndex((u) => u.lesson === lesson.id);
     if (k >= 0) {
       me.unit = units[k];
       me.nextUnit = units.slice(k + 1).find((u) => u.lesson) || null;
-      if (me.unit.practice && !crumbs.querySelector('.lp-crumb-p')) crumbs.appendChild(h('span', { class: 'lp-crumb-p' }, me.unit.practice));
+      if (me.unit.practice) { sideSub.textContent = me.unit.practice; crumbT.textContent = [lesson.subject, me.unit.practice].filter(Boolean).join(' · '); }
       if (me.idx >= n) renderStep(me, 0);
     }
   }).catch(() => {});
@@ -186,16 +193,11 @@ async function mount(el, params) {
     if (i === me.idx && !first) return;
     const d = dir != null ? dir : i > me.idx ? 1 : -1;
     me.idx = i;
-    if (i < n) {
-      me.visited.add(i);
-      me.maxSeen = Math.max(me.maxSeen, i);
-      safe(() => store.setLessonStep(lesson.id, i, n));
-    } else {
-      me.maxSeen = Math.max(me.maxSeen, n - 1);
-      safe(() => store.setLessonStep(lesson.id, n - 1, n));
-    }
+    me.visited.add(Math.min(i, n - 1));
+    me.maxSeen = Math.max(me.maxSeen, Math.min(i, n - 1));
+    safe(() => store.setLessonStep(lesson.id, Math.min(i, n - 1), n));
     // keep the URL in sync without re-mounting the view
-    const want = `#/leccion/${encodeURIComponent(lesson.id)}/${i + 1}`;
+    const want = `#/leccion/${encodeURIComponent(lesson.id)}/${i}`;
     if (location.hash !== want) safe(() => history.replaceState(history.state, '', want));
     renderStep(me, d);
     if (!first) {
@@ -214,12 +216,10 @@ function flatUnits(course) {
 }
 
 function refreshStatus(S) {
-  const { lesson, n } = S;
+  const { n } = S;
   const dots = S.dots.children, items = S.sideList.querySelectorAll('.lp-stepbtn');
-  let okEx = 0;
   for (let i = 0; i < n; i++) {
     const st = stepStatus(S, i);
-    if (lesson.steps[i].type === 'exercise' && st === 'ok') okEx++;
     for (const el of [dots[i], items[i]]) {
       if (!el) continue;
       el.dataset.st = st;
@@ -227,23 +227,36 @@ function refreshStatus(S) {
       if (i === S.idx) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
     }
     const mark = items[i] && items[i].querySelector('.lp-step-st');
-    if (mark) mark.textContent = st === 'ok' ? '✓' : st === 'review' ? '↻' : st === 'tried' ? '•' : '';
+    if (mark) mark.textContent = st === 'ok' ? '✓' : st === 'review' ? '↻' : st === 'tried' ? '·' : '';
   }
   for (const el of [dots[n], items[n]]) if (el) el.classList.toggle('is-cur', S.idx === n);
-  S.okEx = okEx;
-  const pos = Math.min(S.idx + 1, n);
-  S.bar.style.width = `${Math.round(100 * (S.idx >= n ? 1 : pos / (n + 1)))}%`;
-  S.count.textContent = S.idx >= n ? 'Resumen' : `${pos} / ${n}`;
-  S.xpEl.textContent = `+${S.sess.xp} XP`;
-  S.xpEl.classList.toggle('has', S.sess.xp > 0);
-  const cur = S.dots.querySelector('.is-cur');
-  if (cur && S.dots.scrollWidth > S.dots.clientWidth) S.dots.scrollLeft = cur.offsetLeft - S.dots.clientWidth / 2;
+  S.count.textContent = S.idx >= n ? 'resumen' : `${S.idx + 1} / ${n}`;
+  S.xpEl.textContent = S.sess.xp > 0 ? `+${S.sess.xp} XP` : '';
+  const cur = S.sideList.querySelector('.is-cur');
+  if (cur && S.side.classList.contains('is-docked') && S.sideList.scrollHeight > S.sideList.clientHeight) {
+    const top = cur.offsetTop - S.sideList.offsetTop;
+    if (top < S.sideList.scrollTop || top > S.sideList.scrollTop + S.sideList.clientHeight - 40) S.sideList.scrollTop = Math.max(0, top - 80);
+  }
 }
 
 function clearStep(S) {
   S.stepCleanup.forEach((f) => safe(f));
   S.stepCleanup = [];
   if (S.widget) { safe(() => S.widget.destroy()); S.widget = null; }
+}
+
+/** Marks the current step as complete in the footer (primary "Siguiente", focus so Enter moves on). */
+function setComplete(S, i, done, focus) {
+  if (S.idx !== i) return;
+  const last = i === S.n - 1;
+  S.nextBtn.textContent = last ? 'Terminar lección ›' : 'Siguiente ›';
+  S.nextBtn.disabled = !done;
+  S.skipBtn.hidden = !!done;
+  S.navHint.textContent = '';
+  if (done && focus) {
+    S.navHint.textContent = 'Enter para seguir';
+    setTimeout(() => { if (S.idx === i && S.nextBtn.isConnected) S.nextBtn.focus({ preventScroll: true }); }, 80);
+  }
 }
 
 function renderStep(S, dir) {
@@ -254,54 +267,37 @@ function renderStep(S, dir) {
   stage.replaceChildren(wrap);
   S.prevBtn.disabled = i <= 0;
   S.nextBtn.hidden = i >= n;
-  S.root.classList.toggle('lp--end', i >= n);
+  S.skipBtn.hidden = true;
   S.navHint.textContent = '';
+  S.root.classList.toggle('lp--end', i >= n);
   if (i >= n) { renderEnd(S, wrap); refreshStatus(S); return; }
   const step = lesson.steps[i];
-  const last = i === n - 1;
-  const setNext = (done, isEx) => {
-    S.nextBtn.textContent = last ? (done || !isEx ? 'Terminar lección ✓' : 'Ir al resumen →') : (done || !isEx ? 'Siguiente →' : 'Saltar →');
-    S.nextBtn.classList.toggle('primary', !!done || !isEx);
-    S.nextBtn.classList.toggle('ghost', !done && !!isEx);
-    S.nextBtn.classList.toggle('lx-pulse', !!done && !!isEx);
-  };
-  if (step.type === 'explain') {
-    setNext(true, false);
+  const kind = stepKind(step);
+  setComplete(S, i, stepDone(S, i), false);
+  if (kind === 'explain') {
     renderExplain(S, wrap, step, i);
   } else {
     const ex = step.ex || {};
-    const exNo = lesson.steps.slice(0, i + 1).filter((s) => s.type === 'exercise').length;
-    wrap.appendChild(h('div', { class: 'lp-kicker' }, `Ejercicio ${exNo} de ${S.exTotal}`, ex.real ? h('span', { class: 'lp-kicker-real' }, ' · de práctica/examen real') : null));
+    wrap.appendChild(h('div', { class: 'lp-kicker' }, kind === 'exercise' ? `Ejercicio ${S.exNo[i]} de ${S.exTotal}` : kind === 'note' ? 'Nota' : 'Teclea y observa', ex.real ? h('span', { class: 'lp-kicker-real' }, ' · de práctica o examen real') : null));
+    wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, i)));
     const host = h('div', { class: 'lp-exhost' });
     wrap.appendChild(host);
     if (!S.seeds.has(i)) S.seeds.set(i, newSeed());
-    const prev = S.sess.results.get(ex.id);
-    setNext(false, true);
     S.widget = mountExercise(host, ex, {
-      mode: 'lesson', seed: S.seeds.get(i), year: S.year, lesson, hotkeys: true,
+      mode: 'lesson', seed: S.seeds.get(i), year: S.year, lesson, noTitle: true,
       onDone: (res) => {
         S.sess.results.set(ex.id, res);
         if (res.xp) S.sess.xp += res.xp;
-        setNext(true, true);
         refreshStatus(S);
-        if (res.ok || res.revealed) {
-          S.navHint.textContent = res.ok ? 'Pulsa Enter o → para seguir' : '';
-          if (res.ok) setTimeout(() => { if (S.idx === i && !typingNow()) S.nextBtn.focus({ preventScroll: true }); }, 60);
-        }
+        setComplete(S, i, true, !res.note);
       },
     });
-    if (prev && (prev.ok || prev.revealed)) setNext(true, true);
-    else if (exStatus(ex.id) === 'ok') { setNext(true, true); S.nextBtn.classList.remove('lx-pulse'); }
+    if (kind !== 'note') setTimeout(() => { if (S.idx === i && S.widget && !stepDone(S, i)) safe(() => S.widget.focus()); }, 350);
   }
   refreshStatus(S);
 }
 
-function typingNow() {
-  const a = document.activeElement;
-  return a && a !== document.body && typing(a) && !(a.closest && a.closest('.ex[data-state="ok"]'));
-}
-
-/* ---------- explain step ---------- */
+/* ---------- explain step: text + cells that the student types (ghost) ---------- */
 function cmdsIn(S, code) {
   const names = new Set([...(S.lesson.commands || []), ...(S.lesson.uses || [])]);
   if (S.allCmds) for (const c of S.allCmds) names.add(c);
@@ -312,117 +308,139 @@ function cmdsIn(S, code) {
 
 function renderExplain(S, wrap, step, i) {
   wrap.classList.add('lp-explain');
-  wrap.appendChild(h('div', { class: 'lp-kicker' }, i === 0 ? 'Empezamos' : 'Explicación'));
-  if (step.title) wrap.appendChild(h('h2', { class: 'lp-h' }, step.title));
-  wrap.appendChild(h('div', { class: 'lp-md lx-md', html: md(step.md || '') }));
-  const cells = Array.isArray(step.cells) ? step.cells.filter((c) => c && typeof c.code === 'string') : [];
-  if (!cells.length) return;
+  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, i)));
+  if (step.md) wrap.appendChild(h('div', { class: 'lp-md lx-md', html: md(step.md) }));
+  const cells = Array.isArray(step.cells) ? step.cells.filter((c) => c && typeof c.code === 'string' && c.code.trim()) : [];
+  const seen = (code) => { for (const name of cmdsIn(S, code)) { const key = `${i}:${name}`; if (!S.seenMarks.has(key)) { S.seenMarks.add(key); safe(() => store.markSeen(name)); } } };
+  const complete = (focus) => {
+    if (!typedMap(S)[i]) safe(() => store.set(`lesson.${S.lesson.id}.typed.${i}`, 1));
+    refreshStatus(S);
+    setComplete(S, i, true, focus);
+  };
+  if (!cells.length) { complete(false); return; }
   const box = h('div', { class: 'lp-cells' });
   wrap.appendChild(box);
   let alive = true;
   S.stepCleanup.push(() => { alive = false; });
   let fresh = true; // the first evaluation of this visit starts from a clean session
-  const recs = cells.map((c, k) => {
-    const auto = c.run !== false;
-    const status = h('span', { class: 'lp-cell-st', 'aria-live': 'polite' });
-    const runBtn = h('button', { class: 'btn lp-run', type: 'button', title: 'Evaluar la celda (Shift+Enter)', 'data-nosfx': '' }, h('span', { 'aria-hidden': 'true' }, '▶'), h('span', null, 'Ejecutar'));
-    const host = h('div', { class: 'lp-cell-host' });
-    const note = h('div', { class: 'lp-cell-note lx-md', html: c.note ? mdInline(c.note) : (auto ? '' : 'Pruébala tú') });
-    const row = h('div', { class: `lp-cell${auto ? '' : ' lp-cell--manual'}` }, h('div', { class: 'lp-cell-bar' }, h('span', { class: 'lp-cell-n' }, `${k + 1}`), note, status, runBtn), host);
-    box.appendChild(row);
-    const rec = { c, k, auto, ran: false, running: false, row, status, runBtn, cell: null };
-    try {
-      rec.cell = createCell(host, {
-        code: c.code,
-        onResult: (code) => {
-          rec.ran = true;
-          row.classList.add('is-ran');
-          for (const name of cmdsIn(S, code)) { const key = `${i}:${name}`; if (!S.seenMarks.has(key)) { S.seenMarks.add(key); safe(() => store.markSeen(name)); } }
-        },
-      });
-    } catch (e) { console.error('[learn] createCell', e); host.appendChild(codeBlock(c.code, 'lx-paper')); runBtn.hidden = true; }
-    return rec;
-  });
-  // evaluates cell k (and, the first time, every earlier cell of the step, like "evaluate from the top")
-  const run = (k) => exclusive(async () => {
-    if (!alive) return;
-    if (fresh) { fresh = false; await kernel.reset(); }
-    const todo = recs.filter((r) => r.cell && (r.k === k || (r.k < k && !r.ran && r.auto)));
-    for (const r of todo) {
-      if (!alive) return;
-      r.running = true; r.row.classList.add('is-running'); r.runBtn.disabled = true; r.status.innerHTML = '<i class="lx-spin"></i>';
-      try { await r.cell.run(); r.ran = true; r.row.classList.add('is-ran'); } catch (e) { console.warn('[learn] cell.run', e); }
-      r.running = false; r.row.classList.remove('is-running'); r.runBtn.disabled = false; r.status.textContent = '';
-    }
-  }).catch((e) => console.warn('[learn]', e));
-  recs.forEach((r) => {
-    r.runBtn.addEventListener('click', () => { play('click'); run(r.k); });
-    // Shift+Enter inside the cell goes through the same path (so earlier cells are evaluated first)
-    r.row.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); e.stopPropagation(); run(r.k); } }, true);
-  });
-  wrap.appendChild(h('p', { class: 'lp-tryit muted' }, 'Las celdas son tuyas: cambia números o funciones y vuelve a ejecutar. No puedes romper nada.'));
-  // auto-evaluate when the engine is ready, so the outputs appear as in a real notebook
-  const autos = recs.filter((r) => r.auto && r.cell);
-  if (autos.length) {
-    const lastAuto = autos[autos.length - 1].k;
-    const pill = kernelPill();
-    S.stepCleanup.push(pill.destroy);
-    box.insertBefore(h('div', { class: 'lp-cells-k' }, pill.el), box.firstChild);
-    let started = false;
-    const off = watchKernel((status) => {
-      if (started || !alive) return;
-      if (status === 'ready' || status === 'busy') { started = true; setTimeout(() => { if (alive) run(lastAuto); }, 120); }
+  const before = async () => { if (fresh) { fresh = false; await kernel.reset(); } };
+  const pill = kernelPill();
+  S.stepCleanup.push(pill.destroy);
+  const noteEl = (c) => (c.note ? h('div', { class: 'lp-cell-note lx-md', html: mdInline(c.note) }) : null);
+
+  if (typedMap(S)[i]) {
+    /* already typed once: plain editable cells with their outputs, free to change and re-evaluate */
+    const recs = cells.map((c, k) => {
+      const host = h('div', { class: 'lp-cell-host' });
+      box.appendChild(h('div', { class: 'lp-cell' }, noteEl(c), host));
+      const rec = { c, k, auto: c.run !== false, ran: false, cell: null };
+      try { rec.cell = createCell(host, { code: c.code, onResult: (code) => { rec.ran = true; seen(code); } }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(codeBlock(c.code)); }
+      S.stepCleanup.push(() => rec.cell && rec.cell.destroy && safe(() => rec.cell.destroy()));
+      return rec;
     });
-    S.stepCleanup.push(off);
+    // evaluating cell k evaluates first the earlier ones that have not run yet (like "evaluate from the top")
+    const run = (k) => exclusive(async () => {
+      if (!alive) return;
+      await before();
+      for (const r of recs.filter((r) => r.cell && (r.k === k || (r.k < k && !r.ran && r.auto)))) { if (!alive) return; try { await r.cell.run(); r.ran = true; } catch (e) { console.warn('[learn] cell.run', e); } }
+    }).catch((e) => console.warn('[learn]', e));
+    recs.forEach((r) => {
+      const hostEl = r.cell && r.cell.el ? r.cell.el.parentNode : null;
+      if (!hostEl) return;
+      hostEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); run(r.k); } }, true);
+      hostEl.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('.wl-run')) { e.preventDefault(); e.stopPropagation(); run(r.k); } }, true);
+    });
+    const autos = recs.filter((r) => r.auto && r.cell);
+    if (autos.length) {
+      let started = false;
+      S.stepCleanup.push(watchKernel((status) => { if (!started && alive && (status === 'ready' || status === 'busy')) { started = true; setTimeout(() => { if (alive) run(autos[autos.length - 1].k); }, 120); } }));
+    }
+    wrap.appendChild(h('div', { class: 'lp-cells-foot' }, pill.el, h('span', { class: 'muted' }, 'Ya tecleaste este paso. Las celdas son tuyas: cambia lo que quieras y vuelve a evaluar.'),
+      h('button', { class: 'lx-link', type: 'button', onclick: () => { safe(() => store.set(`lesson.${S.lesson.id}.typed.${i}`, 0)); renderStep(S, 0); } }, 'Volver a teclearlo')));
+    seenAll();
+    return;
   }
-  // seeing the explanation counts as "seen" for the commands of its cells
-  for (const c of cells) for (const name of cmdsIn(S, c.code)) { const key = `${i}:${name}`; if (!S.seenMarks.has(key)) { S.seenMarks.add(key); safe(() => store.markSeen(name)); } }
+
+  /* first time: one cell at a time; the next one appears when the current one has been typed and evaluated */
+  const tip = h('div', { class: 'lp-typehint' }, pill.el, h('span', { class: 'muted' }, 'Teclea la línea gris tal cual y evalúala con ', h('kbd', null, 'Shift'), '+', h('kbd', null, 'Enter'), '.'));
+  const progress = h('span', { class: 'lp-cellcount muted' });
+  tip.appendChild(progress);
+  let k = 0;
+  const showNext = (focus) => {
+    if (!alive) return;
+    // cells marked run:false are deliberately wrong or not meant to be evaluated: shown as plain code, not typed
+    while (k < cells.length && cells[k].run === false) { box.appendChild(h('div', { class: 'lp-cell lp-cell--static' }, noteEl(cells[k]), codeBlock(cells[k].code))); k++; }
+    if (k >= cells.length) { tip.remove(); complete(focus); return; }
+    const c = cells[k];
+    const host = h('div', { class: 'lp-cell-host' });
+    const row = h('div', { class: 'lp-cell lp-cell--ghost' }, noteEl(c), host);
+    box.appendChild(row);
+    progress.textContent = cells.length > 1 ? `Celda ${k + 1} de ${cells.length}` : '';
+    const g = mountGhost(host, c.code, {
+      before,
+      onDone: () => {
+        row.classList.add('is-done');
+        seen(c.code);
+        k++;
+        play('click');
+        setTimeout(() => showNext(true), 150);
+      },
+    });
+    S.stepCleanup.push(() => g.destroy());
+    if (focus) setTimeout(() => { if (alive) { g.focus(); if (row.getBoundingClientRect().bottom > window.innerHeight - 90) row.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }, 60);
+  };
+  wrap.appendChild(tip);
+  showNext(false);
+  // focus the first cell once the entry animation is over (not on touch screens: the keyboard would cover the text)
+  if (!window.matchMedia('(pointer: coarse)').matches) setTimeout(() => { if (alive && S.idx === i) { const ta = box.querySelector('textarea, [contenteditable="true"]'); if (ta) ta.focus({ preventScroll: true }); } }, 380);
+  seenAll();
+
+  function seenAll() { for (const c of cells) seen(c.code); }
 }
 
 /* ---------- end of lesson ---------- */
 function renderEnd(S, wrap) {
-  const { lesson, n } = S;
+  const { lesson } = S;
   wrap.classList.add('lp-end');
-  const exSteps = lesson.steps.map((s, i) => ({ s, i })).filter((x) => x.s.type === 'exercise' && x.s.ex);
+  const exSteps = lesson.steps.map((s, i) => ({ s, i })).filter((x) => x.s.type === 'exercise' && x.s.ex && stepKind(x.s) === 'exercise');
+  const other = lesson.steps.map((s, i) => ({ s, i })).filter((x) => stepKind(x.s) !== 'exercise');
   const total = exSteps.length;
   const ok = exSteps.filter((x) => exStatus(x.s.ex.id) === 'ok').length;
+  const untyped = other.filter((x) => !stepDone(S, x.i) && !(x.s.type === 'explain' && !(x.s.cells || []).length));
   const weak = exSteps.filter((x) => {
     const st = exStatus(x.s.ex.id);
     const r = S.sess.results.get(x.s.ex.id);
     return st !== 'ok' || (r && (r.fails >= 2 || r.revealed));
   });
   const first = [...S.sess.results.values()].filter((r) => r.firstTry).length;
-  const complete = ok === total;
+  const complete = ok === total && lesson.steps.every((s) => s.type !== 'exercise' || !s.ex || exStatus(s.ex.id) === 'ok');
   const done = safe(() => store.state.lesson[lesson.id] && store.state.lesson[lesson.id].done, false);
   if (complete && !done) safe(() => (store.completeLesson ? store.completeLesson(lesson.id) : store.set(`lesson.${lesson.id}.done`, true)));
   const xpNow = safe(() => store.state.xp, 0) || 0;
   const lvl0 = levelOf(S.sess.startXp), lvl1 = levelOf(xpNow);
+  const left = total - ok;
 
-  const pct = total ? ok / total : 1;
-  const ringEl = typeof fx.ring === 'function'
-    ? safe(() => fx.ring({ pct, size: 132, stroke: 11, color: complete ? 'var(--ok)' : 'var(--accent)', color2: 'var(--accent-2)', label: `${ok}/${total}`, sub: 'ejercicios' }), null)
-    : null;
-  wrap.appendChild(h('div', { class: `lp-end-hero card${complete ? ' is-complete' : ''}` },
-    ringEl || h('div', { class: 'lp-end-big' }, `${ok}/${total}`),
+  wrap.appendChild(h('div', { class: 'lp-kicker' }, complete ? 'Lección completada' : 'Has llegado al final'));
+  wrap.appendChild(h('h1', { class: 'lp-title' }, complete ? lesson.title : left > 0 ? `Te ${left === 1 ? 'queda 1 ejercicio' : `quedan ${left} ejercicios`} para completarla` : 'Te quedan pasos por teclear'));
+  wrap.appendChild(h('div', { class: `lp-end-hero${complete ? ' is-complete' : ''}` },
+    h('div', { class: 'lp-end-big' }, h('b', null, `${ok}`), h('span', null, `/ ${total}`), h('small', null, 'ejercicios')),
     h('div', { class: 'lp-end-txt' },
-      h('div', { class: 'lp-kicker' }, complete ? 'Lección completada' : 'Has llegado al final'),
-      h('h2', null, complete ? `🏁 ${lesson.title}` : `Te ${total - ok === 1 ? 'queda 1 ejercicio' : `quedan ${total - ok} ejercicios`} para completarla`),
-      h('p', { class: 'muted' }, complete ? 'Todos los ejercicios resueltos. Lo que acabas de practicar es lo que cae en la práctica y en el examen.' : 'La lección se da por completada cuando resuelves todos sus ejercicios. Abajo tienes los pendientes.'),
+      h('p', { class: 'muted' }, complete ? 'Todos los ejercicios resueltos. Lo que acabas de escribir es lo que cae en la práctica y en el examen.' : 'La lección se da por completada cuando resuelves todos sus ejercicios. Abajo tienes lo pendiente.'),
       h('div', { class: 'lp-end-stats' },
         stat(`+${S.sess.xp}`, 'XP en esta sesión'),
         stat(String(first), 'a la primera'),
-        lvl1 > lvl0 ? stat(`Nv ${lvl1}`, '¡has subido de nivel!') : stat(`Nv ${lvl1}`, 'tu nivel')))));
+        lvl1 > lvl0 ? stat(`Nivel ${lvl1}`, 'has subido de nivel') : stat(`Nivel ${lvl1}`, 'tu nivel')))));
 
   const cmds = [...new Set([...(lesson.commands || [])])];
   const uses = [...new Set((lesson.uses || []).filter((c) => !cmds.includes(c)))];
   if (cmds.length || uses.length) {
-    wrap.appendChild(h('div', { class: 'card lp-end-card' },
+    wrap.appendChild(h('div', { class: 'lp-end-card' },
       h('h3', null, 'Comandos de esta lección'),
       cmds.length ? h('div', { class: 'lp-end-chips' }, cmds.map(cmdChip)) : null,
       uses.length ? h('div', { class: 'lp-end-uses' }, h('span', { class: 'muted' }, 'También has usado: '), uses.map(cmdChip)) : null,
       h('p', { class: 'muted lp-legend' }, h('span', { class: 'chip l1' }, 'visto'), h('span', { class: 'chip l2' }, 'en práctica'), h('span', { class: 'chip l3' }, 'dominado'), ' Un comando se domina al acertar 3 ejercicios que lo usan.')));
   }
-  if (weak.length) {
+  if (weak.length || untyped.length) {
     const list = h('ul', { class: 'lp-weak' });
     for (const x of weak) {
       const st = exStatus(x.s.ex.id);
@@ -430,21 +448,26 @@ function renderEnd(S, wrap) {
       list.appendChild(h('li', null,
         h('span', { class: `lp-weak-st st-${st}` }, st === 'ok' ? '✓' : st === 'review' ? '↻' : '○'),
         h('span', { class: 'lp-weak-t' }, stepTitle(x.s, x.i), h('small', { class: 'muted' }, ` · ${label}`)),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => S.go(x.i) }, st === 'ok' ? 'Repasar' : 'Hacer ahora')));
+        h('button', { class: 'lx-link', type: 'button', onclick: () => S.go(x.i) }, st === 'ok' ? 'repasar' : 'hacer ahora')));
     }
-    wrap.appendChild(h('div', { class: 'card lp-end-card' }, h('h3', null, complete ? 'Puntos a reforzar' : 'Pendientes y puntos débiles'), list));
+    for (const x of untyped) {
+      list.appendChild(h('li', null, h('span', { class: 'lp-weak-st' }, '○'), h('span', { class: 'lp-weak-t' }, stepTitle(x.s, x.i), h('small', { class: 'muted' }, ' · sin teclear')),
+        h('button', { class: 'lx-link', type: 'button', onclick: () => S.go(x.i) }, 'teclear ahora')));
+    }
+    wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, complete ? 'Para reforzar' : 'Pendiente'), list));
   }
   const actions = h('div', { class: 'lp-end-actions' });
-  if (!complete && weak.length) actions.appendChild(h('button', { class: 'btn primary', type: 'button', onclick: () => S.go(weak[0].i) }, 'Resolver los pendientes'));
-  actions.appendChild(h('a', { class: `btn${complete ? '' : ' ghost'}`, href: `#/practica/tema/${encodeURIComponent(lesson.id)}` }, '⚡ Practicar estos comandos'));
   const nextSlot = h('span', { class: 'lp-next-slot' });
-  actions.appendChild(nextSlot);
-  actions.appendChild(h('a', { class: 'btn ghost', href: '#/indice' }, 'Volver al índice'));
-  actions.appendChild(h('button', { class: 'btn ghost', type: 'button', onclick: () => S.go(0) }, '↺ Repasar desde el principio'));
+  if (!complete && weak.length) actions.appendChild(h('button', { class: 'btn primary', type: 'button', onclick: () => S.go(weak[0].i) }, 'Resolver lo pendiente'));
+  else actions.appendChild(nextSlot);
+  actions.appendChild(h('a', { class: 'btn', href: `#/practica/tema/${encodeURIComponent(lesson.id)}` }, 'Practicar estos comandos'));
+  if (!complete && weak.length) actions.appendChild(nextSlot);
+  actions.appendChild(h('a', { class: 'lx-link', href: '#/indice' }, 'Volver al índice'));
+  actions.appendChild(h('button', { class: 'lx-link', type: 'button', onclick: () => S.go(0) }, 'Repasar desde el principio'));
   wrap.appendChild(actions);
   if (S.nextUnit) {
     const u = S.nextUnit;
-    const a = h('a', { class: `btn${complete ? ' primary' : ''}`, href: `#/leccion/${encodeURIComponent(u.lesson)}` }, `Siguiente lección: ${u.title || u.practice || u.lesson} →`);
+    const a = h('a', { class: `btn${complete ? ' primary' : ''}`, href: `#/leccion/${encodeURIComponent(u.lesson)}` }, `Siguiente lección: ${u.title || u.practice || u.lesson} ›`);
     nextSlot.appendChild(a);
     // hide the link if that lesson is not published yet
     data.loadLesson(u.lesson).catch(() => { a.replaceWith(h('span', { class: 'muted lp-next-soon' }, `Siguiente (${u.practice || u.title}): en preparación`)); });
@@ -454,10 +477,8 @@ function renderEnd(S, wrap) {
     S.endShown = true;
     if (complete) {
       play('unlock');
-      safe(() => fx.confetti({ y: 0.35, count: 160, power: 1.1 }));
-      setTimeout(() => safe(() => fx.confetti({ x: 0.2, y: 0.55, count: 50 })), 260);
-      setTimeout(() => safe(() => fx.confetti({ x: 0.8, y: 0.55, count: 50 })), 380);
-    } else play('click');
+      safe(() => fx.confetti({ y: 0.3, count: 45, power: 0.8 })); // milestone: lesson completed (small)
+    }
   }
 }
 
@@ -477,7 +498,7 @@ function unmount() {
 function update(params) {
   const { id, paso } = parseParams(params);
   if (!S || !S.lesson || S.lesson.id !== id) return false;
-  if (paso != null) S.go(Math.round(paso) - 1);
+  if (paso != null) S.go(Math.round(paso));
   return true;
 }
 

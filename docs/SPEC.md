@@ -50,15 +50,34 @@ controls: `{name:"Global`a", label:"a", type:"slider", min, max, step, value, in
 
 ## 3. Especificación JSON de gráficos (la produce `gfx.py`, la pinta `gfx2d.js/gfx3d.js`)
 Fuente de verdad: `site/engine/wlkernel/gfx.py` (funciones `graphics_json`, `graphics3d_json`, y los `prims` que emite
-cada builtin). Resumen 2D — `opts`: `range:[[x0,x1]|null,[y0,y1]|null]`, `all`, `aspect:number|"auto"`,
-`axes:bool|[bool,bool]`, `frame`, `axesLabel:[..]`, `frameLabel`, `plotLabel`, `grid`, `size`, `ticks`, `origin`, `bg`, `logy`.
-prims 2D: `line{x[],y[],color,width,dash,opacity,arrow}`, `points{x[],y[],color,psize}`, `poly{x[],y[],color,opacity,edge}`,
-`fill{x[],y[],y2[],color,opacity}`, `text{x,y,text,color,size,off}`, `arrows{segs[[x0,y0,x1,y1]],mags[],color}`,
-`field{x0,x1,y0,y1,nx,ny,data[] (fila-mayor, ny filas),mode:"contour"|"implicit"|"density"|"region",levels,nlev,shading,color,…}`,
-`legend{items[{label,color,dash}]}`. Los `null` en arrays = hueco (cortar la línea).
-3D — `opts`: `range[3]`, `box:[bx,by,bz]|null`, `axes`, `boxed`, `axesLabel`, `plotLabel`, `size`, `view`.
-prims 3D: `surf{nx,ny,x[],y[],z[],mesh,ci,color?,opacity?}`, `iso{n,r[3][2],data[] (orden [iz][iy][ix]),ci,color?,opacity?}`
-(isosuperficie en nivel 0), `line3{x,y,z,color,width}`, `pts3`, `poly3`, `arrow3`, `text3`.
+cada builtin). Banco de pruebas visual: `site/dev/gfx.html` (+ `dev/gfx-specs.json`).
+**2D — `opts`**: `range:[[x0,x1]|null,[y0,y1]|null]` (null → caja de los datos), `all`, `aspect:number|"auto"`
+(alto/ancho; `"auto"` = mismas unidades en x e y), `axes:bool|[bool,bool]`, `frame`, `axesLabel:[x,y]` (puede llevar
+`null`), `frameLabel:[abajo,izq,arriba,dcha]`, `plotLabel`, `grid:true|[gx,gy]` (cada uno `true|false|[valores]`),
+`size:number|[w,h]`, `ticks:null|false|[tx,ty]` (cada uno `null|false|[[valor,"etiqueta"],…]`), `origin:[x,y]`, `bg`, `logy`.
+**prims 2D**: `line{x[],y[],color,width,dash,opacity,arrow:"end"|"mid",nohover?}`, `points{x[],y[],color,psize,opacity}`,
+`poly{x[],y[],color,opacity,edge,ewidth}`, `fill{x[],y[],y2[],color,opacity}`, `text{x,y,text,color,size,off}`,
+`arrows{segs[[x0,y0,x1,y1]],mags[] (0..1),color?}`,
+`field{x0,x1,y0,y1,nx,ny,data[] (fila-mayor, ny filas),mode:"contour"|"density"|"region"|"implicit",levels?,nlev?,
+shading,cf?,lines?,lineColor?,lineWidth?,color,opacity,boundary?}`,
+`legend{items[{label,color,dash,width,kind?:"point"|"swatch",opacity?}],bar?:{cf,lo,hi}}` (`bar` = barra de color).
+Los `null` en arrays = hueco (cortar la línea). OJO: `ContourPlot` de ECUACIONES y el borde de `RegionPlot` ya no
+salen como `field` sino como `line` (las isolíneas se calculan en Python a alta resolución); `field` queda para
+`ContourPlot` de una función (`contour`), `DensityPlot` (`density`) y el relleno de `RegionPlot` (`region`).
+**3D — `opts`**: `range[3]` (cada uno `[a,b]|null`), `all`, `box:[bx,by,bz]|null` (null → proporciones reales),
+`axes:bool|[3]`, `boxed`, `axesLabel:[x,y,z]`, `plotLabel`, `size`, `view:[x,y,z]|null` (ViewPoint).
+**prims 3D**: `surf{nx,ny,x[],y[],z[],mesh:true|false|n|[nu,nv],bd?,ci,color?,opacity?,m?[] (máscara: visible donde >0),
+cf?,cv?[] (ColorFunction: nombre de degradado + escalar 0..1 por vértice; sin cv se usa z escalada)}`,
+`iso{n,r[3][2],data[] (orden [iz][iy][ix]),ci,color?,opacity?,mesh?:n,pad?,inner?}` (isosuperficie en nivel 0; con
+`pad` la capa exterior queda justo fuera de la caja `inner` para cerrar el sólido de `RegionPlot3D`),
+`line3{x,y,z,color,width,opacity?}`, `pts3{x,y,z,color,psize}`, `poly3{x,y,z,color,opacity?,edge?}`,
+`arrow3{x,y,z,color,width}`, `text3{x,y,z,text,color}`. Color por defecto de superficies según `ci`:
+`#E19C24 #5E81B5 #8FB032 …` (como Mathematica: la primera naranja, la segunda azul).
+Renderers: `renderGraphics(el, g)` devuelve `{destroy(), update(g2), el}`; el nodo raíz es `div.wl-gfx` (clase extra
+`wl-gfx2d`/`wl-gfx3d`). 2D = SVG (campos como imagen ráster dentro del SVG) con retícula y lectura de coordenadas al
+pasar el ratón; 3D = WebGL compartido (un único contexto para todos los gráficos, copiado a un `canvas` 2D por
+gráfico; respaldo sin WebGL con algoritmo del pintor), arrastrar = rotar (con inercia), rueda (con el gráfico activo o
+Ctrl) / pellizco = zoom, doble clic = vista inicial. Hace falta cargar `css/gfx.css`.
 Estilo visual objetivo: el de Mathematica (paleta por defecto `#5E81B5 #E19C24 #8FB032 #EB6235 #8778B3 …`, ejes
 finos con ticks hacia dentro, Plot3D con malla y sombreado naranja-azulado, caja y ejes numerados, rotación con arrastre).
 
@@ -201,8 +220,102 @@ Los exámenes reales piden respuestas numéricas en casillas con tolerancia: el 
 casillas). `answerType`: `numeric` (por defecto) | `text` (autoevaluación, no puntúa automáticamente).
 Validar con `tools/validate.py site/data/exams/<id>.json`.
 
-## 10. Diseño
-Ver `css/tokens.css`. Shell oscuro "cabina/espacio" con acentos neón; el cuaderno imita Mathematica (papel blanco,
-`In[n]:=` / `Out[n]=` en azul grisáceo pequeño, corchete de celda a la derecha, fuente monoespaciada para Input).
-1º = color `--y1` (cian), 2º = `--y2` (naranja); usar SIEMPRE la insignia `.badge.y1` / `.badge.y2` junto a cualquier
-lección, ejercicio, comando o examen. Móvil primero (≥360 px), sin scroll horizontal.
+## 10. Diseño (v2 — PETICIÓN EXPRESA DEL USUARIO: minimalista, poco recargado, similar a Wolfram)
+Ver `css/tokens.css` (reescrito). Referencias: el cuaderno de Mathematica, Wolfram Cloud y reference.wolfram.com.
+- Fondo blanco, mucho espacio en blanco, tipografía sobria, reglas finas gris claro, esquinas casi rectas (4–6 px).
+- UN color de acento (rojo Wolfram `--accent`) para la acción principal y el elemento activo; el resto en grises.
+  Naranja `--accent-2` solo para realces puntuales. Nada de degradados, brillos/neón, sombras marcadas, fondos animados,
+  partículas decorativas, emojis decorativos ni tarjetas dentro de tarjetas.
+- Jerarquía por tamaño y peso de texto y por espacio, no por cajas de colores. Pocas cosas por pantalla; lo secundario,
+  plegado o en una segunda vista. Navegación simple: barra superior fina o lateral estrecha con texto.
+- El cuaderno imita Mathematica (papel blanco, `In[n]:=` / `Out[n]=` en azul grisáceo pequeño, corchete de celda a la
+  derecha, fuente de Input monoespaciada). La app entera debe sentirse como una extensión natural de ese cuaderno.
+- 1º = `--y1` (azul), 2º = `--y2` (naranja): insignia discreta `.badge.y1` / `.badge.y2` junto a cada lección, ejercicio,
+  comando o examen (sigue siendo obligatorio distinguir 1º y 2º, pero sin estridencias).
+- Gamificación SÍ, pero sobria: XP, racha y nivel como texto/indicadores pequeños; sonidos cortos y suaves; el feedback
+  de acierto es una marca verde y una animación breve; confeti solo en hitos (fin de lección, subida de nivel, simulacro
+  aprobado) y discreto. Todo desactivable.
+- Móvil primero (≥360 px), sin scroll horizontal.
+
+## 11. MECÁNICA v2 — PETICIÓN EXPRESA DEL USUARIO: nada tipo test, TODO se teclea
+"No pongas nada de tipo test. Que tenga que escribir yo cada una de las líneas. Si quieres explicar qué hace cada una,
+las tengo que escribir igual: que aparezcan en gris, como que no están escritas, y a medida que escriba yo los
+caracteres que se vuelvan negros."
+- **Prohibido** cualquier interacción de elegir/ordenar/rellenar huecos: nada de opciones A/B/C/D, arrastrar líneas,
+  huecos sueltos ni botones que escriban código por él. El alumno teclea SIEMPRE el código completo.
+- **Celdas de explicación = celdas fantasma** (`createCell(el, {ghost: "código"})`, la implementa NOTEBOOK):
+  la celda empieza vacía; el código de referencia se ve en GRIS en su sitio; cada carácter que el alumno teclea y
+  coincide pasa a NEGRO (con el coloreado normal); lo que falta sigue en gris delante del cursor. Un carácter que no
+  coincide se marca (subrayado rojo) y no avanza el fantasma. Los espacios no cuentan (comparación insensible a
+  espacios; la sangría tras un salto de línea se pone sola). Sin autocompletar, sin cierre automático de corchetes,
+  sin pegar. Shift+Enter / ▶ solo evalúa cuando la línea está completa. API: `opts.ghost`, `opts.onProgress(0..1)`,
+  `opts.onComplete()`, `cell.isComplete()`.
+- **Ejercicios**: solo se muestran como celdas vacías donde el alumno escribe su propia solución (sin fantasma) y se
+  comprueba con `check`. "Ver solución" (tras fallar) muestra la solución como FANTASMA para que la teclee, no como
+  texto copiado en la celda.
+- **Tipos de ejercicio válidos a partir de ahora en el contenido: `code` y `fix`** (en `fix` el código roto se muestra
+  de solo lectura encima y el alumno escribe la versión corregida entera). Los `predict`, `mcq`, `fill` y `order` que ya
+  existan en ficheros de lecciones NO se muestran como test: LEARN los convierte al vuelo —
+  `predict` → paso de tecleo fantasma con `code` (y después su `explain`); `fill` → ejercicio `code` (la plantilla se
+  enseña como pista de forma, la solución es la plantilla con las respuestas canónicas); `order` → ejercicio `code`
+  (las líneas desordenadas se enseñan de solo lectura; se teclean en orden); `mcq` → se omite (o se muestra solo su
+  `explain` como nota). Los autores deben ir sustituyéndolos por `code`/explicaciones tecleadas.
+- Un paso `explain` se completa cuando todas sus celdas están tecleadas y evaluadas. Debe existir un "saltar" discreto.
+- Ejemplos de las fichas de comandos y del esquema: también en modo fantasma. El cuaderno libre es libre.
+- Consecuencia para autores: celdas de explicación CORTAS (1–3 líneas, sin comentarios largos dentro del código) y
+  en número razonable (cada una se teclea); el texto explicativo va en `md`/`note`, no en comentarios `(* *)`.
+
+## 12. Referencias visuales reales de Wolfram (capturas en `/home/user/work/refs/*.png` — MIRARLAS con Read)
+`fastintro.png` (Fast Introduction for Math Students: la referencia principal para lecciones: barra lateral gris claro
+con lista de temas y elemento activo en rojo, columna de contenido blanca, título fino grande en rojo, texto gris
+oscuro, celdas `In[1]:=`/`Out[1]=` con etiqueta pequeña azul grisácea y código en negrita, separadores finos),
+`ref_plot.png`, `ref_dsolve.png` (páginas de documentación de un símbolo: caja de sintaxis azul muy claro, secciones en
+naranja con chevrón, ejemplos con celdas), `ref_guide_calculus.png` (página guía: listas de comandos),
+`ref_notebook_tutorial.png`, `ref_plot_mobile.png` (móvil). Tomar de ahí proporciones, tipografía, colores y densidad.
+
+## 13. PEDAGOGÍA v3 — PETICIÓN EXPRESA DEL USUARIO: una cosa por pantalla, construir por piezas, recordar con pistas
+"Evita sesiones con muchos pasos a la vez. Que cada cosa se vea individualmente en una pantalla completa y que luego se
+vayan añadiendo una a una hasta tener un ejercicio hecho; todo explicado por partes con pocas piezas, luego por
+componentes más grandes que se van uniendo, y al final que tenga que escribir todo. Que sea también un poco de
+memorizar, pero que haya pistas. La idea no es que sea difícil, sino que aprenda."
+
+### 13.1 Nuevo tipo de paso `build` (construcción por piezas) — es el paso PRINCIPAL para enseñar algo nuevo
+```json
+{ "type":"build", "title":"Dibujar una función", "md":"qué vamos a construir y para qué (1-2 frases)",
+  "target":"Plot[Sin[x], {x, 0, 2 Pi}, PlotStyle -> Red]",
+  "parts":[
+    {"code":"Sin[x]",                         "md":"La función. `Sin` con mayúscula y el argumento entre corchetes."},
+    {"code":"{x, 0, 2 Pi}",                   "md":"El intervalo, entre llaves: variable, desde, hasta."},
+    {"code":"Plot[Sin[x], {x, 0, 2 Pi}]",     "md":"Las dos piezas dentro de `Plot`, separadas por coma.", "run":true},
+    {"code":"PlotStyle -> Red",               "md":"Una opción: nombre, flecha `->`, valor."},
+    {"code":"Plot[Sin[x], {x, 0, 2 Pi}, PlotStyle -> Red]", "md":"Todo junto.", "run":true} ],
+  "recall":{ "prompt":"Ahora sin mirar: dibuja `Sin[x]` de 0 a 2 Pi en rojo.",
+             "hints":["Empieza por el comando: `Plot[`", "Después la función y el intervalo entre llaves", "La opción va al final: `PlotStyle -> Red`"],
+             "check":{"type":"graphics","dim":2,"like":"Plot[Sin[x], {x, 0, 2 Pi}]"} },
+  "cmds":["Plot","PlotStyle"] }
+```
+- `parts`: de 2 a 6 piezas, de la más pequeña a la completa: primero piezas sueltas (1 idea cada una), luego componentes
+  que las unen, la última = `target`. `run:true` solo en las piezas que tiene sentido evaluar (dan una salida que enseña
+  algo); las demás solo se teclean. Cada `md`: 1–2 frases sobre ESA pieza (qué es, por qué va así, error típico).
+- `recall`: escribir el `target` (o una variante mínima) DE MEMORIA en una celda vacía; `check` opcional (por defecto:
+  la salida debe ser igual a la de `target`; en gráficos usar `graphics`+`like`); `hints` de 2–4, graduadas.
+- Reglas de autor: cada concepto/comando nuevo se enseña con un `build`; después 1–3 ejercicios `code` cortos que lo
+  varían; los pasos `explain` quedan para texto de contexto con, como mucho, 1 celda. Lecciones troceadas en **tramos**
+  cortos: añadir `"section":"Título del tramo"` al primer paso de cada tramo (un tramo = 1–2 `build` + sus ejercicios,
+  5–10 min). Los ejercicios reales largos se dividen en apartados pequeños, uno por pantalla, que se van sumando.
+
+### 13.2 Cómo lo presenta el reproductor (LEARN)
+- **Una sola cosa por pantalla, a pantalla completa**: una pieza = una pantalla (su texto corto arriba, UNA celda
+  fantasma centrada, nada más). Sin listas de pasos a la vista, sin barras laterales abiertas; solo un indicador fino
+  de avance del tramo y "atrás / siguiente".
+- **Ensamblaje visible**: en un `build`, las piezas ya tecleadas quedan arriba en pequeño (gris oscuro) y se ve cómo
+  encajan en el objetivo; al unirlas, la pantalla siguiente pide teclear el componente unido (fantasma).
+- **Al final, todo de memoria** (`recall`): celda vacía. Pistas siempre disponibles y SIN penalización visible:
+  1ª pista = texto; 2ª = el esqueleto en gris (solo corchetes, llaves y comas: `Plot[ , { , , }]`); 3ª = el código
+  completo en gris para teclearlo. Tono amable: equivocarse no resta, se reintenta.
+- Los pasos `explain` con varias celdas se muestran una celda por pantalla. Los ejercicios `code`: una pantalla cada uno.
+- **Tramos**: la página de una lección muestra primero la lista corta de tramos (título, minutos, hecho/pendiente); se
+  entra en UN tramo; al acabarlo, resumen de 3 líneas (qué has construido, qué comandos) y vuelta a la lista. Si el
+  contenido no trae `section`, un tramo nuevo empieza en cada `build`/`explain`.
+- **Memorizar con repaso**: al terminar un tramo, sus `target` entran en la cola de repaso; la práctica aleatoria y el
+  inicio de la siguiente sesión empiezan con 2–3 "recuerdas…" (escribir de memoria con pistas) de tramos anteriores.

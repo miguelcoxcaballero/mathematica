@@ -43,12 +43,8 @@
      "note": "3·1 + 4·1"
     },
     {
-     "code": "EuclideanDistance[v, w]",
-     "note": "exacto"
-    },
-    {
-     "code": "Norm[v - w] // N",
-     "note": "lo mismo, en decimales"
+     "code": "EuclideanDistance[v, w] // N",
+     "note": "distancia, en decimales"
     }
    ]
   },
@@ -56,24 +52,28 @@
    "type": "exercise",
    "ex": {
     "id": "1-p17-e01",
-    "kind": "predict",
-    "title": "Norma a ojo",
-    "prompt": "Sin ejecutarlo: ¿qué devuelve esta celda?",
+    "kind": "code",
+    "title": "Tu primera norma",
+    "prompt": "Calcula la norma (longitud) del vector `{1, 2, 2}`.",
     "difficulty": 1,
     "cmds": [
      "Norm"
     ],
     "real": false,
     "source": null,
-    "code": "Norm[{1, 2, 2}]",
-    "options": [
-     "5",
-     "3",
-     "9",
-     "Sqrt[5]"
+    "solution": "Norm[{1, 2, 2}]",
+    "check": {
+     "type": "expr",
+     "expected": "3"
+    },
+    "requires": [
+     "Norm"
     ],
-    "answer": 1,
-    "explain": "`Sqrt[1 + 4 + 4] = Sqrt[9] = 3`. `Norm` no suma las componentes: suma sus cuadrados y hace la raíz."
+    "hints": [
+     "`Norm[vector]`, con el vector entre llaves.",
+     "`Norm[{1, 2, 2}]`"
+    ],
+    "explain": "`Sqrt[1 + 4 + 4] = 3`. `Norm` no suma las componentes: suma sus cuadrados y hace la raíz."
    }
   },
   {
@@ -232,9 +232,9 @@
    "type": "exercise",
    "ex": {
     "id": "1-p17-e05",
-    "kind": "fill",
+    "kind": "code",
     "title": "Proyecta sobre el plano",
-    "prompt": "`S` ya es una base ortonormal de un plano (dos vectores) y `v = {1, 2, 3}`. Completa la celda para obtener el vector del plano más próximo a `v`.",
+    "prompt": "`S` ya es una base ortonormal de un plano (dos vectores) y `v = {1, 2, 3}` también está definido. Calcula el vector del plano más próximo a `v`.",
     "difficulty": 2,
     "cmds": [
      "Projection",
@@ -243,20 +243,21 @@
     "real": false,
     "source": null,
     "setup": "S = Orthogonalize[{{1, 1, 0}, {0, 1, 1}}]; v = {1, 2, 3};",
-    "template": "__1__[v, S[[1]]] + Projection[v, S[[__2__]]]",
-    "blanks": [
-     [
-      "Projection"
-     ],
-     [
-      "2"
-     ]
-    ],
+    "solution": "Projection[v, S[[1]]] + Projection[v, S[[2]]]",
     "check": {
      "type": "expr",
-     "expected": "{1/3, 8/3, 7/3}"
+     "expected": "{1/3, 8/3, 7/3}",
+     "compare": "numeric",
+     "tol": 1e-06
     },
-    "explain": "Una proyección por cada vector de la base ortonormal: `S[[1]]` y `S[[2]]`. El resultado `(1/3, 8/3, 7/3)` está en el plano y `v` menos él es perpendicular al plano."
+    "requires": [
+     "Projection"
+    ],
+    "hints": [
+     "Una proyección por cada vector de la base: `S[[1]]` y `S[[2]]`.",
+     "`Projection[v, S[[1]]] + Projection[v, S[[2]]]`"
+    ],
+    "explain": "`(1/3, 8/3, 7/3)`: está en el plano, y `v` menos él es perpendicular al plano."
    }
   },
   {
@@ -348,30 +349,47 @@
    "type": "exercise",
    "ex": {
     "id": "1-p17-e08",
-    "kind": "order",
-    "title": "Solución y error, en orden",
-    "prompt": "Ordena las líneas para resolver por mínimos cuadrados el sistema `A.{x, y} == b` y calcular el error cuadrático en decimales.",
-    "difficulty": 2,
+    "kind": "code",
+    "title": "Solución y error",
+    "prompt": "Ya están definidos `A = {{1, 0}, {0, 1}, {1, 1}}` y `b = {1, 1, 0}`. Resuelve `A.{x, y} == b` por mínimos cuadrados guardando la salida de `Solve` en `sol` y calcula, en la última línea, el error cuadrático en decimales.",
+    "difficulty": 3,
     "cmds": [
      "Solve",
      "Norm",
-     "Transpose"
+     "Transpose",
+     "Flatten"
     ],
     "real": false,
     "source": null,
-    "lines": [
-     "A = {{1, 0}, {0, 1}, {1, 1}}; b = {1, 1, 0};",
-     "sol = Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}];",
-     "Axsol = A.{x, y} /. Flatten[sol];",
-     "error = Norm[b - Axsol] // N"
-    ],
+    "setup": "A = {{1, 0}, {0, 1}, {1, 1}}; b = {1, 1, 0};",
+    "solution": "sol = Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}];\nNorm[b - A.{x, y} /. Flatten[sol]] // N",
     "check": {
-     "type": "expr",
-     "expected": "2/Sqrt[3]",
-     "compare": "numeric",
-     "tol": 1e-06
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "sol",
+       "expected": "{{x -> 1/3, y -> 1/3}}",
+       "compare": "set",
+       "msg": "`sol` debe ser la solución de las ecuaciones normales."
+      },
+      {
+       "type": "expr",
+       "expected": "2/Sqrt[3]",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
     },
-    "explain": "Datos → ecuaciones normales → `A.x` con la solución sustituida → norma de la diferencia con `b`. Cada línea usa lo definido en la anterior."
+    "requires": [
+     "Norm",
+     "Transpose"
+    ],
+    "hints": [
+     "`sol = Solve[Transpose[A].A.{x, y} == Transpose[A].b, {x, y}];`",
+     "Error: `Norm[b - A.{x, y} /. Flatten[sol]] // N`."
+    ],
+    "explain": "`x = y = 1/3` y error `2/Sqrt[3] ≈ 1.1547`. Datos → ecuaciones normales → norma de `b - A.x` con la solución sustituida."
    }
   },
   {
