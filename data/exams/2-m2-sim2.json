@@ -197,7 +197,7 @@
      "value": -10.29408,
      "tol": 0.001,
      "points": 0.6,
-     "solution": "Clear[f, g, F, G, y, Y, ys, t, s]\nf[t_] = (UnitStep[t] - UnitStep[t - Pi])*(1 - Cos[2 t]) + UnitStep[t - Pi]*(t - Pi)^2;\ng[t_] = UnitStep[t - Pi/2]*Cos[t];\nec1 = LaplaceTransform[y''[t] + y[t] == g[t], t, s] /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];\n(* ExpandAll separa el sumando con E^(-Pi s/2) para invertir cada uno *)\nys[t_] = InverseLaplaceTransform[ExpandAll[Y[s]], s, t];\nys[3.]",
+     "solution": "Clear[f, g, F, G, y, Y, ys, t, s]\nf[t_] = (UnitStep[t] - UnitStep[t - Pi])*(1 - Cos[2 t]) + UnitStep[t - Pi]*(t - Pi)^2;\ng[t_] = UnitStep[t - Pi/2]*Cos[t];\nec1 = LaplaceTransform[y''[t] + y[t] == g[t], t, s] /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];\nys[t_] = InverseLaplaceTransform[Y[s], s, t];   (* solución y(t) *)\nys[3.]",
      "explain": "Receta de PL6: transformar la ecuación, sustituir `y[0]` e `y'[0]`, despejar la transformada con `Solve`, invertir con `InverseLaplaceTransform` y evaluar. Sin fuerza sería `10 Cos[t]`; a partir de `t = Pi/2` se suma la respuesta al coseno, que está en resonancia con el oscilador."
     }
    ]

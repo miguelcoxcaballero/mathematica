@@ -167,7 +167,7 @@
      "value": -0.9736105,
      "tol": 0.001,
      "points": 0.4,
-     "solution": "Clear[T, H, t, s]\nT = 2;\n(* Assumptions -> s > 0 evita que Integrate devuelva casos según el valor de s *)\nH[s_] = (1/(1 - Exp[-T*s]))*Integrate[(t^2 - 2)*Exp[-s*t], {t, 0, T}, Assumptions -> s > 0] // Simplify\nH[1.5]",
+     "solution": "Clear[T, H, t, s]\nT = 2;\n(* propiedad de las funciones T-periódicas: se integra un solo periodo *)\nH[s_] = (1/(1 - Exp[-T*s]))*Integrate[(t^2 - 2)*Exp[-s*t], {t, 0, T}] // Simplify\nH[1.5]",
      "explain": "`LaplaceTransform` no sirve con una función definida de forma periódica: se usa la propiedad, integrando solo un periodo. Error típico: olvidar el factor `1/(1 - E^(-T s))` o integrar hasta infinito."
     },
     {
@@ -268,7 +268,7 @@
   },
   {
    "title": "P8 · Ecuación del calor y ecuación de Laplace (PL9)",
-   "prompt": "**(A) Calor.** `u_t = 4 u_xx`, `0 < x < 5`, `u(0, t) = u(5, t) = 0`, `u(x, 0) = x (5 - x)`. Usa la plantilla 9.2 del guion con **6 términos**.\n\n**(B) Laplace en un rectángulo.** Problema (9.3) del guion con `a = 3`, `b = 5` y `u(x, b) = 2 x^2 (3 - x)^3`, con **5 términos**.\n\n(Calor: datos adaptados del ejercicio 2 del guion PL9. Laplace: datos reales del ejercicio 3; el valor de c) es el de la prueba de sesión de 2020-21.)",
+   "prompt": "**(A) Calor.** `u_t = 4 u_xx`, `0 < x < 5`, `u(0, t) = u(5, t) = 0`, `u(x, 0) = x (5 - x)`. Usa la plantilla 9.2 del guion con **6 términos**.\n\n**(B) Laplace en un rectángulo.** `u_xx + u_yy = 0` en `0 < x < a`, `0 < y < b`, con `u(0, y) = u(a, y) = 0`, `u(x, 0) = 0` y `u(x, b) = 2 x^2 (a - x)^3`, para `a = 3`, `b = 5`. Usa la plantilla 9.3 del guion con **5 términos**.\n\n(Calor: datos adaptados del ejercicio 2 del guion PL9. Laplace: datos reales del ejercicio 3; el valor de c) es el de la prueba de sesión de 2020-21.)",
    "points": 1.5,
    "parts": [
     {

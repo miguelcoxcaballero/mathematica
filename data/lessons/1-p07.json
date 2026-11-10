@@ -30,17 +30,52 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Curvas que no son y = f(x): ParametricPlot",
-   "md": "La trayectoria de un avión, la órbita de un satélite o el punto de una rueda que gira no se pueden escribir como `y = f(x)`. Se describen diciendo dónde está el punto en cada instante `t`: `(x(t), y(t))`. Eso es una **curva paramétrica**.\n\n`ParametricPlot[{x(t), y(t)}, {t, tmin, tmax}]`\n\n- Primer argumento: una **lista con dos expresiones**, la coordenada x y la coordenada y.\n- Segundo: el **parámetro** y su recorrido, `{t, desde, hasta}`.\n\n`ParametricPlot` usa la misma escala en los dos ejes: una circunferencia sale redonda.\n\nEn esta lección verás también las curvas en polares (`PolarPlot`), cómo superponer gráficas (`Show`) y cómo moverlas con deslizadores (`Manipulate`). Con eso se hace entera la prueba de la Práctica 7.",
+   "section": "Curvas paramétricas: ParametricPlot",
+   "title": "Curvas que no son y = f(x)",
+   "md": "La trayectoria de un avión, la órbita de un satélite o el punto de una rueda que gira no se pueden escribir como `y = f(x)`. Se describen diciendo dónde está el punto en cada instante `t`: `(x(t), y(t))`. Eso es una **curva paramétrica**.\n\nEn esta lección verás también las curvas en polares, cómo superponer gráficas con `Show` y cómo moverlas con deslizadores (`Manipulate`). Con eso se hace entera la prueba de la Práctica 7.\n\nTeclea la celda: es la **cicloide**, lo que dibuja un punto del neumático de un avión al rodar.",
    "cells": [
     {
-     "code": "ParametricPlot[{Cos[t], Sin[t]}, {t, 0, 2 Pi}]",
-     "note": "la circunferencia unidad: x = cos t, y = sen t"
+     "code": "ParametricPlot[{t - Sin[t], 1 - Cos[t]}, {t, 0, 4 Pi}]",
+     "note": "dos vueltas de rueda"
+    }
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Tu primera curva paramétrica",
+   "md": "Vamos a dibujar la circunferencia unidad dando sus dos coordenadas en función de `t`: `x = Cos[t]`, `y = Sin[t]`.",
+   "target": "ParametricPlot[{Cos[t], Sin[t]}, {t, 0, 2 Pi}]",
+   "parts": [
+    {
+     "code": "{Cos[t], Sin[t]}",
+     "md": "El punto: una **lista con dos expresiones**, la coordenada x y la coordenada y."
     },
     {
-     "code": "ParametricPlot[{t - Sin[t], 1 - Cos[t]}, {t, 0, 4 Pi}]",
-     "note": "cicloide: lo que dibuja un punto del neumático al rodar"
+     "code": "{t, 0, 2 Pi}",
+     "md": "El parámetro y su recorrido: variable, desde, hasta."
+    },
+    {
+     "code": "ParametricPlot[{Cos[t], Sin[t]}, {t, 0, 2 Pi}]",
+     "md": "Las dos piezas dentro de `ParametricPlot`. Usa la misma escala en los dos ejes: la circunferencia sale redonda.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: dibuja la circunferencia `(Cos[t], Sin[t])` con `t` entre 0 y 2π.",
+    "hints": [
+     "El comando es `ParametricPlot[`",
+     "Primero la lista `{Cos[t], Sin[t]}`, después `{t, 0, 2 Pi}`.",
+     "`ParametricPlot[{Cos[t], Sin[t]}, {t, 0, 2 Pi}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "ParametricPlot[{Cos[t], Sin[t]}, {t, 0, 2 Pi}]"
+    }
+   },
+   "cmds": [
+    "ParametricPlot"
    ]
   },
   {
@@ -136,18 +171,41 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Coordenadas polares: PolarPlot",
-   "md": "En polares un punto se da por su **distancia al origen** `ρ` y su **ángulo** `α` con el eje X. Una curva en polares es una fórmula `ρ = ρ(α)`: para cada ángulo, a qué distancia está el punto.\n\n`PolarPlot[ρ(α), {α, αmin, αmax}]`\n\n- Primer argumento: **una sola** expresión, el radio en función del ángulo.\n- Segundo: el ángulo y su recorrido (en radianes).\n\nEl ángulo puede llamarse como quieras. En los apuntes verás la letra griega `α` (en Mathematica: tecla Esc, a, Esc); aquí usaremos `t` para ir más rápido.\n\nAsí se hacen cardioides, espirales y rosas en una línea.",
-   "cells": [
+   "type": "build",
+   "section": "Curvas en polares: PolarPlot",
+   "title": "Una curva en polares",
+   "md": "En polares un punto se da por su **distancia al origen** y su **ángulo** con el eje X. Una curva es una fórmula `ρ = ρ(ángulo)`. Aquí, la cardioide `ρ = 1 + Cos[t]`.",
+   "target": "PolarPlot[1 + Cos[t], {t, 0, 2 Pi}]",
+   "parts": [
     {
-     "code": "PolarPlot[1 + Cos[t], {t, 0, 2 Pi}]",
-     "note": "cardioide"
+     "code": "1 + Cos[t]",
+     "md": "El radio en función del ángulo: **una sola** expresión, no una lista."
     },
     {
-     "code": "PolarPlot[Sin[3 t], {t, 0, Pi}]",
-     "note": "rosa de tres pétalos"
+     "code": "{t, 0, 2 Pi}",
+     "md": "El ángulo y su recorrido, en radianes. En los apuntes se llama `α` (Esc a Esc); aquí usamos `t`, que se teclea antes."
+    },
+    {
+     "code": "PolarPlot[1 + Cos[t], {t, 0, 2 Pi}]",
+     "md": "La cardioide. Con radio constante, `PolarPlot[2, ...]`, saldría una circunferencia.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: dibuja en polares la cardioide `1 + Cos[t]` con `t` entre 0 y 2π.",
+    "hints": [
+     "El comando es `PolarPlot[radio, {ángulo, desde, hasta}]`.",
+     "`PolarPlot[1 + Cos[t], {t, 0, 2 Pi}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "PolarPlot[1 + Cos[t], {t, 0, 2 Pi}]"
+    }
+   },
+   "cmds": [
+    "PolarPlot"
    ]
   },
   {
@@ -181,28 +239,89 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Rosas a medida: Max, tamaño y giro",
-   "md": "`ρ = Cos[2 t]` da una rosa de **cuatro** pétalos. Pero el coseno es negativo la mitad del tiempo, y un radio negativo se dibuja «hacia atrás»: dos de los cuatro pétalos salen de esos valores negativos.\n\nPara quedarte solo con los radios positivos se recorta con `Max[ρ, 0]`: `Max` devuelve el mayor de sus argumentos, así que donde `ρ` es negativo queda `0` (el origen). Resultado: una rosa de **dos** pétalos.\n\nY se puede controlar:\n\n- **Tamaño**: `R Cos[2 t]` tiene pétalos de longitud `R`.\n- **Giro**: `Cos[2 (t - t0)]` apunta un pétalo en la dirección del ángulo `t0`.\n\nSi quieres que un pétalo llegue justo a un punto `A = (a, b)`: `R` es la distancia de `A` al origen y `t0` su ángulo. Pensando `A` como el complejo `a + b I` (Práctica 5), son `Abs[a + b I]` y `Arg[a + b I]`.",
-   "cells": [
+   "type": "build",
+   "section": "Rosas a medida: Max, tamaño y giro",
+   "title": "Una rosa de dos pétalos orientada",
+   "md": "`Cos[2 t]` da una rosa de cuatro pétalos, pero dos salen de radios negativos. Vamos a quedarnos con dos y a controlar su tamaño y hacia dónde apuntan.",
+   "target": "PolarPlot[Max[3 Cos[2 (t - Pi/4)], 0], {t, 0, 2 Pi}]",
+   "parts": [
     {
      "code": "PolarPlot[Cos[2 t], {t, 0, 2 Pi}]",
-     "note": "cuatro pétalos (dos vienen de radios negativos)"
+     "md": "Cuatro pétalos. Cuando el coseno es negativo, el radio negativo se dibuja «hacia atrás».",
+     "run": true
+    },
+    {
+     "code": "Max[Cos[2 t], 0]",
+     "md": "`Max` devuelve el mayor de sus argumentos: donde el radio es negativo queda 0. Así desaparecen dos pétalos."
+    },
+    {
+     "code": "3 Cos[2 (t - Pi/4)]",
+     "md": "Tamaño y giro: el factor `3` es la longitud del pétalo y `(t - Pi/4)` lo apunta hacia el ángulo `Pi/4`."
+    },
+    {
+     "code": "Max[3 Cos[2 (t - Pi/4)], 0]",
+     "md": "Las dos ideas juntas: recortada, de longitud 3 y girada 45°."
     },
     {
      "code": "PolarPlot[Max[3 Cos[2 (t - Pi/4)], 0], {t, 0, 2 Pi}]",
-     "note": "con Max: dos pétalos, de longitud 3 y girados 45°"
-    },
-    {
-     "code": "{Abs[3 + 3 I], Arg[3 + 3 I]}",
-     "note": "distancia y ángulo del punto (3, 3)"
+     "md": "La rosa de dos pétalos, uno apuntando a 45°.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: dibuja en polares, con `t` entre 0 y 2π, la rosa de dos pétalos de longitud 3 con un pétalo apuntando al ángulo `Pi/4`.",
+    "hints": [
+     "El radio es `Max[..., 0]` para recortar los valores negativos.",
+     "Dentro: `3 Cos[2 (t - Pi/4)]`.",
+     "`PolarPlot[Max[3 Cos[2 (t - Pi/4)], 0], {t, 0, 2 Pi}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "PolarPlot[Max[3 Cos[2 (t - Pi/4)], 0], {t, 0, 2 Pi}]"
+    }
+   },
+   "cmds": [
+    "PolarPlot",
+    "Max"
    ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p07-e05",
+    "kind": "code",
+    "title": "Distancia y ángulo de un punto",
+    "prompt": "Para apuntar un pétalo a un punto `A = (a, b)` hacen falta su distancia al origen y su ángulo. Pensando `A` como el complejo `a + b I` (Práctica 5), son `Abs` y `Arg`.\n\nCalcula la lista `{distancia, ángulo}` del punto `(3, 3)`.",
+    "difficulty": 1,
+    "cmds": [
+     "Abs",
+     "Arg"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "{Abs[3 + 3 I], Arg[3 + 3 I]}",
+    "check": {
+     "type": "expr",
+     "expected": "{3 Sqrt[2], Pi/4}",
+     "compare": "equal"
+    },
+    "requires": [
+     "Abs",
+     "Arg"
+    ],
+    "hints": [
+     "El punto `(3, 3)` es el complejo `3 + 3 I` (la `I` mayúscula).",
+     "`{Abs[3 + 3 I], Arg[3 + 3 I]}`"
+    ],
+    "explain": "`Abs` da el módulo, `3 Sqrt[2]`, y `Arg` el ángulo, `Pi/4`. Con esos dos números, `Max[R Cos[2 (t - t0)], 0]` pone la punta del pétalo justo en el punto."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p07-e06",
     "kind": "code",
     "title": "Una rosa orientada",
     "prompt": "Dibuja en polares una rosa de **dos pétalos** de longitud `5`, uno de ellos apuntando en la dirección del ángulo `Pi/3`. Usa `t` como ángulo, entre 0 y 2π, y `Max` para no dibujar radios negativos.",
@@ -233,24 +352,55 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Dibujar a mano: Graphics",
-   "md": "`Plot` y compañía dibujan funciones. Para dibujar **objetos sueltos** (un punto, un segmento, una circunferencia) se usa `Graphics[...]` con primitivas:\n\n- `Point[{x, y}]` = un punto.\n- `Line[{{x1, y1}, {x2, y2}, ...}]` = una línea quebrada que une los puntos.\n- `Circle[{x, y}, r]` = circunferencia de centro y radio dados.\n\nSi hay varios objetos, van en una lista. Dentro de la lista, las **directivas** (`Red`, `PointSize[Large]`, `Thick`…) afectan a todo lo que viene **después**.\n\n`Graphics` no pone ejes salvo que añadas la opción `Axes -> True`.",
-   "cells": [
+   "type": "build",
+   "section": "Dibujar a mano: Graphics",
+   "title": "Un punto rojo con ejes",
+   "md": "`Plot` y compañía dibujan funciones. Para **objetos sueltos** (un punto, un segmento, una circunferencia) se usa `Graphics` con primitivas.",
+   "target": "Graphics[{Red, PointSize[Large], Point[{1, 0}]}, Axes -> True]",
+   "parts": [
     {
-     "code": "Graphics[Point[{2, 1}]]",
-     "note": "un punto solo (pequeño y sin ejes)"
+     "code": "Point[{1, 0}]",
+     "md": "Una primitiva: el punto `(1, 0)`. Otras: `Line[{{x1, y1}, {x2, y2}}]` (segmento) y `Circle[{x, y}, r]`."
     },
     {
-     "code": "Graphics[{Circle[{0, 0}, 1], Red, PointSize[Large], Point[{1, 0}]}, Axes -> True]",
-     "note": "circunferencia negra y, después de Red, un punto rojo grande"
+     "code": "Graphics[Point[{1, 0}]]",
+     "md": "`Graphics` convierte la primitiva en una gráfica. Sale un punto pequeño y sin ejes.",
+     "run": true
+    },
+    {
+     "code": "{Red, PointSize[Large], Point[{1, 0}]}",
+     "md": "Varios elementos van en una lista. Las **directivas** (`Red`, `PointSize[Large]`) afectan a lo que viene **después**."
+    },
+    {
+     "code": "Graphics[{Red, PointSize[Large], Point[{1, 0}]}, Axes -> True]",
+     "md": "La lista dentro de `Graphics` y, como opción, los ejes.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: dibuja con `Graphics` el punto `(1, 0)` en rojo y tamaño grande, con ejes.",
+    "hints": [
+     "`Graphics[{lista de directivas y primitivas}, Axes -> True]`",
+     "En la lista: `Red, PointSize[Large], Point[{1, 0}]`.",
+     "`Graphics[{Red, PointSize[Large], Point[{1, 0}]}, Axes -> True]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "Graphics[Point[{1, 0}]]"
+    }
+   },
+   "cmds": [
+    "Graphics",
+    "Point",
+    "PointSize"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e06",
+    "id": "1-p07-e07",
     "kind": "code",
     "title": "Vector de posición",
     "prompt": "Con `Graphics`, dibuja el segmento que une el origen con el punto `(3, 1)` y, **después**, ese punto en rojo y de tamaño grande. Muestra los ejes.",
@@ -287,24 +437,62 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Juntar gráficas: Show",
-   "md": "Cada gráfica es un objeto que se puede guardar en una variable: `g1 = Plot[...]`. Si terminas la línea con `;` se guarda sin dibujarse.\n\n`Show[g1, g2, ...]` superpone gráficas de **cualquier tipo**: un `Plot`, un `PolarPlot`, un `Graphics`…\n\nRegla de oro: **el encuadre lo decide la primera gráfica** de la lista. Si la segunda es más grande, se ve cortada. Soluciones: cambiar el orden, o añadir `PlotRange -> All` al final del `Show`.",
-   "cells": [
+   "type": "build",
+   "section": "Juntar gráficas: Show",
+   "title": "Dos gráficas en una",
+   "md": "Cada gráfica se puede guardar en una variable y después superponerlas con `Show`, sean del tipo que sean.",
+   "target": "g1 = Plot[x^2, {x, -1, 1}];\ng2 = Graphics[Point[{2, 4}]];\nShow[g1, g2, PlotRange -> All]",
+   "parts": [
     {
-     "code": "g1 = Plot[x^2, {x, -1, 1}];\ng2 = Graphics[{Red, PointSize[Large], Point[{2, 4}]}];\nShow[g1, g2]",
-     "note": "manda g1: el punto (2, 4) queda fuera del encuadre"
+     "code": "g1 = Plot[x^2, {x, -1, 1}];",
+     "md": "Una gráfica con nombre. El `;` final la guarda sin dibujarla.",
+     "run": true
+    },
+    {
+     "code": "g2 = Graphics[Point[{2, 4}]];",
+     "md": "Otra, de otro tipo: un punto suelto.",
+     "run": true
+    },
+    {
+     "code": "Show[g1, g2]",
+     "md": "`Show` las superpone. Regla de oro: **el encuadre lo decide la primera**. Como manda `g1`, el punto `(2, 4)` queda fuera.",
+     "run": true
     },
     {
      "code": "Show[g1, g2, PlotRange -> All]",
-     "note": "ahora se ve todo"
+     "md": "Con `PlotRange -> All` se obliga a enseñarlo todo. La otra solución es cambiar el orden.",
+     "run": true
+    },
+    {
+     "code": "g1 = Plot[x^2, {x, -1, 1}];\ng2 = Graphics[Point[{2, 4}]];\nShow[g1, g2, PlotRange -> All]",
+     "md": "Las tres líneas en una sola celda.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria, en tres líneas: guarda en `g1` la parábola `x^2` entre −1 y 1, en `g2` el punto `(2, 4)`, y muéstralas juntas de modo que se vea todo.",
+    "hints": [
+     "Dos asignaciones terminadas en `;` y al final `Show[...]`.",
+     "`g2 = Graphics[Point[{2, 4}]];`",
+     "`Show[g1, g2, PlotRange -> All]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "like": "Show[Plot[x^2, {x, -1, 1}], Graphics[Point[{2, 4}]]]"
+    }
+   },
+   "cmds": [
+    "Show",
+    "Plot",
+    "Graphics"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e07",
+    "id": "1-p07-e08",
     "kind": "code",
     "title": "¿Quién manda en Show?",
     "prompt": "Ya están definidas `g1 = Plot[Sin[x], {x, 0, Pi}]` y `g2 = Plot[Cos[x], {x, 0, 10}]`. Con `Show[g1, g2]` el coseno se ve cortado en π, porque manda `g1`.\n\nJunta las dos gráficas de modo que se vea el intervalo completo de 0 a 10.",
@@ -346,7 +534,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e08",
+    "id": "1-p07-e09",
     "kind": "code",
     "title": "Circunferencia y punto",
     "prompt": "Guarda en `c` (con `;`) la circunferencia de radio 2 dibujada con `ParametricPlot`, y muéstrala con `Show` junto al punto `(2, 0)` en rojo y tamaño grande.",
@@ -388,24 +576,80 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Gráficas con vida: Manipulate",
-   "md": "`Manipulate[expresión, {a, min, max}]` crea un **deslizador** para `a` y recalcula la expresión cada vez que lo mueves. Es la forma más rápida de entender qué hace un parámetro.\n\nEl control admite más detalle (ojo a las llaves):\n\n- `{a, min, max}` = deslizador básico.\n- `{a, min, max, paso}` = solo valores de `paso` en `paso` (con paso 1, enteros).\n- `{{a, a0}, min, max}` = empieza en el valor inicial `a0`.\n- `{{a, a0, \"texto\"}, min, max}` = además cambia el nombre que se ve junto al deslizador.\n\nVarios parámetros = varios controles, separados por comas.\n\nConsejo: fija `PlotRange` dentro de la gráfica. Si no, los ejes se reajustan a cada movimiento y no se aprecia el cambio.",
-   "cells": [
+   "type": "build",
+   "section": "Gráficas con vida: Manipulate",
+   "title": "Un deslizador para un parámetro",
+   "md": "`Manipulate` crea un **deslizador** y recalcula la gráfica cada vez que lo mueves. Es la forma más rápida de ver qué hace un parámetro.",
+   "target": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {{a, 2, \"frecuencia\"}, 1, 5, 1}]",
+   "parts": [
     {
-     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {a, 1, 5}]",
-     "note": "mueve el deslizador: cambia la frecuencia"
+     "code": "Plot[Sin[2 x], {x, 0, 2 Pi}]",
+     "md": "Una gráfica fija: el 2 es la frecuencia.",
+     "run": true
     },
     {
-     "code": "Manipulate[Plot[A Sin[x], {x, 0, 2 Pi}, PlotRange -> {-3, 3}], {{A, 1, \"amplitud\"}, 0, 3}]",
-     "note": "valor inicial 1, etiqueta y encuadre fijo"
+     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {a, 1, 5}]",
+     "md": "Cambiamos el 2 por `a` y añadimos el control `{a, mínimo, máximo}`. Mueve el deslizador.",
+     "run": true
+    },
+    {
+     "code": "{{a, 2}, 1, 5, 1}",
+     "md": "Un control más completo: la pareja interior `{a, 2}` da el **valor inicial**, y el cuarto número es el **paso** (con paso 1, solo enteros)."
+    },
+    {
+     "code": "{{a, 2, \"frecuencia\"}, 1, 5, 1}",
+     "md": "Un tercer elemento en la pareja interior cambia el **nombre** que se ve junto al deslizador."
+    },
+    {
+     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {{a, 2, \"frecuencia\"}, 1, 5, 1}]",
+     "md": "Todo junto. Con varios parámetros, varios controles separados por comas.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: crea un `Manipulate` de `Plot[Sin[a x], {x, 0, 2 Pi}]` donde `a` vaya de 1 a 5 de uno en uno, empiece en 2 y se llame `\"frecuencia\"`.",
+    "hints": [
+     "`Manipulate[gráfica, control]`",
+     "El control: `{{variable, inicial, \"etiqueta\"}, mínimo, máximo, paso}`.",
+     "`{{a, 2, \"frecuencia\"}, 1, 5, 1}`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Head[%] === Manipulate",
+       "msg": "La salida debe ser un `Manipulate[...]`."
+      },
+      {
+       "type": "satisfies",
+       "test": "Length[%] == 2",
+       "msg": "Se esperaban 1 controles (uno por parámetro)."
+      },
+      {
+       "type": "satisfies",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{a, i_, _String}, lo_, hi_, st_} /; i == 2 && lo == 1 && hi == 5 && st == 1]",
+       "msg": "El control debe ser `{{a, 2, \"frecuencia\"}, 1, 5, 1}`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "controls": 1,
+       "like": "Plot[Sin[2 x], {x, 0, 2 Pi}]",
+       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide (revisa función e intervalo)."
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Manipulate",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e09",
+    "id": "1-p07-e10",
     "kind": "code",
     "title": "Un control completo",
     "prompt": "Crea un `Manipulate` de `Plot[Sin[k x], {x, 0, 2 Pi}]` en el que `k` recorra los **enteros** de 1 a 8 y empiece valiendo 3.",
@@ -457,7 +701,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e10",
+    "id": "1-p07-e11",
     "kind": "code",
     "title": "Figuras de Lissajous",
     "prompt": "Crea un `Manipulate` de la curva paramétrica `{Sin[a t], Sin[b t]}` con `t` entre 0 y 2π. Controles: `a` entero de 1 a 6 con valor inicial 3, y `b` entero de 1 a 6 con valor inicial 2.",
@@ -515,8 +759,9 @@
   },
   {
    "type": "exercise",
+   "section": "Práctica real · Ejercicio 1: cuatro gráficas y Show",
    "ex": {
-    "id": "1-p07-e11",
+    "id": "1-p07-e12",
     "kind": "code",
     "title": "Real · Ej. 1a: la curva paramétrica",
     "prompt": "Representa la curva en coordenadas paramétricas\n\n`x(t) = 6 Cos[-3 t] + (21/2) Cos[t]`, `y(t) = 6 Sin[-3 t] + (21/2) Sin[t]`, con `0 <= t <= 2 Pi`.\n\nAñade la opción `PlotStyle -> Red` y guarda la gráfica con el nombre `gpar` (sin `;`, para verla).",
@@ -558,7 +803,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e12",
+    "id": "1-p07-e13",
     "kind": "code",
     "title": "Real · Ej. 1b: el punto A",
     "prompt": "Representa el punto `A(2, -4)`, dado en coordenadas cartesianas, y llama `gpoint` a esa gráfica.",
@@ -599,7 +844,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e13",
+    "id": "1-p07-e14",
     "kind": "code",
     "title": "Real · Ej. 1c: rosa de dos pétalos por A",
     "prompt": "Construye una curva en coordenadas polares que sea una **rosa de dos pétalos** tal que uno de ellos llegue justo al punto `A(2, -4)`.\n\n- Ayuda 1: usa `Max` para no representar valores negativos de `ρ`.\n- Ayuda 2: el módulo de `A` se obtiene con `Abs[2 - 4 I]` y el ángulo entre OA y el eje OX con `Arg[2 - 4 I]`.\n\nRepreséntala con el ángulo `t` entre `-2 Pi` y `2 Pi` y la opción `PlotRange -> 4.1`. Llámala `gpol`.",
@@ -646,20 +891,18 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e14",
+    "id": "1-p07-e15",
     "kind": "code",
-    "title": "Real · Ej. 1d y 1e: todo junto con Show",
-    "prompt": "Las gráficas `gpar`, `gpoint` y `gpol` de los apartados anteriores ya están definidas.\n\n1. Representa la curva `y = 7.5 + Sin[x]` en el intervalo `[-10, 10]` con la opción `PlotStyle -> Orange`. Llámala `gcar` y oculta su salida con `;`.\n2. Usa `Show` para representar juntas `gpar`, `gpol`, `gcar` y `gpoint`, **en ese orden**.",
-    "difficulty": 3,
+    "title": "Real · Ej. 1d: la curva cartesiana",
+    "prompt": "Representa la curva `y = 7.5 + Sin[x]` en el intervalo `[-10, 10]` con la opción `PlotStyle -> Orange`. Llámala `gcar` (sin `;`, para verla).",
+    "difficulty": 2,
     "cmds": [
      "Plot",
-     "Show",
      "PlotStyle"
     ],
     "real": true,
-    "source": "Práctica 7 · Ejercicio 1, apartados d) y e)",
-    "setup": "gpar = ParametricPlot[{6 Cos[-3 t] + (21/2) Cos[t], 6 Sin[-3 t] + (21/2) Sin[t]}, {t, 0, 2 Pi}, PlotStyle -> Red];\ngpoint = Graphics[Point[{2, -4}]];\ngpol = PolarPlot[Max[Abs[2 - 4 I] Cos[2 (t - Arg[2 - 4 I])], 0], {t, -2 Pi, 2 Pi}, PlotRange -> 4.1];",
-    "solution": "gcar = Plot[7.5 + Sin[x], {x, -10, 10}, PlotStyle -> Orange];\nShow[gpar, gpol, gcar, gpoint]",
+    "source": "Práctica 7 · Ejercicio 1, apartado d)",
+    "solution": "gcar = Plot[7.5 + Sin[x], {x, -10, 10}, PlotStyle -> Orange]",
     "check": {
      "type": "all",
      "checks": [
@@ -670,8 +913,46 @@
       {
        "type": "graphics",
        "dim": 2,
+       "min": 1,
+       "like": "Plot[7.5 + Sin[x], {x, -10, 10}]"
+      }
+     ]
+    },
+    "requires": [
+     "Plot",
+     "PlotStyle",
+     "Orange"
+    ],
+    "hints": [
+     "Un `Plot` normal con una opción de color.",
+     "`gcar = Plot[7.5 + Sin[x], {x, -10, 10}, PlotStyle -> Orange]`"
+    ],
+    "explain": "Una onda naranja a la altura 7.5. Ya tienes las cuatro piezas: `gpar`, `gpoint`, `gpol` y `gcar`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p07-e16",
+    "kind": "code",
+    "title": "Real · Ej. 1e: todo junto con Show",
+    "prompt": "Las cuatro gráficas (`gpar`, `gpoint`, `gpol`, `gcar`) ya están definidas.\n\nUsa `Show` para representar juntas `gpar`, `gpol`, `gcar` y `gpoint`, **en ese orden**.",
+    "difficulty": 3,
+    "cmds": [
+     "Show"
+    ],
+    "real": true,
+    "source": "Práctica 7 · Ejercicio 1, apartado e)",
+    "setup": "gpar = ParametricPlot[{6 Cos[-3 t] + (21/2) Cos[t], 6 Sin[-3 t] + (21/2) Sin[t]}, {t, 0, 2 Pi}, PlotStyle -> Red];\ngpoint = Graphics[Point[{2, -4}]];\ngpol = PolarPlot[Max[Abs[2 - 4 I] Cos[2 (t - Arg[2 - 4 I])], 0], {t, -2 Pi, 2 Pi}, PlotRange -> 4.1];\ngcar = Plot[7.5 + Sin[x], {x, -10, 10}, PlotStyle -> Orange];",
+    "solution": "Show[gpar, gpol, gcar, gpoint]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "graphics",
+       "dim": 2,
        "min": 4,
-       "like": "Show[gpar, gpol, Plot[7.5 + Sin[x], {x, -10, 10}], gpoint]",
+       "like": "Show[gpar, gpol, gcar, gpoint]",
        "msg": "En el `Show` deben estar las cuatro gráficas: gpar, gpol, gcar y gpoint."
       },
       {
@@ -682,12 +963,10 @@
      ]
     },
     "requires": [
-     "Plot",
-     "Show",
-     "Orange"
+     "Show"
     ],
     "hints": [
-     "`gcar = Plot[7.5 + Sin[x], {x, -10, 10}, PlotStyle -> Orange];`",
+     "`Show[primera, segunda, ...]`: las cuatro, separadas por comas.",
      "`Show[gpar, gpol, gcar, gpoint]`"
     ],
     "explain": "Como `gpar` va primero, el encuadre es el suyo (unas 17 unidades en cada dirección) y se ve todo: la flor roja, la rosa pequeña en el centro, la onda naranja arriba y el punto A."
@@ -696,9 +975,9 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e15",
+    "id": "1-p07-e17",
     "kind": "code",
-    "title": "Real · Ej. 1e: cambia el orden",
+    "title": "Real · Ej. 1e (2ª parte): cambia el orden",
     "prompt": "Las cuatro gráficas (`gpar`, `gpoint`, `gpol`, `gcar`) ya están definidas.\n\nHaz ahora el segundo `Show` que pide el enunciado: las mismas cuatro gráficas pero **intercambiando las posiciones de `gpar` y `gpol`**. Fíjate en cómo cambia el resultado.",
     "difficulty": 3,
     "cmds": [
@@ -737,11 +1016,116 @@
   },
   {
    "type": "exercise",
+   "section": "Práctica real · Ejercicio 2: polares con manipulador",
    "ex": {
-    "id": "1-p07-e16",
+    "id": "1-p07-e18",
     "kind": "code",
-    "title": "Real · Ej. 2: polares con manipulador",
-    "prompt": "Usa `Manipulate` para animar la curva en polares\n\n`ρ = h + 2 a Cos[t/n]`, con el ángulo `t` entre `-n Pi` y `n Pi`.\n\n- Recorta los radios negativos con `Max[0, ...]`.\n- Añade la opción `PlotRange -> 12` para que el encuadre no cambie al manipular.\n- `h` entre 0 y 4, con valor inicial 2.\n- `a` entre −4 y 4, con valor inicial 0.\n- `n` en los números naturales de 1 a 10, con valor inicial 1 y con la etiqueta `\"nº de lazos\"`.",
+    "title": "Real · Ej. 2 (1/3): la curva con valores fijos",
+    "prompt": "El ejercicio 2 anima la curva en polares `ρ = h + 2 a Cos[t/n]`, con el ángulo `t` entre `-n Pi` y `n Pi`. Antes de animar, dibújala **con valores fijos**: `h = 2`, `a = 1`, `n = 1`.\n\nEs decir: dibuja en polares `Max[0, 2 + 2 Cos[t]]` con `t` entre `-Pi` y `Pi`, y añade la opción `PlotRange -> 12` (así el encuadre no cambiará después).",
+    "difficulty": 2,
+    "cmds": [
+     "PolarPlot",
+     "Max",
+     "PlotRange"
+    ],
+    "real": true,
+    "source": "Práctica 7 · Ejercicio 2, apartado a)",
+    "solution": "PolarPlot[Max[0, 2 + 2 Cos[t]], {t, -Pi, Pi}, PlotRange -> 12]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "like": "PolarPlot[Max[0, 2 + 2 Cos[t]], {t, -Pi, Pi}]"
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{r = Cases[%, (PlotRange -> q_) :> q, Infinity]}, r =!= {} && Max[Abs[N[r[[1, 2]]] - {-12, 12}]] < 0.01]",
+       "msg": "Revisa `PlotRange`: el eje Y debe ir de -12 a 12."
+      }
+     ]
+    },
+    "requires": [
+     "PolarPlot",
+     "Max",
+     "PlotRange"
+    ],
+    "hints": [
+     "`PolarPlot[radio, {t, -Pi, Pi}, PlotRange -> 12]`",
+     "El radio: `Max[0, 2 + 2 Cos[t]]`."
+    ],
+    "explain": "Una cardioide pequeña en una ventana grande. `Max[0, ...]` evita dibujar radios negativos y `PlotRange -> 12` deja sitio para cuando los parámetros crezcan."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p07-e19",
+    "kind": "code",
+    "title": "Real · Ej. 2 (2/3): manipular h y a",
+    "prompt": "Ahora cambia los números por letras y envuelve la gráfica en `Manipulate`, de momento con `n = 1` fijo:\n\n`PolarPlot[Max[0, h + 2 a Cos[t]], {t, -Pi, Pi}, PlotRange -> 12]`\n\n- `h` entre 0 y 4, con valor inicial 2.\n- `a` entre −4 y 4, con valor inicial 0.",
+    "difficulty": 3,
+    "cmds": [
+     "Manipulate",
+     "PolarPlot"
+    ],
+    "real": true,
+    "source": "Práctica 7 · Ejercicio 2, apartados b) y c)",
+    "solution": "Manipulate[PolarPlot[Max[0, h + 2 a Cos[t]], {t, -Pi, Pi}, PlotRange -> 12], {{h, 2}, 0, 4}, {{a, 0}, -4, 4}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Head[%] === Manipulate",
+       "msg": "La salida debe ser un `Manipulate[...]`."
+      },
+      {
+       "type": "satisfies",
+       "test": "Length[%] == 3",
+       "msg": "Se esperaban 2 controles (uno por parámetro)."
+      },
+      {
+       "type": "satisfies",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{h, i_, ___}, lo_, hi_} /; i == 2 && lo == 0 && hi == 4]",
+       "msg": "Revisa el control de `h`: de 0 a 4 con valor inicial 2, `{{h, 2}, 0, 4}`."
+      },
+      {
+       "type": "satisfies",
+       "test": "MemberQ[Table[%[[j]], {j, 2, Length[%]}], {{a, i_, ___}, lo_, hi_} /; i == 0 && lo == -4 && hi == 4]",
+       "msg": "Revisa el control de `a`: de −4 a 4 con valor inicial 0, `{{a, 0}, -4, 4}`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "controls": 2,
+       "like": "PolarPlot[2, {t, -Pi, Pi}]",
+       "msg": "El primer argumento de `Manipulate` debe ser el gráfico que se pide (revisa función e intervalo)."
+      }
+     ]
+    },
+    "requires": [
+     "Manipulate",
+     "PolarPlot",
+     "PlotRange",
+     "Max"
+    ],
+    "hints": [
+     "`Manipulate[PolarPlot[...], control de h, control de a]`",
+     "Controles con valor inicial: `{{h, 2}, 0, 4}` y `{{a, 0}, -4, 4}`."
+    ],
+    "explain": "Con `a = 0` es una circunferencia de radio `h`. Al mover `a` se deforma y aparece un lazo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p07-e20",
+    "kind": "code",
+    "title": "Real · Ej. 2 (3/3): el número de lazos",
+    "prompt": "La versión completa: `ρ = h + 2 a Cos[t/n]`, con `t` entre `-n Pi` y `n Pi`.\n\n- Recorta los radios negativos con `Max[0, ...]` y fija `PlotRange -> 12`.\n- `h` entre 0 y 4, con valor inicial 2.\n- `a` entre −4 y 4, con valor inicial 0.\n- `n` en los números naturales de 1 a 10, con valor inicial 1 y con la etiqueta `\"nº de lazos\"`.",
     "difficulty": 4,
     "cmds": [
      "Manipulate",
@@ -750,7 +1134,7 @@
      "PlotRange"
     ],
     "real": true,
-    "source": "Práctica 7 · Ejercicio 2",
+    "source": "Práctica 7 · Ejercicio 2, apartados d) y e)",
     "solution": "Manipulate[PolarPlot[Max[0, h + 2 a Cos[t/n]], {t, -n Pi, n Pi}, PlotRange -> 12], {{h, 2}, 0, 4}, {{a, 0}, -4, 4}, {{n, 1, \"nº de lazos\"}, 1, 10, 1}]",
     "check": {
      "type": "all",
@@ -796,17 +1180,18 @@
      "Max"
     ],
     "hints": [
-     "La gráfica: `PolarPlot[Max[0, h + 2 a Cos[t/n]], {t, -n Pi, n Pi}, PlotRange -> 12]`.",
-     "Controles con valor inicial: `{{h, 2}, 0, 4}` y `{{a, 0}, -4, 4}`.",
-     "Naturales con etiqueta: `{{n, 1, \"nº de lazos\"}, 1, 10, 1}`."
+     "Respecto al paso anterior cambian tres cosas: `Cos[t/n]`, el intervalo `{t, -n Pi, n Pi}` y un control más.",
+     "Naturales con etiqueta: `{{n, 1, \"nº de lazos\"}, 1, 10, 1}`.",
+     "Los otros dos controles no cambian: `{{h, 2}, 0, 4}, {{a, 0}, -4, 4}`."
     ],
-    "explain": "Con `a = 0` es una circunferencia de radio `h`. Al mover `a` aparecen lazos, y `n` controla cuántas vueltas da la curva antes de cerrarse. En la prueba había que dejar los deslizadores en los valores que daba el profesor antes de guardar."
+    "explain": "`n` controla cuántas vueltas da la curva antes de cerrarse. En la prueba había que dejar los deslizadores en los valores que daba el profesor antes de guardar."
    }
   },
   {
    "type": "exercise",
+   "section": "Examen: paramétricas y polares",
    "ex": {
-    "id": "1-p07-e17",
+    "id": "1-p07-e21",
     "kind": "code",
     "title": "Real · Examen: arco en paramétricas",
     "prompt": "Primer apartado de la pregunta de curvas paramétricas del examen de Mathematica de enero (PL1):\n\nRepresenta el arco de curva de ecuaciones paramétricas `(x(t), y(t)) = (3 t^2/4 - 1, 20 Sin[3 t/5])` con `-5 Pi/3 < t < 5 Pi/3`.\n\nDefine antes las funciones `x[t_]` e `y[t_]`: las necesitarás después para el área y la longitud (Práctica 10).",
@@ -848,7 +1233,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p07-e18",
+    "id": "1-p07-e22",
     "kind": "code",
     "title": "Real · Examen: polar y rectas en la misma gráfica",
     "prompt": "Primer paso de la pregunta de polares del examen de enero (PL1):\n\nRepresenta **juntos** el arco de curva en polares `ρ = Sqrt[48] - 3 Sin[5 a]`, con `a` entre 0 y `Pi`, y las rectas en cartesianas `y = x/Sqrt[3]` e `y = -Sqrt[3] x`, con `x` entre −5 y 5.\n\nGuarda la curva en `p`, las dos rectas (en un solo `Plot`) en `q`, y júntalas con `Show[p, q]`.",

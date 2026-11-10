@@ -9,6 +9,8 @@ this module installs featherweight stand-ins so that `import scipy`, `import PIL
 scipy are re-implemented here in a few lines so results match a CPython+scipy install:
   * scipy.integrate.quad / nquad  → adaptive Gauss–Kronrod (G7,K15), used by NIntegrate;
   * scipy.special.<fn>            → mpmath equivalents, used by lambdified numeric functions.
+pint (units, used only by Quantity/UnitConvert) is real but imported lazily: building its UnitRegistry costs
+about a second of start-up that almost no session needs.
 
     import wlboot; wlboot.install()            # browser (kernel-worker.js does this)
     import wlboot; wlboot.install(force=True)  # CPython: simulate the browser even if scipy & co. exist
@@ -243,9 +245,81 @@ def _really_installed(name):
     return False
 
 
+# ----------------------------------------------------------------------------- lazy pint
+_ureg = None
+
+
+def _pint_registry():
+    """Import the real pint and build its UnitRegistry (≈1 s in the browser) the first time a unit is used."""
+    global _ureg
+    if _ureg is None:
+        for k in [k for k in sys.modules if k == "pint" or k.startswith("pint.")]:
+            del sys.modules[k]
+        import pint
+        import pint.errors
+
+        _ureg = pint.UnitRegistry()
+        for modname in ("mathics.eval.quantities", "mathics.builtin.quantities"):
+            mod = sys.modules.get(modname)
+            for name in ("DimensionalityError", "UndefinedUnitError"):
+                if mod is not None and hasattr(mod, name):
+                    setattr(mod, name, getattr(pint.errors, name))
+    return _ureg
+
+
+class _LazyUnits:
+    """Stands for `ureg` (and anything reached from it, like ureg.Quantity) until it is really used."""
+
+    def __init__(self, path=()):
+        self.__dict__["_path"] = path
+
+    def _real(self):
+        obj = _pint_registry()
+        for name in self._path:
+            obj = getattr(obj, name)
+        return obj
+
+    def __getattr__(self, key):
+        if key.startswith("__") and key.endswith("__"):
+            raise AttributeError(key)
+        return _LazyUnits(self._path + (key,))
+
+    def __call__(self, *args, **kwargs):
+        return self._real()(*args, **kwargs)
+
+    def __getitem__(self, key):
+        return self._real()[key]
+
+    def __contains__(self, key):
+        return key in self._real()
+
+    def __iter__(self):
+        return iter(self._real())
+
+
+def _install_lazy_pint():
+    if "pint" in sys.modules:
+        return
+    pint = types.ModuleType("pint")
+    errors = types.ModuleType("pint.errors")
+
+    class DimensionalityError(Exception):
+        pass
+
+    class UndefinedUnitError(Exception):
+        pass
+
+    errors.DimensionalityError, errors.UndefinedUnitError = DimensionalityError, UndefinedUnitError
+    pint.errors = errors
+    pint.UnitRegistry = lambda *a, **k: _LazyUnits()
+    pint.__version__ = "lazy"
+    sys.modules["pint"], sys.modules["pint.errors"] = pint, errors
+
+
 def install(force=False):
     """Install the stand-ins. Returns the tuple of package names that are stubbed."""
     global _installed
+    _install_lazy_pint()
     names = tuple(n for n in STUBBED if force or not _really_installed(n))
     if _installed or not names:
         return names

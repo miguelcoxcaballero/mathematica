@@ -35,9 +35,14 @@ class SympyTimeout(Exception):
 def _dbg():
     """Print the current traceback when WLX_DEBUG is set (native debugging only)."""
     if os.environ.get("WLX_DEBUG"):
+        import sys
         import traceback
 
-        traceback.print_exc()
+        et, ev_, tb = sys.exc_info()
+        frames = traceback.extract_tb(tb)
+        own = [f for f in frames if "wlkernel" in f.filename][-3:]
+        print("WLX_DEBUG %s: %s | %s" % (et.__name__, str(ev_)[:200], " <- ".join(
+            "%s:%d %s" % (f.filename.split("/")[-1], f.lineno, f.name) for f in reversed(own))), file=sys.stderr)
 
 
 def _tick_check():
@@ -210,18 +215,36 @@ class LaplaceTransform(XB):
 
     def eval(self, f, t, s, evaluation):
         "LaplaceTransform[f_, t_Symbol, s_]"
-        c = Conv(positive=[t.get_name()])
+        from . import calc
+
+        tn = t.get_name()
+        params = [nm for nm in _user_symbols(f) if nm != tn]
+        c = Conv(positive=[tn], real=params)
         try:
-            fs = _heaviside_fix(c.to(f))
-            ss = c.to(s)
-            # treat s as positive for convergence, then substitute back
-            sd = sp.Symbol("WLX`sdummy", positive=True)
-            r = sp.laplace_transform(fs, c.sym(t.get_name()), sd, noconds=True)
-            if r.has(sp.LaplaceTransform) or r.has(sp.Integral):
+            fs = c.to(f)
+            ts = c.sym(tn)
+            if fs.atoms(sp.core.function.AppliedUndef) or fs.has(sp.Derivative, sp.Subs, sp.Integral):
                 return None
+            ss = c.to(s)
+            sd = sp.Symbol("WLX`sdummy", positive=True)
+            r = None
+            try:
+                with budget(6.0):
+                    r = calc.laplace_fast(fs, ts, sd)
+            except Exception:
+                _dbg()
+                r = None
+            if r is None:
+                with budget(8.0):
+                    fs2 = _heaviside_fix(fs)
+                    r = sp.laplace_transform(fs2, ts, sd, noconds=True)
+                    if r.has(sp.LaplaceTransform) or r.has(sp.Integral):
+                        return None
+                    r = calc.real_form(simp_light(r)) if r.has(sp.I) else simp_light(r)
             r = r.subs(sd, ss)
-            return c.back(simp_light(r)).evaluate(evaluation)
+            return c.back(r).evaluate(evaluation)
         except Exception:
+            _dbg()
             return None
 
 
@@ -237,35 +260,115 @@ def simp_light(r):
 class InverseLaplaceTransform(XB):
     def eval(self, F, s, t, evaluation):
         "InverseLaplaceTransform[F_, s_Symbol, t_]"
-        c = Conv(positive=[])
+        from . import calc
+
+        if not is_free_of(F, "System`LaplaceTransform") or not is_free_of(F, "System`InverseLaplaceTransform"):
+            return None
+        sn = s.get_name()
+        params = [nm for nm in _user_symbols(F) if nm != sn]
+        c = Conv(real=params)
         try:
             Fs = c.to(F)
-            ssym = c.sym(s.get_name())
+            if Fs.atoms(sp.core.function.AppliedUndef) or Fs.has(sp.Derivative, sp.Subs, sp.Integral):
+                return None
+            ssym = c.sym(sn)
             td = sp.Symbol("WLX`tdummy", positive=True)
-            try:
-                Fa = sp.apart(Fs, ssym)
-            except Exception:
-                Fa = Fs
-            terms = sp.Add.make_args(Fa)
-            total = 0
-            for term in terms:
-                r = sp.inverse_laplace_transform(term, ssym, td)
-                if r.has(sp.InverseLaplaceTransform):
-                    return None
-                total += r
-            total = total.subs(td, c.to(t))
-            # Heaviside(t) is 1 for t>0 (WL omits it); keep shifted ones
             tt = c.to(t)
-            total = total.replace(lambda e: isinstance(e, sp.Heaviside) and e.args[0] == tt, lambda e: sp.Integer(1))
-            total = _heaviside_fix(total)
-            total = sp.expand(total)
+            total = None
             try:
-                total = total.rewrite(sp.cos).simplify() if total.has(sp.I) else total
+                with budget(8.0):
+                    total = calc.inverse_laplace_fast(rationalize_floats(Fs), ssym, td)
             except Exception:
-                pass
-            return c.back(total).evaluate(evaluation)
+                _dbg()
+                total = None
+            if total is None:
+                with budget(8.0):
+                    try:
+                        Fa = sp.apart(Fs, ssym)
+                    except Exception:
+                        Fa = Fs
+                    total = 0
+                    for term in sp.Add.make_args(Fa):
+                        r = sp.inverse_laplace_transform(term, ssym, td)
+                        if r.has(sp.InverseLaplaceTransform):
+                            return None
+                        total += r
+                    total = total.replace(lambda e: isinstance(e, sp.Heaviside) and e.args[0] == td, lambda e: sp.Integer(1))
+                    total = _heaviside_fix(sp.expand(total))
+                    if total.has(sp.I):
+                        total = calc.real_form(total)
+            had_float = bool(Fs.atoms(sp.Float))
+            total = total.subs(td, tt)
+            if total.has(sp.Heaviside):
+                total = sp.collect(sp.expand(total), list(total.atoms(sp.Heaviside)))
+            res = c.back(total)
+            if had_float:
+                res = E("N", res)
+            return res.evaluate(evaluation)
         except Exception:
+            _dbg()
             return None
+
+
+def rationalize_floats(s_):
+    fl = s_.atoms(sp.Float)
+    if not fl:
+        return s_
+    return s_.xreplace({f: sp.Rational(str(f)) for f in fl})
+
+
+class XConvolveCausal(XB):
+    """WLX`ConvolveQ[f, g, t, x]: convolution of two causal functions (UnitStep/HeavisideTheta factors)
+    through the Laplace transform; result via WLX`ConvolveGet[]."""
+    name = "ConvolveQ"
+    context = "WLX`"
+
+    def eval(self, f, g, t, x, evaluation):
+        "WLX`ConvolveQ[f_, g_, t_Symbol, x_]"
+        from . import calc
+
+        try:
+            names = ("System`UnitStep", "System`HeavisideTheta")
+            if not (_has_head(f, names) and _has_head(g, names)):
+                return SymbolFalse
+            tn = t.get_name()
+            c = Conv(real=[tn] + [nm for nm in _user_symbols(E("List", f, g)) if nm != tn])
+            fs, gs = c.to(f), c.to(g)
+            ts = c.sym(tn)
+            # both must vanish for t < 0
+            for h in (fs, gs):
+                pcs = calc.split_pieces(h, ts, -sp.oo, sp.Integer(0))
+                if pcs is None or any(p_[2] != 0 for p_ in pcs):
+                    return SymbolFalse
+            sd = sp.Symbol("WLX`sdummy", positive=True)
+            tp = sp.Symbol("WLX`tpos", positive=True)
+            with budget(10.0):
+                Lf = calc.laplace_fast(fs.subs(ts, tp), tp, sd)
+                Lg = calc.laplace_fast(gs.subs(ts, tp), tp, sd)
+                if Lf is None or Lg is None:
+                    return SymbolFalse
+                h = calc.inverse_laplace_fast(Lf * Lg, sd, tp)
+            if h is None:
+                return SymbolFalse
+            xs = c.to(x)
+            h = sp.simplify(h) if h.count_ops() < 300 and not h.has(sp.Heaviside) else h
+            if not h.has(sp.Heaviside):
+                res = sp.Heaviside(xs, 1) * h.subs(tp, xs)
+            else:
+                res = h.subs(tp, xs)
+            return _stash("conv", c.back(res).evaluate(evaluation))
+        except Exception:
+            _dbg()
+            return SymbolFalse
+
+
+class XConvolveGet(XB):
+    name = "ConvolveGet"
+    context = "WLX`"
+
+    def eval(self, evaluation):
+        "WLX`ConvolveGet[]"
+        return _RESULT.pop("conv", None)
 
 
 # ------------------------------------------------------------------ DSolve
@@ -1349,6 +1452,16 @@ def _fs_setup(f, x, options, ev):
 
 
 def _integ(expr, xs, lo, hi):
+    from . import calc
+
+    try:
+        val = calc.definite_fast(expr, xs, sp.sympify(lo), sp.sympify(hi))
+        if val is not None:
+            return sp.simplify(val) if val.count_ops() < 200 else val
+    except SympyTimeout:
+        raise
+    except Exception:
+        pass
     val = sp.integrate(expr, (xs, lo, hi))
     if val.has(sp.Integral):
         val = sp.integrate(sp.piecewise_fold(expr), (xs, lo, hi))
@@ -2015,8 +2128,20 @@ class IntQ(XB):
         xs = c.sym(xn)
         if fs.atoms(sp.core.function.AppliedUndef) or fs.has(sp.Derivative, sp.Subs):
             return None
+        from . import calc
+
         if not definite:
             r = _heaviside_antiderivative(fs, xs) if fs.has(sp.Heaviside) else None
+            if r is None and not piecewise and fs.has(sp.exp, sp.sin, sp.cos, sp.sinh, sp.cosh):
+                r = calc.exp_poly_antiderivative(fs, xs)
+                if r is not None:
+                    return c.back(_tidy_antiderivative(_trig_tidy(r), xs)).evaluate(ev)
+                try:
+                    r = _exp_substitution(fs, xs)
+                except SympyTimeout:
+                    raise
+                except Exception:
+                    r = None
             if r is None:
                 r = sp.integrate(fs, xs)
             if (r.has(sp.Integral) or r.has(sp.meijerg)) and piecewise:
@@ -2028,6 +2153,41 @@ class IntQ(XB):
             return c.back(_tidy_antiderivative(r, xs)).evaluate(ev)
         a, b = c.to(spec.elements[1]), c.to(spec.elements[2])
         r = None
+        if a == b:
+            return Integer(0)
+        inexact = bool(fs.atoms(sp.Float)) or bool(a.atoms(sp.Float)) or bool(b.atoms(sp.Float))
+        if fs.has(sp.Pow) and fs.has(sp.cos, sp.sin):
+            fs2 = calc.half_angle_radicals(fs, xs)
+            if fs2 != fs:
+                fs, piecewise = fs2, True
+        if inexact and not (fs.free_symbols - {xs}) and not a.free_symbols and not b.free_symbols:
+            # decimals in, decimals out: exact machinery only if it is quick
+            try:
+                with budget(2.5):
+                    r = calc.definite_fast(fs, xs, a, b)
+                    if r is None:
+                        r = sp.integrate(fs, (xs, a, b))
+                    if r is not None and (r.has(sp.Integral) or r.free_symbols or r is sp.nan):
+                        r = None
+            except Exception:
+                r = None
+            if r is None:
+                r = calc.numeric_integral(fs, xs, a, b)
+            if r is None:
+                return None
+            return c.back(sp.N(r)).evaluate(ev)
+        try:
+            r = calc.definite_fast(fs, xs, a, b)
+        except SympyTimeout:
+            raise
+        except Exception:
+            _dbg()
+            r = None
+        if r is not None:
+            return c.back(self._finish(_trig_tidy(r))).evaluate(ev)
+        r = self._by_pieces(fs, xs, a, b) if piecewise else None
+        if r is not None:
+            return c.back(self._finish(r)).evaluate(ev)
         try:
             r = sp.integrate(fs, (xs, a, b))
         except SympyTimeout:
@@ -2058,6 +2218,36 @@ class IntQ(XB):
             return None
         r = _generic_branch(r, xs)
         return c.back(self._finish(r)).evaluate(ev)
+
+    @staticmethod
+    def _by_pieces(fs, xs, a, b):
+        """Piecewise integrand with numeric limits: integrate each smooth piece with SymPy."""
+        from . import calc
+
+        if a.free_symbols or b.free_symbols:
+            return None
+        try:
+            fa = float(sp.N(a)) if a != -sp.oo else float("-inf")
+            fb = float(sp.N(b)) if b != sp.oo else float("inf")
+        except Exception:
+            return None
+        sign = 1
+        if fa > fb:
+            a, b, sign = b, a, -1
+        pieces = calc.split_pieces(fs, xs, a, b)
+        if pieces is None or len(pieces) == 1 and pieces[0][2] == fs:
+            return None
+        total = 0
+        for lo, hi, g in pieces:
+            if g == 0:
+                continue
+            v = calc.exp_poly_definite(g, xs, lo, hi) if lo not in (sp.oo, -sp.oo) and hi not in (sp.oo, -sp.oo) else None
+            if v is None:
+                v = sp.integrate(g, (xs, lo, hi))
+            if v.has(sp.Integral) or v in (sp.nan,):
+                return None
+            total += v
+        return sign * total
 
     @staticmethod
     def _finish(r):
@@ -2107,6 +2297,19 @@ def _heaviside_antiderivative(fs, xs):
         else:   # H(a - x) = 1 - H(x - a)
             total += G - sp.Heaviside(xs - a) * sp.expand(G - G.subs(xs, a))
     return total
+
+
+def _trig_tidy(r):
+    """Light clean-up of the closed forms produced by calc (collect common factors, no heavy simplify)."""
+    try:
+        if r.count_ops() > 600:
+            return r
+        r2 = sp.factor_terms(sp.together(r)) if r.count_ops() < 250 else r
+        return r2 if r2.count_ops() <= r.count_ops() else r
+    except SympyTimeout:
+        raise
+    except Exception:
+        return r
 
 
 def _tidy_antiderivative(r, xs):
@@ -2310,7 +2513,7 @@ BUILTINS = [LaplaceTransform, InverseLaplaceTransform, SeriesQ, SeriesGet, DSolv
             FourierCoefficient, FourierSinCoefficient, FourierCosCoefficient, FourierSinSeries, FourierCosSeries,
             ZTransform, InverseZTransform, SumConvergence, TrigReduce, TrigFactor, JordanDecomposition, Fit,
             InterpolatingPolynomial, PolynomialQuotient, PolynomialRemainder, Reduce, XSympySimplify, Dt,
-            IntQ, IntGet,
+            IntQ, IntGet, XConvolveCausal, XConvolveGet,
             XTimingNote]
 
 

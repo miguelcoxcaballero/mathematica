@@ -832,7 +832,8 @@
      "title": "Taylor y Laurent",
      "commands": [
       "Series",
-      "Normal"
+      "Normal",
+      "SeriesCoefficient"
      ]
     },
     {

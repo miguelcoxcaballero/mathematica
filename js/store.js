@@ -249,8 +249,8 @@ export const store = {
     const exOk = exIds.length ? exIds.filter((id) => state.ex[id]?.ok).length : countOkByPrefix(lessonId);
     const visited = L ? Math.min(n || Infinity, (L.max ?? L.step ?? 0) + 1) : 0;
     if (!n) return L || exOk ? Math.min(.9, .05 + exOk * .06) : 0;
-    const total = n + exIds.length;
-    return Math.max(0, Math.min(.99, (visited + exOk) / total));
+    if (!exIds.length) return Math.max(0, Math.min(.99, visited / n)); // sin lista de ejercicios: solo pasos
+    return Math.max(0, Math.min(.99, (visited + exOk) / (n + exIds.length)));
   },
 
   /** {done, total|null} de ejercicios de una lección. */

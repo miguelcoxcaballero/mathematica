@@ -164,11 +164,14 @@ async function init() {
     ? fetchBytes(url(manifest.bundle.file), { expect: manifest.bundle.bytes }).catch((e) => ({ failed: e }))
     : Promise.resolve({ failed: new Error('no bundle') });
   const bootP = fetchBytes(url(manifest.boot + v), { cache: false });
-  const engineP = manifest.engine.files.map((f) => fetchBytes(url(manifest.engine.dir + f + v), { cache: false }));
+  // (GitHub Pages without a .nojekyll file refuses to serve files starting with "_": an empty __init__.py is fine.)
+  const engineP = manifest.engine.files.map((f) => fetchBytes(url(manifest.engine.dir + f + v), { cache: false })
+    .catch((e) => { if (f === '__init__.py') return new ArrayBuffer(0); throw e; }));
 
   const { loadPyodide } = await import(/* @vite-ignore */ pyo.indexURL + 'pyodide.mjs');
   const quiet = (s) => { if (!/Not able to load|mathics\.builtin loads from|^\s*$|^ImportError/.test(s)) console.log('[py]', s); };
-  py = await loadPyodide({ indexURL: pyo.indexURL, stdout: quiet, stderr: quiet });
+  // stdLibURL: the byte-compiled standard library of the same release (no .py → bytecode step while booting)
+  py = await loadPyodide({ indexURL: pyo.indexURL, stdLibURL: pyo.pycURL + 'python_stdlib.zip', stdout: quiet, stderr: quiet });
   mark('pyodide');
   if (py.version !== pyo.version) console.warn('[kernel] Pyodide', py.version, '≠', pyo.version);
   const numpyP = py.loadPackage(manifest.cdn.binary, { messageCallback: () => {} });
@@ -178,7 +181,13 @@ async function init() {
   for (let i = 0; i < pure.length; i++) {
     const buf = await pureP[i];
     if (buf.failed) { fallback.push(pure[i].name); continue; }
-    try { py.unpackArchive(buf, 'wheel'); } catch (e) { console.warn('[kernel]', pure[i].name, e); fallback.push(pure[i].name); }
+    try {
+      if (pure[i].zip) { // byte-compiled wheel straight onto sys.path (zipimport): no unpacking of ~1500 files
+        py.FS.mkdirTree('/wl');
+        py.FS.writeFile(`/wl/${pure[i].name}.zip`, new Uint8Array(buf));
+        py.runPython(`import sys; sys.path.insert(0, "/wl/${pure[i].name}.zip")`);
+      } else py.unpackArchive(buf, 'wheel');
+    } catch (e) { console.warn('[kernel]', pure[i].name, e); fallback.push(pure[i].name); }
   }
   await numpyP;
   if (fallback.length) await py.loadPackage(fallback, { messageCallback: () => {} });

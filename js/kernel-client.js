@@ -144,8 +144,13 @@ function start() {
       return new Promise((r) => setTimeout(r, 1200)).then(() => start());
     }
     retries = 0;
+    if (/Failed to fetch|NetworkError|Load failed|HTTP \d+|importing a module script failed/i.test(String(err && err.message))) {
+      const detail = String(err.message || '');
+      err = new Error('No se pudo descargar el motor (¿sin conexión a internet?). Comprueba la conexión y vuelve a intentarlo.');
+      err.detail = detail;
+    }
     kernel.error = err;
-    kernel.progress = { phase: 'No se pudo cargar el kernel: ' + (err.message || err), pct: 0 };
+    kernel.progress = { phase: /^No se pudo/.test(err.message) ? err.message : 'No se pudo cargar el kernel: ' + (err.message || err), pct: 0 };
     setStatus('error');
     throw err;
   });

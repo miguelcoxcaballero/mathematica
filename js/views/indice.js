@@ -84,8 +84,7 @@ function build(course, cmds) {
     h('p', null, 'Cada unidad es una práctica real de tu carrera, ordenadas de lo más simple a lo más completo. Nada está bloqueado: el orden es una recomendación.'),
     h('p', { class: 'idx-now' },
       `${doneN} de ${units.length} lecciones completadas`, minsLeft > 0 ? ` · quedan unas ${fmtMin(Math.round(minsLeft / 5) * 5)}` : '',
-      nx && !nx.allDone ? [' · ', h('a', { class: 'more', href: '#', onclick: (e) => { e.preventDefault(); focusUnit(nx.unit.lesson); } }, `Siguiente: ${nx.unit.practice || nx.unit.title}`)] : null,
-      (course.years || []).length > 1 ? (course.years || []).map((y) => [' · ', h('a', { href: `#/indice?curso=${y.year}` }, `Ir a ${y.year}º`)]) : null)));
+      nx && !nx.allDone ? [' · ', h('button', { class: 'btn link more', type: 'button', onclick: () => focusUnit(nx.unit.lesson) }, `Siguiente: ${nx.unit.practice || nx.unit.title}`)] : null)));
 
   let n = 0;
   for (const y of course.years || []) {

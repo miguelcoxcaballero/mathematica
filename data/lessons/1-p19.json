@@ -28,18 +28,56 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "Funciones de dos variables",
-   "md": "La presión sobre un ala depende de dos coordenadas; la sustentación, de la velocidad y de la densidad. En cuanto hay **dos variables**, la gráfica deja de ser una curva y pasa a ser una **superficie**. En esta práctica aprendes a definirlas y a dibujarlas; la prueba real son tres gráficos.\n\nSe definen igual que las de una variable, con un guion bajo por cada argumento:\n\n`f[x_, y_] := x^2 - y^2`\n\n- `x_`, `y_` (con guion bajo) solo a la **izquierda**: significan «cualquier cosa que pongas aquí».\n- `:=` guarda la receta; `=` la evalúa en el momento. Para fórmulas sencillas sirven las dos.\n- Para evaluar: `f[1, 2]`, con corchetes y coma.",
-   "cells": [
+   "type": "build",
+   "section": "Funciones de dos variables",
+   "title": "Definir una función de dos variables",
+   "md": "La presión sobre un ala depende de dos coordenadas. Con **dos variables**, la gráfica deja de ser una curva y pasa a ser una superficie. Primero hay que saber definir la función.",
+   "target": "f[x_, y_] := x^2 - y^2\nf[1, 2]",
+   "parts": [
     {
-     "code": "f[x_, y_] := x^2 - y^2\nf[1, 2]",
-     "note": "1 - 4"
+     "code": "f[x_, y_]",
+     "md": "La cabecera: un guion bajo por cada argumento. `x_` significa «cualquier cosa que pongas aquí»."
     },
     {
-     "code": "f[a, 0]",
-     "note": "también con símbolos"
+     "code": "f[x_, y_] := x^2 - y^2",
+     "md": "`:=` guarda la receta. A la derecha, las variables van **sin** guion bajo. No devuelve nada: solo define.",
+     "run": true
+    },
+    {
+     "code": "f[1, 2]",
+     "md": "Para evaluar: corchetes y coma. Sale 1 - 4.",
+     "run": true
+    },
+    {
+     "code": "f[x_, y_] := x^2 - y^2\nf[1, 2]",
+     "md": "Las dos líneas: definir y evaluar.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `f[x_, y_] := x^2 - y^2` y evalúala en (1, 2).",
+    "hints": [
+     "Cabecera con guiones bajos: `f[x_, y_]`",
+     "`:=` y la fórmula sin guiones bajos",
+     "Segunda línea: `f[1, 2]`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[a, b]",
+       "expected": "a^2 - b^2"
+      },
+      {
+       "type": "expr",
+       "expected": "-3"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "SetDelayed"
    ]
   },
   {
@@ -118,18 +156,46 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Plot3D: la superficie z = f(x, y)",
-   "md": "`Plot3D[f, {x, a, b}, {y, c, d}]` dibuja la superficie `z = f(x, y)` sobre el rectángulo `[a, b] × [c, d]`.\n\n- Primer argumento: la expresión (o `f[x, y]` si ya la tienes definida).\n- `{x, a, b}` = variable, desde, hasta. Y lo mismo para `y`. **Dos** listas, porque hay dos variables.\n\nEl gráfico se puede **girar arrastrando** con el ratón.",
-   "cells": [
+   "type": "build",
+   "section": "Superficies con Plot3D",
+   "title": "La superficie z = f(x, y)",
+   "md": "`Plot3D` dibuja la superficie `z = f(x, y)` sobre un rectángulo. Es como `Plot`, con un rango más. El resultado se puede **girar arrastrando**.",
+   "target": "Plot3D[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]",
+   "parts": [
     {
-     "code": "Plot3D[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]",
-     "note": "una silla de montar"
+     "code": "x^2 - y^2",
+     "md": "La función de dos variables (aquí, una silla de montar)."
     },
     {
-     "code": "f[x_, y_] := Exp[-(x^2 + y^2)]\nPlot3D[f[x, y], {x, -2, 2}, {y, -2, 2}]",
-     "note": "con una función ya definida"
+     "code": "{x, -2, 2}",
+     "md": "El rango de `x`: variable, desde, hasta."
+    },
+    {
+     "code": "{y, -2, 2}",
+     "md": "Y el de `y`. Dos variables → **dos** listas."
+    },
+    {
+     "code": "Plot3D[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]",
+     "md": "Función primero, luego los dos rangos, todo separado por comas.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja `x^2 - y^2` para x e y entre -2 y 2.",
+    "hints": [
+     "`Plot3D[función, rango de x, rango de y]`",
+     "Cada rango: `{variable, desde, hasta}`",
+     "`Plot3D[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "like": "Plot3D[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]"
+    }
+   },
+   "cmds": [
+    "Plot3D"
    ]
   },
   {
@@ -193,22 +259,92 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Opciones: PlotRange, Opacity, AxesLabel",
-   "md": "Las opciones van **al final**, separadas por comas, con la forma `Nombre -> valor`.\n\n- `PlotRange -> {zmin, zmax}` → recorta en vertical. Imprescindible cuando la función se dispara y aplasta todo lo interesante.\n- `PlotStyle -> Opacity[0.3]` → superficie transparente (0 = invisible, 1 = opaca). 0.3 es «opacidad del 30 %».\n- `AxesLabel -> {\"X\", \"Y\", \"Z\"}` → nombres de los ejes, entre comillas.\n- Otras útiles: `Mesh -> None` (sin rejilla), `PlotPoints -> 40` (más detalle).\n\nCompara las dos primeras celdas: la misma función, sin y con `PlotRange`.",
-   "cells": [
+   "type": "build",
+   "section": "Opciones de Plot3D",
+   "title": "Recortar con PlotRange",
+   "md": "Cuando la función se dispara, el pico aplasta todo lo interesante. `PlotRange` recorta en vertical.",
+   "target": "Plot3D[1/(x^2 + y^2), {x, -1, 1}, {y, -1, 1}, PlotRange -> {0, 10}]",
+   "parts": [
     {
      "code": "Plot3D[1/(x^2 + y^2), {x, -1, 1}, {y, -1, 1}]",
-     "note": "el pico del origen se come el gráfico"
+     "md": "Sin recortar: el pico del origen se come el gráfico.",
+     "run": true
+    },
+    {
+     "code": "PlotRange -> {0, 10}",
+     "md": "Una opción: nombre, flecha `->`, valor. Aquí, z entre 0 y 10."
     },
     {
      "code": "Plot3D[1/(x^2 + y^2), {x, -1, 1}, {y, -1, 1}, PlotRange -> {0, 10}]",
-     "note": "recortado: ya se ve la forma"
+     "md": "Las opciones van **al final**, después de los rangos. Ahora se ve la forma.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja `1/(x^2 + y^2)` en [-1, 1] × [-1, 1] recortando z entre 0 y 10.",
+    "hints": [
+     "El `Plot3D` de siempre y, al final, una opción",
+     "`PlotRange -> {0, 10}`",
+     "`Plot3D[1/(x^2 + y^2), {x, -1, 1}, {y, -1, 1}, PlotRange -> {0, 10}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "like": "Plot3D[1/(x^2 + y^2), {x, -1, 1}, {y, -1, 1}, PlotRange -> {0, 10}]"
+    }
+   },
+   "cmds": [
+    "Plot3D",
+    "PlotRange"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Transparencia y nombres de ejes",
+   "md": "Dos opciones más que pide la prueba real: superficie translúcida y ejes rotulados.",
+   "target": "Plot3D[x y, {x, -1, 1}, {y, -1, 1}, PlotStyle -> Opacity[0.5], AxesLabel -> {\"x\", \"y\", \"z\"}]",
+   "parts": [
+    {
+     "code": "Opacity[0.5]",
+     "md": "Una directiva de estilo: 0 = invisible, 1 = opaca. «Opacidad del 30 %» es `Opacity[0.3]`."
+    },
+    {
+     "code": "PlotStyle -> Opacity[0.5]",
+     "md": "`Opacity` no es una opción suelta: es el **valor** de `PlotStyle`."
+    },
+    {
+     "code": "AxesLabel -> {\"x\", \"y\", \"z\"}",
+     "md": "Los nombres de los ejes: tres textos entre comillas, en una lista."
     },
     {
      "code": "Plot3D[x y, {x, -1, 1}, {y, -1, 1}, PlotStyle -> Opacity[0.5], AxesLabel -> {\"x\", \"y\", \"z\"}]",
-     "note": "translúcida y con ejes rotulados"
+     "md": "Las dos opciones al final, separadas por coma. El orden entre ellas da igual.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja `x y` en [-1, 1] × [-1, 1] con opacidad 0.5 y los ejes rotulados \"x\", \"y\", \"z\".",
+    "hints": [
+     "Dos opciones al final: `PlotStyle -> …` y `AxesLabel -> …`",
+     "`PlotStyle -> Opacity[0.5]`",
+     "`AxesLabel -> {\"x\", \"y\", \"z\"}`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "like": "Plot3D[x y, {x, -1, 1}, {y, -1, 1}]",
+     "opts": [
+      "axesLabel"
+     ]
+    }
+   },
+   "cmds": [
+    "Plot3D",
+    "Opacity",
+    "PlotStyle",
+    "AxesLabel"
    ]
   },
   {
@@ -285,22 +421,43 @@
    }
   },
   {
-   "type": "explain",
-   "title": "ContourPlot: curvas de nivel y curvas implícitas",
-   "md": "`ContourPlot` es el mapa topográfico de la superficie, visto desde arriba. Tiene dos usos y la diferencia es un `==`:\n\n- `ContourPlot[f, {x, a, b}, {y, c, d}]` → **curvas de nivel** de `f` (muchas curvas `f = constante`, coloreadas por altura).\n- `ContourPlot[f == g, {x, a, b}, {y, c, d}]` → **una sola curva**: los puntos que cumplen la ecuación. Sirve para curvas que no se pueden despejar. Con una lista de ecuaciones dibuja varias.\n\nRecuerda: `==` (doble) es una ecuación.",
-   "cells": [
+   "type": "build",
+   "section": "Curvas de nivel e implícitas",
+   "title": "ContourPlot, con y sin ==",
+   "md": "`ContourPlot` es el mapa topográfico de la superficie, visto desde arriba. Tiene dos usos, y la diferencia es un `==`.",
+   "target": "ContourPlot[x^2/4 + y^2 == 1, {x, -3, 3}, {y, -2, 2}]",
+   "parts": [
     {
-     "code": "ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -2, 2}]",
-     "note": "curvas de nivel de la silla"
+     "code": "ContourPlot[x^2/4 + y^2, {x, -3, 3}, {y, -2, 2}]",
+     "md": "Sin `==`: las **curvas de nivel** de la función (muchas curvas, coloreadas por altura). Misma sintaxis que `Plot3D`.",
+     "run": true
+    },
+    {
+     "code": "x^2/4 + y^2 == 1",
+     "md": "Una **ecuación**, con `==` doble: una sola de esas curvas."
     },
     {
      "code": "ContourPlot[x^2/4 + y^2 == 1, {x, -3, 3}, {y, -2, 2}]",
-     "note": "una elipse, dada por su ecuación"
-    },
-    {
-     "code": "ContourPlot[{x^2 + y^2 == 4, y == x^2}, {x, -3, 3}, {y, -3, 3}]",
-     "note": "dos curvas a la vez"
+     "md": "Con `==`: solo la curva que cumple la ecuación (una elipse). Sirve para curvas que no se pueden despejar; con una lista `{ec1, ec2}` dibuja varias.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja solo la elipse `x^2/4 + y^2 == 1`, con x entre -3 y 3 e y entre -2 y 2.",
+    "hints": [
+     "`ContourPlot[ecuación, rango de x, rango de y]`",
+     "La ecuación lleva `==`",
+     "`ContourPlot[x^2/4 + y^2 == 1, {x, -3, 3}, {y, -2, 2}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "ContourPlot[x^2/4 + y^2 == 1, {x, -3, 3}, {y, -2, 2}]"
+    }
+   },
+   "cmds": [
+    "ContourPlot"
    ]
   },
   {
@@ -369,18 +526,48 @@
    }
   },
   {
-   "type": "explain",
-   "title": "ContourPlot3D: superficies implícitas",
-   "md": "Esferas, elipsoides, cilindros… no son gráficas `z = f(x, y)`: son superficies **implícitas** `F(x, y, z) == 0`. Para eso está `ContourPlot3D`:\n\n`ContourPlot3D[ecuación, {x, a, b}, {y, c, d}, {z, e, f}]`\n\n- **Tres** listas de rango: una por variable.\n- Con una **lista de ecuaciones** `{ec1, ec2}` dibuja varias superficies en un solo comando.\n- `BoxRatios -> Automatic` hace que la caja respete las proporciones reales (misma escala en los tres ejes): las esferas se ven redondas y los cilindros, circulares.\n\nUn cilindro de eje OZ y radio 1 es `x^2 + y^2 == 1` (no aparece `z`: vale para cualquier altura). Si el eje es OY, la variable que falta es `y`.",
-   "cells": [
+   "type": "build",
+   "section": "Superficies implícitas",
+   "title": "ContourPlot3D",
+   "md": "Esferas, elipsoides, cilindros… no son gráficas `z = f(x, y)`: son superficies **implícitas** `F(x, y, z) == 0`. Para eso está `ContourPlot3D`.",
+   "target": "ContourPlot3D[{x^2 + y^2 == 1, z == 1}, {x, -2, 2}, {y, -2, 2}, {z, 0, 4}, BoxRatios -> Automatic]",
+   "parts": [
     {
-     "code": "ContourPlot3D[x^2 + y^2 + z^2 == 4, {x, -2, 2}, {y, -2, 2}, {z, -2, 2}]",
-     "note": "esfera de radio 2"
+     "code": "ContourPlot3D[x^2 + y^2 == 1, {x, -2, 2}, {y, -2, 2}, {z, 0, 4}]",
+     "md": "Ecuación y **tres** rangos. Este es un cilindro de eje OZ: en la ecuación no aparece `z`, vale para cualquier altura.",
+     "run": true
+    },
+    {
+     "code": "{x^2 + y^2 == 1, z == 1}",
+     "md": "Una **lista de ecuaciones** para dibujar varias superficies con un solo comando."
+    },
+    {
+     "code": "BoxRatios -> Automatic",
+     "md": "Opción para que la caja respete las proporciones reales: los cilindros se ven circulares y las esferas, redondas."
     },
     {
      "code": "ContourPlot3D[{x^2 + y^2 == 1, z == 1}, {x, -2, 2}, {y, -2, 2}, {z, 0, 4}, BoxRatios -> Automatic]",
-     "note": "cilindro de eje OZ y un plano, juntos"
+     "md": "Todo junto: cilindro y plano en el mismo gráfico.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja juntos el cilindro `x^2 + y^2 == 1` y el plano `z == 1` (x, y entre -2 y 2; z entre 0 y 4) con `BoxRatios -> Automatic`.",
+    "hints": [
+     "`ContourPlot3D[{ec1, ec2}, rango x, rango y, rango z, opción]`",
+     "Las ecuaciones en una lista: `{x^2 + y^2 == 1, z == 1}`",
+     "Al final: `BoxRatios -> Automatic`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 2,
+     "like": "ContourPlot3D[{x^2 + y^2 == 1, z == 1}, {x, -2, 2}, {y, -2, 2}, {z, 0, 4}]"
+    }
+   },
+   "cmds": [
+    "ContourPlot3D",
+    "BoxRatios"
    ]
   },
   {
@@ -414,18 +601,45 @@
    }
   },
   {
-   "type": "explain",
-   "title": "ParametricPlot3D: curvas y superficies paramétricas",
-   "md": "Una curva en el espacio (la trayectoria de un avión, una hélice) se da con tres funciones de un parámetro `t`:\n\n`ParametricPlot3D[{x(t), y(t), z(t)}, {t, a, b}]`\n\n- Primer argumento: la **lista** de las tres coordenadas.\n- `{t, a, b}`: el parámetro y su recorrido.\n\nCon **dos** parámetros dibuja una superficie: `ParametricPlot3D[{x(u,v), y(u,v), z(u,v)}, {u, a, b}, {v, c, d}]`.\n\n`PlotRange -> {{x1, x2}, {y1, y2}, {z1, z2}}` fija la caja entera (tres pares).",
-   "cells": [
+   "type": "build",
+   "section": "Curvas en el espacio",
+   "title": "ParametricPlot3D",
+   "md": "La trayectoria de un avión o una hélice es una curva en el espacio: tres coordenadas que dependen de un parámetro `t`.",
+   "target": "ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, 6 Pi}]",
+   "parts": [
     {
-     "code": "ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, 6 Pi}]",
-     "note": "hélice: gira en (x, y) mientras sube en z"
+     "code": "{Cos[t], Sin[t], t/5}",
+     "md": "Las tres coordenadas, juntas en **una lista**: gira en (x, y) mientras sube en z."
     },
     {
-     "code": "ParametricPlot3D[{Cos[u] Sin[v], Sin[u] Sin[v], Cos[v]}, {u, 0, 2 Pi}, {v, 0, Pi}]",
-     "note": "con dos parámetros: una esfera"
+     "code": "{t, 0, 6 Pi}",
+     "md": "El parámetro y su recorrido: tres vueltas."
+    },
+    {
+     "code": "ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, 6 Pi}]",
+     "md": "Una hélice. Con la opción `PlotRange -> {{x1, x2}, {y1, y2}, {z1, z2}}` (tres pares) se fija la caja entera.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja la hélice `(Cos[t], Sin[t], t/5)` para t entre 0 y 6 Pi.",
+    "hints": [
+     "`ParametricPlot3D[{x(t), y(t), z(t)}, {t, desde, hasta}]`",
+     "Las coordenadas van en una lista con llaves",
+     "`ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, 6 Pi}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "like": "ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, 6 Pi}]",
+     "has": [
+      "line3"
+     ]
+    }
+   },
+   "cmds": [
+    "ParametricPlot3D"
    ]
   },
   {
@@ -495,18 +709,52 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Manipulate: gráficos con mando",
-   "md": "`Manipulate[expresión, {k, kmin, kmax}]` crea un **deslizador** para `k` y redibuja la expresión cada vez que lo mueves.\n\n- Primer argumento: cualquier cosa que dependa de `k` (normalmente un gráfico).\n- `{k, kmin, kmax}`: el parámetro y entre qué valores se mueve.\n- `{{k, k0}, kmin, kmax}`: lo mismo, pero el deslizador **empieza en** `k0`. Fíjate en las dobles llaves.\n\nConsejo: fija `PlotRange` dentro del gráfico (en la segunda celda no está, y verás que la caja «baila» al mover `k`). En 3D se dan tres pares: `PlotRange -> {{-1, 1}, {-1, 1}, {0, 4}}`.",
-   "cells": [
+   "type": "build",
+   "section": "Gráficos con mando",
+   "title": "Manipulate",
+   "md": "`Manipulate` añade un **deslizador** a cualquier cosa que dependa de un parámetro y la redibuja al moverlo.",
+   "target": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {{a, 2}, 1, 5}]",
+   "parts": [
     {
-     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {a, 1, 5}]",
-     "note": "mueve el deslizador a"
+     "code": "Plot[Sin[2 x], {x, 0, 2 Pi}]",
+     "md": "Un gráfico normal. El 2 es el número que querremos mover.",
+     "run": true
     },
     {
-     "code": "Manipulate[ParametricPlot3D[{Cos[t], Sin[t], t/5}, {t, 0, k}], {{k, 10}, 1, 20}]",
-     "note": "la hélice crece con k; empieza en k = 10"
+     "code": "{a, 1, 5}",
+     "md": "El control: parámetro `a`, de 1 a 5."
+    },
+    {
+     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {a, 1, 5}]",
+     "md": "El gráfico (con `a` en lugar del 2) y el control. Mueve el deslizador.",
+     "run": true
+    },
+    {
+     "code": "{{a, 2}, 1, 5}",
+     "md": "Con dobles llaves, el deslizador **empieza en** 2: `{{parámetro, inicial}, mín, máx}`."
+    },
+    {
+     "code": "Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {{a, 2}, 1, 5}]",
+     "md": "El manipulador con valor inicial. Consejo: fija `PlotRange` dentro del gráfico para que los ejes no «bailen».",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: crea un manipulador de `Plot[Sin[a x], {x, 0, 2 Pi}]` con `a` de 1 a 5, empezando en 2.",
+    "hints": [
+     "`Manipulate[gráfico, control]`",
+     "El control con valor inicial: `{{a, 2}, 1, 5}`",
+     "`Manipulate[Plot[Sin[a x], {x, 0, 2 Pi}], {{a, 2}, 1, 5}]`"
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "With[{m = If[Head[%] === Manipulate, %, Out[$Line]]}, Head[m] === Manipulate && !FreeQ[m, Plot] && MatchQ[m, Manipulate[_, {{a, 2}, 1, 5}]]]",
+     "msg": "Se espera `Manipulate[Plot[…], {{a, 2}, 1, 5}]`."
+    }
+   },
+   "cmds": [
+    "Manipulate",
+    "Plot"
    ]
   },
   {
@@ -573,10 +821,11 @@
   },
   {
    "type": "exercise",
+   "section": "Prueba real: la superficie",
    "ex": {
     "id": "1-p19-e14",
     "kind": "code",
-    "title": "Prueba real · la superficie con sus dos máximos",
+    "title": "Real · la superficie con sus dos máximos",
     "prompt": "Representa la superficie\n\n`f(x, y) = 3 x y - (x^4 + y^4)/3 + 2`\n\nde modo que se vean claramente los **dos máximos** y el punto de silla del origen. Define `f[x_, y_]`, usa el dominio `[-5, 5] × [-5, 5]` y recorta en vertical con `PlotRange -> {-1, 6}` (los máximos valen 5.375 y lejos del origen la función se hunde).",
     "difficulty": 3,
     "cmds": [
@@ -619,7 +868,7 @@
    "ex": {
     "id": "1-p19-e15",
     "kind": "code",
-    "title": "Prueba real · opacidad del 30 % y ejes X, Y, Z",
+    "title": "Real · opacidad del 30 % y ejes X, Y, Z",
     "prompt": "Misma superficie (`f` ya está definida). Repite el gráfico (dominio `[-5, 5] × [-5, 5]`, `PlotRange -> {-1, 6}`) y además:\n\n- dale una **opacidad del 30 %**;\n- nombra los ejes `X`, `Y`, `Z`.",
     "difficulty": 3,
     "cmds": [
@@ -657,10 +906,11 @@
   },
   {
    "type": "exercise",
+   "section": "Prueba real: elipsoide y cilindro",
    "ex": {
     "id": "1-p19-e16",
     "kind": "code",
-    "title": "Prueba real · elipsoide y cilindro en un solo comando",
+    "title": "Real · elipsoide y cilindro en un solo comando",
     "prompt": "Considera el elipsoide\n\n`x^2/5 + (y - 2)^2/3 + z^2/2 = 3`\n\ny el cilindro de **radio 3 cuyo eje es el eje OY**. Represéntalos juntos con **un solo comando**, con `x`, `y`, `z` entre -5 y 5, de modo que el elipsoide se vea completo y el cilindro circular (opción `BoxRatios -> Automatic`).",
     "difficulty": 4,
     "cmds": [
@@ -691,10 +941,11 @@
   },
   {
    "type": "exercise",
+   "section": "Prueba real: el manipulador",
    "ex": {
     "id": "1-p19-e17",
     "kind": "code",
-    "title": "Prueba real · la curva alabeada",
+    "title": "Real · la curva alabeada",
     "prompt": "Antes del manipulador, la curva sola. Dibuja la curva alabeada de ecuaciones paramétricas\n\n`(2 Cos[t], t/(3 Pi), Sin[t])` para `t` entre 0 y 55,\n\ncon la caja fija `PlotRange -> {{-2, 2}, {0, 7}, {-1, 1}}`.",
     "difficulty": 3,
     "cmds": [
@@ -729,7 +980,7 @@
    "ex": {
     "id": "1-p19-e18",
     "kind": "code",
-    "title": "Prueba real · el manipulador",
+    "title": "Real · el manipulador",
     "prompt": "Crea un **manipulador gráfico** de la curva alabeada `(2 Cos[t], t/(3 Pi), Sin[t])` para `t` en `[0, k]`, donde `k` se mueve entre `6 Pi` y `20 Pi`.\n\n- Para que la caja no cambie al mover `k`, añade `PlotRange -> {{-2, 2}, {0, 7}, {-1, 1}}`.\n- Deja el manipulador **fijado en `k = 55`**.",
     "difficulty": 4,
     "cmds": [

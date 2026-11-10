@@ -53,33 +53,28 @@ export default {
     try { mod = await import('../notebook.js'); } catch (e) { console.warn('[cuaderno] notebook.js no disponible:', e?.message || e); }
     if (!alive) return;
 
+    const make = (list) => mod.createNotebook(host, { cells: list.map((code) => ({ code })), onResult: () => save(), onChange: () => save() });
     if (mod && typeof mod.createNotebook === 'function') {
-      try {
-        nb = mod.createNotebook(host, { cells: cells.map((code) => ({ code })), onResult: () => save() });
-      } catch (e) { console.error('[cuaderno] createNotebook', e); nb = null; }
+      try { nb = make(cells); } catch (e) { console.error('[cuaderno] createNotebook', e); nb = null; }
     }
 
     if (nb) {
-      const act = (label, fn, title) => h('button', { class: 'btn link', type: 'button', title, onclick: fn }, label);
+      // el cuaderno ya trae «Evaluar todo», «Reiniciar kernel» y «+ celda»: aquí solo falta vaciarlo
       let armed = 0;
-      const clearBtn = act('Vaciar el cuaderno', () => {
-        if (Date.now() - armed > 3500) { armed = Date.now(); clearBtn.textContent = '¿Seguro? Pulsa otra vez'; setTimeout(() => { if (clearBtn.isConnected) clearBtn.textContent = 'Vaciar el cuaderno'; }, 3600); return; }
+      const clearBtn = h('button', { class: 'btn link', type: 'button', title: 'Borra todas las celdas de este cuaderno' }, 'Vaciar el cuaderno');
+      clearBtn.addEventListener('click', () => {
+        if (Date.now() - armed > 3500) { armed = Date.now(); clearBtn.textContent = '¿Seguro? Pulsa otra vez para vaciarlo'; setTimeout(() => { if (clearBtn.isConnected) clearBtn.textContent = 'Vaciar el cuaderno'; }, 3600); return; }
         try { nb.destroy?.(); } catch { /* nada */ }
         host.replaceChildren();
-        nb = mod.createNotebook(host, { cells: [{ code: '' }], onResult: () => save() });
+        nb = make(['']);
         clearBtn.textContent = 'Vaciar el cuaderno';
         armed = 0;
         save();
+        toast('Cuaderno vaciado.', 'info', 1800);
         nb.focus?.();
-      }, 'Borra todas las celdas');
-      bar.append(
-        act('Evaluar todo', () => nb.evaluateAll?.().then(save).catch(() => {}), 'Evalúa todas las celdas en orden'),
-        act('Nueva celda', () => { nb.addCell?.(''); save(); }, 'Añade una celda vacía al final'),
-        h('span', { class: 'sp' }),
-        act('Borrar definiciones', async () => {
-          try { const k = (await import('../kernel-client.js')).kernel; await k.reset(); toast('Definiciones borradas.', 'ok'); } catch { toast('El motor no está disponible.', 'warn'); }
-        }, 'Olvida las variables y funciones definidas (como Clear["Global`*"])'),
-        clearBtn);
+      });
+      bar.append(h('span', { class: 'cua-note' }, 'Se guarda automáticamente.'), h('span', { class: 'sp' }), clearBtn);
+      page.appendChild(bar); // debajo del cuaderno
       setTimeout(() => { if (alive && !ref) nb.focus?.(); }, 60);
     } else {
       // sin motor de cuaderno todavía: al menos se puede escribir y se guarda

@@ -28,15 +28,19 @@ LaplaceTransform[eq_Equal, t_, s_] := LaplaceTransform[#, t, s] & /@ eq;
 LaplaceTransform[l_List, t_, s_] := LaplaceTransform[#, t, s] & /@ l;
 LaplaceTransform[Integrate[f_, {u_, 0, t_}], t_, s_] := LaplaceTransform[f /. u -> t, t, s]/s /; FreeQ[f, t];
 
-InverseLaplaceTransform[a_ + b_, s_, t_] := InverseLaplaceTransform[a, s, t] + InverseLaplaceTransform[b, s, t] /; !FreeQ[{a, b}, Exp[_. s]] || !FreeQ[{a,b}, E^(_. s)];
+WLX`unk[g_] := !FreeQ[g, _Integrate] || !FreeQ[g, Derivative[__][_][__]] || !FreeQ[g, _LaplaceTransform] || !FreeQ[g, (h_Symbol /; Context[h] =!= "System`")[__]];
+LaplaceTransform[E^(a_. t_) g_, t_, s_] := (LaplaceTransform[g, t, WLX`ss] /. WLX`ss -> s - a) /; FreeQ[a, t] && WLX`unk[g];
+LaplaceTransform[t_^n_. g_, t_, s_] := (-1)^n D[LaplaceTransform[g, t, s], {s, n}] /; IntegerQ[n] && n > 0 && WLX`unk[g];
+LaplaceTransform[InverseLaplaceTransform[f_, s_, t_], t_, s2_] := f /. s -> s2;
+
+InverseLaplaceTransform[a_ + b_, s_, t_] := InverseLaplaceTransform[a, s, t] + InverseLaplaceTransform[b, s, t] /; WLX`unk[{a, b}];
 InverseLaplaceTransform[c_ f_, s_, t_] := c InverseLaplaceTransform[f, s, t] /; FreeQ[c, s] && !FreeQ[f, s];
 InverseLaplaceTransform[c_, s_, t_] := c DiracDelta[t] /; FreeQ[c, s];
-InverseLaplaceTransform[E^(a_ s_) f_., s_, t_] := (HeavisideTheta[t + a] (InverseLaplaceTransform[f, s, t] /. t -> t + a)) /; FreeQ[a, s] && NumericQ[a] && a < 0;
 InverseLaplaceTransform[l_List, s_, t_] := InverseLaplaceTransform[#, s, t] & /@ l;
 InverseLaplaceTransform[r_Rule, s_, t_] := InverseLaplaceTransform[#, s, t] & /@ r;
 InverseLaplaceTransform[r_Equal, s_, t_] := InverseLaplaceTransform[#, s, t] & /@ r;
 InverseLaplaceTransform[LaplaceTransform[f_, t_, s_], s_, t2_] := f /. t -> t2;
-InverseLaplaceTransform[f_, s_Symbol, t_] := InverseLaplaceTransform[Expand[f], s, t] /; !FreeQ[f, E^(_. s)] && Head[f] =!= Plus && Head[Expand[f]] === Plus;
+InverseLaplaceTransform[f_, s_Symbol, t_] := InverseLaplaceTransform[Expand[f], s, t] /; !FreeQ[f, _LaplaceTransform] && Head[f] =!= Plus && Head[Expand[f]] === Plus;
 
 (* ---- vector calculus ---- *)
 Grad[f_, vars_List] := D[f, #] & /@ vars /; !ListQ[f];
@@ -86,6 +90,7 @@ FromDMS[{d_, m_}] := d + m/60;
 FromDMS[d_?NumericQ] := d;
 ToPolarCoordinates[{x_, y_}] := {Sqrt[x^2 + y^2], ArcTan[x, y]};
 FromPolarCoordinates[{r_, t_}] := {r Cos[t], r Sin[t]};
+Convolve[f_, g_, x_, y_] /; WLX`ConvolveQ[f, g, x, y] := WLX`ConvolveGet[];
 Convolve[f_, g_, x_, y_] := Integrate[(f /. x -> WLX`u) (g /. x -> y - WLX`u), {WLX`u, -Infinity, Infinity}];
 
 (* ---- calculus fixes ---- *)
@@ -107,6 +112,7 @@ Integrate[f_, a__, opts__Rule] := With[{as = Assumptions /. {opts} /. Assumption
      (GenerateConditions /. {opts} /. GenerateConditions -> Automatic) === False]];
 WLX`StripCond[ConditionalExpression[v_, _], as_, gc_] := If[as === True, v, Simplify[v, as]] /; as =!= True || gc;
 WLX`StripCond[v_, as_, gc_] := v;
+N[HoldPattern[Integrate[f_, l__List]], ___] := NIntegrate[f, l];
 Integrate[f_, x_Symbol] /; WLX`IntQ[f, x, True] := WLX`IntGet[];
 Integrate[f_, {x_Symbol, a_, b_}] /; WLX`IntQ[f, {x, a, b}, True] := WLX`IntGet[];
 Limit[f_, x_ -> a_, Direction -> "FromAbove"] := Limit[f, x -> a, Direction -> -1];

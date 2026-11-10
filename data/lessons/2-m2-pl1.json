@@ -6,7 +6,7 @@
  "order": 1,
  "title": "EDOs de primer orden (I): DSolve, campos de direcciones, homogéneas y exactas",
  "summary": "Resuelves tu primera ecuación diferencial con DSolve, aprendes a usar y comprobar lo que devuelve, a dibujar la familia de soluciones sobre el campo de direcciones y a aplicar a mano las recetas del guion: homogéneas, exactas y factor integrante.",
- "minutes": 70,
+ "minutes": 110,
  "commands": [
   "DSolve",
   "C",
@@ -31,17 +31,48 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Qué es una EDO y cómo se le pide a Mathematica",
-   "md": "Una **ecuación diferencial ordinaria (EDO)** relaciona una función desconocida `y(t)` con sus derivadas. Así se escribe casi todo lo que cambia en ingeniería: la velocidad de un cohete que pierde masa, el enfriamiento de una pieza, la concentración en un depósito. Resolverla es encontrar la función `y(t)`.\n\nLas EDO son medio examen de Mathematica (PL1 a PL5). Al acabar esta práctica sabrás resolverlas con `DSolve`, usar y comprobar lo que devuelve, dibujarlas, y aplicar a mano tres recetas del guion usando Mathematica como calculadora.\n\n`DSolve[ecuación, y[t], t]` lleva **tres argumentos**:\n- la **ecuación**, con `==` (doble igual) y la derivada escrita `y'[t]`: comilla simple y corchetes. La función va SIEMPRE con su argumento: `y[t]`, nunca `y` a secas;\n- la **función incógnita**: `y[t]`;\n- la **variable independiente**: `t`.\n\nLa respuesta es una regla `y[t] -> ...` metida en dos llaves. La constante arbitraria se llama `C[1]`: cada valor de `C[1]` es una solución distinta.",
-   "cells": [
+   "section": "Tu primera ecuación diferencial",
+   "title": "Qué es una EDO",
+   "md": "Una **ecuación diferencial ordinaria (EDO)** relaciona una función desconocida `y(t)` con sus derivadas. Así se escribe casi todo lo que cambia en ingeniería: la velocidad de un cohete que pierde masa, el enfriamiento de una pieza, la concentración en un depósito. Resolverla es encontrar la función `y(t)`.\n\nLas EDO son medio examen de Mathematica (PL1 a PL5). En esta práctica vas a construir, pieza a pieza, cada receta del guion hasta escribirla tú solo: resolver con `DSolve`, usar y comprobar la solución, dibujarla, y resolver a mano homogéneas y exactas.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Resolver con DSolve",
+   "md": "El comando que resuelve ecuaciones diferenciales. Lo montamos con la ecuación `y' + 2y = t` del guion (ejemplo 1.1.1).",
+   "target": "DSolve[y'[t] + 2 y[t] == t, y[t], t]",
+   "parts": [
     {
-     "code": "DSolve[y'[t] + 2 y[t] == t, y[t], t]",
-     "note": "Ejemplo 1.1.1 del guion: y' + 2y = t. Mira la regla y la constante C[1]"
+     "code": "y'[t]",
+     "md": "La derivada de la función incógnita: una comilla simple y, SIEMPRE, el argumento entre corchetes."
     },
     {
-     "code": "DSolve[y'[x] == x y[x], y[x], x]",
-     "note": "La variable puede llamarse como quieras, pero igual en los tres sitios"
+     "code": "y'[t] + 2 y[t] == t",
+     "md": "La ecuación. Lleva `==` (doble igual): un solo `=` sería una asignación."
+    },
+    {
+     "code": "DSolve[y'[t] + 2 y[t] == t, y[t], t]",
+     "md": "Tres argumentos: la ecuación, la función incógnita `y[t]` y la variable `t`. Devuelve una regla `y[t] -> ...` con la constante arbitraria `C[1]`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve `y' + 2y = t` (función `y[t]`).",
+    "hints": [
+     "Empieza por el comando: `DSolve[`.",
+     "Dentro van tres cosas separadas por comas: ecuación, `y[t]`, `t`.",
+     "La ecuación es `y'[t] + 2 y[t] == t`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[t] + 2 y[t] == t",
+     "func": "y",
+     "var": "t",
+     "constants": 1
+    }
+   },
+   "cmds": [
+    "DSolve"
    ]
   },
   {
@@ -49,7 +80,7 @@
    "ex": {
     "id": "2-m2-pl1-e01",
     "kind": "code",
-    "title": "Tu primera solución general",
+    "title": "Otra ecuación",
     "prompt": "Halla la solución general de `y' + 3y = e^(-x)` (función `y[x]`, variable `x`).",
     "difficulty": 1,
     "cmds": [
@@ -69,6 +100,7 @@
      "DSolve"
     ],
     "hints": [
+     "Misma estructura que antes, ahora con `x` en los tres sitios.",
      "La exponencial se escribe `Exp[-x]` (o `E^(-x)`, con E mayúscula).",
      "`DSolve[y'[x] + 3 y[x] == Exp[-x], y[x], x]`"
     ],
@@ -76,32 +108,148 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Condición inicial y cómo usar lo que devuelve DSolve",
-   "md": "Con una **condición inicial** como `y(0) = 1` la constante queda fijada. Se pasa una **lista** `{ecuación, condición}` como primer argumento. La condición también lleva `==`.\n\nLo que devuelve `DSolve` NO es una función: es una lista de reglas, `{{y[t] -> expresión}}`. Para trabajar con ella hay que aplicar la regla con `/.` (léelo \"sustituyendo\"):\n- `y[t] /. regla` significa \"dame `y[t]`, cambiando lo que diga la regla\";\n- `Flatten[resul]` quita un nivel de llaves (`{{regla}}` pasa a `{regla}`). `resul[[1]]` hace lo mismo cogiendo el primer elemento;\n- `ys[t_] = ...` guarda la expresión como función tuya. El guion la llama `ys` y no `y` a propósito: si defines `y`, estropeas las siguientes llamadas a `DSolve`.\n\nRecuerda de 1º: en la definición se escribe `t_` (con guion bajo) para decir \"cualquier valor\". Aquí usa `=` y no `:=`, para que la EDO se resuelva una sola vez, al definir.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e02",
+    "kind": "code",
+    "title": "Y otra más",
+    "prompt": "Halla la solución general de `y' = x y` (función `y[x]`).",
+    "difficulty": 1,
+    "cmds": [
+     "DSolve"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "DSolve[y'[x] == x y[x], y[x], x]",
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == x y[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "El producto `x y` se escribe `x y[x]` (con un espacio o con `*`).",
+     "`DSolve[y'[x] == x y[x], y[x], x]`"
+    ],
+    "explain": "`y[x] -> C[1] E^(x^2/2)`. Cada valor de `C[1]` es una solución distinta."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e03",
+    "kind": "fix",
+    "title": "Errores de escritura",
+    "prompt": "Esta celda quiere resolver `y' = 3y`, pero tiene tres errores. Escríbela bien.",
+    "difficulty": 1,
+    "cmds": [
+     "DSolve"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "Dsolve[y' = 3 y, y, x]",
+    "solution": "DSolve[y'[x] == 3 y[x], y[x], x]",
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == 3 y[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "El comando es `DSolve`, con D y S mayúsculas.",
+     "La ecuación va con `==`.",
+     "La función lleva siempre su argumento: `y'[x]`, `y[x]`."
+    ],
+    "explain": "Mathematica distingue mayúsculas, `=` asigna (no compara) y una función sin corchetes es solo un símbolo."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Condición inicial",
+   "title": "Añadir una condición inicial",
+   "md": "Con un dato como `y(0) = 1` la constante queda fijada. Ecuación y condición van juntas en una lista.",
+   "target": "DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t]",
+   "parts": [
     {
-     "code": "resul = DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t]",
-     "note": "Ecuación y condición en una lista. Ya no hay C[1]; el resultado queda guardado en resul"
+     "code": "y[0] == 1",
+     "md": "La condición: el valor de `y` en 0. También con `==` y con corchetes."
     },
     {
-     "code": "ys[t_] = y[t] /. Flatten[resul]",
-     "note": "De regla a función: Flatten quita un par de llaves y /. aplica la regla"
+     "code": "{y'[t] + 2 y[t] == t, y[0] == 1}",
+     "md": "Ecuación y condición entre llaves, separadas por coma: forman UN solo argumento."
     },
     {
-     "code": "ys[1] // N",
-     "note": "ys ya es una función normal: se evalúa, se deriva, se dibuja"
-    },
-    {
-     "code": "Plot[ys[t], {t, 0, 3}]",
-     "note": "{t, 0, 3} = variable, desde, hasta"
+     "code": "DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t]",
+     "md": "La lista ocupa el sitio de la ecuación. En la respuesta ya no hay `C[1]`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve `y' + 2y = t` con `y(0) = 1`.",
+    "hints": [
+     "La estructura sigue siendo `DSolve[ , y[t], t]`.",
+     "El primer argumento es una lista: `{ecuación, condición}`.",
+     "La condición es `y[0] == 1`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[t] + 2 y[t] == t",
+     "func": "y",
+     "var": "t",
+     "ics": [
+      "y[0]==1"
+     ]
+    }
+   },
+   "cmds": [
+    "DSolve"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e02",
+    "id": "2-m2-pl1-e04",
+    "kind": "code",
+    "title": "Un problema de valor inicial",
+    "prompt": "Resuelve `y' = -2y` con `y(0) = 3` (función `y[t]`).",
+    "difficulty": 1,
+    "cmds": [
+     "DSolve"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "DSolve[{y'[t] == -2 y[t], y[0] == 3}, y[t], t]",
+    "check": {
+     "type": "ode",
+     "eq": "y'[t] == -2 y[t]",
+     "func": "y",
+     "var": "t",
+     "ics": [
+      "y[0]==3"
+     ]
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "Lista con dos cosas: `{y'[t] == -2 y[t], y[0] == 3}`.",
+     "`DSolve[{y'[t] == -2 y[t], y[0] == 3}, y[t], t]`"
+    ],
+    "explain": "`y[t] -> 3 E^(-2t)`: decae desde 3."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e05",
     "kind": "fix",
     "title": "Cuatro errores típicos",
     "prompt": "Esta celda quiere resolver `y' + y = x` con `y(0) = 2`, pero tiene cuatro errores. Escríbela bien.",
@@ -126,25 +274,84 @@
      "DSolve"
     ],
     "hints": [
-     "El comando es `DSolve`, con S mayúscula. Las igualdades de una ecuación van con `==`.",
+     "El comando es `DSolve`. Las igualdades de una ecuación van con `==`.",
      "La ecuación y la condición van juntas en una lista entre llaves, y `y(0)` se escribe `y[0]`.",
      "`DSolve[{y'[x] + y[x] == x, y[0] == 2}, y[x], x]`"
     ],
-    "explain": "Mathematica distingue mayúsculas (`DSolve`); `=` asigna y `==` compara; los paréntesis solo agrupan (las funciones usan corchetes), y ecuación + condición forman UN solo argumento: una lista."
+    "explain": "Los paréntesis solo agrupan (las funciones usan corchetes), y ecuación + condición forman UN solo argumento: una lista."
    }
+  },
+  {
+   "type": "build",
+   "section": "De la regla a una función",
+   "title": "Guardar la solución como función",
+   "md": "`DSolve` no devuelve una función: devuelve una lista de reglas `{{y[t] -> ...}}`. Para evaluarla, derivarla o dibujarla hay que convertirla en una función tuya. El guion la llama `ys`.",
+   "target": "resul = DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t];\nys[t_] = y[t] /. Flatten[resul]",
+   "parts": [
+    {
+     "code": "resul = DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t]",
+     "md": "Lo de antes, guardado en la variable `resul`.",
+     "run": true
+    },
+    {
+     "code": "Flatten[resul]",
+     "md": "`Flatten` quita un par de llaves: de `{{regla}}` a `{regla}`.",
+     "run": true
+    },
+    {
+     "code": "y[t] /. Flatten[resul]",
+     "md": "`/.` se lee \"sustituyendo\": dame `y[t]` aplicando la regla. Queda la expresión sola.",
+     "run": true
+    },
+    {
+     "code": "ys[t_] = y[t] /. Flatten[resul]",
+     "md": "Se guarda como función: `t_` (con guion bajo) significa \"cualquier valor\". Se usa `=` para que la EDO no se resuelva cada vez.",
+     "run": true
+    },
+    {
+     "code": "resul = DSolve[{y'[t] + 2 y[t] == t, y[0] == 1}, y[t], t];\nys[t_] = y[t] /. Flatten[resul]",
+     "md": "Las dos líneas del guion. El `;` oculta la salida de la primera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve `y' + 2y = t`, `y(0) = 1`, guarda el resultado en `resul` y define la solución como `ys[t_]`.",
+    "hints": [
+     "Dos líneas: primero `resul = DSolve[...];`",
+     "Después `ys[t_] = y[t] /. ...`",
+     "Lo que va tras `/.` es `Flatten[resul]`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[t] + 2 y[t] == t",
+     "func": "y",
+     "var": "t",
+     "ics": [
+      "y[0]==1"
+     ],
+     "expr": "ys[t]",
+     "msg": "`ys[t]` no está definida o no es la solución. Segunda línea: `ys[t_] = y[t] /. Flatten[resul]`."
+    }
+   },
+   "cmds": [
+    "DSolve",
+    "Flatten",
+    "ReplaceAll"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e03",
+    "id": "2-m2-pl1-e06",
     "kind": "code",
-    "title": "De regla a función",
+    "title": "Usar la función",
     "prompt": "Resuelve `y' + y = sen(t)` con `y(0) = 0`. Guarda la solución como función `ys[t_]` y, en la última línea, calcula `ys[2] // N`.",
     "difficulty": 2,
     "cmds": [
      "DSolve",
      "ReplaceAll",
-     "Flatten"
+     "Flatten",
+     "N"
     ],
     "real": false,
     "source": null,
@@ -176,36 +383,105 @@
      "ReplaceAll"
     ],
     "hints": [
-     "Primero guarda el resultado: `resul = DSolve[{..., y[0] == 0}, y[t], t];`",
+     "Primero: `resul = DSolve[{y'[t] + y[t] == Sin[t], y[0] == 0}, y[t], t];`",
      "Después: `ys[t_] = y[t] /. Flatten[resul];`",
-     "Última línea: `ys[2] // N` (sale 0.7303…)."
+     "Última línea: `ys[2] // N` (sale 0.7303…). `// N` pasa a decimal."
     ],
-    "explain": "El patrón `resul = DSolve[...]; ys[t_] = y[t] /. Flatten[resul]` lo vas a repetir en todas las prácticas de EDO: apréndetelo de memoria."
+    "explain": "El patrón `resul = DSolve[...]; ys[t_] = y[t] /. Flatten[resul]` lo vas a repetir en todas las prácticas de EDO."
    }
   },
   {
-   "type": "explain",
-   "title": "Comprobar que una función es solución",
-   "md": "Nunca te fíes sin comprobar: es gratis. Pasa todo al lado izquierdo de la ecuación (eso es el **residuo**), mete tu función y mira si queda 0.\n\n- `D[ys[t], t]` es la derivada de `ys` respecto de `t`;\n- `// Simplify` al final simplifica el resultado. Sin él, muchas veces queda una expresión larga que vale 0 pero no lo parece (si `Simplify` no basta, prueba `FullSimplify`).\n\nSi el residuo no da 0, la función NO es solución.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e07",
+    "kind": "code",
+    "title": "Otra vez, para fijarlo",
+    "prompt": "Resuelve `y' = 2y - 4` con `y(0) = 5`, define `ys[t_]` y dibújala para t entre 0 y 1 con `Plot`.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "ReplaceAll",
+     "Flatten",
+     "Plot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y'[t] == 2 y[t] - 4, y[0] == 5}, y[t], t];\nys[t_] = y[t] /. Flatten[resul];\nPlot[ys[t], {t, 0, 1}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "y'[t] == 2 y[t] - 4",
+       "func": "y",
+       "var": "t",
+       "ics": [
+        "y[0]==5"
+       ],
+       "expr": "ys[t]",
+       "msg": "`ys[t]` no cumple la ecuación o la condición (o no está definida)."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "like": "Plot[2 + 3 Exp[2 t], {t, 0, 1}]",
+       "msg": "La última línea debe ser `Plot[ys[t], {t, 0, 1}]`."
+      }
+     ]
+    },
+    "requires": [
+     "DSolve",
+     "Plot"
+    ],
+    "hints": [
+     "Las dos líneas de siempre: `resul = DSolve[{y'[t] == 2 y[t] - 4, y[0] == 5}, y[t], t];` y `ys[t_] = y[t] /. Flatten[resul];`",
+     "`Plot[ys[t], {t, 0, 1}]`: función y, entre llaves, variable, desde, hasta."
+    ],
+    "explain": "`ys[t] = 2 + 3 E^(2t)`. Una vez es función, `Plot`, `D`, `ys[1]`… todo funciona como con cualquier otra."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Comprobar una solución",
+   "title": "El residuo debe dar 0",
+   "md": "Comprobar es gratis: se pasa todo al lado izquierdo de la ecuación (el **residuo**), se mete la función y tiene que quedar 0. Ya está definida `ys[t]`, la solución de `y' + 2y = t` con `y(0) = 1`.",
+   "target": "D[ys[t], t] + 2 ys[t] - t // Simplify",
+   "setup": "ys[t_] = -1/4 + t/2 + 5/4 Exp[-2 t];",
+   "parts": [
     {
-     "code": "ys[t_] = -1/4 + t/2 + 5/4 Exp[-2 t];",
-     "note": "La solución de y' + 2y = t con y(0) = 1 que acabas de obtener"
+     "code": "D[ys[t], t]",
+     "md": "La derivada de `ys` respecto de `t`: `D[qué, respecto de qué]`.",
+     "run": true
+    },
+    {
+     "code": "D[ys[t], t] + 2 ys[t] - t",
+     "md": "El residuo de `y' + 2y = t`: lado izquierdo menos lado derecho. Vale 0, pero no lo parece.",
+     "run": true
     },
     {
      "code": "D[ys[t], t] + 2 ys[t] - t // Simplify",
-     "note": "Residuo y' + 2y − t: da 0, es solución"
-    },
-    {
-     "code": "D[t/2, t] + 2 (t/2) - t // Simplify",
-     "note": "Con la candidata t/2 sobra 1/2: no es solución"
+     "md": "`// Simplify` al final simplifica el resultado: ahora sí se ve el 0.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: comprueba que `ys[t]` cumple `y' + 2y = t` (el residuo simplificado debe dar 0).",
+    "hints": [
+     "El residuo es `y' + 2y - t` con `ys` en lugar de `y`.",
+     "La derivada: `D[ys[t], t]`.",
+     "Termina con `// Simplify`."
+    ]
+   },
+   "cmds": [
+    "D",
+    "Simplify"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e04",
+    "id": "2-m2-pl1-e08",
     "kind": "code",
     "title": "¿Es solución?",
     "prompt": "Define `g[x_] = x^2 Exp[-x]` y comprueba si es solución de `x y' = (2 - x) y`: calcula el residuo `x g'(x) - (2 - x) g(x)` simplificado.",
@@ -239,41 +515,219 @@
      "Simplify"
     ],
     "hints": [
+     "Primera línea: `g[x_] = x^2 Exp[-x];`",
      "La derivada es `D[g[x], x]`.",
      "`x D[g[x], x] - (2 - x) g[x] // Simplify`"
     ],
-    "explain": "El residuo es 0: `g` sí es solución. Este es el mismo cálculo que harás para decidir entre dos candidatas en el ejercicio 1 del guion."
+    "explain": "El residuo es 0: `g` sí es solución."
    }
   },
   {
-   "type": "explain",
-   "title": "Familia de soluciones y campo de direcciones",
-   "md": "La solución general es una **familia** de curvas: una por cada valor de la constante. Para dibujarla:\n- define la solución con la constante como segundo argumento: `z[t_, C1_] = ...`. Usa `C1` y no `C`, porque `C` está reservada por Mathematica;\n- `Table[z[t, C1], {C1, -2, 2, 0.5}]` fabrica la lista de curvas para C1 = −2, −1.5, …, 2. El iterador es `{variable, desde, hasta, paso}`;\n- `Evaluate[...]` obliga a construir esa lista ANTES de dibujar (así cada curva sale de un color);\n- `PlotRange -> {-2, 2}` fija la ventana vertical.\n\nEl **campo de direcciones** de `y' = f(t, y)` pinta en cada punto una flecha con pendiente `f`, es decir, el vector `{1, f}`. Se dibuja con `VectorPlot[{1, f}, {t, a, b}, {y, c, d}]`. Para escribir `f` hay que despejar `y'`: de `y' + 2y = t` sale `f = t - 2y`. `VectorScale -> {Small, Small, None}` hace todas las flechas del mismo tamaño.\n\nLas soluciones son las curvas tangentes a las flechas. `Show[p1, p2]` superpone los dos gráficos y lo deja ver. (El guion guarda antes la lista en una variable, `gg = Evaluate[Table[...]]`, y luego hace `Plot[gg, ...]`: es lo mismo.)",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e09",
+    "kind": "code",
+    "title": "Una que no lo es",
+    "prompt": "Ahora prueba `h[x_] = x^2` en la misma ecuación, `x y' = (2 - x) y`: calcula su residuo `x h'(x) - (2 - x) h(x)` simplificado.",
+    "difficulty": 2,
+    "cmds": [
+     "D",
+     "Simplify"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "h[x_] = x^2;\nx D[h[x], x] - (2 - x) h[x] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "h[3]",
+       "expected": "9",
+       "compare": "equal",
+       "msg": "Define primero `h[x_] = x^2`."
+      },
+      {
+       "type": "expr",
+       "expected": "x^3",
+       "compare": "equal"
+      }
+     ]
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "`h[x_] = x^2;`",
+     "`x D[h[x], x] - (2 - x) h[x] // Simplify`"
+    ],
+    "explain": "Sale `x^3`, no 0: `h` NO es solución. Así decidirás entre dos candidatas en el ejercicio 1 del guion."
+   }
+  },
+  {
+   "type": "build",
+   "section": "La familia de soluciones",
+   "title": "Dibujar la familia",
+   "md": "La solución general es una **familia** de curvas: una por cada valor de la constante. Vamos a dibujar varias a la vez (ejemplo 1.2.1 del guion).",
+   "target": "z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t];\nPlot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}]",
+   "parts": [
     {
      "code": "z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t];",
-     "note": "Ejemplo 1.2.1: solución general de y' + 2y = t, con la constante como argumento"
+     "md": "La solución general de `y' + 2y = t` con la constante como segundo argumento. Se usa `C1` porque `C` está reservada.",
+     "run": true
     },
     {
-     "code": "p1 = Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]],\n  {t, -1, 2}, PlotRange -> {-2, 2}]",
-     "note": "Nueve curvas de la familia"
+     "code": "Table[z[t, C1], {C1, -2, 2, 0.5}]",
+     "md": "`Table` fabrica la lista de curvas para C1 = −2, −1.5, …, 2. El iterador: `{variable, desde, hasta, paso}`.",
+     "run": true
     },
     {
-     "code": "p2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2},\n  VectorScale -> {Small, Small, None}]",
-     "note": "Campo de direcciones: aquí y es una variable más, sin [t]"
+     "code": "Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}]",
+     "md": "`Evaluate` obliga a construir la lista ANTES de dibujar: así cada curva sale de un color.",
+     "run": true
     },
     {
-     "code": "Show[p1, p2]",
-     "note": "Las curvas siguen a las flechas"
+     "code": "z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t];\nPlot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}]",
+     "md": "Todo junto, con la opción `PlotRange -> {-2, 2}` para fijar la ventana vertical.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t]` y dibuja la familia para C1 de −2 a 2 con paso 0.5, t entre −1 y 2, con `PlotRange -> {-2, 2}`.",
+    "hints": [
+     "Primera línea: la definición de `z[t_, C1_]`, acabada en `;`.",
+     "La lista de curvas: `Table[z[t, C1], {C1, -2, 2, 0.5}]`.",
+     "Va dentro de `Plot[Evaluate[ ... ], {t, -1, 2}, PlotRange -> {-2, 2}]`."
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "z[0, 1]",
+       "expected": "3/4",
+       "compare": "equal",
+       "msg": "Define `z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t]`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 9,
+       "like": "Plot[Evaluate[Table[-1/4 + t/2 + C1 Exp[-2 t], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}]",
+       "msg": "Dibuja las 9 curvas: C1 de −2 a 2 con paso 0.5, t entre −1 y 2.",
+       "tol": 0.01
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Table",
+    "Evaluate",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e05",
+    "id": "2-m2-pl1-e10",
     "kind": "code",
-    "title": "Campo de direcciones",
+    "title": "Otra familia",
+    "prompt": "La solución general de `y' = x - y` es `y = x - 1 + C e^(-x)`. Define `w[x_, C1_]` y dibuja la familia para C1 de −3 a 3 con paso 1, x entre −1 y 3.",
+    "difficulty": 2,
+    "cmds": [
+     "Table",
+     "Evaluate",
+     "Plot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "w[x_, C1_] = x - 1 + C1 Exp[-x];\nPlot[Evaluate[Table[w[x, C1], {C1, -3, 3, 1}]], {x, -1, 3}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "w[0, 2]",
+       "expected": "1",
+       "compare": "equal",
+       "msg": "Define `w[x_, C1_] = x - 1 + C1 Exp[-x]`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 7,
+       "like": "Plot[Evaluate[Table[x - 1 + C1 Exp[-x], {C1, -3, 3, 1}]], {x, -1, 3}]",
+       "msg": "Dibuja las 7 curvas: C1 de −3 a 3 con paso 1, x entre −1 y 3.",
+       "tol": 0.01
+      }
+     ]
+    },
+    "requires": [
+     "Table",
+     "Plot"
+    ],
+    "hints": [
+     "`w[x_, C1_] = x - 1 + C1 Exp[-x];`",
+     "La lista: `Table[w[x, C1], {C1, -3, 3, 1}]`.",
+     "`Plot[Evaluate[Table[w[x, C1], {C1, -3, 3, 1}]], {x, -1, 3}]`"
+    ],
+    "explain": "Todas las curvas acaban pegándose a la recta `y = x - 1` (el término `C1 E^(-x)` se apaga)."
+   }
+  },
+  {
+   "type": "build",
+   "section": "El campo de direcciones",
+   "title": "Campo con VectorPlot",
+   "md": "El **campo de direcciones** de `y' = f(t, y)` pinta en cada punto una flechita con pendiente `f`. Las soluciones son las curvas tangentes a las flechas. Para `y' + 2y = t`, despejando, `f = t - 2y`.",
+   "target": "VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}]",
+   "parts": [
+    {
+     "code": "{1, t - 2 y}",
+     "md": "El vector de cada flecha: avanza 1 en horizontal y `f` en vertical, así que su pendiente es `y'`. Aquí `y` es una variable más, sin `[t]`."
+    },
+    {
+     "code": "VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}]",
+     "md": "El vector y los dos intervalos: el de la variable horizontal y el de la vertical.",
+     "run": true
+    },
+    {
+     "code": "VectorScale -> {Small, Small, None}",
+     "md": "Una opción (nombre, flecha `->`, valor): hace todas las flechas del mismo tamaño."
+    },
+    {
+     "code": "VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}]",
+     "md": "Todo junto: así lo escribe el guion.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja el campo de direcciones de `y' = t - 2y` para t entre −1 y 2, y entre −2 y 2, con flechas del mismo tamaño.",
+    "hints": [
+     "`VectorPlot[vector, {t, -1, 2}, {y, -2, 2}, opción]`.",
+     "El vector es `{1, t - 2 y}`.",
+     "La opción: `VectorScale -> {Small, Small, None}`."
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "has": [
+      "arrows"
+     ],
+     "msg": "Tiene que salir un campo de flechas: usa `VectorPlot`."
+    }
+   },
+   "cmds": [
+    "VectorPlot",
+    "VectorScale"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e11",
+    "kind": "code",
+    "title": "Tu campo de direcciones",
     "prompt": "Dibuja el campo de direcciones de `y' = x - y` en el cuadrado −2 ≤ x ≤ 2, −2 ≤ y ≤ 2. Define primero la pendiente como `f[x_, y_]` y úsala dentro de `VectorPlot`.",
     "difficulty": 2,
     "cmds": [
@@ -311,35 +765,378 @@
      "`f[x_, y_] = x - y;` (dos argumentos, cada uno con su guion bajo).",
      "El vector del campo es `{1, pendiente}`: `VectorPlot[{1, f[x, y]}, {x, -2, 2}, {y, -2, 2}]`."
     ],
-    "explain": "El vector `{1, f}` avanza 1 en horizontal y `f` en vertical: su pendiente es justo `y'`."
+    "explain": "Definir `f` aparte ayuda a no equivocarse al despejar `y'`."
    }
   },
   {
-   "type": "explain",
-   "title": "Ecuaciones homogéneas",
-   "md": "`y' = f(x, y)` es **homogénea** si `f` solo depende del cociente `y/x` (ejemplo: `(y^2 + x y)/x^2`). Con el cambio `y = x z` se separan las variables y queda la receta del guion:\n\n`∫ dz/(f(1, z) - z) = ∫ dx/x + C`\n\nEn Mathematica:\n- defines `f[x_, y_]`;\n- `f[1, z]` es `f` con x = 1, y = z: la función escrita en términos del cociente;\n- integras el lado izquierdo, igualas a `Log[x] + C1` (la integral de `1/x` más la constante) y deshaces el cambio con `/. z -> y/x`.\n\nEl resultado es una relación **implícita** entre x e y (una igualdad con `==`), no una `y = ...` despejada. `DSolve[x^2 y'[x] == y[x]^2 + x y[x], y[x], x]` da la misma solución, ya despejada.",
-   "cells": [
+   "type": "build",
+   "title": "Familia y campo en la misma figura",
+   "md": "`Show` superpone gráficos. Juntamos la familia de soluciones y el campo de `y' + 2y = t`: las curvas deben seguir a las flechas. Ya está definida `z[t, C1]`, la solución general.",
+   "target": "p1 = Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}];\np2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];\nShow[p1, p2]",
+   "setup": "z[t_, C1_] = -1/4 + t/2 + C1 Exp[-2 t];",
+   "parts": [
     {
-     "code": "f[x_, y_] = (y^2 + x y)/x^2;",
-     "note": "El lado derecho de y' = f(x, y)"
+     "code": "p1 = Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}];",
+     "md": "La familia, guardada en `p1`. El `;` evita que se dibuje todavía.",
+     "run": true
     },
     {
-     "code": "Integrate[1/(f[1, z] - z), z]",
-     "note": "El lado izquierdo de la receta"
+     "code": "p2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];",
+     "md": "El campo, guardado en `p2`.",
+     "run": true
     },
     {
-     "code": "Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
-     "note": "La receta completa con el cambio deshecho: −x/y = C1 + ln x"
+     "code": "Show[p1, p2]",
+     "md": "`Show` dibuja los dos juntos.",
+     "run": true
+    },
+    {
+     "code": "p1 = Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}];\np2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];\nShow[p1, p2]",
+     "md": "La receta completa del guion: familia, campo y `Show`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar (con `z[t, C1]` ya definida): guarda la familia en `p1`, el campo de `y' = t - 2y` en `p2` y dibújalos juntos.",
+    "hints": [
+     "Tres líneas: `p1 = Plot[...];`, `p2 = VectorPlot[...];`, `Show[p1, p2]`.",
+     "`p1 = Plot[Evaluate[Table[z[t, C1], {C1, -2, 2, 0.5}]], {t, -1, 2}, PlotRange -> {-2, 2}];`",
+     "`p2 = VectorPlot[{1, t - 2 y}, {t, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 6,
+     "has": [
+      "arrows",
+      "line"
+     ],
+     "msg": "La figura final debe llevar el campo y las curvas: `Show[p1, p2]`."
+    }
+   },
+   "cmds": [
+    "Show",
+    "VectorPlot",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e06",
+    "id": "2-m2-pl1-e12",
     "kind": "code",
-    "title": "Una homogénea paso a paso",
-    "prompt": "Resuelve sin `DSolve` la ecuación homogénea `y' = (x^2 + y^2)/(x y)`. Define `f[x_, y_]` y obtén la relación implícita de la solución general con la receta, usando `Log[x] + C1` en el lado derecho y deshaciendo el cambio `z -> y/x`. Guarda la relación en la variable `sol`.",
+    "title": "Familia y campo de otra ecuación",
+    "prompt": "Para `y' = x - y`, cuya solución general es `y = x - 1 + C e^(-x)`: define `w[x_, C1_]`, guarda la familia en `p1` (C1 de −3 a 3 con paso 1, x entre −1 y 3, `PlotRange -> {-2, 3}`), el campo en `p2` (x entre −1 y 3, y entre −2 y 3) y termina con `Show[p1, p2]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Table",
+     "Evaluate",
+     "Plot",
+     "VectorPlot",
+     "Show"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "w[x_, C1_] = x - 1 + C1 Exp[-x];\np1 = Plot[Evaluate[Table[w[x, C1], {C1, -3, 3, 1}]], {x, -1, 3}, PlotRange -> {-2, 3}];\np2 = VectorPlot[{1, x - y}, {x, -1, 3}, {y, -2, 3}, VectorScale -> {Small, Small, None}];\nShow[p1, p2]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "w[0, 2]",
+       "expected": "1",
+       "compare": "equal",
+       "msg": "Define `w[x_, C1_] = x - 1 + C1 Exp[-x]`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 6,
+       "has": [
+        "arrows",
+        "line"
+       ],
+       "msg": "La figura final debe llevar el campo y las curvas: `Show[p1, p2]`."
+      }
+     ]
+    },
+    "requires": [
+     "VectorPlot",
+     "Show",
+     "Table"
+    ],
+    "hints": [
+     "`w[x_, C1_] = x - 1 + C1 Exp[-x];`",
+     "`p1 = Plot[Evaluate[Table[w[x, C1], {C1, -3, 3, 1}]], {x, -1, 3}, PlotRange -> {-2, 3}];`",
+     "`p2 = VectorPlot[{1, x - y}, {x, -1, 3}, {y, -2, 3}, VectorScale -> {Small, Small, None}];` y `Show[p1, p2]`."
+    ],
+    "explain": "Es la misma receta de tres líneas con otra ecuación: solo cambian la familia y el vector `{1, f}`."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Guion, ejercicio 1",
+   "ex": {
+    "id": "2-m2-pl1-e13",
+    "kind": "code",
+    "title": "Ejercicio 1: el campo",
+    "prompt": "**Guion PL1, ejercicio 1 (primer paso).** La ecuación `2y + x y' = e^x` se despeja como `y' = (e^x - 2y)/x`. Define la pendiente `f[x_, y_]` y dibuja su campo de direcciones para x entre −1 y 2, y entre −2 y 2, con `VectorScale -> {Small, Small, None}`.",
+    "difficulty": 2,
+    "cmds": [
+     "VectorPlot",
+     "VectorScale"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 1",
+    "solution": "f[x_, y_] = (Exp[x] - 2 y)/x;\nVectorPlot[{1, f[x, y]}, {x, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[1, 0]",
+       "expected": "E",
+       "compare": "equal",
+       "msg": "`f` debe ser `(Exp[x] - 2 y)/x`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "has": [
+        "arrows"
+       ],
+       "msg": "La última línea debe ser el `VectorPlot`."
+      }
+     ]
+    },
+    "requires": [
+     "VectorPlot"
+    ],
+    "hints": [
+     "`f[x_, y_] = (Exp[x] - 2 y)/x;` (con paréntesis en el numerador).",
+     "`VectorPlot[{1, f[x, y]}, {x, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}]`"
+    ],
+    "explain": "En x = 0 la pendiente no existe (se divide por x): ahí las flechas se vuelven verticales."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e14",
+    "kind": "code",
+    "title": "Ejercicio 1: la familia (a) sobre el campo",
+    "prompt": "**Guion PL1, ejercicio 1 (segundo paso).** El campo ya está guardado en `p1`. Define la familia (a) `za[x_, C1_] = (C1 + x e^x - e^x)/x^2`, dibújala para C1 de −2 a 2 con paso 0.5 y x entre −1 y 2 (gráfico `p2`, con `PlotRange -> {-2, 2}`) y termina con `Show[p1, p2]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Table",
+     "Evaluate",
+     "Plot",
+     "Show"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 1",
+    "setup": "p1 = VectorPlot[{1, (Exp[x] - 2 y)/x}, {x, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];",
+    "solution": "za[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2;\np2 = Plot[Evaluate[Table[za[x, C1], {C1, -2, 2, 0.5}]], {x, -1, 2}, PlotRange -> {-2, 2}];\nShow[p1, p2]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "za[2, 1]",
+       "expected": "(1 + Exp[2])/4",
+       "compare": "equal",
+       "msg": "Define la familia como `za[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2`."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 6,
+       "has": [
+        "arrows",
+        "line"
+       ],
+       "msg": "La figura final debe llevar el campo y las curvas de la familia: `Show[p1, p2]`."
+      }
+     ]
+    },
+    "requires": [
+     "Show",
+     "Table"
+    ],
+    "hints": [
+     "`za[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2;`",
+     "`p2 = Plot[Evaluate[Table[za[x, C1], {C1, -2, 2, 0.5}]], {x, -1, 2}, PlotRange -> {-2, 2}];`",
+     "Termina con `Show[p1, p2]`."
+    ],
+    "explain": "Las curvas de (a) van pegadas a las flechas: es la pista gráfica de que (a) es la solución. Con la familia (b), que es el doble, las curvas cruzarían las flechas."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e15",
+    "kind": "code",
+    "title": "Ejercicio 1: el residuo de (b)",
+    "prompt": "**Guion PL1, ejercicio 1 (tercer paso).** Decide analíticamente. Define la familia (b) `zb[x_, C1_] = (2/x^2) (C1 + x e^x - e^x)` y calcula su residuo en la ecuación: `x y' + 2y - e^x`, simplificado.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 1",
+    "solution": "zb[x_, C1_] = (2/x^2) (C1 + x Exp[x] - Exp[x]);\nx D[zb[x, C1], x] + 2 zb[x, C1] - Exp[x] // Simplify",
+    "check": {
+     "type": "expr",
+     "expected": "Exp[x]",
+     "compare": "equal"
+    },
+    "requires": [
+     "D"
+    ],
+    "hints": [
+     "`zb[x_, C1_] = (2/x^2) (C1 + x Exp[x] - Exp[x]);`",
+     "La derivada respecto de x es `D[zb[x, C1], x]`.",
+     "`x D[zb[x, C1], x] + 2 zb[x, C1] - Exp[x] // Simplify`"
+    ],
+    "explain": "El residuo de (b) es `E^x`, no 0: (b) NO es solución."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e16",
+    "kind": "code",
+    "title": "Ejercicio 1: confirmación con DSolve",
+    "prompt": "**Guion PL1, ejercicio 1 (final).** Confirma el resultado: resuelve `2y + x y' = e^x` con `DSolve` (función `y[x]`).",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 1",
+    "solution": "DSolve[2 y[x] + x y'[x] == Exp[x], y[x], x]",
+    "check": {
+     "type": "ode",
+     "eq": "2 y[x] + x y'[x] == Exp[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "La ecuación tal cual: `2 y[x] + x y'[x] == Exp[x]`.",
+     "`DSolve[2 y[x] + x y'[x] == Exp[x], y[x], x]`"
+    ],
+    "explain": "Sale `(C[1] + x E^x - E^x)/x^2`: exactamente la familia (a)."
+   }
+  },
+  {
+   "type": "explain",
+   "section": "Ecuaciones homogéneas",
+   "title": "La receta de las homogéneas",
+   "md": "`y' = f(x, y)` es **homogénea** si `f` solo depende del cociente `y/x`; por ejemplo `(y^2 + x y)/x^2`. Con el cambio `y = x z` se separan las variables y queda la receta del guion:\n\n`∫ dz/(f(1, z) - z) = ∫ dx/x + C`\n\nEl resultado es una relación **implícita** entre x e y (una igualdad con `==`), no una `y = ...` despejada. Vamos a escribirla en Mathematica, pieza a pieza.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Homogénea paso a paso",
+   "md": "Resolvemos `y' = (y^2 + x y)/x^2` con la receta: integrar `1/(f(1, z) - z)`, igualar a `ln x + C` y deshacer el cambio `z = y/x`.",
+   "target": "f[x_, y_] = (y^2 + x y)/x^2;\nsol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
+   "parts": [
+    {
+     "code": "f[x_, y_] = (y^2 + x y)/x^2;",
+     "md": "El lado derecho de la ecuación, como función de dos variables.",
+     "run": true
+    },
+    {
+     "code": "f[1, z] - z",
+     "md": "`f[1, z]` es `f` con x = 1, y = z: la función escrita con el cociente z = y/x. Se le resta z.",
+     "run": true
+    },
+    {
+     "code": "Integrate[1/(f[1, z] - z), z]",
+     "md": "El lado izquierdo de la receta: `Integrate[qué, respecto de qué]`.",
+     "run": true
+    },
+    {
+     "code": "Integrate[1/(f[1, z] - z), z] == Log[x] + C1",
+     "md": "Se iguala a la integral de `1/x`, que es `Log[x]`, más la constante `C1`.",
+     "run": true
+    },
+    {
+     "code": "sol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
+     "md": "`/. z -> y/x` deshace el cambio. La relación queda guardada en `sol`.",
+     "run": true
+    },
+    {
+     "code": "f[x_, y_] = (y^2 + x y)/x^2;\nsol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
+     "md": "La receta completa: dos líneas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve la homogénea `y' = (y^2 + x y)/x^2`. Define `f[x_, y_]` y guarda en `sol` la relación implícita (constante `C1`).",
+    "hints": [
+     "Línea 1: `f[x_, y_] = (y^2 + x y)/x^2;`",
+     "Línea 2: `sol = Integrate[ ... , z] == Log[x] + C1 /. z -> y/x`.",
+     "Lo que se integra es `1/(f[1, z] - z)`."
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((y^2 + x y)/x^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((y^2 + x y)/x^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "ReplaceAll",
+    "Log"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e17",
+    "kind": "code",
+    "title": "Homogénea: mínima variación",
+    "prompt": "Con la misma receta, resuelve `y' = (x + y)/x`. Define `f[x_, y_]` y guarda la relación implícita en `sol` (constante `C1`).",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f[x_, y_] = (x + y)/x;\nsol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((x + y)/x)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((x + y)/x)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "Solo cambia la primera línea: `f[x_, y_] = (x + y)/x;`",
+     "`sol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x`"
+    ],
+    "explain": "Aquí `f[1, z] - z` vale 1, la integral es `z` y queda `y/x == C1 + Log[x]`, es decir `y = x (C1 + ln x)`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e18",
+    "kind": "code",
+    "title": "Homogénea: otra más",
+    "prompt": "Resuelve sin `DSolve` la homogénea `y' = (x^2 + y^2)/(x y)`. Define `f[x_, y_]` y guarda la relación implícita en `sol` (constante `C1`).",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -360,66 +1157,413 @@
      "DSolve"
     ],
     "hints": [
-     "Primera línea: `f[x_, y_] = (x^2 + y^2)/(x y);`",
-     "La receta es `Integrate[1/(f[1, z] - z), z] == Log[x] + C1`. Añade al final `/. z -> y/x` para volver a x e y.",
-     "`sol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x`"
+     "`f[x_, y_] = (x^2 + y^2)/(x y);` (el denominador entre paréntesis).",
+     "La segunda línea no cambia: `sol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x`"
     ],
-    "explain": "Sale `y^2/(2 x^2) == C1 + Log[x]`. `f[1, z]` es `f` evaluada en x = 1, y = z: eso es escribir `f` en función del cociente z = y/x."
+    "explain": "Sale `y^2/(2 x^2) == C1 + Log[x]`. La segunda línea de la receta es siempre la misma: apréndetela."
    }
   },
   {
-   "type": "explain",
-   "title": "Reducibles a homogéneas",
-   "md": "`y' = f((a1 x + b1 y + c1)/(a2 x + b2 y + c2))` no es homogénea por culpa de `c1` y `c2`. Las dos rectas (numerador = 0, denominador = 0) se cortan en un punto `(α, β)`; si se traslada el origen ahí (`x = X + α`, `y = Y + β`), las constantes desaparecen y queda homogénea en `X`, `Y`.\n\nPasos del guion:\n- `Solve` con las dos rectas da el punto de corte;\n- se redefine la función trasladada: `f2[X_, Y_] = f1[X + α, Y + β]`;\n- se aplica la receta de las homogéneas a `f2` y se deshacen los dos cambios a la vez: `X -> x - α`, `z -> (y - β)/(x - α)`.\n\nAquí el corte es (−5/2, −5/2), por eso aparece `X - 5/2` al trasladar y `x + 5/2` al deshacer. La constante se escribe como `Log[C1]` para que luego se pueda juntar con los otros logaritmos.",
-   "cells": [
+   "type": "exercise",
+   "section": "Guion, ejercicio 2",
+   "ex": {
+    "id": "2-m2-pl1-e19",
+    "kind": "code",
+    "title": "Ejercicio 2: la solución general",
+    "prompt": "**Guion PL1, ejercicio 2 (primer paso).** Resuelve paso a paso, sin `DSolve`, la homogénea `y' = (y + x cos²(y/x))/x`. Define `f[x_, y_]` y guarda en `sol` la relación implícita con la receta (constante `C1`).",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 2",
+    "solution": "f[x_, y_] = (y + x Cos[y/x]^2)/x;\nsol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((y + x Cos[y/x]^2)/x)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((y + x Cos[y/x]^2)/x)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "El coseno al cuadrado se escribe `Cos[y/x]^2`: `f[x_, y_] = (y + x Cos[y/x]^2)/x;`",
+     "`sol = Integrate[1/(f[1, z] - z), z] == Log[x] + C1 /. z -> y/x`"
+    ],
+    "explain": "`f[1, z] - z` vale `Cos[z]^2`, su inversa se integra como `Tan[z]` y queda `Tan[y/x] == C1 + Log[x]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e20",
+    "kind": "code",
+    "title": "Ejercicio 2: la constante",
+    "prompt": "**Guion PL1, ejercicio 2 (segundo paso).** La solución general `Tan[y/x] == C1 + Log[x]` ya está guardada en `sol`. Impón `y(1) = π/4`: sustituye `x -> 1`, `y -> Pi/4` en `sol` y resuelve en `C1` con `Solve`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 2",
+    "setup": "sol = Tan[y/x] == C1 + Log[x];",
+    "solution": "Solve[sol /. {x -> 1, y -> Pi/4}, C1]",
+    "check": {
+     "type": "expr",
+     "expected": "{{C1 -> 1}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve",
+     "ReplaceAll"
+    ],
+    "hints": [
+     "Sustituir dos cosas a la vez: `sol /. {x -> 1, y -> Pi/4}`.",
+     "`Solve[sol /. {x -> 1, y -> Pi/4}, C1]`"
+    ],
+    "explain": "`C1 -> 1`. Cuidado con no sustituir al revés: `y(1) = π/4` significa que cuando x vale 1, y vale π/4."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e21",
+    "kind": "code",
+    "title": "Ejercicio 2: despejar y comprobar",
+    "prompt": "**Guion PL1, ejercicio 2 (tercer paso).** Con C1 = 1 queda `Tan[y/x] = 1 + Log[x]`, es decir `y = x ArcTan[1 + Log[x]]`. Define `ysol[x_]` con esa expresión y comprueba que el residuo `y' - (y + x cos²(y/x))/x` simplificado da 0.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 2",
+    "solution": "ysol[x_] = x ArcTan[1 + Log[x]];\nD[ysol[x], x] - (ysol[x] + x Cos[ysol[x]/x]^2)/x // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "ysol[1]",
+       "expected": "Pi/4",
+       "compare": "equal",
+       "msg": "`ysol[1]` debe valer π/4: define `ysol[x_] = x ArcTan[1 + Log[x]]`."
+      },
+      {
+       "type": "expr",
+       "expected": "0",
+       "compare": "equal"
+      }
+     ]
+    },
+    "requires": [
+     "D",
+     "Simplify"
+    ],
+    "hints": [
+     "`ysol[x_] = x ArcTan[1 + Log[x]];`",
+     "En el residuo, cada `y` es `ysol[x]`: `D[ysol[x], x] - (ysol[x] + x Cos[ysol[x]/x]^2)/x // Simplify`"
+    ],
+    "explain": "Residuo 0 y `ysol[1] = π/4`: es la solución del problema."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e22",
+    "kind": "code",
+    "title": "Ejercicio 2: campo y solución",
+    "prompt": "**Guion PL1, ejercicio 2 (final).** Con `ysol[x]` ya definida, dibuja el campo de direcciones de la ecuación (x de 0.1 a 3, y de −2 a 4) junto con la solución, usando `Show`.",
+    "difficulty": 3,
+    "cmds": [
+     "VectorPlot",
+     "Plot",
+     "Show"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 2",
+    "setup": "ysol[x_] = x ArcTan[1 + Log[x]];",
+    "solution": "p1 = VectorPlot[{1, (y + x Cos[y/x]^2)/x}, {x, 0.1, 3}, {y, -2, 4}, VectorScale -> {Small, Small, None}];\np2 = Plot[ysol[x], {x, 0.1, 3}];\nShow[p1, p2]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "has": [
+      "arrows",
+      "line"
+     ],
+     "msg": "La última línea debe ser `Show[...]` con el campo y la curva solución."
+    },
+    "requires": [
+     "VectorPlot",
+     "Show"
+    ],
+    "hints": [
+     "`p1 = VectorPlot[{1, (y + x Cos[y/x]^2)/x}, {x, 0.1, 3}, {y, -2, 4}, VectorScale -> {Small, Small, None}];`",
+     "`p2 = Plot[ysol[x], {x, 0.1, 3}];`",
+     "`Show[p1, p2]`"
+    ],
+    "explain": "Se empieza en x = 0.1 y no en 0 porque la ecuación divide por x. La curva sigue a las flechas."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Reducibles a homogéneas",
+   "title": "Trasladar para que sea homogénea",
+   "md": "`y' = (2y - 4x - 5)/(2y - 2x)` no es homogénea por culpa del −5. Las dos rectas (numerador = 0, denominador = 0) se cortan en un punto; trasladando el origen ahí, las constantes desaparecen (ejemplo 1.3.1).",
+   "target": "f1[x_, y_] = (2 y - 4 x - 5)/(2 y - 2 x);\nSolve[{2 y - 4 x - 5 == 0, 2 y - 2 x == 0}, {x, y}]\nf2[X_, Y_] = f1[X - 5/2, Y - 5/2] // Simplify\nsol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x + 5/2, z -> (y + 5/2)/(x + 5/2)}",
+   "parts": [
     {
      "code": "f1[x_, y_] = (2 y - 4 x - 5)/(2 y - 2 x);",
-     "note": "Ejemplo 1.3.1 del guion"
+     "md": "El lado derecho de la ecuación.",
+     "run": true
     },
     {
      "code": "Solve[{2 y - 4 x - 5 == 0, 2 y - 2 x == 0}, {x, y}]",
-     "note": "Punto de corte de las dos rectas"
+     "md": "Punto de corte de las dos rectas: un sistema de dos ecuaciones. Sale (−5/2, −5/2).",
+     "run": true
     },
     {
      "code": "f2[X_, Y_] = f1[X - 5/2, Y - 5/2] // Simplify",
-     "note": "Función trasladada: ya es homogénea"
+     "md": "La función trasladada (`x = X - 5/2`, `y = Y - 5/2`): ya es homogénea en X, Y.",
+     "run": true
     },
     {
-     "code": "Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /.\n  {X -> x + 5/2, z -> (y + 5/2)/(x + 5/2)}",
-     "note": "La receta y los dos cambios deshechos: solución general implícita"
+     "code": "sol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x + 5/2, z -> (y + 5/2)/(x + 5/2)}",
+     "md": "La receta de las homogéneas con `f2`, deshaciendo los dos cambios a la vez. La constante se escribe `Log[C1]` para juntarla luego con los logaritmos.",
+     "run": true
+    },
+    {
+     "code": "f1[x_, y_] = (2 y - 4 x - 5)/(2 y - 2 x);\nSolve[{2 y - 4 x - 5 == 0, 2 y - 2 x == 0}, {x, y}]\nf2[X_, Y_] = f1[X - 5/2, Y - 5/2] // Simplify\nsol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x + 5/2, z -> (y + 5/2)/(x + 5/2)}",
+     "md": "Las cuatro líneas seguidas.",
+     "run": true
     }
-   ]
-  },
-  {
-   "type": "explain",
-   "title": "Ecuaciones exactas",
-   "md": "Otra forma de escribir una EDO de primer orden es `P(x, y) dx + Q(x, y) dy = 0` (equivale a `y' = -P/Q`). Es **exacta** si `∂P/∂y = ∂Q/∂x`. Entonces existe un **potencial** `U(x, y)` con `U_x = P` y `U_y = Q`, y la solución general son sus curvas de nivel: `U(x, y) = C`.\n\nReceta del guion:\n- define `P[x_, y_]` y `Q[x_, y_]` (funciones de dos variables: dos patrones con `_`);\n- calcula `Py` (derivada de P respecto de y) y `Qx` (derivada de Q respecto de x) con `D` y mira si `Py - Qx` da 0;\n- si da 0: `U = ∫ P(s, y) ds` de `x0` a `x` más `∫ Q(x0, s) ds` de `y0` a `y`. `s` es solo la variable de integración y `{s, x0, x}` significa \"s desde x0 hasta x\".\n\n`(x0, y0)` es cualquier punto donde P y Q existan. Casi siempre vale `(0, 0)`; si aparece `1/x` o `Log[x]`, usa `(1, 1)`. Cambiar de punto solo cambia la constante.\n\n(El guion define las derivadas como funciones, `Py[x_, y_] = D[P[x, y], y]`; guardarlas en variables `Py`, `Qx` es lo mismo y se teclea menos.)",
-   "cells": [
-    {
-     "code": "P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;",
-     "note": "Ejemplo 1.4.1: 2xy dx + (x² + y²) dy = 0"
-    },
-    {
-     "code": "Py = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx",
-     "note": "Da 0: es exacta"
-    },
-    {
-     "code": "x0 = 0; y0 = 0;\nU = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
-     "note": "El potencial. La solución general es U == C1"
-    },
-    {
-     "code": "{D[U, x], D[U, y]}",
-     "note": "Comprobación: tienen que salir P y Q"
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve `y' = (2y - 4x - 5)/(2y - 2x)`: define `f1`, halla el corte de las rectas, define `f2[X_, Y_]` trasladada y guarda la relación final en `sol`.",
+    "hints": [
+     "Cuatro líneas: `f1[x_, y_] = ...;`, `Solve[{recta1 == 0, recta2 == 0}, {x, y}]`, `f2[X_, Y_] = f1[X - 5/2, Y - 5/2] // Simplify`, y la receta.",
+     "La receta: `sol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {cambios}`.",
+     "Los cambios: `{X -> x + 5/2, z -> (y + 5/2)/(x + 5/2)}`."
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((2 y - 4 x - 5)/(2 y - 2 x))) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((2 y - 4 x - 5)/(2 y - 2 x))) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
     }
+   },
+   "cmds": [
+    "Solve",
+    "Simplify",
+    "Integrate",
+    "ReplaceAll"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e07",
+    "id": "2-m2-pl1-e23",
     "kind": "code",
-    "title": "Exacta: test y potencial",
-    "prompt": "Para `(y cos x + 2x) dx + (sen x + 2y) dy = 0`: define `P[x_, y_]` y `Q[x_, y_]`, comprueba que `Py - Qx` es 0 y, en la última línea, calcula el potencial con la fórmula del guion tomando `x0 = 0`, `y0 = 0` y guárdalo en `U`.",
+    "title": "Reducible: el punto de corte y la traslación",
+    "prompt": "Para `y' = (x + y - 3)/(x - y - 1)`: define `f1[x_, y_]`, halla el punto de corte de las rectas con `Solve` y define la función trasladada `f2[X_, Y_]`, simplificada.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "Simplify"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f1[x_, y_] = (x + y - 3)/(x - y - 1);\nSolve[{x + y - 3 == 0, x - y - 1 == 0}, {x, y}]\nf2[X_, Y_] = f1[X + 2, Y + 1] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "f2[X, Y]",
+     "expected": "(X + Y)/(X - Y)",
+     "compare": "equal",
+     "msg": "`f2[X, Y]` debe ser `f1` trasladada al punto de corte (2, 1): `f1[X + 2, Y + 1] // Simplify`."
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`f1[x_, y_] = (x + y - 3)/(x - y - 1);` y `Solve[{x + y - 3 == 0, x - y - 1 == 0}, {x, y}]`.",
+     "El corte es x = 2, y = 1: se traslada con `x = X + 2`, `y = Y + 1`.",
+     "`f2[X_, Y_] = f1[X + 2, Y + 1] // Simplify`"
+    ],
+    "explain": "Queda `(X + Y)/(X - Y)`: sin términos constantes, o sea, homogénea. Si el corte es (α, β), se sustituye `X + α`, `Y + β`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e24",
+    "kind": "code",
+    "title": "Reducible: la solución",
+    "prompt": "Sigue con `y' = (x + y - 3)/(x - y - 1)`. Ya está definida la trasladada `f2[X_, Y_] = (X + Y)/(X - Y)` (corte en (2, 1)). Aplica la receta de las homogéneas a `f2` y deshaz los cambios (`X -> x - 2`, `z -> (y - 1)/(x - 2)`). Guarda la relación en `sol`, con la constante escrita como `Log[C1]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "f2[X_, Y_] = (X + Y)/(X - Y);",
+    "solution": "sol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x - 2, z -> (y - 1)/(x - 2)}",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((x + y - 3)/(x - y - 1))) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((x + y - 3)/(x - y - 1))) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ],
+    "hints": [
+     "La receta con `f2`: `Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1]`.",
+     "Los cambios van en una lista tras `/.`: `{X -> x - 2, z -> (y - 1)/(x - 2)}`.",
+     "`sol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x - 2, z -> (y - 1)/(x - 2)}`"
+    ],
+    "explain": "Queda una relación con `ArcTan` y `Log`: la solución general implícita. Como `x = X + 2`, al deshacer se pone `X -> x - 2`."
+   }
+  },
+  {
+   "type": "explain",
+   "section": "Ecuaciones exactas",
+   "title": "Qué es una ecuación exacta",
+   "md": "Otra forma de escribir una EDO de primer orden es `P(x, y) dx + Q(x, y) dy = 0` (equivale a `y' = -P/Q`). Es **exacta** si `∂P/∂y = ∂Q/∂x`. Entonces existe un **potencial** `U(x, y)` con `U_x = P` y `U_y = Q`, y la solución general son sus curvas de nivel: `U(x, y) = C`.\n\nDos pasos: primero el test (¿`Py - Qx` da 0?) y después la fórmula del potencial.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "El test: ¿es exacta?",
+   "md": "Para `2xy dx + (x² + y²) dy = 0` (ejemplo 1.4.1): P es lo que multiplica a dx, Q lo que multiplica a dy. Es exacta si la derivada de P respecto de y coincide con la de Q respecto de x.",
+   "target": "P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx",
+   "parts": [
+    {
+     "code": "P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;",
+     "md": "P y Q como funciones de dos variables (dos patrones con `_`). Dos definiciones en una línea, separadas por `;`.",
+     "run": true
+    },
+    {
+     "code": "Py = D[P[x, y], y]",
+     "md": "Derivada de P respecto de y, guardada en `Py`.",
+     "run": true
+    },
+    {
+     "code": "Qx = D[Q[x, y], x]",
+     "md": "Derivada de Q respecto de x, guardada en `Qx`.",
+     "run": true
+    },
+    {
+     "code": "Py - Qx",
+     "md": "Si la resta da 0, la ecuación es exacta.",
+     "run": true
+    },
+    {
+     "code": "P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx",
+     "md": "El test completo en tres líneas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: comprueba si `2xy dx + (x² + y²) dy = 0` es exacta. Define `P`, `Q`, calcula `Py`, `Qx` y, en la última línea, `Py - Qx`.",
+    "hints": [
+     "Línea 1: `P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;`",
+     "Línea 2: `Py = D[P[x, y], y]; Qx = D[Q[x, y], x];`",
+     "Línea 3: `Py - Qx`."
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{P[2, 3], Q[2, 3]}",
+       "expected": "{12, 13}",
+       "compare": "equal",
+       "msg": "Define `P[x_, y_] = 2 x y` y `Q[x_, y_] = x^2 + y^2`."
+      },
+      {
+       "type": "value",
+       "expr": "{Py, Qx}",
+       "expected": "{2 x, 2 x}",
+       "compare": "equal",
+       "msg": "`Py` es la derivada de P respecto de y; `Qx`, la de Q respecto de x."
+      },
+      {
+       "type": "expr",
+       "expected": "0",
+       "compare": "equal"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "D"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "El potencial",
+   "md": "Si es exacta, el guion da el potencial con dos integrales definidas desde un punto `(x0, y0)` donde P y Q existan. Ya están definidas `P` y `Q` del ejemplo anterior.",
+   "target": "x0 = 0; y0 = 0;\nU = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
+   "setup": "P[x_, y_] = 2 x y; Q[x_, y_] = x^2 + y^2;",
+   "parts": [
+    {
+     "code": "x0 = 0; y0 = 0;",
+     "md": "El punto de partida. Casi siempre vale (0, 0); si hay `1/x` o `Log[x]`, se usa (1, 1).",
+     "run": true
+    },
+    {
+     "code": "Integrate[P[s, y], {s, x0, x}]",
+     "md": "Primera integral: P a lo largo de x. `s` es la variable de integración y `{s, x0, x}` significa \"s desde x0 hasta x\".",
+     "run": true
+    },
+    {
+     "code": "Integrate[Q[x0, s], {s, y0, y}]",
+     "md": "Segunda integral: Q con x fijada en `x0`, a lo largo de y.",
+     "run": true
+    },
+    {
+     "code": "U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
+     "md": "La suma es el potencial `U`. La solución general es `U == C1`.",
+     "run": true
+    },
+    {
+     "code": "x0 = 0; y0 = 0;\nU = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
+     "md": "La fórmula del guion, entera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar (con `P` y `Q` ya definidas): fija `x0 = 0`, `y0 = 0` y calcula el potencial `U` con la fórmula de las dos integrales.",
+    "hints": [
+     "Línea 1: `x0 = 0; y0 = 0;`",
+     "`U` es la suma de dos `Integrate`: el de `P[s, y]` y el de `Q[x0, s]`.",
+     "Los límites: `{s, x0, x}` en la primera y `{s, y0, y}` en la segunda."
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(x^2 + y^2) - D[F, y]*(2 x y)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(x^2 + y^2) - D[F, y]*(2 x y)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`U` no es un potencial de la ecuación (o no está definido): debe cumplirse `D[U, x] = μ P` y `D[U, y] = μ Q`. Revisa P, Q, el factor integrante y la fórmula, y guarda el resultado en `U`."
+    }
+   },
+   "cmds": [
+    "Integrate"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e25",
+    "kind": "code",
+    "title": "Exacta completa",
+    "prompt": "Para `(y cos x + 2x) dx + (sen x + 2y) dy = 0`: define `P` y `Q`, comprueba que `Py - Qx` es 0 y calcula el potencial con `x0 = 0`, `y0 = 0`, guardándolo en `U`.",
     "difficulty": 3,
     "cmds": [
      "D",
@@ -440,237 +1584,72 @@
      "DSolve"
     ],
     "hints": [
-     "P es lo que multiplica a dx y Q lo que multiplica a dy.",
-     "`Py = D[P[x, y], y]; Qx = D[Q[x, y], x];` y luego `Py - Qx`.",
+     "`P[x_, y_] = y Cos[x] + 2 x; Q[x_, y_] = Sin[x] + 2 y;`",
+     "El test: `Py = D[P[x, y], y]; Qx = D[Q[x, y], x];` y `Py - Qx`.",
      "`x0 = 0; y0 = 0;` y `U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]`"
     ],
-    "explain": "`U = x^2 + y^2 + y Sin[x]`, y la solución general es `U == C1`. En la primera integral, x se sustituye por `s`; en la segunda, x vale `x0` e y se sustituye por `s`."
-   }
-  },
-  {
-   "type": "explain",
-   "title": "Factor integrante",
-   "md": "Si `Py - Qx` no da 0, la ecuación no es exacta. A veces se arregla multiplicándola entera por un **factor integrante** `μ`. El guion da dos casos:\n- si `(Py - Qx)/Q` depende **solo de x**: `μ(x) = Exp[∫ (Py - Qx)/Q dx]`;\n- si `(Qx - Py)/P` depende **solo de y**: `μ(y) = Exp[∫ (Qx - Py)/P dy]`.\n\nEn la práctica: calcula los dos cocientes con `// Simplify` y mira en cuál ha desaparecido la otra letra. Después multiplica (`P1 = μ P`, `Q1 = μ Q`) y aplica a `P1`, `Q1` la misma fórmula del potencial.\n\nFíjate en el orden de la resta: `Py - Qx` cuando divides por `Q`, y `Qx - Py` cuando divides por `P`.",
-   "cells": [
-    {
-     "code": "P[x_, y_] = 3 x Cos[y] + 2 y; Q[x_, y_] = x - x^2 Sin[y];",
-     "note": "Ejemplo 1.4.2 del guion"
-    },
-    {
-     "code": "Py = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx",
-     "note": "No da 0: no es exacta"
-    },
-    {
-     "code": "(Py - Qx)/Q[x, y] // Simplify\n(Qx - Py)/P[x, y] // Simplify",
-     "note": "El primero solo tiene x: hay μ(x). El segundo mezcla x e y: no sirve"
-    },
-    {
-     "code": "mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]",
-     "note": "μ(x) = x"
-    },
-    {
-     "code": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];",
-     "note": "La ecuación multiplicada por μ: ahora sí es exacta"
-    },
-    {
-     "code": "x0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
-     "note": "La fórmula del potencial con P1 y Q1. Solución: U == C1"
-    }
-   ]
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl1-e08",
-    "kind": "code",
-    "title": "Campo de direcciones y familia de curvas",
-    "prompt": "**Guion PL1, ejercicio 1.** La ecuación `2y + x y' = e^x` se despeja como `y' = (e^x - 2y)/x`.\n\nDibuja en una misma figura:\n- el campo de direcciones para x entre −1 y 2, y entre −2 y 2 (guárdalo en `p1`, con `VectorScale -> {Small, Small, None}`);\n- la familia (a) `y = (C + x e^x - e^x)/x^2` para C de −2 a 2 con paso 0.5: define `za[x_, C1_]` y guarda el gráfico en `p2`, con `PlotRange -> {-2, 2}`.\n\nÚltima línea: `Show[p1, p2]`.",
-    "difficulty": 3,
-    "cmds": [
-     "VectorPlot",
-     "Table",
-     "Evaluate",
-     "Show"
-    ],
-    "real": true,
-    "source": "PL1 · ejercicio 1",
-    "solution": "p1 = VectorPlot[{1, (Exp[x] - 2 y)/x}, {x, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];\nza[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2;\np2 = Plot[Evaluate[Table[za[x, C1], {C1, -2, 2, 0.5}]], {x, -1, 2}, PlotRange -> {-2, 2}];\nShow[p1, p2]",
-    "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "za[2, 1]",
-       "expected": "(1 + Exp[2])/4",
-       "compare": "equal",
-       "msg": "Define la familia como `za[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2`."
-      },
-      {
-       "type": "graphics",
-       "dim": 2,
-       "min": 6,
-       "has": [
-        "arrows",
-        "line"
-       ],
-       "msg": "La figura final debe llevar el campo (`VectorPlot`) y las curvas de la familia: `Show[p1, p2]`."
-      }
-     ]
-    },
-    "requires": [
-     "VectorPlot",
-     "Show"
-    ],
-    "hints": [
-     "Campo: `p1 = VectorPlot[{1, (Exp[x] - 2 y)/x}, {x, -1, 2}, {y, -2, 2}, VectorScale -> {Small, Small, None}];`",
-     "Familia: `za[x_, C1_] = (C1 + x Exp[x] - Exp[x])/x^2;` y `p2 = Plot[Evaluate[Table[za[x, C1], {C1, -2, 2, 0.5}]], {x, -1, 2}, PlotRange -> {-2, 2}];`",
-     "Termina con `Show[p1, p2]`."
-    ],
-    "explain": "Las curvas de (a) van pegadas a las flechas: es la pista gráfica de que (a) es la solución. Si repites el dibujo con la familia (b) verás que las curvas cruzan las flechas."
+    "explain": "`U = x^2 + y^2 + y Sin[x]`, y la solución general es `U == C1`. Las cinco líneas son siempre las mismas: solo cambian P y Q."
    }
   },
   {
    "type": "exercise",
+   "section": "Guion, ejercicio 3: las exactas",
    "ex": {
-    "id": "2-m2-pl1-e09",
+    "id": "2-m2-pl1-e26",
     "kind": "code",
-    "title": "¿Cuál de las dos familias es solución?",
-    "prompt": "**Guion PL1, ejercicio 1 (final).** Decide analíticamente. Define la familia (b) `zb[x_, C1_] = (2/x^2) (C1 + x e^x - e^x)` y calcula su residuo en la ecuación: `x y' + 2y - e^x`, simplificado.",
+    "title": "Ejercicio 3a: el test",
+    "prompt": "**Guion PL1, ejercicio 3a.** Para `(y² e^(x y²) + 4x³) dx + (2xy e^(x y²) - 3y²) dy = 0`: define `P` y `Q`, calcula `Py`, `Qx` y devuelve `Py - Qx` simplificado.",
     "difficulty": 3,
     "cmds": [
      "D",
      "Simplify"
     ],
     "real": true,
-    "source": "PL1 · ejercicio 1",
-    "solution": "zb[x_, C1_] = (2/x^2) (C1 + x Exp[x] - Exp[x]);\nx D[zb[x, C1], x] + 2 zb[x, C1] - Exp[x] // Simplify",
-    "check": {
-     "type": "expr",
-     "expected": "Exp[x]",
-     "compare": "equal"
-    },
-    "requires": [
-     "D"
-    ],
-    "hints": [
-     "La derivada respecto de x es `D[zb[x, C1], x]`.",
-     "`x D[zb[x, C1], x] + 2 zb[x, C1] - Exp[x] // Simplify`"
-    ],
-    "explain": "El residuo de (b) es `E^x`, no 0: (b) NO es solución. Con (a) el mismo cálculo da 0, y `DSolve[2 y[x] + x y'[x] == Exp[x], y[x], x]` lo confirma."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl1-e10",
-    "kind": "code",
-    "title": "Homogénea sin DSolve: solución general",
-    "prompt": "**Guion PL1, ejercicio 2 (primera parte).** Resuelve paso a paso, sin `DSolve`, la ecuación homogénea `y' = (y + x cos²(y/x))/x`.\n\nDefine `f[x_, y_]` y obtén la relación implícita de la solución general con la receta: integral en `z` igualada a `Integrate[1/x, x] + C1`, deshaciendo el cambio `z -> y/x`. Guarda la relación en la variable `sol`.",
-    "difficulty": 4,
-    "cmds": [
-     "Integrate",
-     "ReplaceAll"
-    ],
-    "real": true,
-    "source": "PL1 · ejercicio 2",
-    "solution": "f[x_, y_] = (y + x Cos[y/x]^2)/x;\nsol = Integrate[1/(f[1, z] - z), z] == Integrate[1/x, x] + C1 /. z -> y/x",
-    "check": {
-     "type": "satisfies",
-     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((y + x Cos[y/x]^2)/x)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((y + x Cos[y/x]^2)/x)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
-     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
-    },
-    "requires": [
-     "Integrate"
-    ],
-    "forbids": [
-     "DSolve"
-    ],
-    "hints": [
-     "El coseno al cuadrado se escribe `Cos[y/x]^2`.",
-     "`f[1, z] - z` vale `Cos[z]^2`, así que la integral es la de `1/Cos[z]^2`: Mathematica la hace sola.",
-     "`sol = Integrate[1/(f[1, z] - z), z] == Integrate[1/x, x] + C1 /. z -> y/x`"
-    ],
-    "explain": "Queda `Tan[y/x] == C1 + Log[x]`. Es la solución general en forma implícita."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl1-e11",
-    "kind": "code",
-    "title": "Homogénea: condición inicial y dibujo",
-    "prompt": "**Guion PL1, ejercicio 2 (segunda parte).** La solución general es `Tan[y/x] == C1 + Log[x]` (ya está en `rel`). Impón `y(1) = π/4`:\n- halla `C1` sustituyendo `x -> 1`, `y -> Pi/4` en `rel` y resolviendo con `Solve`;\n- despeja y a mano y define la solución como `ysol[x_]`;\n- dibuja el campo de direcciones (x de 0.1 a 3, y de −2 a 4) junto con `ysol`, con `Show`.",
-    "difficulty": 4,
-    "cmds": [
-     "Solve",
-     "ReplaceAll",
-     "VectorPlot",
-     "Show"
-    ],
-    "real": true,
-    "source": "PL1 · ejercicio 2",
-    "starter": "rel = Tan[y/x] == C1 + Log[x];\n",
-    "solution": "rel = Tan[y/x] == C1 + Log[x];\nSolve[rel /. {x -> 1, y -> Pi/4}, C1]\nysol[x_] = x ArcTan[1 + Log[x]];\np1 = VectorPlot[{1, (y + x Cos[y/x]^2)/x}, {x, 0.1, 3}, {y, -2, 4}, VectorScale -> {Small, Small, None}];\np2 = Plot[ysol[x], {x, 0.1, 3}, PlotStyle -> Red];\nShow[p1, p2]",
+    "source": "PL1 · ejercicio 3a",
+    "solution": "P[x_, y_] = y^2 Exp[x y^2] + 4 x^3; Q[x_, y_] = 2 x y Exp[x y^2] - 3 y^2;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx // Simplify",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
-       "expr": "ysol[1]",
-       "expected": "Pi/4",
+       "expr": "{P[1, 1], Q[1, 1]}",
+       "expected": "{E + 4, 2 E - 3}",
        "compare": "equal",
-       "msg": "`ysol[1]` debe valer π/4. Cuidado: el dato es x = 1, y = π/4 (no al revés)."
+       "msg": "Revisa `P` y `Q`: P multiplica a dx y Q a dy."
       },
       {
-       "type": "ode",
-       "eq": "y'[x] == (y[x] + x Cos[y[x]/x]^2)/x",
-       "func": "y",
-       "var": "x",
-       "expr": "ysol[x]",
-       "msg": "`ysol[x]` no cumple la ecuación. De `Tan[y/x] == 1 + Log[x]` sale `y = x ArcTan[1 + Log[x]]`."
-      },
-      {
-       "type": "graphics",
-       "dim": 2,
-       "min": 2,
-       "has": [
-        "arrows",
-        "line"
-       ],
-       "msg": "La última línea debe ser `Show[...]` con el campo y la curva solución."
+       "type": "expr",
+       "expected": "0",
+       "compare": "equal"
       }
      ]
     },
     "requires": [
-     "Solve",
-     "VectorPlot",
-     "Show"
+     "D"
     ],
     "hints": [
-     "`Solve[rel /. {x -> 1, y -> Pi/4}, C1]` da `C1 -> 1`.",
-     "Con C1 = 1: `Tan[y/x] = 1 + Log[x]`, luego `ysol[x_] = x ArcTan[1 + Log[x]]`.",
-     "`Show[VectorPlot[{1, (y + x Cos[y/x]^2)/x}, {x, 0.1, 3}, {y, -2, 4}], Plot[ysol[x], {x, 0.1, 3}]]`"
+     "`P[x_, y_] = y^2 Exp[x y^2] + 4 x^3; Q[x_, y_] = 2 x y Exp[x y^2] - 3 y^2;`",
+     "`Py = D[P[x, y], y]; Qx = D[Q[x, y], x];`",
+     "`Py - Qx // Simplify`"
     ],
-    "explain": "El fallo clásico aquí es sustituir al revés (x = π/4, y = 1): `y(1) = π/4` significa que cuando x vale 1, y vale π/4. Se empieza en x = 0.1 y no en 0 porque la ecuación divide por x."
+    "explain": "Da 0: es exacta."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e12",
+    "id": "2-m2-pl1-e27",
     "kind": "code",
-    "title": "Exacta o factor integrante (a)",
-    "prompt": "**Guion PL1, ejercicio 3a.** Resuelve `(y² e^(x y²) + 4x³) dx + (2xy e^(x y²) - 3y²) dy = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). Usa `x0 = 0`, `y0 = 0`.",
+    "title": "Ejercicio 3a: el potencial",
+    "prompt": "**Guion PL1, ejercicio 3a.** Ya están definidas `P` y `Q` del apartado (a), que es exacta. Calcula el potencial con `x0 = 0`, `y0 = 0` y guárdalo en `U`.",
     "difficulty": 3,
     "cmds": [
-     "D",
-     "Integrate",
-     "Simplify",
-     "Exp"
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3a",
-    "solution": "P[x_, y_] = y^2 Exp[x y^2] + 4 x^3; Q[x_, y_] = 2 x y Exp[x y^2] - 3 y^2;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx // Simplify\nx0 = 0; y0 = 0;\nU = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
+    "setup": "P[x_, y_] = y^2 Exp[x y^2] + 4 x^3; Q[x_, y_] = 2 x y Exp[x y^2] - 3 y^2;",
+    "solution": "x0 = 0; y0 = 0;\nU = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]",
     "check": {
      "type": "satisfies",
      "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(2 x y Exp[x y^2] - 3 y^2) - D[F, y]*(y^2 Exp[x y^2] + 4 x^3)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(2 x y Exp[x y^2] - 3 y^2) - D[F, y]*(y^2 Exp[x y^2] + 4 x^3)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
@@ -679,30 +1658,24 @@
     "requires": [
      "Integrate"
     ],
-    "forbids": [
-     "DSolve"
-    ],
     "hints": [
-     "`P[x_, y_] = y^2 Exp[x y^2] + 4 x^3; Q[x_, y_] = 2 x y Exp[x y^2] - 3 y^2;`",
-     "`Py - Qx` da 0: es exacta. Aplica directamente la fórmula de `U`.",
-     "`U = Integrate[P[s, y], {s, 0, x}] + Integrate[Q[0, s], {s, 0, y}]`"
+     "`x0 = 0; y0 = 0;`",
+     "`U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]`"
     ],
-    "explain": "Exacta. `U = E^(x y^2) + x^4 - y^3 - 1`; el −1 da igual (se junta con la constante)."
+    "explain": "`U = E^(x y^2) + x^4 - y^3 - 1`; el −1 da igual (se junta con la constante). Solución: `U == C1`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e13",
+    "id": "2-m2-pl1-e28",
     "kind": "code",
-    "title": "Exacta o factor integrante (b)",
-    "prompt": "**Guion PL1, ejercicio 3b.** Resuelve `(x y² - (1/x²) e^(1/x)) dx + x² y dy = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). Aquí P no existe en x = 0: usa `x0 = 1`, `y0 = 1`.",
+    "title": "Ejercicio 3b",
+    "prompt": "**Guion PL1, ejercicio 3b.** Resuelve `(x y² - (1/x²) e^(1/x)) dx + x² y dy = 0`: test de exactitud y potencial en `U`. Aquí P no existe en x = 0: usa `x0 = 1`, `y0 = 1`.",
     "difficulty": 3,
     "cmds": [
      "D",
-     "Integrate",
-     "Simplify",
-     "Exp"
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3b",
@@ -720,8 +1693,8 @@
     ],
     "hints": [
      "`P[x_, y_] = x y^2 - Exp[1/x]/x^2; Q[x_, y_] = x^2 y;`",
-     "Es exacta (`Py - Qx` = 0), pero el punto (0, 0) no sirve por el `1/x`.",
-     "`x0 = 1; y0 = 1; U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}] // Simplify`"
+     "Es exacta (`Py - Qx` da 0), pero el punto (0, 0) no sirve por el `1/x`: `x0 = 1; y0 = 1;`",
+     "`U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}] // Simplify`"
     ],
     "explain": "Exacta. `U = x^2 y^2/2 + E^(1/x)` más una constante. Si eliges un punto singular, la integral definida falla: cambia de punto y listo."
    }
@@ -729,16 +1702,14 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e14",
+    "id": "2-m2-pl1-e29",
     "kind": "code",
-    "title": "Exacta o factor integrante (c)",
-    "prompt": "**Guion PL1, ejercicio 3c.** Resuelve `(x² y³ - 1/(1 + 9x²)) dx + x³ y² dy = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). Usa `x0 = 0`, `y0 = 0`.",
+    "title": "Ejercicio 3c",
+    "prompt": "**Guion PL1, ejercicio 3c.** Resuelve `(x² y³ - 1/(1 + 9x²)) dx + x³ y² dy = 0`: test de exactitud y potencial en `U`, con `x0 = 0`, `y0 = 0`.",
     "difficulty": 3,
     "cmds": [
      "D",
-     "Integrate",
-     "Simplify",
-     "Exp"
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3c",
@@ -756,29 +1727,172 @@
     ],
     "hints": [
      "`P[x_, y_] = x^2 y^3 - 1/(1 + 9 x^2); Q[x_, y_] = x^3 y^2;`",
-     "`Py - Qx` da 0: exacta.",
-     "`U = Integrate[P[s, y], {s, 0, x}] + Integrate[Q[0, s], {s, 0, y}]`"
+     "`Py = D[P[x, y], y]; Qx = D[Q[x, y], x];` y `Py - Qx` (da 0: exacta).",
+     "`x0 = 0; y0 = 0;` y `U = Integrate[P[s, y], {s, x0, x}] + Integrate[Q[x0, s], {s, y0, y}]`"
     ],
-    "explain": "Exacta. `U = x^3 y^3/3 - ArcTan[3 x]/3` (Mathematica escribe así la integral de `1/(1 + 9x^2)`). Este apartado cayó en la prueba de clase de un curso anterior."
+    "explain": "Exacta. `U = x^3 y^3/3 - ArcTan[3 x]/3` (así escribe Mathematica la integral de `1/(1 + 9x^2)`). Este apartado cayó en la prueba de clase de un curso anterior."
+   }
+  },
+  {
+   "type": "explain",
+   "section": "Factor integrante",
+   "title": "Cuando no es exacta",
+   "md": "Si `Py - Qx` no da 0, la ecuación no es exacta. A veces se arregla multiplicándola entera por un **factor integrante** `μ`. El guion da dos casos:\n- si `(Py - Qx)/Q` depende **solo de x**: `μ = Exp[∫ (Py - Qx)/Q dx]`;\n- si `(Qx - Py)/P` depende **solo de y**: `μ = Exp[∫ (Qx - Py)/P dy]`.\n\nSe calculan los cocientes con `// Simplify` y se mira en cuál ha desaparecido la otra letra. Fíjate en el orden de la resta: `Py - Qx` cuando divides por `Q`, y `Qx - Py` cuando divides por `P`.\n\nDespués se multiplica (`P1 = μ P`, `Q1 = μ Q`) y se aplica a `P1`, `Q1` la fórmula del potencial.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Buscar el factor integrante",
+   "md": "Ejemplo 1.4.2: `(3x cos y + 2y) dx + (x - x² sen y) dy = 0`. Ya están definidas `P`, `Q`, `Py` y `Qx`; aquí `Py - Qx` vale `1 - x Sin[y]`: no es exacta.",
+   "target": "mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]",
+   "setup": "P[x_, y_] = 3 x Cos[y] + 2 y; Q[x_, y_] = x - x^2 Sin[y];\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];",
+   "parts": [
+    {
+     "code": "(Py - Qx)/Q[x, y]",
+     "md": "El primer cociente: la resta dividida entre Q.",
+     "run": true
+    },
+    {
+     "code": "(Py - Qx)/Q[x, y] // Simplify",
+     "md": "Simplificado da `1/x`: solo depende de x. Hay factor integrante μ(x).",
+     "run": true
+    },
+    {
+     "code": "Integrate[(Py - Qx)/Q[x, y] // Simplify, x]",
+     "md": "Se integra ese cociente respecto de x.",
+     "run": true
+    },
+    {
+     "code": "mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]",
+     "md": "Y la exponencial de la integral es el factor integrante: aquí `mu = x`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar (con `P`, `Q`, `Py`, `Qx` ya definidas): calcula el factor integrante `mu`, que depende solo de x.",
+    "hints": [
+     "`mu = Exp[Integrate[ cociente , x]]`.",
+     "El cociente es `(Py - Qx)/Q[x, y]`.",
+     "Simplifícalo antes de integrar: `(Py - Qx)/Q[x, y] // Simplify`."
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "With[{q = mu/(x)}, NumericQ[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] && Abs[(q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}) - (q /. {x -> 1.4, y -> 0.6, C1 -> 1.1})] < 10^-8 && Abs[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`mu` no es el factor integrante correcto (o no está definido). Revisa qué cociente depende de una sola variable y respecto de cuál integras."
+    }
+   },
+   "cmds": [
+    "Exp",
+    "Integrate",
+    "Simplify"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Multiplicar y hallar el potencial",
+   "md": "Con el factor integrante en la mano (`mu = x`, ya definido junto con `P` y `Q`), se multiplica la ecuación y se repite la fórmula del potencial.",
+   "target": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+   "setup": "P[x_, y_] = 3 x Cos[y] + 2 y; Q[x_, y_] = x - x^2 Sin[y];\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nmu = x;",
+   "parts": [
+    {
+     "code": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];",
+     "md": "La ecuación multiplicada por μ: nuevas funciones `P1`, `Q1`. Ahora sí es exacta.",
+     "run": true
+    },
+    {
+     "code": "x0 = 0; y0 = 0;",
+     "md": "El punto de partida, como en las exactas.",
+     "run": true
+    },
+    {
+     "code": "U = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+     "md": "La misma fórmula del potencial, con `P1` y `Q1`.",
+     "run": true
+    },
+    {
+     "code": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+     "md": "Las tres líneas finales de la receta.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar (con `P`, `Q` y `mu` ya definidas): define `P1`, `Q1`, fija `x0 = 0`, `y0 = 0` y calcula el potencial `U`.",
+    "hints": [
+     "Línea 1: `P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];`",
+     "Línea 2: `x0 = 0; y0 = 0;`",
+     "Línea 3: la fórmula de `U` con `P1[s, y]` y `Q1[x0, s]`."
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(x - x^2 Sin[y]) - D[F, y]*(3 x Cos[y] + 2 y)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(x - x^2 Sin[y]) - D[F, y]*(3 x Cos[y] + 2 y)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`U` no es un potencial de la ecuación (o no está definido): debe cumplirse `D[U, x] = μ P` y `D[U, y] = μ Q`. Revisa P, Q, el factor integrante y la fórmula, y guarda el resultado en `U`."
+    }
+   },
+   "cmds": [
+    "Integrate"
+   ]
+  },
+  {
+   "type": "exercise",
+   "section": "Guion, ejercicio 3: con factor integrante",
+   "ex": {
+    "id": "2-m2-pl1-e30",
+    "kind": "code",
+    "title": "Ejercicio 3d: el factor integrante",
+    "prompt": "**Guion PL1, ejercicio 3d.** Para `y dx - x dy + ln(x) dx = 0`: agrupa los términos con dx para definir `P` y `Q`, calcula `Py`, `Qx`, mira el cociente `(Py - Qx)/Q` y guarda el factor integrante en `mu`.",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "Simplify",
+     "Exp",
+     "Integrate"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 3d",
+    "solution": "P[x_, y_] = y + Log[x]; Q[x_, y_] = -x;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx\n(Py - Qx)/Q[x, y] // Simplify\nmu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{P[2, 3], Q[2, 3]}",
+       "expected": "{3 + Log[2], -2}",
+       "compare": "equal",
+       "msg": "Revisa `P` y `Q`. Con dx van `y` y `Log[x]`; con dy va `-x` (¡con su signo!)."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{q = mu/(1/x^2)}, NumericQ[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] && Abs[(q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}) - (q /. {x -> 1.4, y -> 0.6, C1 -> 1.1})] < 10^-8 && Abs[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+       "msg": "`mu` no es el factor integrante correcto (o no está definido). Revisa qué cociente depende de una sola variable y respecto de cuál integras."
+      }
+     ]
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "Con dx van `y` y `Log[x]`: `P[x_, y_] = y + Log[x]`. Con dy va `-x`: `Q[x_, y_] = -x`.",
+     "`Py - Qx` da 2: no es exacta. `(Py - Qx)/Q[x, y] // Simplify` da `-2/x`: solo x.",
+     "`mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]`"
+    ],
+    "explain": "`μ = 1/x^2`. El error típico es olvidar el signo y poner `Q = x`: entonces parece exacta y sale una solución falsa."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e15",
+    "id": "2-m2-pl1-e31",
     "kind": "code",
-    "title": "Exacta o factor integrante (d)",
-    "prompt": "**Guion PL1, ejercicio 3d.** Resuelve `y dx - x dy + ln(x) dx = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). Agrupa primero los términos con dx. Por el logaritmo, usa `x0 = 1`, `y0 = 1`.",
-    "difficulty": 4,
+    "title": "Ejercicio 3d: el potencial",
+    "prompt": "**Guion PL1, ejercicio 3d.** Ya están definidas `P[x_, y_] = y + Log[x]`, `Q[x_, y_] = -x` y `mu = 1/x^2`. Define `P1`, `Q1` y calcula el potencial en `U`. Por el logaritmo, usa `x0 = 1`, `y0 = 1`.",
+    "difficulty": 3,
     "cmds": [
-     "D",
-     "Integrate",
-     "Simplify",
-     "Exp"
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3d",
-    "solution": "P[x_, y_] = y + Log[x]; Q[x_, y_] = -x;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx\n(Py - Qx)/Q[x, y] // Simplify\nmu = Exp[Integrate[(Py - Qx)/Q[x, y], x]]\nP1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 1; y0 = 1;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}] // Simplify",
+    "setup": "P[x_, y_] = y + Log[x]; Q[x_, y_] = -x;\nmu = 1/x^2;",
+    "solution": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 1; y0 = 1;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}] // Simplify",
     "check": {
      "type": "satisfies",
      "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(-x) - D[F, y]*(y + Log[x])) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(-x) - D[F, y]*(y + Log[x])) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
@@ -787,34 +1901,31 @@
     "requires": [
      "Integrate"
     ],
-    "forbids": [
-     "DSolve"
-    ],
     "hints": [
-     "Con dx van `y` y `Log[x]`: `P[x_, y_] = y + Log[x]`. Con dy va `-x`: `Q[x_, y_] = -x` (¡con su signo!).",
-     "`Py - Qx` da 2: no es exacta. `(Py - Qx)/Q` da `-2/x`, solo depende de x: `mu = Exp[Integrate[-2/x, x]]`, o sea `1/x^2`.",
-     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];` y la fórmula de `U` con `x0 = 1; y0 = 1`."
+     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];`",
+     "`x0 = 1; y0 = 1;`",
+     "`U = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}] // Simplify`"
     ],
-    "explain": "No es exacta; `μ = 1/x^2` y `U = -(y + Log[x] + 1)/x` más una constante. El error típico es olvidar el signo y poner `Q = x`: entonces parece exacta y sale una solución falsa."
+    "explain": "`U = -(y + Log[x] + 1)/x` más una constante. Solución general: `U == C1`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e16",
+    "id": "2-m2-pl1-e32",
     "kind": "code",
-    "title": "Exacta o factor integrante (e)",
-    "prompt": "**Guion PL1, ejercicio 3e.** Resuelve `(x + 2) sen(y) dx + x cos(y) dy = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). Usa `x0 = 0`, `y0 = 0`.",
+    "title": "Ejercicio 3e: la receta entera",
+    "prompt": "**Guion PL1, ejercicio 3e.** Resuelve `(x + 2) sen(y) dx + x cos(y) dy = 0`: test, factor integrante `mu` (depende de x), `P1`, `Q1` y potencial en `U`, con `x0 = 0`, `y0 = 0`.",
     "difficulty": 4,
     "cmds": [
      "D",
-     "Integrate",
      "Simplify",
-     "Exp"
+     "Exp",
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3e",
-    "solution": "P[x_, y_] = (x + 2) Sin[y]; Q[x_, y_] = x Cos[y];\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nPy - Qx // Simplify\n(Py - Qx)/Q[x, y] // Simplify\nmu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]\nP1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+    "solution": "P[x_, y_] = (x + 2) Sin[y]; Q[x_, y_] = x Cos[y];\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\n(Py - Qx)/Q[x, y] // Simplify\nmu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]\nP1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
     "check": {
      "type": "satisfies",
      "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(x Cos[y]) - D[F, y]*((x + 2) Sin[y])) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(x Cos[y]) - D[F, y]*((x + 2) Sin[y])) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
@@ -827,30 +1938,73 @@
      "DSolve"
     ],
     "hints": [
-     "`P[x_, y_] = (x + 2) Sin[y]; Q[x_, y_] = x Cos[y];` No es exacta.",
-     "`(Py - Qx)/Q // Simplify` da `1 + 1/x`: solo x. `mu = Exp[Integrate[1 + 1/x, x]]`, que es `x E^x`.",
-     "Multiplica (`P1`, `Q1`) y aplica la fórmula de `U`."
+     "`P[x_, y_] = (x + 2) Sin[y]; Q[x_, y_] = x Cos[y];` y `Py = D[P[x, y], y]; Qx = D[Q[x, y], x];`",
+     "`(Py - Qx)/Q[x, y] // Simplify` da `1 + 1/x`: solo x. `mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]`, que es `x E^x`.",
+     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];`, `x0 = 0; y0 = 0;` y la fórmula de `U` con `P1`, `Q1`."
     ],
-    "explain": "No es exacta; `μ = x E^x` y `U = x^2 E^x Sin[y]`. También cayó en la prueba de clase de un curso anterior."
+    "explain": "No es exacta; `μ = x E^x` y `U = x^2 E^x Sin[y]`. Acabas de escribir la receta completa tú solo. También cayó en la prueba de clase de un curso anterior."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl1-e17",
+    "id": "2-m2-pl1-e33",
     "kind": "code",
-    "title": "Exacta o factor integrante (f)",
-    "prompt": "**Guion PL1, ejercicio 3f.** Resuelve `(y ln y - 2xy) dx + (x + y) dy = 0` comprobando si es exacta y/o admite factor integrante. Guarda el potencial en la variable `U` (la solución general es `U == C`). El factor integrante ahora depende de y. Por el logaritmo, usa `x0 = 1`, `y0 = 1`.",
+    "title": "Ejercicio 3f: factor que depende de y",
+    "prompt": "**Guion PL1, ejercicio 3f.** Para `(y ln y - 2xy) dx + (x + y) dy = 0`: define `P`, `Q`, `Py`, `Qx`. El cociente `(Py - Qx)/Q` mezcla x e y: prueba el otro, `(Qx - Py)/P`, y guarda el factor integrante en `mu` (ahora se integra respecto de y).",
     "difficulty": 4,
     "cmds": [
      "D",
-     "Integrate",
      "Simplify",
-     "Exp"
+     "Exp",
+     "Integrate"
     ],
     "real": true,
     "source": "PL1 · ejercicio 3f",
-    "solution": "P[x_, y_] = y Log[y] - 2 x y; Q[x_, y_] = x + y;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\n(Py - Qx)/Q[x, y] // Simplify\n(Qx - Py)/P[x, y] // Simplify\nmu = Exp[Integrate[(Qx - Py)/P[x, y] // Simplify, y]]\nP1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 1; y0 = 1;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+    "solution": "P[x_, y_] = y Log[y] - 2 x y; Q[x_, y_] = x + y;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\n(Py - Qx)/Q[x, y] // Simplify\n(Qx - Py)/P[x, y] // Simplify\nmu = Exp[Integrate[(Qx - Py)/P[x, y] // Simplify, y]]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{P[2, 1], Q[2, 1]}",
+       "expected": "{-4, 3}",
+       "compare": "equal",
+       "msg": "Revisa `P` y `Q`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{q = mu/(1/y)}, NumericQ[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] && Abs[(q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}) - (q /. {x -> 1.4, y -> 0.6, C1 -> 1.1})] < 10^-8 && Abs[q /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+       "msg": "`mu` no es el factor integrante correcto (o no está definido). Revisa qué cociente depende de una sola variable y respecto de cuál integras."
+      }
+     ]
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`P[x_, y_] = y Log[y] - 2 x y; Q[x_, y_] = x + y;` y las derivadas `Py`, `Qx`.",
+     "`(Qx - Py)/P[x, y] // Simplify` da `-1/y`: solo y.",
+     "`mu = Exp[Integrate[(Qx - Py)/P[x, y] // Simplify, y]]` (resta al revés, se divide por P y se integra en y)."
+    ],
+    "explain": "`μ = 1/y`. Con μ(y) todo es igual, pero cambian tres cosas: el orden de la resta, se divide por P y se integra respecto de y."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl1-e34",
+    "kind": "code",
+    "title": "Ejercicio 3f: el potencial",
+    "prompt": "**Guion PL1, ejercicio 3f.** Ya están definidas `P`, `Q` del apartado (f) y `mu = 1/y`. Define `P1`, `Q1` y calcula el potencial en `U`. Por el logaritmo, usa `x0 = 1`, `y0 = 1`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate"
+    ],
+    "real": true,
+    "source": "PL1 · ejercicio 3f",
+    "setup": "P[x_, y_] = y Log[y] - 2 x y; Q[x_, y_] = x + y;\nmu = 1/y;",
+    "solution": "P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 1; y0 = 1;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
     "check": {
      "type": "satisfies",
      "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(x + y) - D[F, y]*(y Log[y] - 2 x y)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(x + y) - D[F, y]*(y Log[y] - 2 x y)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
@@ -859,15 +2013,12 @@
     "requires": [
      "Integrate"
     ],
-    "forbids": [
-     "DSolve"
-    ],
     "hints": [
-     "`(Py - Qx)/Q` mezcla x e y: no sirve. Prueba el otro cociente: `(Qx - Py)/P[x, y] // Simplify`.",
-     "Da `-1/y`: `mu = Exp[Integrate[-1/y, y]]`, es decir `1/y`. Ojo: ahora se integra respecto de `y`.",
-     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];` y la fórmula de `U` con `x0 = 1; y0 = 1`."
+     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];`",
+     "`x0 = 1; y0 = 1;`",
+     "`U = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]`"
     ],
-    "explain": "No es exacta; `(Qx - Py)/P = -1/y` da `μ = 1/y` y `U = x Log[y] - x^2 + y` más una constante. Con μ(y) todo es igual, pero el cociente se divide por P y se integra en y."
+    "explain": "`U = x Log[y] - x^2 + y` más una constante. Con esto has hecho los seis apartados del ejercicio 3 del guion."
    }
   }
  ]

@@ -68,13 +68,15 @@ async function mountList(el) {
     for (const b of tabs.children) b.setAttribute('aria-selected', String(b.dataset.tab === S.tab));
     const tab = TABS.find((t) => t.id === S.tab);
     const words = S.q.split(/\s+/).filter(Boolean);
-    const hay = (c) => norm([c.name, c.symbol, c.desc, c.group, famById.get(c._fam)?.name, c.aka.join(' '), c.syntax.join(' ')].join(' '));
+    const hay = (c) => norm([c.name, c.symbol, c.desc, c._group, famById.get(c._fam)?.name, c.aka.join(' '), c.syntax.join(' ')].join(' '));
     const inTabAll = all.filter((c) => tab.test(level(c)));
     const list = inTabAll.filter((c) => (!S.fam || c._fam === S.fam) && (!S.year || c.year === S.year) && (!words.length || words.every((w) => hay(c).includes(w))));
     info.textContent = `${tab.hint}${list.length === inTabAll.length ? '' : ` Mostrando ${list.length} de ${inTabAll.length}.`}`;
 
     if (!list.length) {
-      const elsewhere = words.length ? all.filter((c) => !tab.test(level(c)) && words.every((w) => hay(c).includes(w))).slice(0, 8) : [];
+      // ¿está en otra lista? primero los que coinciden por nombre, luego por sinónimo, luego por descripción
+      const score = (c) => (words.every((w) => norm(c.name).includes(w)) ? 0 : words.every((w) => norm(c.aka.join(' ') + ' ' + (c.symbol || '')).includes(w)) ? 1 : 2);
+      const elsewhere = words.length ? all.filter((c) => !tab.test(level(c)) && words.every((w) => hay(c).includes(w))).sort((a, b) => score(a) - score(b) || b.freq - a.freq).slice(0, 8) : [];
       const msg = inTabAll.length === 0
         ? { learned: ['Todavía no dominas ninguno', 'Un comando llega aquí cuando lo usas bien en 3 ejercicios.'], practice: ['Nada en marcha todavía', 'Abre una lección: cada comando que teclees aparecerá aquí.'], todo: ['Los has tocado todos', 'No queda ningún comando sin estrenar.'] }[S.tab]
         : ['Ningún comando con esos filtros', elsewhere.length ? 'Pero está en otra lista:' : 'Prueba con otra palabra o quita los filtros.'];
@@ -172,10 +174,10 @@ async function mountDetail(el, name) {
 
   el.replaceChildren(h('div', { class: 'page cmd cmd-detail' },
     h('div', { class: 'cmd-crumb' },
-      h('span', null, h('a', { href: '#/comandos' }, 'Comandos'), f ? ` › ${f.name}` : '', c.group ? ` › ${c.group}` : ''),
+      h('span', null, h('a', { href: '#/comandos' }, 'Comandos'), f ? ` › ${f.name}` : '', c._group ? ` › ${c._group}` : ''),
       c.related.length ? h('span', null, 'Ver también: ', h('span', { class: 'sqs' }, c.related.slice(0, 3).map(link))) : null),
     h('header', { class: 'page-head doc', style: { marginTop: '18px' } },
-      h('span', { class: 'doc-tag sym' }, KIND_TAG[c.kind] || 'Comando'),
+      h('span', { class: 'doc-tag is-sym' }, KIND_TAG[c.kind] || 'Comando'),
       h('h1', { class: 'cmd-name' }, c.name, c.symbol ? h('span', { class: 'cmd-sym' }, c.symbol) : null, yearBadge(c.year))),
     // caja de sintaxis azul muy claro, como en la documentación
     h('div', { class: 'cmd-syn' },

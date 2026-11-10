@@ -6,7 +6,7 @@
  "order": 14,
  "title": "Matrices y vectores",
  "summary": "Escribes matrices como listas de listas, distingues el producto matricial (.) del producto elemento a elemento (*), fabricas matrices con Table y manejas traspuesta, determinante, inversa, menores y adjunta. Con eso codificas y descifras mensajes como en la práctica real.",
- "minutes": 50,
+ "minutes": 60,
  "commands": [
   "MatrixForm",
   "Dimensions",
@@ -31,20 +31,62 @@
  "steps": [
   {
    "type": "explain",
+   "section": "Escribir una matriz y leer sus elementos",
+   "title": "Para qué sirve esto",
+   "md": "Los giros de un avión (cabeceo, guiñada, alabeo), las tensiones de una estructura o un sistema de ecuaciones: todo eso se guarda en **matrices**. En esta práctica aprendes a escribirlas, a multiplicarlas bien (aquí está el fallo que más puntos quita) y a usar inversa, determinante y adjunta. Al final descifrarás un mensaje en clave, como en la prueba real.\n\nIremos pieza a pieza: primero escribes cada trozo, luego los unes y al final lo escribes todo de memoria.",
+   "cells": []
+  },
+  {
+   "type": "build",
    "title": "Una matriz es una lista de listas",
-   "md": "Los giros de un avión (cabeceo, guiñada, alabeo), las tensiones de una estructura o un sistema de ecuaciones: todo eso se guarda en **matrices**. En esta práctica aprendes a escribirlas, multiplicarlas bien (aquí está el fallo que más puntos quita) y a usar inversa, determinante y adjunta. Al final descifrarás un mensaje en clave, como en la prueba real.\n\nEn Mathematica una matriz es una **lista de filas**, y cada fila es otra lista:\n\n- `{{1, 2, 3}, {4, 5, 6}}` = 2 filas y 3 columnas. Llaves por fuera, llaves en cada fila, comas entre filas.\n- `A // MatrixForm` la **dibuja** como matriz. Solo sirve para mirar: nunca escribas `A = {{…}} // MatrixForm`, porque `A` guardaría el dibujo y no podrías operar con ella.\n- `Dimensions[A]` devuelve `{filas, columnas}`.\n\nUn **vector** es una lista simple: `{1, 2, 3}`.",
-   "cells": [
+   "md": "Vamos a guardar en `A` una matriz de 2 filas y 3 columnas. En Mathematica una matriz es una lista de filas, y cada fila es otra lista.",
+   "target": "A = {{1, 2, 3}, {4, 5, 6}}",
+   "parts": [
+    {
+     "code": "{1, 2, 3}",
+     "md": "Una fila: una lista, con llaves y comas."
+    },
+    {
+     "code": "{4, 5, 6}",
+     "md": "La segunda fila, igual."
+    },
+    {
+     "code": "{{1, 2, 3}, {4, 5, 6}}",
+     "md": "Las dos filas, separadas por una coma, dentro de otras llaves. Eso ya es la matriz.",
+     "run": true
+    },
     {
      "code": "A = {{1, 2, 3}, {4, 5, 6}}",
-     "note": "2 filas, 3 columnas"
-    },
+     "md": "Con `=` la guardas en `A` para usarla después.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: guarda en `A` la matriz cuyas filas son (1, 2, 3) y (4, 5, 6).",
+    "hints": [
+     "Cada fila va entre llaves: `{1, 2, 3}`.",
+     "Las dos filas van dentro de otras llaves, separadas por coma.",
+     "Empieza por `A = {{`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "A",
+     "expected": "{{1, 2, 3}, {4, 5, 6}}",
+     "msg": "`A` no es la matriz pedida."
+    }
+   },
+   "cmds": [
+    "Set"
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Verla como matriz",
+   "md": "`// MatrixForm` al final **dibuja** la matriz con filas y columnas. Solo sirve para mirar.\n\nNunca escribas `A = {{…}} // MatrixForm`: `A` guardaría el dibujo y no podrías operar con ella. Primero se define y después, en otra orden, se mira.",
+   "cells": [
     {
-     "code": "A // MatrixForm",
-     "note": "solo para verla bien"
-    },
-    {
-     "code": "Dimensions[A]",
-     "note": "{filas, columnas}"
+     "code": "{{1, 2, 3}, {4, 5, 6}} // MatrixForm",
+     "note": "solo para verla"
     }
    ]
   },
@@ -54,7 +96,7 @@
     "id": "1-p14-e01",
     "kind": "code",
     "title": "Escribe tu primera matriz",
-    "prompt": "Define la matriz `B` cuyas filas son (1, 0), (2, 5) y (7, 7). En otra línea, pide sus dimensiones.",
+    "prompt": "Define la matriz `B` cuyas filas son (1, 0), (2, 5) y (7, 7). En otra línea escribe `Dimensions[B]`, que devuelve `{filas, columnas}`.",
     "difficulty": 1,
     "cmds": [
      "Dimensions"
@@ -84,26 +126,47 @@
      "Cada fila va entre llaves y todas juntas dentro de otras llaves: `{{1, 0}, {2, 5}, {7, 7}}`.",
      "`B = {{1, 0}, {2, 5}, {7, 7}}` y después `Dimensions[B]`."
     ],
-    "explain": "Sale `{3, 2}`: 3 filas y 2 columnas. Fíjate en que no has asignado `B = … // MatrixForm`: si lo haces, `B` guarda el dibujo y ya no sirve para operar."
+    "explain": "Sale `{3, 2}`: 3 filas y 2 columnas."
    }
   },
   {
-   "type": "explain",
-   "title": "Entrar en la matriz: [[fila, columna]]",
-   "md": "Para sacar piezas se usan **dobles corchetes** (es `Part`, el mismo de las listas):\n\n- `A[[2, 3]]` = elemento de la **fila 2, columna 3**. Siempre primero la fila.\n- `A[[2]]` = la fila 2 entera.\n- `A[[All, 3]]` = la columna 3 entera (`All` = todas las filas).\n\nLos índices empiezan en 1. Un solo corchete (`A[2, 3]`) no funciona: los corchetes simples son para funciones.",
-   "cells": [
-    {
-     "code": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\nA[[2, 3]]",
-     "note": "fila 2, columna 3"
-    },
+   "type": "build",
+   "title": "Entrar en la matriz",
+   "md": "Ya está definida `A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}`. Vamos a sacar piezas de ella con **dobles corchetes** y a entregar dos respuestas juntas en una lista.",
+   "target": "{A[[2, 3]], A[[All, 3]]}",
+   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};",
+   "parts": [
     {
      "code": "A[[2]]",
-     "note": "fila 2 entera"
+     "md": "Un solo índice: la fila 2 entera.",
+     "run": true
+    },
+    {
+     "code": "A[[2, 3]]",
+     "md": "Dos índices: fila 2, columna 3. Siempre primero la fila.",
+     "run": true
     },
     {
      "code": "A[[All, 3]]",
-     "note": "columna 3 entera"
+     "md": "`All` en el sitio de la fila = todas las filas: sale la columna 3.",
+     "run": true
+    },
+    {
+     "code": "{A[[2, 3]], A[[All, 3]]}",
+     "md": "Las dos respuestas en una lista. Así entregarás varias casillas a la vez.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Con la misma `A`: devuelve una lista con el elemento de la fila 2, columna 3 y la columna 3 entera.",
+    "hints": [
+     "El elemento (i,j) es `A[[i, j]]`, con doble corchete.",
+     "La columna 3 es `A[[All, 3]]`.",
+     "Las dos cosas dentro de llaves, separadas por coma."
+    ]
+   },
+   "cmds": [
+    "Part"
    ]
   },
   {
@@ -165,26 +228,45 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Punto o asterisco: el error nº 1",
-   "md": "Hay **dos productos** y dan cosas distintas:\n\n- `A.B` (un **punto**) = producto **matricial**, el de clase: filas por columnas.\n- `A*B` (asterisco, o un espacio) = producto **elemento a elemento**: multiplica cada casilla por la casilla que ocupa el mismo sitio.\n\nLo mismo pasa con las potencias: `A.A` es A al cuadrado de verdad; `A^2` eleva al cuadrado cada casilla.\n\nLo demás es intuitivo: `A + B` suma, `3 A` multiplica todo por 3.\n\nCon vectores, el punto también es el producto bueno: `A.v` es matriz por vector y `u.v` es el producto escalar.\n\nPara que `A.B` exista, las columnas de A deben coincidir con las filas de B.",
-   "cells": [
+   "type": "build",
+   "section": "Punto o asterisco: los dos productos",
+   "title": "El producto matricial lleva punto",
+   "md": "Ya están definidas `A = {{1, 2}, {3, 4}}` y `B = {{0, 1}, {1, 0}}`. Hay **dos productos** distintos y confundirlos es el error nº 1 de esta parte del examen.",
+   "target": "(A.B)[[1, 2]]",
+   "setup": "A = {{1, 2}, {3, 4}}; B = {{0, 1}, {1, 0}};",
+   "parts": [
     {
-     "code": "A = {{1, 2}, {3, 4}}; B = {{0, 1}, {1, 0}};\nA.B",
-     "note": "matricial: filas por columnas"
+     "code": "A.B",
+     "md": "Con un **punto**: producto matricial, el de clase (filas por columnas).",
+     "run": true
     },
     {
      "code": "A*B",
-     "note": "casilla por casilla: no es lo mismo"
+     "md": "Con asterisco: multiplica cada casilla por la que ocupa el mismo sitio. No es lo mismo.",
+     "run": true
     },
     {
      "code": "A.{1, 1}",
-     "note": "matriz por vector"
+     "md": "El punto también multiplica matriz por vector.",
+     "run": true
     },
     {
-     "code": "{1, 2, 3}.{4, 5, 6}",
-     "note": "producto escalar: 4 + 10 + 18"
+     "code": "(A.B)[[1, 2]]",
+     "md": "Un elemento del producto: paréntesis alrededor del producto y después los dobles corchetes.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Con las mismas `A` y `B`: calcula el elemento (1,2) del producto matricial de A por B.",
+    "hints": [
+     "El producto matricial se escribe con un punto: `A.B`.",
+     "Envuelve el producto entre paréntesis antes de pedir el elemento.",
+     "`( . )[[ , ]]`"
+    ]
+   },
+   "cmds": [
+    "Dot",
+    "Part"
    ]
   },
   {
@@ -251,7 +333,7 @@
     "id": "1-p14-e06",
     "kind": "fix",
     "title": "Dos errores en una línea",
-    "prompt": "Se quiere el elemento (1,2) del **producto matricial** de A por B. La última línea tiene dos errores típicos. Corrígela.",
+    "prompt": "Se quiere el elemento (1,2) del **producto matricial** de A por B. La última línea tiene dos errores típicos. Escribe la celda corregida.",
     "difficulty": 2,
     "cmds": [
      "Dot",
@@ -273,22 +355,40 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Fabricar matrices con Table",
-   "md": "Cuando cada elemento sale de una **fórmula** con su fila y su columna, no se teclea la matriz: se fabrica.\n\n`Table[fórmula, {i, 1, m}, {j, 1, n}]`\n\n- `fórmula` = lo que vale el elemento (i,j).\n- `{i, 1, m}` = primer iterador: las **filas**, de 1 a m.\n- `{j, 1, n}` = segundo iterador: las **columnas**, de 1 a n.\n\nSi la matriz es grande, termina la línea con `;` para que no llene la pantalla, y luego pide solo lo que necesitas.",
-   "cells": [
+   "type": "build",
+   "section": "Fabricar matrices con Table",
+   "title": "Una matriz a partir de una fórmula",
+   "md": "Cuando cada elemento sale de una fórmula con su fila `i` y su columna `j`, la matriz no se teclea: se fabrica con `Table` y dos iteradores.",
+   "target": "Table[10 i + j, {i, 1, 2}, {j, 1, 3}]",
+   "parts": [
+    {
+     "code": "10 i + j",
+     "md": "La fórmula: lo que vale el elemento de la fila `i`, columna `j`."
+    },
+    {
+     "code": "{i, 1, 2}",
+     "md": "Primer iterador: las **filas**. Variable, desde, hasta."
+    },
+    {
+     "code": "{j, 1, 3}",
+     "md": "Segundo iterador: las **columnas**."
+    },
     {
      "code": "Table[10 i + j, {i, 1, 2}, {j, 1, 3}]",
-     "note": "elemento (i,j) = 10i + j"
-    },
-    {
-     "code": "P = Table[i - j, {i, 1, 3}, {j, 1, 50}];\nDimensions[P]",
-     "note": "3 × 50, sin verla entera"
-    },
-    {
-     "code": "P[[2, 40]]",
-     "note": "fila 2, columna 40: 2 − 40"
+     "md": "Todo dentro de `Table`: fórmula, filas, columnas. Sale una matriz de 2×3.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: construye con `Table` la matriz de 2 filas y 3 columnas cuyo elemento (i,j) es `10 i + j`.",
+    "hints": [
+     "`Table[fórmula, iterador de filas, iterador de columnas]`",
+     "Los iteradores son `{i, 1, 2}` y `{j, 1, 3}`.",
+     "`Table[ , { , , }, { , , }]`"
+    ]
+   },
+   "cmds": [
+    "Table"
    ]
   },
   {
@@ -327,7 +427,7 @@
      "La fórmula usa las dos variables de los iteradores: `i*j`.",
      "`H = Table[i*j, {i, 1, 3}, {j, 1, 4}];` y luego `H[[3, 4]]`."
     ],
-    "explain": "El primer iterador (`i`) manda en las filas y el segundo (`j`) en las columnas."
+    "explain": "El primer iterador (`i`) manda en las filas y el segundo (`j`) en las columnas. El `;` final evita que se imprima la matriz."
    }
   },
   {
@@ -336,7 +436,7 @@
     "id": "1-p14-e08",
     "kind": "code",
     "title": "Una matriz de 3 × 40",
-    "prompt": "Construye la matriz `P` de 3 filas y 40 columnas en la que cada elemento es **el doble de su fila menos su columna**. Termina esa línea con `;` y, en otra línea, muestra el elemento (2,35).",
+    "prompt": "Construye la matriz `P` de 3 filas y 40 columnas en la que cada elemento es **el doble de su fila menos su columna**. Termina esa línea con `;` (para que no llene la pantalla) y, en otra línea, muestra el elemento (2,35).",
     "difficulty": 2,
     "cmds": [
      "Table",
@@ -371,25 +471,47 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Traspuesta, determinante e inversa",
-   "md": "Tres comandos, cada uno con la matriz como único argumento:\n\n- `Transpose[A]` cambia filas por columnas.\n- `Det[A]` es el determinante (solo matrices cuadradas).\n- `Inverse[A]` es la inversa. Existe solo si `Det[A]` no es 0; si es 0, Mathematica avisa con `Inverse::sing` (matriz singular).\n\nComprobación rápida de una inversa: `A.Inverse[A]` debe dar la identidad (`IdentityMatrix[n]`).\n\nLa inversa sirve para «despejar»: si `A.X == B`, entonces `X = Inverse[A].B`. El orden importa: `B.Inverse[A]` es otra cosa.",
-   "cells": [
+   "type": "build",
+   "section": "Traspuesta, determinante e inversa",
+   "title": "Tres comandos y una comprobación",
+   "md": "Ya está definida `A = {{2, 1}, {5, 3}}`. Tres comandos nuevos, cada uno con la matriz como único argumento, y al final la comprobación de que una inversa está bien.",
+   "target": "A.Inverse[A]",
+   "setup": "A = {{2, 1}, {5, 3}};",
+   "parts": [
     {
-     "code": "A = {{2, 1}, {5, 3}};\nTranspose[A]",
-     "note": "filas ↔ columnas"
+     "code": "Transpose[A]",
+     "md": "La traspuesta: cambia filas por columnas.",
+     "run": true
     },
     {
      "code": "Det[A]",
-     "note": "2·3 − 1·5"
+     "md": "El determinante: 2·3 − 1·5.",
+     "run": true
     },
     {
-     "code": "Inverse[A]"
+     "code": "Inverse[A]",
+     "md": "La inversa. Solo existe si el determinante no es 0.",
+     "run": true
     },
     {
      "code": "A.Inverse[A]",
-     "note": "la identidad: la inversa está bien"
+     "md": "Matriz por su inversa (con punto): debe salir la identidad.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Con la misma `A`: comprueba su inversa multiplicando A por ella. Debe salir la identidad.",
+    "hints": [
+     "La inversa es `Inverse[A]`.",
+     "El producto es matricial: con punto.",
+     "`A.Inverse[ ]`"
+    ]
+   },
+   "cmds": [
+    "Transpose",
+    "Det",
+    "Inverse",
+    "Dot"
    ]
   },
   {
@@ -430,7 +552,7 @@
     "id": "1-p14-e10",
     "kind": "code",
     "title": "Despejar una matriz",
-    "prompt": "Ya están definidas `A = {{2, 1}, {5, 3}}` y `B = {{1, 0}, {4, -2}}`.\n\nHalla la matriz `X` que cumple `A.X == B` y guárdala con ese nombre.",
+    "prompt": "Ya están definidas `A = {{2, 1}, {5, 3}}` y `B = {{1, 0}, {4, -2}}`.\n\nLa inversa sirve para despejar: si `A.X == B`, entonces X es la inversa de A por B (la inversa a la **izquierda**). Halla esa matriz y guárdala en `X`.",
     "difficulty": 2,
     "cmds": [
      "Inverse",
@@ -453,11 +575,12 @@
      "Multiplica los dos lados de `A.X == B` por `Inverse[A]` por la izquierda.",
      "`X = Inverse[A].B`"
     ],
-    "explain": "`X = Inverse[A].B`. Si escribes `B.Inverse[A]` sale otra matriz: el producto matricial no es conmutativo. Este es el mecanismo de descifrar mensajes que viene ahora."
+    "explain": "`X = Inverse[A].B`. Si escribes `B.Inverse[A]` sale otra matriz: el producto matricial no es conmutativo. Este es el mecanismo de descifrar mensajes que viene después."
    }
   },
   {
    "type": "exercise",
+   "section": "La prueba real: productos y la matriz P",
    "ex": {
     "id": "1-p14-e11",
     "kind": "code",
@@ -493,17 +616,15 @@
     "id": "1-p14-e12",
     "kind": "code",
     "title": "La matriz P de 4 × 78",
-    "prompt": "Sigue definida `W`. Construye la matriz `P` de 4 filas y 78 columnas en la que cada elemento es la diferencia entre **el triple de su fila y el doble de su columna** (no muestres P entera).\n\nDevuelve una lista con el elemento (3,57) de `P` y el elemento (3,57) del producto `W.P`.",
+    "prompt": "Construye la matriz `P` de 4 filas y 78 columnas en la que cada elemento es la diferencia entre **el triple de su fila y el doble de su columna** (no la muestres entera). Después devuelve su elemento (3,57).",
     "difficulty": 3,
     "cmds": [
      "Table",
-     "Dot",
      "Part"
     ],
     "real": true,
-    "source": "Práctica 14 · P2 b) y c)",
-    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};",
-    "solution": "P = Table[3 i - 2 j, {i, 1, 4}, {j, 1, 78}];\n{P[[3, 57]], (W.P)[[3, 57]]}",
+    "source": "Práctica 14 · P2 b)",
+    "solution": "P = Table[3 i - 2 j, {i, 1, 4}, {j, 1, 78}];\nP[[3, 57]]",
     "check": {
      "type": "all",
      "checks": [
@@ -515,7 +636,7 @@
       },
       {
        "type": "expr",
-       "expected": "{-105, -639}"
+       "expected": "-105"
       }
      ]
     },
@@ -524,30 +645,89 @@
     ],
     "hints": [
      "La fórmula es `3 i - 2 j`, con `i` de 1 a 4 y `j` de 1 a 78.",
-     "`P = Table[3 i - 2 j, {i, 1, 4}, {j, 1, 78}];` y luego `{P[[3, 57]], (W.P)[[3, 57]]}`."
+     "`P = Table[3 i - 2 j, {i, 1, 4}, {j, 1, 78}];` y luego `P[[3, 57]]`."
     ],
-    "explain": "W es 4×4 y P es 4×78: el producto `W.P` existe y es 4×78. En el otro grupo era igual con otros datos: «doble de la fila menos la columna», 4×90, elemento (3,53)."
+    "explain": "3·3 − 2·57 = −105. En el otro grupo era «doble de la fila menos la columna», 4×90, elemento (3,53): mismo ejercicio con otros datos."
    }
-  },
-  {
-   "type": "explain",
-   "title": "Mensajes en clave con matrices",
-   "md": "La práctica usa un código sencillo: cada letra es un número.\n\n`_`=0, a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10, k=11, l=12, m=13, n=14, ñ=15, o=16, p=17, q=18, r=19, s=20, t=21, u=22, v=23, w=24, x=25, y=26, z=27.\n\nPasos para **codificar**:\n\n- Escribe el mensaje en números y repártelo **por filas** en una matriz `M` (si falta, se rellena con 0).\n- Multiplica por la matriz de codificación por la derecha: `M.Q`.\n\nPara **decodificar** se deshace el producto con la inversa: `(M.Q).Inverse[Q]` vuelve a ser `M`.\n\nEn el ejemplo, «hola» = 8, 16, 12, 1 en filas de 2.\n\nPara pasar de números a letras sin mirar la tabla, en los ejercicios tendrás definida una lista `alfabeto` que empieza en `\"_\"`: como `_` vale 0, la letra del número n está en la posición n + 1. Por eso el texto se obtiene con `StringJoin[alfabeto[[Flatten[M] + 1]]]`.",
-   "cells": [
-    {
-     "code": "Q = {{1, 2}, {1, 3}};\nM = {{8, 16}, {12, 1}};\nMcod = M.Q",
-     "note": "«hola» codificado"
-    },
-    {
-     "code": "Mcod.Inverse[Q]",
-     "note": "decodificar: vuelve M"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p14-e13",
+    "kind": "code",
+    "title": "El producto W·P",
+    "prompt": "Ya están definidas `W` (la matriz 4×4 de la prueba) y `P` (la matriz 4×78 del ejercicio anterior). Calcula el elemento (3,57) del producto matricial `W.P`.",
+    "difficulty": 3,
+    "cmds": [
+     "Dot",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 14 · P2 c)",
+    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nP = Table[3 i - 2 j, {i, 1, 4}, {j, 1, 78}];",
+    "solution": "(W.P)[[3, 57]]",
+    "check": {
+     "type": "expr",
+     "expected": "-639"
+    },
+    "requires": [
+     "Dot",
+     "Part"
+    ],
+    "hints": [
+     "Producto con punto, entre paréntesis, y después el elemento.",
+     "`(W.P)[[3, 57]]`"
+    ],
+    "explain": "W es 4×4 y P es 4×78: el producto `W.P` existe y es 4×78. `P.W` no existiría: los tamaños no encajan."
+   }
+  },
+  {
+   "type": "explain",
+   "section": "Mensajes en clave con matrices",
+   "title": "El código de la práctica",
+   "md": "Cada letra es un número:\n\n`_`=0, a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10, k=11, l=12, m=13, n=14, ñ=15, o=16, p=17, q=18, r=19, s=20, t=21, u=22, v=23, w=24, x=25, y=26, z=27.\n\nPara **codificar** un mensaje: se escribe en números, se reparte **por filas** en una matriz `M` (si falta, se rellena con 0) y se multiplica por la matriz de codificación por la derecha: `M.Q`.\n\nPara **decodificar** se deshace ese producto con la inversa de `Q`.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Codificar y decodificar",
+   "md": "Ya están definidas la matriz de codificación `Q = {{1, 2}, {1, 3}}` y el mensaje «hola» en números, `M = {{8, 16}, {12, 1}}`. Vamos a codificarlo y a comprobar que se puede recuperar.",
+   "target": "(M.Q).Inverse[Q]",
+   "setup": "Q = {{1, 2}, {1, 3}}; M = {{8, 16}, {12, 1}};",
+   "parts": [
+    {
+     "code": "M.Q",
+     "md": "Codificar: el mensaje por la matriz de codificación. Estos números son los que se envían.",
+     "run": true
+    },
+    {
+     "code": "Inverse[Q]",
+     "md": "La llave para volver atrás.",
+     "run": true
+    },
+    {
+     "code": "(M.Q).Inverse[Q]",
+     "md": "Decodificar: lo recibido por la inversa, a la derecha. Vuelve a salir `M`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con las mismas `M` y `Q`: codifica el mensaje y, en la misma línea, decodifícalo para recuperar `M`.",
+    "hints": [
+     "Codificar es `M.Q`.",
+     "Decodificar es multiplicar por `Inverse[Q]` por la derecha.",
+     "`( . ).Inverse[ ]`"
+    ]
+   },
+   "cmds": [
+    "Dot",
+    "Inverse"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p14-e14",
     "kind": "code",
     "title": "Codifica «ing_aeronautica»",
     "prompt": "Ya está definida la matriz de codificación `Q = {{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}}`.\n\nEl mensaje «ing_aeronautica» en números, en filas de 4 (con un 0 de relleno al final), es:\n\n- i n g _ → 9, 14, 7, 0\n- a e r o → 1, 5, 19, 16\n- n a u t → 14, 1, 22, 21\n- i c a (relleno) → 9, 3, 1, 0\n\nDefine la matriz `M`, codifícala con `Q` y devuelve la **novena posición** del mensaje codificado (leído por filas).",
@@ -578,52 +758,75 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p14-e14",
+    "id": "1-p14-e15",
     "kind": "code",
-    "title": "Descifra el mensaje recibido",
-    "prompt": "Con la matriz de codificación `W` (ya definida) se recibe el mensaje codificado\n\n35, 44, -9, 105, 36, 61, 0, 77, 75, -7, 0, 126, 0, 0, -12, 48\n\nque ya tienes guardado por filas en la matriz `M1` (4×4). Decodifícalo: calcula la matriz original `M` y conviértela en texto con la lista `alfabeto` (ya definida, empieza en `\"_\"`).",
-    "difficulty": 4,
+    "title": "Descifra el mensaje recibido (números)",
+    "prompt": "Con la matriz de codificación `W` (ya definida) se recibe el mensaje codificado\n\n35, 44, -9, 105, 36, 61, 0, 77, 75, -7, 0, 126, 0, 0, -12, 48\n\nque ya tienes guardado por filas en la matriz `M1` (4×4). Calcula la matriz original y guárdala en `M`.",
+    "difficulty": 3,
     "cmds": [
      "Inverse",
-     "Dot",
-     "StringJoin"
+     "Dot"
     ],
     "real": true,
-    "source": "Práctica 14 · P4",
-    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nM1 = {{35, 44, -9, 105}, {36, 61, 0, 77}, {75, -7, 0, 126}, {0, 0, -12, 48}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
-    "solution": "M = M1.Inverse[W];\nStringJoin[alfabeto[[Flatten[M] + 1]]]",
+    "source": "Práctica 14 · P4 (primera parte)",
+    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nM1 = {{35, 44, -9, 105}, {36, 61, 0, 77}, {75, -7, 0, 126}, {0, 0, -12, 48}};",
+    "solution": "M = M1.Inverse[W]",
     "check": {
-     "type": "any",
-     "checks": [
-      {
-       "type": "expr",
-       "expected": "\"pitch_yaw_roll__\""
-      },
-      {
-       "type": "expr",
-       "expected": "{{17, 9, 21, 3}, {8, 0, 26, 1}, {24, 0, 19, 16}, {12, 12, 0, 0}}",
-       "msg": "No coincide. Decodificar es multiplicar por la inversa por la derecha: `M1.Inverse[W]`."
-      }
-     ]
+     "type": "value",
+     "expr": "M",
+     "expected": "{{17, 9, 21, 3}, {8, 0, 26, 1}, {24, 0, 19, 16}, {12, 12, 0, 0}}",
+     "msg": "No coincide. Decodificar es multiplicar por la inversa por la derecha: `M1.Inverse[W]`."
     },
     "requires": [
      "Inverse"
     ],
     "hints": [
      "Si codificar fue `M.W`, decodificar es `M1.Inverse[W]`.",
-     "Texto: `StringJoin[alfabeto[[Flatten[M] + 1]]]` (el +1 es porque `\"_\"` ocupa la posición 1 y vale 0)."
+     "`M = M1.Inverse[W]`"
     ],
-    "explain": "`M1.Inverse[W]` da `{{17, 9, 21, 3}, {8, 0, 26, 1}, {24, 0, 19, 16}, {12, 12, 0, 0}}`: p i t c / h _ y a / w _ r o / l l _ _ → «pitch_yaw_roll», los tres giros de una aeronave."
+    "explain": "Salen 17, 9, 21, 3 / 8, 0, 26, 1 / 24, 0, 19, 16 / 12, 12, 0, 0. Con la tabla: p i t c / h _ y a / w _ r o / l l _ _."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p14-e15",
+    "id": "1-p14-e16",
+    "kind": "code",
+    "title": "Descifra el mensaje recibido (texto)",
+    "prompt": "Ya tienes la matriz decodificada `M` del ejercicio anterior y una lista `alfabeto` que empieza en `\"_\"` y sigue con las letras en orden. Como `_` vale 0, la letra del número n está en la posición n + 1.\n\nConvierte `M` en texto: aplánala con `Flatten`, suma 1, usa el resultado como posiciones de `alfabeto` y une las letras con `StringJoin`.",
+    "difficulty": 4,
+    "cmds": [
+     "StringJoin",
+     "Flatten",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 14 · P4 (segunda parte)",
+    "setup": "M = {{17, 9, 21, 3}, {8, 0, 26, 1}, {24, 0, 19, 16}, {12, 12, 0, 0}};\nalfabeto = {\"_\", \"a\", \"b\", \"c\", \"d\", \"e\", \"f\", \"g\", \"h\", \"i\", \"j\", \"k\", \"l\", \"m\", \"n\", \"ñ\", \"o\", \"p\", \"q\", \"r\", \"s\", \"t\", \"u\", \"v\", \"w\", \"x\", \"y\", \"z\"};",
+    "solution": "StringJoin[alfabeto[[Flatten[M] + 1]]]",
+    "check": {
+     "type": "expr",
+     "expected": "\"pitch_yaw_roll__\"",
+     "msg": "El texto no coincide. Por dentro `Flatten[M] + 1`, luego `alfabeto[[…]]` y por fuera `StringJoin[…]`."
+    },
+    "requires": [
+     "StringJoin"
+    ],
+    "hints": [
+     "`Flatten[M] + 1` da las posiciones de cada letra en `alfabeto`.",
+     "`StringJoin[alfabeto[[Flatten[M] + 1]]]`"
+    ],
+    "explain": "Sale «pitch_yaw_roll__»: cabeceo, guiñada y alabeo, los tres giros de una aeronave. Una lista entre dobles corchetes saca varios elementos de golpe."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p14-e17",
     "kind": "code",
     "title": "Otro mensaje, ahora con Q",
-    "prompt": "Versión de clase del mismo ejercicio. Con la matriz de codificación `Q` (ya definida) llega el mensaje que ya tienes guardado en `Menc`, una matriz de 5 filas y 4 columnas. Devuelve el **texto** descifrado (la lista `alfabeto` ya está definida).",
-    "difficulty": 3,
+    "prompt": "Versión de clase del mismo ejercicio. Con la matriz de codificación `Q` (ya definida) llega el mensaje que ya tienes guardado en `Menc`, una matriz de 5 filas y 4 columnas. Devuelve el **texto** descifrado (la lista `alfabeto` también está definida).",
+    "difficulty": 4,
     "cmds": [
      "Inverse",
      "Dot",
@@ -651,46 +854,98 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Menores, cofactores y adjunta",
-   "md": "- Un **menor** de orden k es el determinante de una submatriz k×k. `Minors[A, k]` los da todos de golpe; `Minors[A]` (sin k) da los de orden n − 1.\n- El **cofactor** del elemento (i,j) es (−1)^(i+j) por el determinante de A **sin** la fila i y **sin** la columna j. `Drop[A, {i}, {j}]` quita justo esa fila y esa columna.\n- La **adjunta** es la **traspuesta** de la matriz de cofactores.\n\nAtajo que usan casi todos en la prueba: `Inverse[A]*Det[A]` da directamente la adjunta (aquí el `*` sí es correcto: es una matriz por un número).\n\nPropiedad que te preguntan: `A.adjA` es una matriz diagonal con `Det[A]` repetido en la diagonal.\n\nEn el enunciado real se habla de `Cofactor[A, {i, j}]`: en Mathematica de escritorio existe tras cargar un paquete con ``<< Combinatorica` ``. La función `cof` de abajo hace lo mismo sin paquetes.",
-   "cells": [
+   "type": "build",
+   "section": "Cofactores y matriz adjunta",
+   "title": "La adjunta, cofactor a cofactor",
+   "md": "Ya está definida `A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}}`. El **cofactor** del elemento (i,j) es (−1)^(i+j) por el determinante de A sin la fila i ni la columna j. La **adjunta** es la traspuesta de la matriz de cofactores. La montamos por piezas.",
+   "target": "Transpose[Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]]",
+   "setup": "A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}};",
+   "parts": [
     {
-     "code": "A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}};\nMinors[A, 2]",
-     "note": "todos los menores de orden 2"
+     "code": "Drop[A, {1}, {2}]",
+     "md": "`Drop` quita la fila 1 y la columna 2. Las llaves `{1}` significan «solo esa».",
+     "run": true
     },
     {
-     "code": "cof[i_, j_] := (-1)^(i + j) Det[Drop[A, {i}, {j}]]\nadjA = Transpose[Table[cof[i, j], {i, 1, 3}, {j, 1, 3}]]",
-     "note": "adjunta = traspuesta de los cofactores"
+     "code": "(-1)^(1 + 2) Det[Drop[A, {1}, {2}]]",
+     "md": "El cofactor (1,2): el signo por el determinante de lo que queda.",
+     "run": true
     },
+    {
+     "code": "Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]",
+     "md": "Lo mismo para todas las posiciones (i,j): la matriz de cofactores.",
+     "run": true
+    },
+    {
+     "code": "Transpose[Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]]",
+     "md": "Y traspuesta: esa es la adjunta. Olvidar el `Transpose` es el fallo típico.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con la misma `A` (3×3): escribe su matriz adjunta con cofactores.",
+    "hints": [
+     "Cofactor (i,j): `(-1)^(i + j) Det[Drop[A, {i}, {j}]]`.",
+     "Mételo en un `Table` con `{i, 1, 3}` y `{j, 1, 3}`.",
+     "Todo dentro de `Transpose[ ]`."
+    ]
+   },
+   "cmds": [
+    "Drop",
+    "Det",
+    "Table",
+    "Transpose"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "El atajo y la propiedad",
+   "md": "Misma `A`. Hay un atajo que usan casi todos en la prueba, y una propiedad que siempre preguntan.",
+   "target": "A.(Inverse[A]*Det[A])",
+   "setup": "A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}};",
+   "parts": [
     {
      "code": "Inverse[A]*Det[A]",
-     "note": "el atajo: misma matriz"
+     "md": "La inversa por el determinante da directamente la adjunta. Aquí el `*` sí es correcto: es matriz por número.",
+     "run": true
     },
     {
-     "code": "A.adjA",
-     "note": "Det[A] = 6 en la diagonal"
+     "code": "A.(Inverse[A]*Det[A])",
+     "md": "A por su adjunta: una matriz diagonal con `Det[A]` (aquí 6) repetido.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Con la misma `A`: multiplica A por su adjunta, calculando la adjunta con el atajo.",
+    "hints": [
+     "El atajo de la adjunta: `Inverse[A]*Det[A]`.",
+     "El producto de A por la adjunta es matricial: con punto.",
+     "`A.(Inverse[ ]*Det[ ])`"
+    ]
+   },
+   "cmds": [
+    "Inverse",
+    "Det",
+    "Dot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p14-e16",
+    "id": "1-p14-e18",
     "kind": "code",
     "title": "La adjunta de W",
-    "prompt": "Ya está definida `W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}}`.\n\nConstruye la matriz adjunta de W y llámala `adjW`. Devuelve una lista con cuatro números: el elemento (4,3) de `adjW`, el elemento (4,4), el número que se repite en la diagonal de `W.adjW` y el determinante de W.",
+    "prompt": "Ya está definida `W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}}`.\n\nEl enunciado real pide construirla con el comando `Cofactor[W, {i, j}]` (existe en Mathematica de escritorio tras cargar un paquete con ``<< Combinatorica` ``); vale igual con `Drop` y `Det` o con el atajo.\n\nConstruye la matriz adjunta de W y llámala `adjW`. Devuelve la lista con su elemento (4,3) y su elemento (4,4).",
     "difficulty": 4,
     "cmds": [
      "Inverse",
      "Det",
-     "Dot",
      "Part"
     ],
     "real": true,
-    "source": "Práctica 14 · P5",
+    "source": "Práctica 14 · P5 a)",
     "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};",
-    "solution": "adjW = Inverse[W]*Det[W];\n{adjW[[4, 3]], adjW[[4, 4]], (W.adjW)[[1, 1]], Det[W]}",
+    "solution": "adjW = Inverse[W]*Det[W];\n{adjW[[4, 3]], adjW[[4, 4]]}",
     "check": {
      "type": "all",
      "checks": [
@@ -702,21 +957,96 @@
       },
       {
        "type": "expr",
-       "expected": "{-3, 5, -22, -22}"
+       "expected": "{-3, 5}"
       }
      ]
     },
     "hints": [
      "Atajo: `adjW = Inverse[W]*Det[W]`. Con cofactores: `Transpose[Table[(-1)^(i + j) Det[Drop[W, {i}, {j}]], {i, 1, 4}, {j, 1, 4}]]`.",
-     "La lista: `{adjW[[4, 3]], adjW[[4, 4]], (W.adjW)[[1, 1]], Det[W]}`."
+     "La lista: `{adjW[[4, 3]], adjW[[4, 4]]}`."
     ],
-    "explain": "W·adj(W) = det(W)·I: por eso el número de la diagonal (−22) coincide con el determinante. Si olvidas el `Transpose` al usar cofactores, los elementos (4,3) y (3,4) salen cambiados."
+    "explain": "adjW(4,3) = −3 y adjW(4,4) = 5. Si olvidas el `Transpose` al usar cofactores, el elemento (4,3) sale cambiado por el (3,4)."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p14-e17",
+    "id": "1-p14-e19",
+    "kind": "code",
+    "title": "W por su adjunta y el determinante",
+    "prompt": "Ya están definidas `W` y su adjunta `adjW`. Calcula el producto `W.adjW` y mira su diagonal. Devuelve una lista con el número que se repite en la diagonal y el determinante de W.",
+    "difficulty": 3,
+    "cmds": [
+     "Dot",
+     "Det",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 14 · P5 b) y c)",
+    "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};\nadjW = Inverse[W]*Det[W];",
+    "solution": "W.adjW\n{(W.adjW)[[1, 1]], Det[W]}",
+    "check": {
+     "type": "expr",
+     "expected": "{-22, -22}"
+    },
+    "requires": [
+     "Det"
+    ],
+    "hints": [
+     "`W.adjW` (con punto) da una matriz diagonal.",
+     "`{(W.adjW)[[1, 1]], Det[W]}`"
+    ],
+    "explain": "W·adj(W) = det(W)·I: por eso el número de la diagonal (−22) coincide con el determinante."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Menores: contar, ordenar y localizar",
+   "title": "Todos los menores, en una lista ordenable",
+   "md": "Ya está definida `A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}}`. Un **menor** de orden k es el determinante de una submatriz k×k. La pregunta extra de la prueba pide hallarlos todos, aplanarlos, ordenarlos y decir dónde estaba el mayor.",
+   "target": "Ordering[Flatten[Minors[A, 2]]]",
+   "setup": "A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}};",
+   "parts": [
+    {
+     "code": "Minors[A, 2]",
+     "md": "Todos los menores de orden 2, en forma de matriz.",
+     "run": true
+    },
+    {
+     "code": "Flatten[Minors[A, 2]]",
+     "md": "`Flatten` quita las llaves interiores: una lista simple de 9 números.",
+     "run": true
+    },
+    {
+     "code": "Sort[Flatten[Minors[A, 2]]]",
+     "md": "`Sort` ordena de menor a mayor: el último es el mayor.",
+     "run": true
+    },
+    {
+     "code": "Ordering[Flatten[Minors[A, 2]]]",
+     "md": "`Ordering` dice qué posición ocupaba cada uno antes de ordenar: su último número es la posición del mayor.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con la misma `A`: escribe la orden que dice en qué posiciones estaban, antes de ordenar, los menores de orden 2 aplanados.",
+    "hints": [
+     "Por dentro, los menores: `Minors[A, 2]`.",
+     "Aplánalos con `Flatten`.",
+     "Por fuera, `Ordering[ ]`."
+    ]
+   },
+   "cmds": [
+    "Minors",
+    "Flatten",
+    "Sort",
+    "Ordering"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p14-e20",
     "kind": "code",
     "title": "El mayor menor de orden 3",
     "prompt": "Ya está definida `Q = {{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}}`.\n\nHalla todos los menores de orden 3 de Q y devuelve el mayor de ellos.",
@@ -746,22 +1076,21 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p14-e18",
+    "id": "1-p14-e21",
     "kind": "code",
-    "title": "Menores de orden 2: contar, ordenar y localizar",
-    "prompt": "Sigue definida `Q`. Halla todos los menores de orden 2 y guárdalos en una lista simple llamada `men2dQ` (usa `Flatten`).\n\nAyuda del enunciado real: `Sort[lista]` ordena de menor a mayor y `Ordering[lista]` dice qué posición ocupaba en la lista original cada elemento ya ordenado (así que su último número es la posición del mayor).\n\nDevuelve una lista con tres números: cuántos menores son distintos de 0, el mayor de todos y el lugar que ocupa ese mayor en `men2dQ`.",
-    "difficulty": 4,
+    "title": "¿Cuántos menores de orden 2 no son cero?",
+    "prompt": "Sigue definida `Q`. Halla todos sus menores de orden 2 y guárdalos en una lista simple llamada `men2dQ` (con `Flatten`). Devuelve cuántos de ellos son distintos de 0.\n\nAyuda: `Length[lista]` cuenta los elementos y `Count[lista, 0]` cuenta cuántos valen 0.",
+    "difficulty": 3,
     "cmds": [
      "Minors",
      "Flatten",
-     "Sort",
-     "Ordering",
-     "Count"
+     "Count",
+     "Length"
     ],
     "real": true,
-    "source": "Práctica 14 · Extra b)",
+    "source": "Práctica 14 · Extra b1)",
     "setup": "Q = {{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}};",
-    "solution": "men2dQ = Flatten[Minors[Q, 2]];\n{Length[men2dQ] - Count[men2dQ, 0], Last[Sort[men2dQ]], Last[Ordering[men2dQ]]}",
+    "solution": "men2dQ = Flatten[Minors[Q, 2]];\nLength[men2dQ] - Count[men2dQ, 0]",
     "check": {
      "type": "all",
      "checks": [
@@ -773,7 +1102,7 @@
       },
       {
        "type": "expr",
-       "expected": "{36, 7, 23}"
+       "expected": "36"
       }
      ]
     },
@@ -782,10 +1111,38 @@
      "Flatten"
     ],
     "hints": [
-     "`men2dQ = Flatten[Minors[Q, 2]]` tiene 36 números. `Count[men2dQ, 0]` cuenta los ceros.",
-     "Mayor: `Last[Sort[men2dQ]]` (o `Max[men2dQ]`). Su posición: `Last[Ordering[men2dQ]]`."
+     "`men2dQ = Flatten[Minors[Q, 2]]` tiene 36 números.",
+     "`Length[men2dQ] - Count[men2dQ, 0]`"
     ],
-    "explain": "Hay 6×6 = 36 menores y ninguno es 0. Ordenados, el último es 7, y `Ordering` termina en 23: el 7 ocupa el lugar 23 de `men2dQ`."
+    "explain": "Hay 6×6 = 36 menores de orden 2 y ninguno vale 0: la respuesta es 36."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p14-e22",
+    "kind": "code",
+    "title": "El mayor y el lugar que ocupa",
+    "prompt": "Ya está definida la lista `men2dQ` con los 36 menores de orden 2 de Q. Devuelve una lista con dos números: el mayor de los menores (usa `Sort`) y el lugar que ocupa en `men2dQ` (usa `Ordering`).",
+    "difficulty": 4,
+    "cmds": [
+     "Sort",
+     "Ordering",
+     "Last"
+    ],
+    "real": true,
+    "source": "Práctica 14 · Extra b2) y b3)",
+    "setup": "men2dQ = Flatten[Minors[{{-1, 2, 0, 3}, {1, 2, 1, -1}, {0, 3, 1, 2}, {4, 1, -1, 0}}, 2]];",
+    "solution": "{Last[Sort[men2dQ]], Last[Ordering[men2dQ]]}",
+    "check": {
+     "type": "expr",
+     "expected": "{7, 23}"
+    },
+    "hints": [
+     "El mayor es el último de la lista ordenada: `Last[Sort[men2dQ]]`.",
+     "Su posición original es el último número de `Ordering[men2dQ]`: `Last[Ordering[men2dQ]]`."
+    ],
+    "explain": "Ordenados, el último es 7, y `Ordering` termina en 23: el 7 ocupa el lugar 23 de `men2dQ`."
    }
   }
  ]

@@ -5,8 +5,8 @@
  "block": "Transformada de Laplace",
  "order": 6,
  "title": "Transformada de Laplace",
- "summary": "Transformar e invertir con LaplaceTransform, escribir funciones a trozos con el escalón y resolver PVI y sistemas con la receta de 4 pasos del guion PL6.",
- "minutes": 70,
+ "summary": "Transformar e invertir con LaplaceTransform, escribir funciones a trozos con el escalón y resolver PVI y sistemas con la receta de 4 pasos del guion PL6, construida línea a línea.",
+ "minutes": 90,
  "commands": [
   "LaplaceTransform",
   "InverseLaplaceTransform",
@@ -21,34 +21,53 @@
   "Integrate",
   "Plot",
   "Simplify",
-  "FullSimplify",
   "Flatten",
   "Piecewise",
-  "Exp",
-  "D"
+  "Exp"
  ],
  "steps": [
   {
    "type": "explain",
-   "title": "Para qué sirve y cómo se llama",
-   "md": "La transformada de Laplace cambia una función del tiempo `f(t)` por otra función `F(s)`. Lo que la hace útil: **convierte las derivadas en multiplicaciones por `s`**. Una EDO con condiciones iniciales pasa a ser una ecuación algebraica que se despeja con `Solve`. Es la herramienta de siempre en circuitos, vibraciones y control de vuelo, sobre todo cuando la fuerza se enciende, se apaga o es un golpe.\n\nAl acabar sabrás transformar e invertir, escribir funciones a trozos con el escalón y resolver PVI y sistemas con la receta de 4 pasos del guion. Es justo lo que cae en el examen (P6 de 2021).\n\nEl comando es `LaplaceTransform[f, t, s]`:\n\n- `f` = la función que transformas\n- `t` = su variable (el tiempo)\n- `s` = la variable nueva\n\nLos tres argumentos son obligatorios y van en ese orden. La definición matemática es la integral de `E^(-s t) f(t)` entre 0 e infinito: la última celda la calcula a mano para que veas que da lo mismo.",
+   "section": "Transformar una función",
+   "title": "Para qué sirve",
+   "md": "La transformada de Laplace cambia una función del tiempo `f(t)` por otra función `F(s)`. Lo que la hace útil: **convierte las derivadas en multiplicaciones por `s`**. Una EDO con condiciones iniciales pasa a ser una ecuación algebraica que se despeja con `Solve`. Se usa en circuitos, vibraciones y control de vuelo, sobre todo cuando la fuerza se enciende, se apaga o es un golpe.\n\nEn esta lección construyes, pieza a pieza, lo que cae en el examen (el P6 de 2021): transformar, invertir, funciones a trozos y la receta de 4 pasos para resolver un PVI.",
    "cells": [
     {
      "code": "LaplaceTransform[1, t, s]",
-     "note": "la transformada de la constante 1"
+     "note": "la transformada de la constante 1 es 1/s"
+    }
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Tu primera transformada",
+   "md": "El comando tiene tres argumentos: qué transformas, su variable y la variable nueva.",
+   "target": "LaplaceTransform[Exp[-3 t], t, s]",
+   "parts": [
+    {
+     "code": "Exp[-3 t]",
+     "md": "La función. `Exp` con mayúscula y el exponente entre corchetes."
+    },
+    {
+     "code": "t, s",
+     "md": "Las dos variables, en este orden: primero la de la función (`t`), después la nueva (`s`)."
     },
     {
      "code": "LaplaceTransform[Exp[-3 t], t, s]",
-     "note": "una exponencial se convierte en una fracción simple"
-    },
-    {
-     "code": "LaplaceTransform[Sin[3 x], x, s]",
-     "note": "la variable puede llamarse x: manda el orden de los argumentos"
-    },
-    {
-     "code": "LaplaceTransform[t^2, t, s]\nIntegrate[Exp[-s t] t^2, {t, 0, Infinity}, Assumptions -> s > 0]",
-     "note": "comando directo y definición con la integral: mismo resultado"
+     "md": "Las dos piezas dentro de `LaplaceTransform`. Sale `1/(3 + s)`: una exponencial se convierte en una fracción.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: calcula la transformada de Laplace de `Exp[-3 t]`.",
+    "hints": [
+     "El comando es `LaplaceTransform[`",
+     "Dentro van tres cosas separadas por comas: función, `t`, `s`",
+     "`LaplaceTransform[Exp[-3 t], t, s]`"
+    ]
+   },
+   "cmds": [
+    "LaplaceTransform"
    ]
   },
   {
@@ -56,7 +75,7 @@
    "ex": {
     "id": "2-m2-pl6-e01",
     "kind": "code",
-    "title": "La exponencial",
+    "title": "Cambia el exponente",
     "prompt": "Calcula la transformada de Laplace de `Exp[2 t]` (variable `t`, variable nueva `s`).",
     "difficulty": 1,
     "cmds": [
@@ -73,7 +92,8 @@
      "LaplaceTransform"
     ],
     "hints": [
-     "Copia la forma de la celda de `Exp[-3 t]` cambiando el exponente."
+     "Es la misma línea de antes cambiando `-3` por `2`.",
+     "`LaplaceTransform[Exp[2 t], t, s]`"
     ],
     "explain": "La transformada de `E^(a t)` es `1/(s - a)`. Con `a = 2` queda `1/(s - 2)`; con `a = -3` salía `1/(s + 3)`."
    }
@@ -103,7 +123,7 @@
      "La forma es `LaplaceTransform[función, t, s]`.",
      "`LaplaceTransform[t Cos[t], t, s]`"
     ],
-    "explain": "Sale `(s^2 - 1)/(s^2 + 1)^2`. Si el resultado aparece con la unidad imaginaria `I`, es la misma función escrita de otra forma: añade `// Simplify` o `// FullSimplify`."
+    "explain": "Sale `(s^2 - 1)/(s^2 + 1)^2`. Si el resultado aparece con la unidad imaginaria `I`, es la misma función escrita de otra forma."
    }
   },
   {
@@ -112,7 +132,7 @@
     "id": "2-m2-pl6-e03",
     "kind": "fix",
     "title": "Tres errores típicos",
-    "prompt": "Esta celda quiere calcular la transformada de `f(t) = t^2 E^(-t)`. La segunda línea tiene tres errores. Corrígela.",
+    "prompt": "Esta celda quiere calcular la transformada de `f(t) = t^2 E^(-t)`. La segunda línea tiene tres errores. Escribe la celda corregida.",
     "difficulty": 2,
     "cmds": [
      "LaplaceTransform"
@@ -132,34 +152,82 @@
      "Los comandos llevan mayúscula en cada palabra: `LaplaceTransform`. Los argumentos van entre corchetes.",
      "El orden es función, variable original, variable nueva: `f[t], t, s`."
     ],
-    "explain": "Mayúsculas (`LaplaceTransform`), corchetes en vez de paréntesis y el orden `t, s`. Con `s, t` Mathematica trataría `f[t]` como constante respecto de `s`."
+    "explain": "Mayúsculas (`LaplaceTransform`), corchetes en vez de paréntesis y el orden `t, s`. La primera línea define la función: `f[t_] = ...`, con guion bajo en el argumento."
    }
   },
   {
-   "type": "explain",
-   "title": "El escalón y la delta: funciones que se encienden",
-   "md": "`UnitStep[t]` es el **escalón**: vale 0 si `t < 0` y 1 si `t >= 0`. `HeavisideTheta[t]` es lo mismo para lo que nos importa (el guion usa los dos). `UnitStep[t - a]` se enciende en `t = a`.\n\nEl truco para escribir funciones a trozos (lo pide el ejercicio 1 del guion): una **ventana** entre `a` y `b` es `UnitStep[t - a] - UnitStep[t - b]`. Multiplica cada trozo por su ventana y suma.\n\n- `g(t)` solo entre 1 y 3: `(UnitStep[t - 1] - UnitStep[t - 3]) g[t]`\n- `g(t)` a partir de 2: `UnitStep[t - 2] g[t]`\n\n`DiracDelta[t - a]` es un **golpe instantáneo** en `t = a` (un martillazo). Su transformada es `E^(-a s)`.\n\nLaplace solo mira `t >= 0`: por eso `UnitStep[t] f[t]` y `f[t]` tienen la misma transformada. Otra forma válida de definir trozos es `Piecewise[{{valor1, condición1}, {valor2, condición2}}]`.",
-   "cells": [
+   "type": "build",
+   "section": "Escalón y delta: funciones a trozos",
+   "title": "Una ventana con dos escalones",
+   "md": "`UnitStep[t]` es el **escalón**: vale 0 si `t < 0` y 1 después. Con dos escalones se fabrica una 'ventana' que enciende y apaga cualquier función.",
+   "target": "Plot[(UnitStep[t - 1] - UnitStep[t - 3]) t^2, {t, 0, 5}]",
+   "parts": [
     {
-     "code": "Plot[UnitStep[t - 2], {t, -1, 5}]",
-     "note": "escalón que se enciende en t = 2"
+     "code": "UnitStep[t - 1]",
+     "md": "Un escalón que se enciende en `t = 1`."
+    },
+    {
+     "code": "UnitStep[t - 1] - UnitStep[t - 3]",
+     "md": "Enciende en 1 y apaga en 3: vale 1 entre 1 y 3 y 0 fuera. Es la ventana."
+    },
+    {
+     "code": "(UnitStep[t - 1] - UnitStep[t - 3]) t^2",
+     "md": "La ventana, entre paréntesis, multiplicada por la función: `t^2` solo entre 1 y 3."
     },
     {
      "code": "Plot[(UnitStep[t - 1] - UnitStep[t - 3]) t^2, {t, 0, 5}]",
-     "note": "ventana entre 1 y 3 multiplicada por t^2"
-    },
-    {
-     "code": "LaplaceTransform[UnitStep[t - 2], t, s]\nLaplaceTransform[DiracDelta[t - 2], t, s]",
-     "note": "retrasar a segundos = multiplicar por E^(-a s)"
-    },
-    {
-     "code": "f2[x_] = UnitStep[x - 2] Sin[3 x];\nLaplaceTransform[f2[x], x, s]",
-     "note": "Ejemplo 6.1.1 del guion: aquí solo se retrasa el escalón"
-    },
-    {
-     "code": "f4[x_] = HeavisideTheta[x - 2] Sin[3 (x - 2)];\nLaplaceTransform[f4[x], x, s]",
-     "note": "y aquí se retrasa la función entera: sale más simple, 3 E^(-2 s)/(s^2 + 9)"
+     "md": "Dentro de `Plot`, con `{t, 0, 5}` = variable, desde, hasta.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: dibuja de 0 a 5 la función que vale `t^2` entre 1 y 3 y 0 fuera.",
+    "hints": [
+     "La ventana es `UnitStep[t - 1] - UnitStep[t - 3]`, entre paréntesis",
+     "Multiplícala por `t^2` y métela en `Plot[..., {t, 0, 5}]`",
+     "`Plot[(UnitStep[t - 1] - UnitStep[t - 3]) t^2, {t, 0, 5}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "like": "Plot[(UnitStep[t - 1] - UnitStep[t - 3]) t^2, {t, 0, 5}]"
+    }
+   },
+   "cmds": [
+    "UnitStep",
+    "Plot"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Transformar una función a trozos",
+   "md": "Una función escrita con escalones se transforma igual que cualquier otra.",
+   "target": "LaplaceTransform[(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t], t, s]",
+   "parts": [
+    {
+     "code": "UnitStep[t - 2] - UnitStep[t - 5]",
+     "md": "La ventana entre 2 y 5."
+    },
+    {
+     "code": "(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t]",
+     "md": "La función `Exp[-t]` solo entre 2 y 5."
+    },
+    {
+     "code": "LaplaceTransform[(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t], t, s]",
+     "md": "Dentro de `LaplaceTransform`. Cada escalón retrasado deja un factor `E^(-a s)` en el resultado.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: transformada de Laplace de la función que vale `Exp[-t]` entre 2 y 5 y 0 fuera.",
+    "hints": [
+     "Primero la ventana por la función: `(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t]`",
+     "Después `LaplaceTransform[..., t, s]`"
+    ]
+   },
+   "cmds": [
+    "UnitStep",
+    "LaplaceTransform"
    ]
   },
   {
@@ -167,38 +235,8 @@
    "ex": {
     "id": "2-m2-pl6-e04",
     "kind": "code",
-    "title": "Una ventana",
-    "prompt": "Escribe con `UnitStep` la función que vale `Exp[-t]` cuando `2 <= t < 5` y 0 en el resto, y calcula su transformada de Laplace (variable `t`, nueva `s`).",
-    "difficulty": 2,
-    "cmds": [
-     "UnitStep",
-     "LaplaceTransform"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "LaplaceTransform[(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t], t, s]",
-    "check": {
-     "type": "expr",
-     "expected": "(E^(-2 (s + 1)) - E^(-5 (s + 1)))/(s + 1)"
-    },
-    "requires": [
-     "LaplaceTransform",
-     "UnitStep"
-    ],
-    "hints": [
-     "La ventana entre 2 y 5 es `UnitStep[t - 2] - UnitStep[t - 5]`.",
-     "`LaplaceTransform[(UnitStep[t - 2] - UnitStep[t - 5]) Exp[-t], t, s]`"
-    ],
-    "explain": "La ventana es 'escalón que enciende en 2' menos 'escalón que enciende en 5'. Con el orden al revés la función saldría cambiada de signo; con un solo escalón no se apagaría nunca."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl6-e05",
-    "kind": "code",
     "title": "Guion 1a: un arco de seno",
-    "prompt": "Sea `f(t) = Sin[t]` si `0 <= t < Pi` y 0 en el resto.\n\n1. Define `f[t_]` usando la función escalón (`UnitStep`).\n2. Calcula su transformada de Laplace. Debe ser la última salida de la celda.",
+    "prompt": "Sea `f(t) = Sin[t]` si `0 <= t < Pi` y 0 en el resto.\n\n1. Define `f[t_]` usando la función escalón (`UnitStep`).\n2. Calcula su transformada de Laplace. Debe ser la última salida.",
     "difficulty": 2,
     "cmds": [
      "UnitStep",
@@ -229,7 +267,8 @@
     ],
     "hints": [
      "La ventana entre 0 y Pi es `UnitStep[t] - UnitStep[t - Pi]`.",
-     "`f[t_] = (UnitStep[t] - UnitStep[t - Pi]) Sin[t];` y después `LaplaceTransform[f[t], t, s]`."
+     "`f[t_] = (UnitStep[t] - UnitStep[t - Pi]) Sin[t];`",
+     "Segunda línea: `LaplaceTransform[f[t], t, s]`"
     ],
     "explain": "Resultado: `(1 + E^(-Pi s))/(1 + s^2)`. En la prueba de clase piden un número: define `F[s_] = LaplaceTransform[f[t], t, s]` y evalúa `F[3.2]` (da 0.08897)."
    }
@@ -237,7 +276,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e06",
+    "id": "2-m2-pl6-e05",
     "kind": "code",
     "title": "Guion 1b: coseno retrasado",
     "prompt": "Sea `g(t) = Cos[t]` si `t >= Pi/2` y 0 antes. Escríbela con el escalón y calcula su transformada de Laplace (variable `t`, nueva `s`).",
@@ -257,7 +296,7 @@
      "LaplaceTransform"
     ],
     "hints": [
-     "Una función que empieza en `Pi/2` es `UnitStep[t - Pi/2]` por la función.",
+     "Una función que empieza en `Pi/2` y no se apaga: un solo escalón, `UnitStep[t - Pi/2]`, por la función.",
      "`LaplaceTransform[UnitStep[t - Pi/2] Cos[t], t, s]`"
     ],
     "explain": "Sale `-E^(-Pi s/2)/(1 + s^2)`. El signo menos aparece porque `Cos[t]` visto desde `t = Pi/2` es `-Sin[t - Pi/2]`."
@@ -265,25 +304,124 @@
   },
   {
    "type": "explain",
-   "title": "Funciones periódicas",
-   "md": "Una función periódica se define en Mathematica **por trozos con condiciones**. `/;` se lee 'con la condición de que', y `:=` hace que la definición se evalúe cada vez que se usa:\n\n- `f[x_] := f[x - T] /; x >= T` → si te pasas del periodo, retrocede un periodo\n- `f[x_] := 0 /; x <= 0` → causal: nula antes de 0\n- `f[x_] := x /; 0 < x < T` → el trozo básico\n\n`LaplaceTransform` no entiende esa definición recursiva. Para una función causal de periodo `T` se usa la propiedad del guion: basta integrar **un solo periodo** y dividir por `1 - E^(-T s)`:\n\n`(1/(1 - Exp[-T*s])) Integrate[f(x) Exp[-s*x], {x, 0, T}]`\n\nDentro de la integral escribes la fórmula del trozo básico (aquí `x`), no `f[x]`.",
+   "title": "El golpe: DiracDelta",
+   "md": "`DiracDelta[t - a]` es un **golpe instantáneo** en `t = a` (un martillazo). Su transformada es `E^(-a s)`.\n\nDos notas del guion:\n\n- `HeavisideTheta[t]` es otro nombre del escalón: para lo que hacemos aquí es lo mismo que `UnitStep[t]`.\n- `Piecewise[{{valor1, condición1}, {valor2, condición2}}]` es otra forma válida de definir funciones a trozos.",
    "cells": [
     {
-     "code": "T = 1;\nf[x_] := f[x - T] /; x >= T",
-     "note": "Ejemplo 6.1.2: periodo 1; a la derecha del primer periodo, retrocede"
-    },
-    {
-     "code": "f[x_] := 0 /; x <= 0\nf[x_] := x /; 0 < x < T",
-     "note": "nula antes de 0 y el trozo básico"
-    },
-    {
-     "code": "Plot[f[x], {x, -3, 3}]",
-     "note": "diente de sierra causal"
-    },
-    {
-     "code": "(1/(1 - Exp[-T*s])) Integrate[x*Exp[-s*x], {x, 0, T}, Assumptions -> s > 0]",
-     "note": "su transformada. `Assumptions -> s > 0` avisa a Integrate de que s es positivo"
+     "code": "LaplaceTransform[DiracDelta[t - 2], t, s]",
+     "note": "un golpe en t = 2"
     }
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl6-e06",
+    "kind": "code",
+    "title": "Guion, ejemplo 6.1.1: seno más un golpe",
+    "prompt": "Calcula la transformada de Laplace de `f1(x) = Sin[3 x] + 3 DiracDelta[x - 2]`. Ojo: aquí la variable es `x`.",
+    "difficulty": 2,
+    "cmds": [
+     "DiracDelta",
+     "LaplaceTransform"
+    ],
+    "real": true,
+    "source": "PL6 · ejemplo 6.1.1",
+    "solution": "LaplaceTransform[Sin[3 x] + 3 DiracDelta[x - 2], x, s]",
+    "check": {
+     "type": "expr",
+     "expected": "3/(s^2 + 9) + 3 E^(-2 s)"
+    },
+    "requires": [
+     "LaplaceTransform",
+     "DiracDelta"
+    ],
+    "hints": [
+     "La variable de la función es `x`: el segundo argumento es `x`, no `t`.",
+     "`LaplaceTransform[Sin[3 x] + 3 DiracDelta[x - 2], x, s]`"
+    ],
+    "explain": "`3/(s^2 + 9) + 3 E^(-2 s)`: la transformada de una suma es la suma de las transformadas."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Funciones periódicas",
+   "title": "Definir una función periódica",
+   "md": "Una función periódica se define por trozos con condiciones. `/;` se lee 'con la condición de que' y `:=` hace que la regla se aplique cada vez que se usa la función.",
+   "target": "T = 1;\nf[x_] := x /; 0 < x < T\nf[x_] := f[x - T] /; x >= T\nf[x_] := 0 /; x <= 0\nPlot[f[x], {x, -3, 3}]",
+   "parts": [
+    {
+     "code": "f[x_] := x /; 0 < x < T",
+     "md": "El trozo básico: vale `x` dentro del primer periodo."
+    },
+    {
+     "code": "f[x_] := f[x - T] /; x >= T",
+     "md": "Si te pasas del periodo, retrocede un periodo: así se repite."
+    },
+    {
+     "code": "f[x_] := 0 /; x <= 0",
+     "md": "Causal: nula antes de 0."
+    },
+    {
+     "code": "T = 1;\nf[x_] := x /; 0 < x < T\nf[x_] := f[x - T] /; x >= T\nf[x_] := 0 /; x <= 0\nPlot[f[x], {x, -3, 3}]",
+     "md": "Con `T = 1;` delante y el `Plot` al final: un diente de sierra (Ejemplo 6.1.2 del guion).",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define la función causal de periodo `T = 1` que vale `x` en `0 < x < T` y dibújala de -3 a 3.",
+    "hints": [
+     "Empieza por `T = 1;` y el trozo básico `f[x_] := x /; 0 < x < T`",
+     "La repetición: `f[x_] := f[x - T] /; x >= T`. La parte nula: `f[x_] := 0 /; x <= 0`",
+     "Última línea: `Plot[f[x], {x, -3, 3}]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "{f[0.3], f[1.3], f[2.75], f[-1]}",
+     "expected": "{0.3, 0.3, 0.75, 0}",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Plot"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Transformada de una función periódica",
+   "md": "`LaplaceTransform` no entiende la definición anterior. El guion usa una propiedad: basta integrar **un solo periodo** y dividir por `1 - E^(-T s)`.",
+   "target": "T = 1;\n(1/(1 - Exp[-T*s])) Integrate[x*Exp[-s*x], {x, 0, T}, Assumptions -> s > 0]",
+   "parts": [
+    {
+     "code": "x*Exp[-s*x]",
+     "md": "El trozo básico (aquí `x`) por `Exp[-s*x]`. Se escribe la fórmula del trozo, no `f[x]`."
+    },
+    {
+     "code": "Integrate[x*Exp[-s*x], {x, 0, T}, Assumptions -> s > 0]",
+     "md": "Integral en un periodo: `{x, 0, T}`. `Assumptions -> s > 0` avisa de que `s` es positivo."
+    },
+    {
+     "code": "1/(1 - Exp[-T*s])",
+     "md": "El factor que 'repite' el trozo en todos los periodos."
+    },
+    {
+     "code": "T = 1;\n(1/(1 - Exp[-T*s])) Integrate[x*Exp[-s*x], {x, 0, T}, Assumptions -> s > 0]",
+     "md": "Con `T = 1;` delante y el factor multiplicando a la integral.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: transformada de la función periódica de periodo `T = 1` que vale `x` en un periodo.",
+    "hints": [
+     "Primera línea `T = 1;`",
+     "Es un producto: `(1/(1 - Exp[-T*s]))` por `Integrate[..., {x, 0, T}, Assumptions -> s > 0]`",
+     "El integrando es `x*Exp[-s*x]`"
+    ]
+   },
+   "cmds": [
+    "Integrate",
+    "Exp"
    ]
   },
   {
@@ -292,7 +430,7 @@
     "id": "2-m2-pl6-e07",
     "kind": "code",
     "title": "Guion 1c: periódica de periodo 2",
-    "prompt": "Calcula la transformada de Laplace de la función periódica causal de periodo `T = 2` que en un periodo vale `h(t) = t^2 - 2`, `0 <= t < 2`.\n\nUsa la fórmula de las funciones periódicas con `Integrate` (añade `Assumptions -> s > 0` dentro de `Integrate`, como en el ejemplo).",
+    "prompt": "Calcula la transformada de Laplace de la función periódica causal de periodo `T = 2` que en un periodo vale `h(t) = t^2 - 2`, `0 <= t < 2`.\n\nUsa la fórmula de las funciones periódicas (con `Assumptions -> s > 0` dentro de `Integrate`).",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -309,33 +447,42 @@
      "Integrate"
     ],
     "hints": [
-     "La fórmula es `(1/(1 - Exp[-T*s])) Integrate[trozo*Exp[-s*t], {t, 0, T}]` con `T = 2`.",
-     "`(1/(1 - Exp[-2 s])) Integrate[(t^2 - 2) Exp[-s t], {t, 0, 2}, Assumptions -> s > 0]`"
+     "Cambia tres cosas respecto al ejemplo: `T = 2`, el trozo `(t^2 - 2)` y la variable de integración `t`.",
+     "`(1/(1 - Exp[-T*s])) Integrate[(t^2 - 2) Exp[-s*t], {t, 0, T}, Assumptions -> s > 0]`"
     ],
-    "explain": "Solo se integra de 0 a `T`. El factor `1/(1 - E^(-T s))` es el que 'repite' el trozo en todos los periodos. Con `// Simplify` Mathematica lo escribe con `Cosh` y `Sinh`: es la misma función."
+    "explain": "Solo se integra de 0 a `T`. Con `// Simplify` Mathematica lo escribe con `Cosh` y `Sinh`: es la misma función."
    }
   },
   {
-   "type": "explain",
-   "title": "Volver atrás: la transformada inversa",
-   "md": "`InverseLaplaceTransform[F, s, t]` hace el camino contrario: de `F(s)` a `f(t)`. Ahora el orden es **función, `s`, variable de llegada**.\n\nGuarda `F` como función con `F1[s_] = ...` (el guion de bajo `_` significa 'cualquier cosa que pongas aquí'). Dos cosas que verás:\n\n- Un factor `E^(-a s)` en `F(s)` produce un escalón `HeavisideTheta[t - a]`: la función arranca con retraso `a`.\n- En Mathematica algunas inversas salen con exponenciales complejas, tipo `E^((2 - 3 I) x)`. Pásalas a forma real con `// ComplexExpand // Simplify` o con `// FullSimplify`.",
-   "cells": [
+   "type": "build",
+   "section": "La inversa y la convolución",
+   "title": "Transformada inversa",
+   "md": "`InverseLaplaceTransform` hace el camino contrario: de `F(s)` a la función original. Ahora el orden es función, `s`, variable de llegada.",
+   "target": "InverseLaplaceTransform[(s - 2)/((s - 2)^2 + 9), s, x]",
+   "parts": [
     {
-     "code": "F1[s_] = s/(s^2 + 9);\nInverseLaplaceTransform[F1[s], s, x]",
-     "note": "Ejemplo 6.2.1 del guion: un coseno"
+     "code": "(s - 2)/((s - 2)^2 + 9)",
+     "md": "La función de `s`. Cuidado con los paréntesis del denominador."
     },
     {
-     "code": "F2[s_] = (s - 2)/((s - 2)^2 + 9);\ns2 = InverseLaplaceTransform[F2[s], s, x]",
-     "note": "desplazar s en 2 = multiplicar por E^(2 x)"
+     "code": "s, x",
+     "md": "Primero la variable que tiene la función (`s`); después la de llegada (`x`)."
     },
     {
-     "code": "s2 // ComplexExpand // Simplify",
-     "note": "forma real (si ya era real, no cambia)"
-    },
-    {
-     "code": "F3[s_] = E^(-5 s) F2[s];\nInverseLaplaceTransform[F3[s], s, x]",
-     "note": "el factor E^(-5 s) retrasa la función 5 unidades"
+     "code": "InverseLaplaceTransform[(s - 2)/((s - 2)^2 + 9), s, x]",
+     "md": "Ejemplo 6.2.1 del guion: sale `E^(2 x) Cos[3 x]`. En Mathematica puede salir con exponenciales complejas: añade `// ComplexExpand // Simplify` o `// FullSimplify` para verla real.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: transformada inversa de `(s - 2)/((s - 2)^2 + 9)`, como función de `x`.",
+    "hints": [
+     "El comando es `InverseLaplaceTransform[`",
+     "Tres argumentos: la fracción, `s`, `x`"
+    ]
+   },
+   "cmds": [
+    "InverseLaplaceTransform"
    ]
   },
   {
@@ -361,7 +508,7 @@
     ],
     "hints": [
      "`InverseLaplaceTransform[F, s, t]`: primero la función, luego `s`, luego `t`.",
-     "Si sale con `I`, añade `// ComplexExpand // Simplify`."
+     "`InverseLaplaceTransform[(2 s + 1)/(s^2 - 2 s + 2), s, t]`"
     ],
     "explain": "Resultado: `E^t (2 Cos[t] + 3 Sin[t])`. El denominador `(s - 1)^2 + 1` avisa: exponencial `E^t` por seno y coseno de `t`."
    }
@@ -400,32 +547,45 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "Es una sola llamada: `InverseLaplaceTransform[E^(-4 s)/s^4, s, t]`."
+     "La exponencial se escribe `E^(-4 s)`.",
+     "`InverseLaplaceTransform[E^(-4 s)/s^4, s, t]`"
     ],
-    "explain": "Sale `(t - 4)^3/6` multiplicado por un escalón que se enciende en `t = 4`. Sin el factor `E^(-4 s)` sería `t^3/6`: la exponencial solo retrasa 4 unidades."
+    "explain": "Sale `(t - 4)^3/6` por un escalón que se enciende en `t = 4`. Sin el factor `E^(-4 s)` sería `t^3/6`: la exponencial solo retrasa 4 unidades."
    }
   },
   {
-   "type": "explain",
-   "title": "Producto de transformadas = convolución",
-   "md": "Cuidado: la inversa de un producto `F(s) G(s)` **no** es el producto `f(t) g(t)`. Es la **convolución**:\n\n`(f*g)(x)` = integral de `f(t) g(x - t)` entre 0 y `x`.\n\nEn Mathematica `*` es el producto normal, así que la convolución se escribe con `Integrate[f[t]*g[x - t], {t, 0, x}]`. El guion comprueba el teorema con `L^-1[s/(s^2 + 9)^2]`: se parte en `F = s/(s^2 + 9)` y `G = 1/(s^2 + 9)`, y las dos formas dan lo mismo.\n\nTambién existe el comando directo `Convolve[f1[t], g1[t], t, x]`, pero necesita funciones causales: antes se multiplica cada una por el escalón, `f1[x_] = f[x]*UnitStep[x]`. En Mathematica devuelve `1/6 x Sin[3 x] UnitStep[x]`; en este cuaderno web usa la integral, que es lo que entiende.",
-   "cells": [
+   "type": "build",
+   "title": "Convolución",
+   "md": "La inversa de un producto `F(s) G(s)` **no** es el producto de las inversas: es su **convolución**, la integral de `f(t) g(x - t)` entre 0 y `x`. Para `F = s/(s^2 + 9)` y `G = 1/(s^2 + 9)` las inversas son `Cos[3 x]` y `Sin[3 x]/3`.",
+   "target": "Integrate[Cos[3 t]*Sin[3 (x - t)]/3, {t, 0, x}]",
+   "parts": [
     {
-     "code": "F[s_] = s/(s^2 + 9);\nf[x_] = InverseLaplaceTransform[F[s], s, x]",
-     "note": "primer factor y su inversa"
+     "code": "Cos[3 t]",
+     "md": "La primera función, `f`, evaluada en `t`."
     },
     {
-     "code": "G[s_] = 1/(s^2 + 9);\ng[x_] = InverseLaplaceTransform[G[s], s, x]",
-     "note": "segundo factor y su inversa"
+     "code": "Sin[3 (x - t)]/3",
+     "md": "La segunda, `g`, evaluada en `x - t`."
     },
     {
-     "code": "InverseLaplaceTransform[F[s]*G[s], s, x]",
-     "note": "inversa del producto"
+     "code": "{t, 0, x}",
+     "md": "Se integra en `t`, desde 0 hasta `x`."
     },
     {
-     "code": "Integrate[f[t]*g[x - t], {t, 0, x}]",
-     "note": "integral de convolución: coincide"
+     "code": "Integrate[Cos[3 t]*Sin[3 (x - t)]/3, {t, 0, x}]",
+     "md": "Sale `x Sin[3 x]/6`, lo mismo que `InverseLaplaceTransform[s/(s^2 + 9)^2, s, x]`. El comando directo es `Convolve[f1[t], g1[t], t, x]`, con cada función multiplicada por `UnitStep[t]`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: convolución de `Cos[3 t]` con `Sin[3 t]/3` (integral de `f(t) g(x - t)` entre 0 y `x`).",
+    "hints": [
+     "La segunda función va evaluada en `x - t`: `Sin[3 (x - t)]/3`",
+     "`Integrate[producto, {t, 0, x}]`"
+    ]
+   },
+   "cmds": [
+    "Integrate"
    ]
   },
   {
@@ -433,7 +593,7 @@
    "ex": {
     "id": "2-m2-pl6-e10",
     "kind": "code",
-    "title": "Una convolución a mano",
+    "title": "Otra convolución",
     "prompt": "Calcula la convolución de `f(t) = t` con `g(t) = E^(-t)`: la integral de `f(t) g(x - t)` entre `t = 0` y `t = x`.",
     "difficulty": 2,
     "cmds": [
@@ -457,48 +617,120 @@
    }
   },
   {
-   "type": "explain",
-   "title": "La receta de 4 pasos para un PVI",
-   "md": "Al transformar una derivada aparecen las condiciones iniciales: mira la primera celda. Por eso Laplace resuelve la EDO y mete `y(0)`, `y'(0)` de una vez.\n\nLa receta del guion (Ejemplo 6.3.1), siempre igual:\n\n1. **Transforma** la ecuación entera: `ec1 = LaplaceTransform[ecdif, t, s]`. La ecuación se escribe con `==` (igualdad), no con `=` (asignar).\n2. **Despeja** la transformada de `y` con `Solve`. La incógnita es la expresión completa `LaplaceTransform[y[t], t, s]`.\n3. **Invierte**: `InverseLaplaceTransform[sol1, s, t]`.\n4. **Sustituye** las condiciones iniciales con `/.` y una lista de reglas `y[0] -> valor`.\n\nEl resultado es una regla `{{y[t] -> ...}}`. Para quedarte con la expresión: `y[t] /. Flatten[soluc]` ('sustituye `y[t]` por lo que diga la regla'; `Flatten` quita las llaves dobles).",
-   "cells": [
+   "type": "build",
+   "section": "PVI con Laplace (1): transformar y despejar",
+   "title": "Paso 1: transformar la ecuación",
+   "md": "Vamos a resolver `y'' + 4 y = E^(-t)`, `y(0) = 1`, `y'(0) = 0` con la receta del guion. Primer paso: escribir la ecuación y transformarla entera.",
+   "target": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s]",
+   "parts": [
     {
-     "code": "LaplaceTransform[y''[t], t, s]",
-     "note": "la derivada segunda se convierte en s^2 Y - s y(0) - y'(0)"
+     "code": "y''[t] + 4 y[t]",
+     "md": "El lado izquierdo. La incógnita es `y[t]` y sus derivadas llevan comillas simples: `y''[t]`."
     },
     {
-     "code": "ecdif = y'''[t] + 2 y''[t] - y'[t] - 2 y[t] == Sin[3 t];\nec1 = LaplaceTransform[ecdif, t, s]",
-     "note": "paso 1: transformar"
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];",
+     "md": "La ecuación con `==` (igualdad), guardada en `ecdif`. Un solo `=` es asignar.",
+     "run": true
     },
     {
-     "code": "sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]",
-     "note": "paso 2: despejar Y(s)"
+     "code": "ec1 = LaplaceTransform[ecdif, t, s]",
+     "md": "Se transforma la ecuación completa. Aparecen `y[0]` e `y'[0]`: las condiciones iniciales.",
+     "run": true
     },
     {
-     "code": "sol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 0, y'[0] -> 0, y''[0] -> 1}",
-     "note": "pasos 3 y 4: invertir y poner las condiciones iniciales"
-    },
-    {
-     "code": "sol = y[t] /. Flatten[soluc]",
-     "note": "la solución como expresión, lista para evaluar o dibujar"
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s]",
+     "md": "Las dos líneas juntas.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: guarda la ecuación `y'' + 4 y = E^(-t)` en `ecdif` y transfórmala (resultado en `ec1`).",
+    "hints": [
+     "Línea 1: `ecdif = y''[t] + 4 y[t] == Exp[-t];`",
+     "Línea 2: `ec1 = LaplaceTransform[ecdif, t, s]`"
+    ]
+   },
+   "cmds": [
+    "LaplaceTransform"
    ]
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl6-e11",
-    "kind": "code",
-    "title": "La receta completa",
-    "prompt": "Resuelve `y'' + 4 y = E^(-t)`, `y(0) = 1`, `y'(0) = 0` con la transformada de Laplace, siguiendo los 4 pasos. La última salida debe ser la solución (la regla `{{y[t] -> ...}}` o la expresión).",
-    "difficulty": 2,
-    "cmds": [
-     "LaplaceTransform",
-     "InverseLaplaceTransform",
-     "Solve"
+   "type": "build",
+   "title": "Paso 2: despejar la transformada",
+   "md": "La ecuación transformada es algebraica. La incógnita es la transformada de `y`, que se escribe `LaplaceTransform[y[t], t, s]`.",
+   "target": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]",
+   "parts": [
+    {
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];",
+     "md": "Lo que ya tienes: ecuación y transformada.",
+     "run": true
+    },
+    {
+     "code": "LaplaceTransform[y[t], t, s]",
+     "md": "La incógnita: la transformada de `y`, escrita entera."
+    },
+    {
+     "code": "sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]",
+     "md": "`Solve[ecuación, incógnita]` la despeja. Devuelve una regla con `->`.",
+     "run": true
+    },
+    {
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]",
+     "md": "Tres líneas: ya tienes `Y(s)` despejada.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: las tres líneas (ecuación, transformar, despejar).",
+    "hints": [
+     "Las dos primeras: `ecdif = ... == Exp[-t];` y `ec1 = LaplaceTransform[ecdif, t, s];`",
+     "La tercera: `sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]`"
+    ]
+   },
+   "cmds": [
+    "Solve",
+    "LaplaceTransform"
+   ]
+  },
+  {
+   "type": "build",
+   "section": "PVI con Laplace (2): invertir y condiciones iniciales",
+   "title": "Pasos 3 y 4: invertir y poner las condiciones",
+   "md": "Falta volver a `t` con la inversa y sustituir `y(0) = 1`, `y'(0) = 0` con reglas.",
+   "target": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 1, y'[0] -> 0}",
+   "parts": [
+    {
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];",
+     "md": "Lo que ya tienes: pasos 1 y 2.",
+     "run": true
+    },
+    {
+     "code": "sol2 = InverseLaplaceTransform[sol1, s, t]",
+     "md": "Paso 3: la inversa aplicada directamente a la regla de `Solve`.",
+     "run": true
+    },
+    {
+     "code": "{y[0] -> 1, y'[0] -> 0}",
+     "md": "Las condiciones iniciales como lista de reglas."
+    },
+    {
+     "code": "soluc = sol2 /. {y[0] -> 1, y'[0] -> 0}",
+     "md": "Paso 4: `/.` sustituye `y[0]` e `y'[0]` por sus valores.",
+     "run": true
+    },
+    {
+     "code": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 1, y'[0] -> 0}",
+     "md": "La receta completa: ecuación → transformar → despejar → invertir → condiciones iniciales.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Ahora la receta entera de memoria: resuelve `y'' + 4 y = E^(-t)`, `y(0) = 1`, `y'(0) = 0` con Laplace.",
+    "hints": [
+     "Cinco líneas: `ecdif`, `ec1`, `sol1`, `sol2`, `soluc`",
+     "Transformar: `LaplaceTransform[ecdif, t, s]`. Despejar: `Solve[ec1, LaplaceTransform[y[t], t, s]]`",
+     "Invertir: `InverseLaplaceTransform[sol1, s, t]`. Condiciones: `sol2 /. {y[0] -> 1, y'[0] -> 0}`"
     ],
-    "real": false,
-    "source": null,
-    "solution": "ecdif = y''[t] + 4 y[t] == Exp[-t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 1, y'[0] -> 0}",
     "check": {
      "type": "ode",
      "eq": "y''[t] + 4 y[t] == Exp[-t]",
@@ -508,26 +740,21 @@
       "y[0] == 1",
       "y'[0] == 0"
      ]
-    },
-    "requires": [
-     "LaplaceTransform",
-     "InverseLaplaceTransform"
-    ],
-    "hints": [
-     "Paso 1: `ecdif = y''[t] + 4 y[t] == Exp[-t];` y `ec1 = LaplaceTransform[ecdif, t, s];`",
-     "Paso 2: `sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];`",
-     "Pasos 3 y 4: `InverseLaplaceTransform[sol1, s, t] /. {y[0] -> 1, y'[0] -> 0}`"
-    ],
-    "explain": "Ecuación → transformar → despejar → invertir → condiciones iniciales. Cada línea usa el resultado de la anterior."
-   }
+    }
+   },
+   "cmds": [
+    "LaplaceTransform",
+    "InverseLaplaceTransform",
+    "Solve"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e12",
+    "id": "2-m2-pl6-e11",
     "kind": "code",
-    "title": "Condiciones iniciales desde el principio",
-    "prompt": "Resuelve `x'' + 9 x = 3 t`, `x(0) = 0`, `x'(0) = 0` con Laplace. Esta vez sustituye las condiciones iniciales nada más transformar: `LaplaceTransform[...] /. {x[0] -> 0, x'[0] -> 0}`. La última salida debe ser la solución.",
+    "title": "Misma receta, otra ecuación",
+    "prompt": "Resuelve `x'' + 9 x = 3 t`, `x(0) = 0`, `x'(0) = 0` con Laplace (la incógnita ahora se llama `x[t]`). La última salida debe ser la solución.",
     "difficulty": 2,
     "cmds": [
      "LaplaceTransform",
@@ -536,7 +763,7 @@
     ],
     "real": true,
     "source": "Hoja de Laplace con Mathematica · ejercicio 47",
-    "solution": "ec1 = LaplaceTransform[x''[t] + 9 x[t] == 3 t, t, s] /. {x[0] -> 0, x'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[x[t], t, s]];\nInverseLaplaceTransform[sol1, s, t]",
+    "solution": "ecdif = x''[t] + 9 x[t] == 3 t;\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[x[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {x[0] -> 0, x'[0] -> 0}",
     "check": {
      "type": "ode",
      "eq": "x''[t] + 9 x[t] == 3 t",
@@ -552,19 +779,20 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "Directa: `..., t, s]`. Inversa: `..., s, t]`.",
-     "Lo que se despeja es `LaplaceTransform[x[t], t, s]`, escrito entero."
+     "Las mismas cinco líneas, con `x` en lugar de `y`.",
+     "Lo que se despeja es `LaplaceTransform[x[t], t, s]`.",
+     "Reglas finales: `{x[0] -> 0, x'[0] -> 0}`"
     ],
-    "explain": "Solución: `x(t) = (3 t - Sin[3 t])/9`. Sustituir las condiciones antes o después de invertir da lo mismo. La incógnita de `Solve` es la transformada de `x`, no `x`."
+    "explain": "Solución: `x(t) = (3 t - Sin[3 t])/9`. La hoja lo hace sustituyendo las condiciones nada más transformar; da lo mismo."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e13",
+    "id": "2-m2-pl6-e12",
     "kind": "code",
     "title": "Guion 2a",
-    "prompt": "Resuelve con la transformada de Laplace (los 4 pasos):\n\n`y'' - 3 y' + 2 y = E^(-4 t)`, `y(0) = 1`, `y'(0) = 5`.\n\nLa última salida debe ser la solución (la regla `{{y[t] -> ...}}` o la expresión).",
+    "prompt": "Resuelve con la transformada de Laplace:\n\n`y'' - 3 y' + 2 y = E^(-4 t)`, `y(0) = 1`, `y'(0) = 5`.\n\nLa última salida debe ser la solución (la regla `{{y[t] -> ...}}`).",
     "difficulty": 3,
     "cmds": [
      "LaplaceTransform",
@@ -573,7 +801,7 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 2a",
-    "solution": "ecdif = y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t] /. {y[0] -> 1, y'[0] -> 5}",
+    "solution": "ecdif = y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 1, y'[0] -> 5}",
     "check": {
      "type": "ode",
      "eq": "y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t]",
@@ -589,16 +817,17 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "Empieza por `ecdif = y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t];` (con `==`).",
-     "Después `ec1 = LaplaceTransform[ecdif, t, s]`, `sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]]`, y por último `InverseLaplaceTransform[sol1, s, t] /. {y[0] -> 1, y'[0] -> 5}`."
+     "Empieza por `ecdif = y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t];`",
+     "Después `ec1`, `sol1` y `sol2` igual que siempre.",
+     "Última línea: `soluc = sol2 /. {y[0] -> 1, y'[0] -> 5}`"
     ],
-    "explain": "Solución: `y(t) = E^(-4 t)/30 - 16 E^t/5 + 25 E^(2 t)/6`. Compruébala siempre: derivando y sustituyendo debe salir `E^(-4 t)`."
+    "explain": "Solución: `y(t) = E^(-4 t)/30 - 16 E^t/5 + 25 E^(2 t)/6`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e14",
+    "id": "2-m2-pl6-e13",
     "kind": "code",
     "title": "Guion 2b",
     "prompt": "Resuelve con la transformada de Laplace:\n\n`y'' + y = Sqrt[2] Sin[Sqrt[2] t]`, `y(0) = 10`, `y'(0) = 0`.\n\nLa última salida debe ser la solución.",
@@ -610,7 +839,7 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 2b",
-    "solution": "ec1 = LaplaceTransform[y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t], t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nInverseLaplaceTransform[sol1, s, t] /. {y[0] -> 10, y'[0] -> 0}",
+    "solution": "ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 10, y'[0] -> 0}",
     "check": {
      "type": "ode",
      "eq": "y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t]",
@@ -627,7 +856,8 @@
     ],
     "hints": [
      "La raíz se escribe `Sqrt[2]`, con mayúscula y corchetes.",
-     "Misma receta que en 2a, cambiando la ecuación y las reglas `{y[0] -> 10, y'[0] -> 0}`."
+     "`ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];` y la receta de siempre.",
+     "Reglas: `{y[0] -> 10, y'[0] -> 0}`"
     ],
     "explain": "Solución: `y(t) = 10 Cos[t] + 2 Sin[t] - Sqrt[2] Sin[Sqrt[2] t]`."
    }
@@ -635,7 +865,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e15",
+    "id": "2-m2-pl6-e14",
     "kind": "code",
     "title": "Guion 2c: orden 3",
     "prompt": "Resuelve con la transformada de Laplace:\n\n`y''' + 2 y'' - y' - 2 y = Sin[3 t]`, `y(0) = 0`, `y'(0) = 0`, `y''(0) = 1`.\n\nLa última salida debe ser la solución.",
@@ -647,7 +877,7 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 2c",
-    "solution": "ecdif = y'''[t] + 2 y''[t] - y'[t] - 2 y[t] == Sin[3 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nInverseLaplaceTransform[sol1, s, t] /. {y[0] -> 0, y'[0] -> 0, y''[0] -> 1}",
+    "solution": "ecdif = y'''[t] + 2 y''[t] - y'[t] - 2 y[t] == Sin[3 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 0, y'[0] -> 0, y''[0] -> 1}",
     "check": {
      "type": "ode",
      "eq": "y'''[t] + 2 y''[t] - y'[t] - 2 y[t] == Sin[3 t]",
@@ -664,46 +894,255 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
+     "La derivada tercera es `y'''[t]`, con tres comillas simples.",
      "Con orden 3 hay tres condiciones: `{y[0] -> 0, y'[0] -> 0, y''[0] -> 1}`.",
-     "Es el Ejemplo 6.3.1 del guion: copia sus cuatro líneas."
+     "Es el Ejemplo 6.3.1 del guion: las mismas cinco líneas."
     ],
     "explain": "Solución: `16 E^(-2 t)/39 - 13 E^(-t)/20 + 13 E^t/60 + (3 Cos[3 t] - 2 Sin[3 t])/130`. El enunciado del guion tiene una errata (`-2t` en vez de `-2y`); el código es el bueno."
    }
   },
   {
-   "type": "explain",
-   "title": "Sistemas, y el valor de Y(s) sin invertir",
-   "md": "Para un **sistema** la receta es la misma con listas: transformas la lista de ecuaciones y despejas las dos transformadas a la vez.\n\n`Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}]`\n\nPara sacar las dos soluciones: `{x[t], y[t]} /. Flatten[solucion]`.\n\nDos avisos de nombres: `C`, `E`, `I`, `D` y `N` ya significan algo en Mathematica. En un circuito llama `C1` a la capacidad y `e[t]` a la fuente.\n\n**Truco de examen.** Muchas preguntas piden el valor de `Y(s)` en un punto (por ejemplo `Y(2.3)`). Para eso no hace falta invertir: `Y(s)` es lo que despeja `Solve` en el paso 2. Sustituyes las condiciones iniciales y evalúas, como en la última celda.",
-   "cells": [
+   "type": "build",
+   "section": "Usar la solución: expresión y valor de Y(s)",
+   "title": "De la regla a la expresión",
+   "md": "`soluc` es una regla dentro de dos llaves, `{{y[t] -> ...}}`. Para evaluarla o dibujarla necesitas la expresión suelta.",
+   "target": "soluc = {{y[t] -> 3 Exp[-2 t]}};\nsol = y[t] /. Flatten[soluc]",
+   "parts": [
     {
-     "code": "ecdifs = {x'[t] + x[t] == y[t] + E^t, y'[t] + y[t] == x[t] + E^t};\nsol1 = LaplaceTransform[ecdifs, t, s]",
-     "note": "Ejemplo del guion: sistema con x(0) = 1, y(0) = 1"
+     "code": "soluc = {{y[t] -> 3 Exp[-2 t]}};",
+     "md": "Una solución de ejemplo, con la forma que devuelve la receta.",
+     "run": true
     },
     {
-     "code": "sol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}]",
-     "note": "despejar las dos transformadas"
+     "code": "Flatten[soluc]",
+     "md": "`Flatten` quita un nivel de llaves: queda `{y[t] -> ...}`.",
+     "run": true
     },
     {
-     "code": "solucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 1, y[0] -> 1}",
-     "note": "invertir y sustituir"
+     "code": "y[t] /. Flatten[soluc]",
+     "md": "'En `y[t]`, sustituye según la regla': queda la expresión.",
+     "run": true
     },
     {
-     "code": "{solx, soly} = {x[t], y[t]} /. Flatten[solucion]",
-     "note": "las dos soluciones como expresiones"
-    },
-    {
-     "code": "X[s_] = LaplaceTransform[x[t], t, s] /. Flatten[sol2] /. {x[0] -> 1, y[0] -> 1};\nX[2.5]",
-     "note": "valor de X(s) en s = 2.5 sin invertir"
+     "code": "soluc = {{y[t] -> 3 Exp[-2 t]}};\nsol = y[t] /. Flatten[soluc]",
+     "md": "Guardada en `sol`. El guion también usa `soluc[[1, 1, 2]]`: fila 1, elemento 1, parte derecha de la regla.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: con `soluc = {{y[t] -> 3 Exp[-2 t]}}`, guarda en `sol` la expresión de la solución.",
+    "hints": [
+     "Primera línea: `soluc = {{y[t] -> 3 Exp[-2 t]}};`",
+     "`sol = y[t] /. Flatten[soluc]`"
+    ]
+   },
+   "cmds": [
+    "Flatten"
    ]
+  },
+  {
+   "type": "build",
+   "title": "El valor de Y(s) en un punto",
+   "md": "Muchas preguntas de examen piden `Y(s)` en un número. Para eso **no hace falta invertir**: `Y(s)` es lo que despeja `Solve`.",
+   "target": "ec1 = LaplaceTransform[y''[t] + 4 y[t] == Exp[-t], t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 0};\nY[2.5]",
+   "parts": [
+    {
+     "code": "ec1 = LaplaceTransform[y''[t] + 4 y[t] == Exp[-t], t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];",
+     "md": "Pasos 1 y 2 de la receta (la ecuación va escrita dentro directamente).",
+     "run": true
+    },
+    {
+     "code": "LaplaceTransform[y[t], t, s] /. Flatten[sol1]",
+     "md": "La transformada de `y`, sustituida por lo que dice la regla de `Solve`.",
+     "run": true
+    },
+    {
+     "code": "Y[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 0};",
+     "md": "Con las condiciones iniciales, guardada como función `Y[s_]`.",
+     "run": true
+    },
+    {
+     "code": "ec1 = LaplaceTransform[y''[t] + 4 y[t] == Exp[-t], t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 0};\nY[2.5]",
+     "md": "Y al final se evalúa: `Y[2.5]`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: para `y'' + 4 y = E^(-t)`, `y(0) = 1`, `y'(0) = 0`, calcula `Y(2.5)`.",
+    "hints": [
+     "Transforma y despeja: `ec1 = LaplaceTransform[... == Exp[-t], t, s];` y `sol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];`",
+     "`Y[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 0};`",
+     "Última línea: `Y[2.5]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "(1/3.5 + 2.5)/(2.5^2 + 4)",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "LaplaceTransform",
+    "Solve",
+    "Flatten"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl6-e15",
+    "kind": "code",
+    "title": "Prueba de clase: Y(0.3)",
+    "prompt": "Para el PVI del ejercicio 2a, `y'' - 3 y' + 2 y = E^(-4 t)`, `y(0) = 1`, `y'(0) = 5`, calcula el valor de la transformada de la solución en `s = 0.3`. La última salida debe ser ese número.",
+    "difficulty": 3,
+    "cmds": [
+     "LaplaceTransform",
+     "Solve"
+    ],
+    "real": true,
+    "source": "Prueba de clase PL6 (2020-21) · pregunta 2a",
+    "solution": "ec1 = LaplaceTransform[y''[t] - 3 y'[t] + 2 y[t] == Exp[-4 t], t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 5};\nY[0.3]",
+    "check": {
+     "type": "expr",
+     "expected": "2.1282001173",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "LaplaceTransform"
+    ],
+    "hints": [
+     "Las cuatro líneas del paso anterior, cambiando la ecuación.",
+     "`Y[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 1, y'[0] -> 5};`",
+     "Última línea: `Y[0.3]`"
+    ],
+    "explain": "`Y(0.3)` = 2.1282. El alumno que hizo esta prueba invirtió, copió la solución y la volvió a transformar: mismo número con el triple de trabajo."
+   }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl6-e16",
     "kind": "code",
+    "title": "Examen 2021 · P6",
+    "prompt": "`y'' + y = f(t) + 5`, `y(0) = 10`, `y'(0) = 0`, donde `f(t)` vale `Sin[2 t]` si `0 <= t < 3`, `t - 3` si `t >= 3` y 0 antes de 0.\n\nDefine `f[t_]` con ventanas de `UnitStep` y calcula `Y(2.3)`, el valor de la transformada de la solución en `s = 2.3`. La última salida debe ser ese número.",
+    "difficulty": 4,
+    "cmds": [
+     "LaplaceTransform",
+     "Solve",
+     "UnitStep"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 15/01/2021 · P6",
+    "solution": "f[t_] = (UnitStep[t] - UnitStep[t - 3]) Sin[2 t] + UnitStep[t - 3] (t - 3);\nec1 = LaplaceTransform[y''[t] + y[t] == f[t] + 5, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 10, y'[0] -> 0};\nY[2.3]",
+    "check": {
+     "type": "expr",
+     "expected": "4.0364468",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "requires": [
+     "LaplaceTransform"
+    ],
+    "hints": [
+     "`f[t_] = (UnitStep[t] - UnitStep[t - 3]) Sin[2 t] + UnitStep[t - 3] (t - 3);`",
+     "La ecuación dentro de la transformada: `y''[t] + y[t] == f[t] + 5`.",
+     "Después `sol1`, `Y[s_] = ... /. {y[0] -> 10, y'[0] -> 0};` y `Y[2.3]`."
+    ],
+    "explain": "`Y(2.3)` = 4.03645. También vale definir `f` con `Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}]`, como hizo el alumno de 2021. Si el número trae una parte imaginaria minúscula (10^-17), es ruido: quítalo con `Chop`."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Sistemas con Laplace",
+   "title": "La receta con dos incógnitas",
+   "md": "Para un sistema la receta es la misma con listas: se transforma la lista de ecuaciones y se despejan las dos transformadas a la vez. Ejemplo del guion, con `x(0) = 1`, `y(0) = 1`.",
+   "target": "ecdifs = {x'[t] + x[t] == y[t] + E^t, y'[t] + y[t] == x[t] + E^t};\nsol1 = LaplaceTransform[ecdifs, t, s];\nsol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}];\nsolucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 1, y[0] -> 1}",
+   "parts": [
+    {
+     "code": "ecdifs = {x'[t] + x[t] == y[t] + E^t, y'[t] + y[t] == x[t] + E^t};",
+     "md": "Las dos ecuaciones en una lista, entre llaves y separadas por coma.",
+     "run": true
+    },
+    {
+     "code": "sol1 = LaplaceTransform[ecdifs, t, s]",
+     "md": "Se transforma la lista entera.",
+     "run": true
+    },
+    {
+     "code": "sol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}]",
+     "md": "Las incógnitas son las dos transformadas, también en una lista.",
+     "run": true
+    },
+    {
+     "code": "solucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 1, y[0] -> 1}",
+     "md": "Invertir y sustituir las condiciones iniciales, todo en una línea.",
+     "run": true
+    },
+    {
+     "code": "ecdifs = {x'[t] + x[t] == y[t] + E^t, y'[t] + y[t] == x[t] + E^t};\nsol1 = LaplaceTransform[ecdifs, t, s];\nsol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}];\nsolucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 1, y[0] -> 1}",
+     "md": "Las cuatro líneas: sale `x(t) = E^t`, `y(t) = E^t`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: resuelve con Laplace `x' + x = y + E^t`, `y' + y = x + E^t`, `x(0) = 1`, `y(0) = 1`.",
+    "hints": [
+     "Línea 1: `ecdifs = {ecuación1, ecuación2};` con `==`",
+     "`sol1 = LaplaceTransform[ecdifs, t, s];` y `sol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}];`",
+     "`solucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 1, y[0] -> 1}`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{x[t] -> E^t, y[t] -> E^t}}"
+    }
+   },
+   "cmds": [
+    "LaplaceTransform",
+    "InverseLaplaceTransform",
+    "Solve"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl6-e17",
+    "kind": "code",
+    "title": "Un sistema de la hoja",
+    "prompt": "Resuelve con Laplace el sistema `x' = -x + y + 1`, `y' = x - y + 1`, con `x(0) = 0`, `y(0) = 0`. Termina con `{x[t], y[t]} /. Flatten[solucion]` para que la última salida sea la lista de las dos soluciones.",
+    "difficulty": 3,
+    "cmds": [
+     "LaplaceTransform",
+     "InverseLaplaceTransform",
+     "Solve",
+     "Flatten"
+    ],
+    "real": true,
+    "source": "Hoja de Laplace con Mathematica · ejercicio 56a",
+    "solution": "ecdifs = {x'[t] == -x[t] + y[t] + 1, y'[t] == x[t] - y[t] + 1};\nsol1 = LaplaceTransform[ecdifs, t, s];\nsol2 = Solve[sol1, {LaplaceTransform[x[t], t, s], LaplaceTransform[y[t], t, s]}];\nsolucion = InverseLaplaceTransform[sol2, s, t] /. {x[0] -> 0, y[0] -> 0};\n{x[t], y[t]} /. Flatten[solucion]",
+    "check": {
+     "type": "expr",
+     "expected": "{t, t}"
+    },
+    "requires": [
+     "LaplaceTransform",
+     "InverseLaplaceTransform"
+    ],
+    "hints": [
+     "`ecdifs = {x'[t] == -x[t] + y[t] + 1, y'[t] == x[t] - y[t] + 1};`",
+     "Las tres líneas siguientes son las del paso anterior, con `{x[0] -> 0, y[0] -> 0}`.",
+     "Última línea: `{x[t], y[t]} /. Flatten[solucion]`"
+    ],
+    "explain": "`x(t) = t`, `y(t) = t`. `{x[t], y[t]} /. Flatten[solucion]` saca las dos expresiones de golpe."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl6-e18",
+    "kind": "code",
     "title": "Guion 4: circuito con dos mallas",
-    "prompt": "Resuelve con Laplace el sistema del circuito, con `i1(0) = 0`, `i2(0) = 0`:\n\n- `L i1' + L i2' + R1 i1 = e(t)`\n- `-R1 i1' + R2 i2' + i2/C1 = 0`\n\nDatos: `R1 = 10`, `R2 = 5`, `L = 1`, `C1 = 1/5`, y la fuente vale 120 entre `t = 0` y `t = 2` y 0 fuera. Ya está definida: `e[t_] = 120 (HeavisideTheta[t] - HeavisideTheta[t - 2])`, igual que `R1`, `R2`, `L` y `C1`.\n\nUsa los nombres `i1[t]`, `i2[t]`. Termina evaluando las dos corrientes en `t = 0.3`: la última salida debe ser la lista `{i1(0.3), i2(0.3)}`.",
+    "prompt": "Resuelve con Laplace el sistema del circuito, con `i1(0) = 0`, `i2(0) = 0`:\n\n- `L i1' + L i2' + R1 i1 = e(t)`\n- `-R1 i1' + R2 i2' + i2/C1 = 0`\n\nYa están definidos `R1 = 10`, `R2 = 5`, `L = 1`, `C1 = 1/5` y la fuente, que vale 120 entre `t = 0` y `t = 2`: `e[t_] = 120 (HeavisideTheta[t] - HeavisideTheta[t - 2])`.\n\nUsa los nombres `i1[t]`, `i2[t]`. Termina evaluando las dos corrientes en `t = 0.3`: la última salida debe ser la lista `{i1(0.3), i2(0.3)}`.",
     "difficulty": 4,
     "cmds": [
      "LaplaceTransform",
@@ -714,7 +1153,7 @@
     "real": true,
     "source": "PL6 · ejercicio 4",
     "setup": "L = 1; R1 = 10; R2 = 5; C1 = 1/5;\ne[t_] = 120 (HeavisideTheta[t] - HeavisideTheta[t - 2]);",
-    "solution": "ecdifs = {L i1'[t] + L i2'[t] + R1 i1[t] == e[t], -R1 i1'[t] + R2 i2'[t] + i2[t]/C1 == 0};\nec = LaplaceTransform[ecdifs, t, s];\nsol1 = Solve[ec, {LaplaceTransform[i1[t], t, s], LaplaceTransform[i2[t], t, s]}];\nsol2 = InverseLaplaceTransform[sol1, s, t] /. {i1[0] -> 0, i2[0] -> 0};\n{i1[t], i2[t]} /. Flatten[sol2] /. t -> 0.3",
+    "solution": "ecdifs = {L i1'[t] + L i2'[t] + R1 i1[t] == e[t], -R1 i1'[t] + R2 i2'[t] + i2[t]/C1 == 0};\nsol1 = LaplaceTransform[ecdifs, t, s];\nsol2 = Solve[sol1, {LaplaceTransform[i1[t], t, s], LaplaceTransform[i2[t], t, s]}];\nsolucion = InverseLaplaceTransform[sol2, s, t] /. {i1[0] -> 0, i2[0] -> 0};\n{i1[t], i2[t]} /. Flatten[solucion] /. t -> 0.3",
     "check": {
      "type": "expr",
      "expected": "{12 - 60 Exp[-0.6] + 48 Exp[-0.5], 240 (Exp[-0.5] - Exp[-0.6])}",
@@ -726,17 +1165,17 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "Escribe la lista `ecdifs = {ecuación1, ecuación2}` con `==` y transfórmala entera: `LaplaceTransform[ecdifs, t, s]`.",
+     "`ecdifs = {L i1'[t] + L i2'[t] + R1 i1[t] == e[t], -R1 i1'[t] + R2 i2'[t] + i2[t]/C1 == 0};`",
      "Despeja `{LaplaceTransform[i1[t], t, s], LaplaceTransform[i2[t], t, s]}`, invierte y sustituye `{i1[0] -> 0, i2[0] -> 0}`.",
-     "Última línea: `{i1[t], i2[t]} /. Flatten[sol2] /. t -> 0.3`."
+     "Última línea: `{i1[t], i2[t]} /. Flatten[solucion] /. t -> 0.3`"
     ],
-    "explain": "Antes de `t = 2`: `i1 = 12 - 60 E^(-2 t) + 48 E^(-5 t/3)`, `i2 = 240 (E^(-5 t/3) - E^(-2 t))`; después se suman términos con `HeavisideTheta[t - 2]`. En la prueba de clase pedían `i1(0.3)` = 8.18477. Ojo con un fallo típico: en la segunda ecuación va `R2 i2'[t]`, con derivada."
+    "explain": "`i1(0.3)` = 8.18477, el valor de la prueba de clase. Nombres: `C`, `E`, `I`, `D` y `N` ya significan algo en Mathematica; por eso la capacidad es `C1` y la fuente `e[t]`. Fallo típico: en la segunda ecuación va `R2 i2'[t]`, con derivada."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl6-e17",
+    "id": "2-m2-pl6-e19",
     "kind": "code",
     "title": "Guion 3: ecuación integro-diferencial",
     "prompt": "Resuelve, con `y(0) = 0`, `y'(0) = 0`:\n\n`y'' + y + (integral de 0 a x de E^(2 (x - t)) y'(t) dt) - (integral de 0 a x de (x - t) y''(t) dt) = E^(2 x)`\n\nLas dos integrales son convoluciones: su transformada es el **producto de transformadas**. La primera es `LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s]`; la segunda, `LaplaceTransform[x, x, s]*LaplaceTransform[y''[x], x, s]`.\n\nMonta la ecuación transformada, despeja `LaplaceTransform[y[x], x, s]`, invierte y sustituye las condiciones iniciales. La última salida debe ser la solución.",
@@ -748,7 +1187,7 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 3",
-    "solution": "ec = LaplaceTransform[y''[x] + y[x], x, s] + LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s] - LaplaceTransform[x, x, s]*LaplaceTransform[y''[x], x, s] == LaplaceTransform[Exp[2 x], x, s];\nsol1 = Solve[ec, LaplaceTransform[y[x], x, s]];\nInverseLaplaceTransform[sol1, s, x] /. {y[0] -> 0, y'[0] -> 0}",
+    "solution": "ec1 = LaplaceTransform[y''[x] + y[x], x, s] + LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s] - LaplaceTransform[x, x, s]*LaplaceTransform[y''[x], x, s] == LaplaceTransform[Exp[2 x], x, s];\nsol1 = Solve[ec1, LaplaceTransform[y[x], x, s]];\nsol2 = InverseLaplaceTransform[sol1, s, x];\nsoluc = sol2 /. {y[0] -> 0, y'[0] -> 0}",
     "check": {
      "type": "any",
      "checks": [
@@ -771,42 +1210,11 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "La ecuación transformada es: `LaplaceTransform[y''[x] + y[x], x, s]` + (producto 1) - (producto 2) `== LaplaceTransform[Exp[2 x], x, s]`.",
-     "Después: `Solve[ec, LaplaceTransform[y[x], x, s]]`, `InverseLaplaceTransform[..., s, x]` y `/. {y[0] -> 0, y'[0] -> 0}`."
+     "Lado izquierdo de `ec1`: `LaplaceTransform[y''[x] + y[x], x, s]` + (producto 1) - (producto 2).",
+     "Lado derecho: `== LaplaceTransform[Exp[2 x], x, s];`",
+     "Después: `Solve[ec1, LaplaceTransform[y[x], x, s]]`, `InverseLaplaceTransform[sol1, s, x]` y `/. {y[0] -> 0, y'[0] -> 0}`."
     ],
     "explain": "Solución: `y(x) = 1 - E^x + x E^x`. En Mathematica también puedes transformar la ecuación tal cual, con los `Integrate[..., {t, 0, x}]` dentro de `LaplaceTransform`: reconoce las convoluciones solo. En la prueba de clase cambiaban el núcleo a `E^(5 (x - t))` y pedían `y(1.5)`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl6-e18",
-    "kind": "code",
-    "title": "Examen 2021 · P6",
-    "prompt": "`y'' + y = f(t) + 5`, `y(0) = 10`, `y'(0) = 0`, donde `f(t)` vale 0 si `t < 0`, `Sin[2 t]` si `0 <= t < 3` y `t - 3` si `t >= 3`.\n\nCalcula el valor de la transformada de la solución, `Y(s)`, en `s = 2.3`. La última salida debe ser ese número.",
-    "difficulty": 4,
-    "cmds": [
-     "LaplaceTransform",
-     "Solve",
-     "Piecewise"
-    ],
-    "real": true,
-    "source": "Examen de prácticas 15/01/2021 · P6",
-    "solution": "f[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nec1 = LaplaceTransform[y''[t] + y[t] == f[t] + 5, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 10, y'[0] -> 0};\nY[2.3]",
-    "check": {
-     "type": "expr",
-     "expected": "4.0364468",
-     "compare": "numeric",
-     "tol": 0.0001
-    },
-    "requires": [
-     "LaplaceTransform"
-    ],
-    "hints": [
-     "Define `f[t_]` con `Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}]` o con ventanas de `UnitStep`.",
-     "No hace falta invertir: `Y[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1] /. {y[0] -> 10, y'[0] -> 0}` y luego `Y[2.3]`."
-    ],
-    "explain": "`Y(2.3)` = 4.03645. El alumno de 2021 invirtió y volvió a transformar: llega al mismo número con el doble de trabajo. Si el resultado trae una parte imaginaria minúscula (del orden de 10^-17), es ruido numérico: quítalo con `Chop`."
    }
   }
  ]

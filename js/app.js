@@ -305,7 +305,7 @@ function openSettings() {
         toggleRow('Efectos visuales', 'Confeti discreto en los hitos y el «+XP» al acertar.', 'fx')),
       h('section', null,
         h('h3', null, 'Tu progreso'),
-        h('p', { class: 'muted' }, `Nivel ${li.level} (${li.title}) · ${li.xp} XP · ${c.exOk} ejercicios resueltos · ${c.learned} comandos dominados. Se guarda solo en este navegador: haz una copia de vez en cuando.`),
+        h('p', { class: 'muted' }, `Nivel ${li.level} (${li.title}) · ${li.xp} XP · ${c.exOk} ${c.exOk === 1 ? 'ejercicio resuelto' : 'ejercicios resueltos'} · ${c.learned} ${c.learned === 1 ? 'comando dominado' : 'comandos dominados'}. Se guarda solo en este navegador: haz una copia de vez en cuando.`),
         store.memoryOnly ? h('p', { class: 'set-warn' }, 'Este navegador no deja guardar datos (modo privado): el progreso se perderá al cerrar la pestaña.') : null,
         h('div', { class: 'row' },
           h('button', { class: 'btn', type: 'button', onclick: () => { store.exportFile(); toast('Copia descargada.', 'ok'); } }, 'Exportar copia (.json)'),

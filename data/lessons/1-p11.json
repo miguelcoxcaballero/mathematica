@@ -6,7 +6,7 @@
  "order": 11,
  "title": "Integrales impropias, funciones Gamma y Beta",
  "summary": "Integras hasta el infinito y sobre funciones que se disparan, decides si la integral converge o diverge (y qué escribir en la casilla), defines funciones a trozos con Piecewise y usas las funciones especiales Gamma y Beta.",
- "minutes": 50,
+ "minutes": 60,
  "commands": [
   "Infinity",
   "Piecewise",
@@ -28,20 +28,42 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Integrar hasta el infinito",
-   "md": "¿Cuánta energía hace falta para alejar un satélite de la Tierra hasta «el infinito»? ¿Cuánto mide una espiral que da infinitas vueltas? Son integrales en las que el intervalo no se acaba o la función se dispara: **integrales impropias**. A veces dan un número finito y a veces no. Al terminar sabrás calcularlas, decidir si convergen y rellenar la casilla del examen en cada caso.\n\nPara Mathematica no hay nada nuevo que aprender: el infinito se escribe `Infinity` (con mayúscula) y se pone como extremo.\n\n`Integrate[f, {x, a, Infinity}]` = función, y entre llaves: variable, desde, hasta.\n\nTambién vale `-Infinity` como extremo inferior.",
-   "cells": [
+   "section": "Integrar hasta el infinito",
+   "title": "Para qué sirve esto",
+   "md": "¿Cuánta energía hace falta para alejar un satélite de la Tierra hasta «el infinito»? ¿Cuánto mide una espiral que da infinitas vueltas? Son integrales en las que el intervalo no se acaba o la función se dispara: **integrales impropias**. A veces dan un número finito y a veces no.\n\nAl terminar sabrás calcularlas, decidir si convergen y rellenar la casilla del examen en cada caso. Iremos pieza a pieza: cada trozo lo tecleas tú, luego los unes y al final lo escribes de memoria.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Tu primera integral impropia",
+   "md": "Vamos a calcular el área bajo la curva `1/x^2` desde x = 1 hasta el infinito. Es un `Integrate` normal: lo único nuevo es el extremo.",
+   "target": "Integrate[1/x^2, {x, 1, Infinity}]",
+   "parts": [
+    {
+     "code": "1/x^2",
+     "md": "La función que se integra."
+    },
+    {
+     "code": "{x, 1, Infinity}",
+     "md": "El intervalo entre llaves: variable, desde, hasta. El infinito se escribe `Infinity`, con mayúscula."
+    },
     {
      "code": "Integrate[1/x^2, {x, 1, Infinity}]",
-     "note": "una región infinitamente larga con área 1"
-    },
-    {
-     "code": "Integrate[Exp[-x], {x, 0, Infinity}]"
-    },
-    {
-     "code": "Integrate[1/(1 + x^2), {x, -Infinity, Infinity}]",
-     "note": "toda la recta real"
+     "md": "Función e intervalo dentro de `Integrate`. Sale 1: una región infinitamente larga con área finita.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: integra `1/x^2` entre 1 e infinito.",
+    "hints": [
+     "El comando es `Integrate[función, {variable, desde, hasta}]`.",
+     "El extremo superior es `Infinity`.",
+     "`Integrate[ , { , , }]`"
+    ]
+   },
+   "cmds": [
+    "Integrate",
+    "Infinity"
    ]
   },
   {
@@ -49,7 +71,7 @@
    "ex": {
     "id": "1-p11-e01",
     "kind": "code",
-    "title": "Tu primera impropia",
+    "title": "Otra integral hasta el infinito",
     "prompt": "Calcula la integral de `x Exp[-2 x]` entre 0 e infinito.",
     "difficulty": 1,
     "cmds": [
@@ -80,7 +102,7 @@
     "id": "1-p11-e02",
     "kind": "fix",
     "title": "Tres errores de escritura",
-    "prompt": "Esta celda debería calcular la integral de `1/(1 + x^2)` entre 0 e infinito, pero tiene tres errores típicos. Corrígela.",
+    "prompt": "Esta celda debería calcular la integral de `1/(1 + x^2)` entre 0 e infinito, pero tiene tres errores típicos. Escribe la versión corregida.",
     "difficulty": 1,
     "cmds": [
      "Integrate",
@@ -106,40 +128,49 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Qué significa: un límite",
-   "md": "Una integral impropia es el **límite** de integrales normales: integras hasta un punto `b` y luego mandas `b` al infinito.\n\n- Si el límite es un número: la integral es **convergente** y vale ese número.\n- Si el límite es infinito o no existe: es **divergente** (no tiene valor).\n\nMathematica hace ese límite por ti cuando escribes `Infinity`, pero conviene verlo una vez. En la primera celda, `Assumptions -> b > 1` le dice que `b` es un número mayor que 1, para que no devuelva el resultado con condiciones; sale una expresión con `b`. La segunda celda calcula su límite.\n\nLa tercera hace lo mismo con la función `1/x`: su integral entre 1 y `b` es `Log[b]`, que crece sin parar.",
-   "cells": [
+   "type": "build",
+   "section": "Convergente o divergente",
+   "title": "Una impropia es un límite",
+   "md": "Una integral impropia es el **límite** de integrales normales: integras hasta un punto `b` y luego mandas `b` al infinito. Si el límite es un número, la integral **converge**; si es infinito o no existe, **diverge**. Lo vemos con `Exp[-x]`.",
+   "target": "Limit[Integrate[Exp[-x], {x, 0, b}], b -> Infinity]",
+   "parts": [
     {
-     "code": "Integrate[1/x^2, {x, 1, b}, Assumptions -> b > 1]",
-     "note": "integral normal hasta b"
+     "code": "Integrate[Exp[-x], {x, 0, b}]",
+     "md": "Una integral normal hasta `b`. El resultado depende de `b`.",
+     "run": true
     },
     {
-     "code": "Limit[1 - 1/b, b -> Infinity]",
-     "note": "1: la integral converge y vale 1"
+     "code": "b -> Infinity",
+     "md": "La regla que dice hacia dónde va `b`: con flecha `->`."
     },
     {
-     "code": "Limit[Log[b], b -> Infinity]",
-     "note": "infinito: la de 1/x diverge"
+     "code": "Limit[Integrate[Exp[-x], {x, 0, b}], b -> Infinity]",
+     "md": "El límite de esa integral cuando `b` crece. Sale 1: converge.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: calcula con `Limit` el límite, cuando `b` tiende a infinito, de la integral de `Exp[-x]` entre 0 y `b`.",
+    "hints": [
+     "Por dentro: `Integrate[Exp[-x], {x, 0, b}]`.",
+     "Por fuera: `Limit[..., b -> Infinity]`.",
+     "`Limit[Integrate[ , { , , }], -> ]`"
+    ]
+   },
+   "cmds": [
+    "Limit",
+    "Integrate",
+    "Infinity"
    ]
   },
   {
    "type": "explain",
    "title": "Cómo se ve una integral divergente",
-   "md": "Cuando la integral diverge, **no obtienes un número finito**. Las señales son:\n\n- Con `Integrate`: el resultado es `Infinity` (o `-Infinity`, `Indeterminate`…), o en Mathematica de escritorio un aviso `Integrate::idiv` que dice «does not converge» y la integral se queda sin calcular.\n- Con `NIntegrate`: avisos en rojo (`NIntegrate::slwcon`, `NIntegrate::ncvb`) y un número enorme o sin sentido. Ese número **no** es la respuesta.\n\nCualquiera de esas señales significa «divergente». En el examen la pregunta dice qué escribir entonces: casi siempre **0** («Put 0 if divergent»), algún año 999. Lee el enunciado.\n\nUna regla para oler divergencias antes de calcular: la integral de `1/x^p` entre 1 e infinito converge solo si **p > 1**. Con p = 1 (la función 1/x) ya diverge. Compruébalo en las tres celdas.",
+   "md": "Cuando la integral diverge, **no obtienes un número finito**. Las señales son:\n\n- Con `Integrate`: el resultado es `Infinity` (o `-Infinity`, `Indeterminate`…), o en Mathematica de escritorio un aviso `Integrate::idiv` que dice «does not converge» y la integral se queda sin calcular.\n- Con `NIntegrate`: avisos en rojo (`NIntegrate::slwcon`, `NIntegrate::ncvb`) y un número enorme o sin sentido. Ese número **no** es la respuesta.\n\nCualquiera de esas señales significa «divergente». En el examen la pregunta dice qué escribir entonces: casi siempre **0** («Put 0 if divergent»), algún año 999. Lee el enunciado.\n\nUna regla para oler divergencias: la integral de `1/x^p` entre 1 e infinito converge solo si **p > 1**. La de la celda (p = 1) ya diverge.",
    "cells": [
     {
      "code": "Integrate[1/x, {x, 1, Infinity}]",
-     "note": "p = 1: no hay número finito, divergente"
-    },
-    {
-     "code": "Integrate[1/Sqrt[x], {x, 1, Infinity}]",
-     "note": "p = 1/2: divergente también"
-    },
-    {
-     "code": "Integrate[1/x^(3/2), {x, 1, Infinity}]",
-     "note": "p = 3/2: converge y vale 2"
+     "note": "no hay número finito: divergente"
     }
    ]
   },
@@ -149,7 +180,7 @@
     "id": "1-p11-e03",
     "kind": "code",
     "title": "El límite, paso a paso",
-    "prompt": "Calcula la integral de `Exp[-3 x]` entre 0 e infinito **como un límite**: integra entre 0 y `b` y, sobre ese resultado, toma el límite cuando `b` tiende a infinito con `Limit`.",
+    "prompt": "Calcula la integral de `Exp[-3 x]` entre 0 e infinito **como un límite**: integra entre 0 y `b` y toma el límite cuando `b` tiende a infinito con `Limit`.",
     "difficulty": 2,
     "cmds": [
      "Limit",
@@ -180,7 +211,7 @@
     "id": "1-p11-e04",
     "kind": "code",
     "title": "Rellena las casillas",
-    "prompt": "Como en el examen. Estudia estas dos integrales entre 1 e infinito:\n\n- I1: la de `1/x^3`\n- I2: la de `1/x^(1/3)`\n\nDevuelve la lista `{I1, I2}` con el valor de cada una, poniendo **0 en la que sea divergente**.",
+    "prompt": "Como en el examen. Estudia estas dos integrales entre 1 e infinito:\n\n- I1: la de `1/x^3`\n- I2: la de `1/x^(1/3)`\n\nCalcula cada una y, en la última línea, devuelve la lista `{I1, I2}` con el valor de cada una, poniendo **0 en la que sea divergente**.",
     "difficulty": 2,
     "cmds": [
      "Integrate",
@@ -206,25 +237,48 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Cuando la función se dispara",
-   "md": "El otro tipo de impropia: el intervalo es finito, pero la función se va a infinito en un punto (una asíntota vertical). Se escribe igual y Mathematica se encarga.\n\n- `1/Sqrt[x]` se dispara en 0, pero su integral entre 0 y 1 converge.\n- `1/x` también se dispara en 0, y su integral diverge.\n\n**Cuidado con las asíntotas en medio del intervalo.** Si la función se dispara en un punto interior, hay que partir la integral en ese punto y estudiar cada trozo por separado. La integral completa converge solo si convergen **todos** los trozos. Dibujar la función antes de integrar te avisa de dónde están los problemas.\n\nEjemplo clásico: `1/(x - 2)^2` entre 0 y 4. Quien aplica la regla de Barrow sin mirar obtiene −1, imposible para una función positiva. La asíntota está en x = 2, dentro del intervalo, y el primer trozo ya diverge: la integral es divergente.",
-   "cells": [
-    {
-     "code": "Integrate[1/Sqrt[x], {x, 0, 1}]",
-     "note": "se dispara en 0, pero converge"
-    },
-    {
-     "code": "Integrate[1/x, {x, 0, 1}]",
-     "note": "diverge"
-    },
+   "type": "build",
+   "section": "Cuando la función se dispara",
+   "title": "Una asíntota dentro del intervalo",
+   "md": "El otro tipo de impropia: el intervalo es finito, pero la función se va a infinito en un punto. Si ese punto está **dentro** del intervalo hay que partir la integral ahí y estudiar cada trozo. Probamos con `1/(x - 2)^2` entre 0 y 4.",
+   "target": "Integrate[1/(x - 2)^2, {x, 0, 2}]",
+   "parts": [
     {
      "code": "Plot[1/(x - 2)^2, {x, 0, 4}]",
-     "note": "asíntota en x = 2, dentro del intervalo"
+     "md": "Dibujar antes de integrar: se ve la asíntota en x = 2, en medio del intervalo.",
+     "run": true
+    },
+    {
+     "code": "{x, 0, 2}",
+     "md": "El primer trozo: desde 0 hasta la asíntota."
     },
     {
      "code": "Integrate[1/(x - 2)^2, {x, 0, 2}]",
-     "note": "el primer trozo ya diverge"
+     "md": "La integral de ese trozo. No da un número finito: diverge, y con ella la integral completa.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: integra `1/(x - 2)^2` entre 0 y 2 (el trozo que llega hasta la asíntota).",
+    "hints": [
+     "Es un `Integrate` normal; el intervalo acaba en la asíntota.",
+     "El intervalo es `{x, 0, 2}`.",
+     "`Integrate[1/(x - 2)^2, { , , }]`"
+    ]
+   },
+   "cmds": [
+    "Integrate",
+    "Plot"
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Converge solo si convergen todos los trozos",
+   "md": "Regla de las asíntotas interiores: se parte la integral en cada punto conflictivo y la integral completa converge **solo si convergen todos los trozos**.\n\nQuien integra `1/(x - 2)^2` entre 0 y 4 con la regla de Barrow sin mirar obtiene −1, imposible para una función positiva. Lo correcto es lo que acabas de hacer: el primer trozo ya diverge, así que la integral es divergente.\n\nNo toda asíntota estropea la integral. La de la celda se dispara en x = 0 y, aun así, converge.",
+   "cells": [
+    {
+     "code": "Integrate[1/Sqrt[x], {x, 0, 1}]",
+     "note": "se dispara en 0, pero vale 2"
     }
    ]
   },
@@ -281,22 +335,49 @@
      "Dos integrales: `Integrate[1/Sqrt[1 - x], {x, 0, 1}]` y `Integrate[1/Sqrt[x - 1], {x, 1, 3}]`.",
      "Súmalas en la misma línea con `+`."
     ],
-    "explain": "Los dos trozos convergen (2 y 2√2), así que la integral completa converge y vale 2 + 2√2 ≈ 4.83. Si uno solo de los trozos divergiera, toda la integral sería divergente."
+    "explain": "Los dos trozos convergen (2 y 2√2), así que la integral completa converge y vale 2 + 2√2 ≈ 4.83."
    }
   },
   {
-   "type": "explain",
-   "title": "Respuestas en decimal: // N y NIntegrate",
-   "md": "El examen pide números decimales. Dos caminos:\n\n- `Integrate[...] // N` calcula el valor exacto y lo pasa a decimal. Es el patrón de esta práctica.\n- `NIntegrate[...]` integra numéricamente desde el principio. Úsalo cuando `Integrate` no encuentra primitiva o tarda mucho.\n\nLa integral de las celdas (la campana de Gauss en toda la recta) vale exactamente la raíz de π: los dos caminos dan 1.77245. Si te piden 6 cifras, copia las 6 primeras del decimal que sale.",
-   "cells": [
+   "type": "build",
+   "section": "Respuestas en decimal",
+   "title": "Del valor exacto al decimal",
+   "md": "El examen pide números decimales. El patrón de esta práctica es calcular la integral exacta y añadir `// N` al final. Lo hacemos con la campana de Gauss en toda la recta.",
+   "target": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}] // N",
+   "parts": [
     {
-     "code": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}] // N",
-     "note": "exacto y luego decimal"
+     "code": "{x, -Infinity, Infinity}",
+     "md": "Toda la recta real: de menos infinito a infinito."
     },
     {
-     "code": "NIntegrate[Exp[-x^2], {x, -Infinity, Infinity}]",
-     "note": "numérico directo"
+     "code": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}]",
+     "md": "El valor exacto: la raíz de π.",
+     "run": true
+    },
+    {
+     "code": "Integrate[Exp[-x^2], {x, -Infinity, Infinity}] // N",
+     "md": "`// N` al final lo pasa a decimal: 1.77245.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: integra `Exp[-x^2]` en toda la recta real y da el resultado en decimal.",
+    "hints": [
+     "El intervalo va de `-Infinity` a `Infinity`.",
+     "Para el decimal, añade `// N` al final.",
+     "`Integrate[ , { , , }] // N`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "Sqrt[Pi]",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "N",
+    "Infinity"
    ]
   },
   {
@@ -304,62 +385,154 @@
    "ex": {
     "id": "1-p11-e07",
     "kind": "code",
-    "title": "Pregunta de examen: de −∞ a +∞",
-    "prompt": "Escribe el valor numérico (6 cifras) de las integrales impropias en ]−∞, +∞[ de estas dos funciones, si convergen. **Si divergen escribe 0.**\n\n- a) `3/(x^2 - 3 x + 9)`\n- b) `(3 x + 1)/(x^2 - 3 x + 9)`\n\nDevuelve la lista `{a, b}`. Usa `Integrate[...] // N`.",
-    "difficulty": 3,
+    "title": "Pregunta de examen: de −∞ a +∞ (la que converge)",
+    "prompt": "Escribe el valor numérico, con 6 cifras, de la integral impropia en ]−∞, +∞[ de la función `3/(x^2 - 3 x + 9)`.",
+    "difficulty": 2,
     "cmds": [
      "Integrate",
      "Infinity",
      "N"
     ],
     "real": true,
-    "source": "Examen PL1 · integrales impropias (apartados c y d)",
-    "solution": "Integrate[3/(x^2 - 3 x + 9), {x, -Infinity, Infinity}] // N\nIntegrate[(3 x + 1)/(x^2 - 3 x + 9), {x, 0, Infinity}]\n{3.6276, 0}",
+    "source": "Examen PL1 · integrales impropias, apartado d)",
+    "solution": "Integrate[3/(x^2 - 3 x + 9), {x, -Infinity, Infinity}] // N",
     "check": {
      "type": "expr",
-     "expected": "{2 Sqrt[3] Pi/3, 0}",
+     "expected": "2 Sqrt[3] Pi/3",
      "compare": "numeric",
      "tol": 1e-05
     },
     "requires": [
-     "Integrate",
      "Infinity"
     ],
     "hints": [
-     "Los extremos son `{x, -Infinity, Infinity}`. La a) da un número; mira qué pasa con la b).",
-     "La a) vale 3.6276. La b) no converge (prueba solo entre 0 e infinito): se escribe 0. Última línea: `{3.6276, 0}`."
+     "Los extremos son `{x, -Infinity, Infinity}`.",
+     "`Integrate[3/(x^2 - 3 x + 9), {x, -Infinity, Infinity}] // N`"
     ],
-    "explain": "a) converge: 3.6276. b) diverge: para x grande el numerador (grado 1) entre el denominador (grado 2) se comporta como 3/x, y 1/x diverge. En el examen real siempre hay una de este tipo."
+    "explain": "Converge: 3.6276. El denominador no se anula nunca y para x grande la función se comporta como 3/x², que sí converge."
    }
-  },
-  {
-   "type": "explain",
-   "title": "Funciones a trozos: Piecewise",
-   "md": "Las funciones de la práctica cambian de fórmula según el intervalo. Se definen con `Piecewise`:\n\n`f[x_] := Piecewise[{{fórmula1, condición1}, {fórmula2, condición2}}]`\n\n- Dentro va **una lista de pares** `{fórmula, condición}`: cuenta bien las llaves.\n- Las condiciones se escriben como en matemáticas: `0 <= x < 1`.\n- Fuera de todas las condiciones la función vale 0.\n\nDespués se usa como cualquier función: se evalúa, se dibuja y se integra.",
-   "cells": [
-    {
-     "code": "h[x_] := Piecewise[{{x^2, 0 <= x < 1}, {2 - x, 1 <= x < 2}}]\nh[0.5]",
-     "note": "primer trozo: 0.5²"
-    },
-    {
-     "code": "h[1.5]",
-     "note": "segundo trozo: 2 − 1.5"
-    },
-    {
-     "code": "Plot[h[x], {x, 0, 2}]"
-    },
-    {
-     "code": "Integrate[h[x], {x, 0, 2}]",
-     "note": "integra cada trozo y suma"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p11-e08",
     "kind": "code",
-    "title": "Tu primera función a trozos",
+    "title": "Pregunta de examen: de −∞ a +∞ (la sospechosa)",
+    "prompt": "Mismo enunciado para la función `(3 x + 1)/(x^2 - 3 x + 9)`: valor de su integral en ]−∞, +∞[ si converge; **si diverge escribe 0**.\n\nEstúdiala primero solo entre 0 e infinito y, en la última línea, escribe tu respuesta para la casilla.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Infinity"
+    ],
+    "real": true,
+    "source": "Examen PL1 · integrales impropias, apartado c)",
+    "solution": "Integrate[(3 x + 1)/(x^2 - 3 x + 9), {x, 0, Infinity}]\n0",
+    "check": {
+     "type": "expr",
+     "expected": "0",
+     "compare": "numeric",
+     "tol": 1e-09
+    },
+    "requires": [
+     "Integrate",
+     "Infinity"
+    ],
+    "hints": [
+     "`Integrate[(3 x + 1)/(x^2 - 3 x + 9), {x, 0, Infinity}]`: mira si da un número finito.",
+     "No converge: en la casilla se escribe 0. Última línea: `0`."
+    ],
+    "explain": "Diverge: para x grande el numerador (grado 1) entre el denominador (grado 2) se comporta como 3/x, y 1/x diverge. En el examen real siempre hay una de este tipo."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Funciones a trozos: Piecewise",
+   "title": "Definir una función a trozos",
+   "md": "Las funciones de la práctica cambian de fórmula según el intervalo. Se definen con `Piecewise`, que recibe una **lista de pares** `{fórmula, condición}`. Construimos una con dos trozos.",
+   "target": "h[x_] := Piecewise[{{x^2, 0 <= x < 1}, {2 - x, 1 <= x < 2}}]",
+   "parts": [
+    {
+     "code": "{x^2, 0 <= x < 1}",
+     "md": "Un par: la fórmula y cuándo vale. La condición se escribe como en matemáticas."
+    },
+    {
+     "code": "{2 - x, 1 <= x < 2}",
+     "md": "El segundo trozo."
+    },
+    {
+     "code": "Piecewise[{{x^2, 0 <= x < 1}, {2 - x, 1 <= x < 2}}]",
+     "md": "Los pares, dentro de una lista, dentro de `Piecewise`. Cuenta las llaves: dos de apertura seguidas."
+    },
+    {
+     "code": "h[x_] := Piecewise[{{x^2, 0 <= x < 1}, {2 - x, 1 <= x < 2}}]",
+     "md": "Con `h[x_] :=` delante ya es una función. Fuera de los trozos vale 0.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `h[x_]` a trozos: `x^2` si 0 ≤ x < 1 y `2 - x` si 1 ≤ x < 2.",
+    "hints": [
+     "Cada trozo es un par `{fórmula, condición}`.",
+     "Los pares van en una lista dentro de `Piecewise[{ ... }]`.",
+     "`h[x_] := Piecewise[{{ , }, { , }}]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "{h[0.5], h[1.5], h[3]}",
+     "expected": "{0.25, 0.5, 0}",
+     "compare": "numeric",
+     "tol": 1e-09,
+     "msg": "`h` no vale lo que debe en 0.5, 1.5 o 3. Revisa fórmulas y condiciones."
+    }
+   },
+   "cmds": [
+    "Piecewise",
+    "SetDelayed"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Usar la función a trozos",
+   "md": "Ya está definida la función `h` de antes. Una función a trozos se usa como cualquier otra: se evalúa, se dibuja y se integra.",
+   "target": "Integrate[h[x], {x, 0, 2}]",
+   "setup": "h[x_] := Piecewise[{{x^2, 0 <= x < 1}, {2 - x, 1 <= x < 2}}]",
+   "parts": [
+    {
+     "code": "h[1.5]",
+     "md": "Evaluar: 1.5 cae en el segundo trozo, así que vale 2 − 1.5.",
+     "run": true
+    },
+    {
+     "code": "Plot[h[x], {x, 0, 2}]",
+     "md": "Dibujar: se ve el cambio de fórmula en x = 1.",
+     "run": true
+    },
+    {
+     "code": "Integrate[h[x], {x, 0, 2}]",
+     "md": "Integrar: Mathematica integra cada trozo en su intervalo y suma.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con la misma `h`: calcula su integral entre 0 y 2.",
+    "hints": [
+     "Se integra `h[x]`, con su argumento.",
+     "El intervalo es `{x, 0, 2}`.",
+     "`Integrate[h[x], { , , }]`"
+    ]
+   },
+   "cmds": [
+    "Piecewise",
+    "Integrate",
+    "Plot"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e09",
+    "kind": "code",
+    "title": "Tu función a trozos",
     "prompt": "Define con `Piecewise` la función `f` que vale `-x` si x < 0 y `x^2` si x ≥ 0. En otra línea, calcula `f[-2] + f[3]`.",
     "difficulty": 2,
     "cmds": [
@@ -395,8 +568,9 @@
   },
   {
    "type": "exercise",
+   "section": "La prueba real: convergencia por tramos (f2)",
    "ex": {
-    "id": "1-p11-e09",
+    "id": "1-p11-e10",
     "kind": "code",
     "title": "Define la función de la práctica",
     "prompt": "Define la función a trozos `f2`:\n\n- `1/(3 Sqrt[2 - x])` si 0 ≤ x < 2\n- `2/Sqrt[x - 2]` si 2 < x < 4\n- `2/(2 - x)^2` si 4 ≤ x < ∞\n\nDespués dibújala entre 0 y 5 con la opción `PlotRange -> Full` (para que no recorte la asíntota).",
@@ -438,137 +612,60 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p11-e10",
-    "kind": "code",
-    "title": "Convergencia por tramos (función f2)",
-    "prompt": "Ya está definida `f2` (la del ejercicio anterior). Estudia la convergencia de su integral entre 0 e ∞ calculando cada tramo por separado, en decimales. La integral entre 0 y 2 vale 0.9428.\n\nDevuelve la lista `{integral entre 2 y 4, integral entre 4 e ∞, integral completa entre 0 e ∞}` (0 donde diverja).",
-    "difficulty": 3,
-    "cmds": [
-     "Integrate",
-     "Piecewise",
-     "N",
-     "Infinity"
-    ],
-    "real": true,
-    "source": "Práctica 11 · P2 b)",
-    "setup": "f2[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/Sqrt[x - 2], 2 < x < 4}, {2/(2 - x)^2, 4 <= x < Infinity}}]",
-    "solution": "i1 = Integrate[f2[x], {x, 0, 2}] // N;\ni2 = Integrate[f2[x], {x, 2, 4}] // N;\ni3 = Integrate[f2[x], {x, 4, Infinity}] // N;\n{i2, i3, i1 + i2 + i3}",
-    "check": {
-     "type": "expr",
-     "expected": "{4 Sqrt[2], 1, 2 Sqrt[2]/3 + 4 Sqrt[2] + 1}",
-     "compare": "numeric",
-     "tol": 1e-05
-    },
-    "hints": [
-     "Un `Integrate[f2[x], {x, a, b}] // N` por tramo: de 0 a 2, de 2 a 4 y de 4 a `Infinity`. Guarda cada uno en una variable.",
-     "Si los tres convergen, la integral completa es la suma: `{i2, i3, i1 + i2 + i3}`."
-    ],
-    "explain": "Los tres tramos convergen (0.942809, 5.65685 y 1), así que la integral completa es su suma: 7.59966. Para comprobarlo de una vez: `NIntegrate[f2[x], {x, 0, 2, 4, Infinity}]`; los puntos intermedios avisan a NIntegrate de dónde están las asíntotas."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
     "id": "1-p11-e11",
     "kind": "code",
-    "title": "Convergencia por tramos (función f1)",
-    "prompt": "Ya está definida la función a trozos `f1`:\n\n- `1/(3 Sqrt[2 - x])` si 0 ≤ x < 2\n- `2/((2 - x) Sqrt[x])` si 2 < x < ∞\n\nEstudia la convergencia de su integral entre 0 e ∞. Devuelve la lista `{integral entre 0 y 2, integral entre 2 e ∞, integral completa}`, en decimales y con **0 en las divergentes**.\n\nConsejo: para estudiar el segundo tramo integra directamente su fórmula cerca de la asíntota, por ejemplo entre 2 y 3.",
-    "difficulty": 4,
+    "title": "El tramo entre 2 y 4",
+    "prompt": "Ya está definida `f2`. La integral del primer tramo, entre 0 y 2, vale 0.9428. Calcula ahora, en decimal, la integral entre 2 y 4 (pon 0 si fuera divergente).",
+    "difficulty": 2,
     "cmds": [
      "Integrate",
-     "Piecewise",
      "N"
     ],
     "real": true,
-    "source": "Práctica 11 · P2 a)",
-    "setup": "f1[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/((2 - x) Sqrt[x]), 2 < x < Infinity}}]",
-    "solution": "Integrate[f1[x], {x, 0, 2}] // N\nIntegrate[2/((2 - x) Sqrt[x]), {x, 2, 3}]\n{0.942809, 0, 0}",
+    "source": "Práctica 11 · P2 b), segundo tramo",
+    "setup": "f2[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/Sqrt[x - 2], 2 < x < 4}, {2/(2 - x)^2, 4 <= x < Infinity}}]",
+    "solution": "Integrate[f2[x], {x, 2, 4}] // N",
     "check": {
      "type": "expr",
-     "expected": "{2 Sqrt[2]/3, 0, 0}",
+     "expected": "4 Sqrt[2]",
      "compare": "numeric",
      "tol": 1e-05
     },
-    "requires": [
-     "Integrate"
-    ],
     "hints": [
-     "El primer tramo: `Integrate[f1[x], {x, 0, 2}] // N` da 0.942809.",
-     "`Integrate[2/((2 - x) Sqrt[x]), {x, 2, 3}]` no da un número finito: ese tramo diverge, y entonces la integral completa también. Respuesta: `{0.942809, 0, 0}`."
+     "Mismo patrón que antes: `Integrate[f2[x], {x, a, b}] // N`.",
+     "`Integrate[f2[x], {x, 2, 4}] // N`"
     ],
-    "explain": "Cerca de x = 2 el segundo tramo se comporta como 1/(2 − x), que diverge. Basta que un tramo diverja para que la integral completa sea divergente: casillas 0.942809, 0 y 0. En Mathematica de escritorio, `Integrate[f1[x], {x, 2, Infinity}] // N` suelta los avisos `NIntegrate::slwcon` y `ncvb` con un número absurdo (−214.38): eso es «divergente»."
+    "explain": "Converge: 5.65685. La función se dispara en x = 2, pero como 1/√(x − 2), que es integrable."
    }
-  },
-  {
-   "type": "explain",
-   "title": "La longitud de una espiral infinita",
-   "md": "Una curva en polares `r(t)` mide L = integral de `Sqrt[r'[t]^2 + r[t]^2]` entre los dos ángulos. Si la espiral da infinitas vueltas hacia el origen, el ángulo llega hasta `Infinity` y la longitud es una integral impropia: puede ser finita o infinita.\n\nReceta de la práctica (trozo de espiral **dentro** de un círculo de radio R):\n\n- Define la espiral como función: `r[t_] := ...`.\n- Dibújala junto al círculo: en `PolarPlot`, un número constante es una circunferencia de ese radio.\n- Halla el ángulo de entrada resolviendo `r[t] == R` con `NSolve`.\n- Integra con `NIntegrate` desde ese ángulo hasta `Infinity`.\n\nSi dudas de que converja, integra hasta 100, 10 000 y 1 000 000 y mira: si el valor se estabiliza, converge; si sigue creciendo, diverge.\n\nUn aviso real de esta práctica: no llames `C` a nada (ni al círculo). `C` está reservado para las constantes de integración y da el error `Set::write: Tag C … is Protected`.",
-   "cells": [
-    {
-     "code": "r[t_] := 2/t^2\nPolarPlot[{r[t], 0.5}, {t, 1, 40}]",
-     "note": "espiral y círculo de radio 0.5"
-    },
-    {
-     "code": "NSolve[r[t] == 0.5, t]",
-     "note": "entra en el círculo en t = 2"
-    },
-    {
-     "code": "NIntegrate[Sqrt[r'[t]^2 + r[t]^2], {t, 2, Infinity}]",
-     "note": "longitud dentro del círculo"
-    },
-    {
-     "code": "Table[NIntegrate[Sqrt[r'[t]^2 + r[t]^2], {t, 2, 10^k}], {k, 2, 6, 2}]",
-     "note": "hasta 10², 10⁴, 10⁶: se estabiliza"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p11-e12",
     "kind": "code",
-    "title": "Espiral dentro del círculo (la que converge)",
-    "prompt": "Considera la circunferencia de radio 0.11 y la espiral en polares `r2(t) = 5/(3 t)^2`, con 0 < t < ∞.\n\nCalcula la longitud del tramo de espiral que queda **dentro** de la circunferencia. Guarda el ángulo de entrada en `t0` y la longitud en `long` (en decimales).",
-    "difficulty": 4,
+    "title": "El tramo entre 4 e infinito",
+    "prompt": "Sigue definida `f2`. Calcula, en decimal, la integral entre 4 e infinito (0 si fuera divergente).",
+    "difficulty": 2,
     "cmds": [
-     "NSolve",
-     "NIntegrate",
-     "Infinity",
-     "Derivative"
-    ],
-    "real": true,
-    "source": "Práctica 11 · P3 b)",
-    "solution": "r2[t_] := 5/(3 t)^2\nNSolve[r2[t] == 0.11, t]\nt0 = 2.24733;\nlong = NIntegrate[Sqrt[r2'[t]^2 + r2[t]^2], {t, t0, Infinity}]",
-    "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "t0",
-       "expected": "2.2473329",
-       "compare": "numeric",
-       "tol": 2e-05,
-       "msg": "`t0` no es el ángulo de entrada: resuelve `r2[t] == 0.11` y quédate con la solución positiva."
-      },
-      {
-       "type": "value",
-       "expr": "long",
-       "expected": "0.2767642",
-       "compare": "numeric",
-       "tol": 2e-05,
-       "msg": "`long` no es la longitud pedida: integra `Sqrt[r2'[t]^2 + r2[t]^2]` desde `t0` hasta `Infinity`."
-      }
-     ]
-    },
-    "requires": [
-     "NIntegrate",
+     "Integrate",
+     "N",
      "Infinity"
     ],
+    "real": true,
+    "source": "Práctica 11 · P2 b), tercer tramo",
+    "setup": "f2[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/Sqrt[x - 2], 2 < x < 4}, {2/(2 - x)^2, 4 <= x < Infinity}}]",
+    "solution": "Integrate[f2[x], {x, 4, Infinity}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "1",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
     "hints": [
-     "Define `r2[t_] := 5/(3 t)^2` y resuelve `NSolve[r2[t] == 0.11, t]`: quédate con el ángulo positivo y guárdalo: `t0 = 2.24733`.",
-     "`long = NIntegrate[Sqrt[r2'[t]^2 + r2[t]^2], {t, t0, Infinity}]`"
+     "El extremo superior es `Infinity`.",
+     "`Integrate[f2[x], {x, 4, Infinity}] // N`"
     ],
-    "explain": "La espiral entra en el círculo en t ≈ 2.24733 y desde ahí hasta el infinito mide solo 0.276764: da infinitas vueltas, pero cada una es tan pequeña que la suma es finita."
+    "explain": "Converge y vale 1: en ese tramo la función es 2/(2 − x)², que cae como 1/x²."
    }
   },
   {
@@ -576,8 +673,261 @@
    "ex": {
     "id": "1-p11-e13",
     "kind": "code",
-    "title": "Espiral dentro del círculo (la otra)",
-    "prompt": "Misma circunferencia de radio 0.11, ahora con la espiral `r1(t) = 5/(3 t)`, 0 < t < ∞.\n\nCalcula, si es posible, la longitud del tramo de espiral dentro de la circunferencia. Devuelve `{ángulo de entrada, longitud}`, con **0 si la longitud es divergente**.\n\nConsejo: integra hasta 10², 10⁴ y 10⁶ y mira si el valor se estabiliza.",
+    "title": "La integral completa",
+    "prompt": "Sigue definida `f2`. Los tres tramos convergen, así que la integral completa entre 0 e infinito es su suma. Calcúlala en decimal.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "N",
+     "Infinity"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P2 b), integral completa",
+    "setup": "f2[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/Sqrt[x - 2], 2 < x < 4}, {2/(2 - x)^2, 4 <= x < Infinity}}]",
+    "solution": "i1 = Integrate[f2[x], {x, 0, 2}] // N;\ni2 = Integrate[f2[x], {x, 2, 4}] // N;\ni3 = Integrate[f2[x], {x, 4, Infinity}] // N;\ni1 + i2 + i3",
+    "check": {
+     "type": "expr",
+     "expected": "2 Sqrt[2]/3 + 4 Sqrt[2] + 1",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "Guarda cada tramo en una variable: `i1 = Integrate[f2[x], {x, 0, 2}] // N;` y lo mismo para los otros dos.",
+     "Última línea: `i1 + i2 + i3`."
+    ],
+    "explain": "0.942809 + 5.65685 + 1 = 7.59966. Para comprobarlo de una vez: `NIntegrate[f2[x], {x, 0, 2, 4, Infinity}]`; los puntos intermedios avisan a NIntegrate de dónde están las asíntotas."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "La prueba real: una que diverge (f1)",
+   "ex": {
+    "id": "1-p11-e14",
+    "kind": "code",
+    "title": "El primer tramo de f1",
+    "prompt": "Ya está definida la función a trozos `f1`:\n\n- `1/(3 Sqrt[2 - x])` si 0 ≤ x < 2\n- `2/((2 - x) Sqrt[x])` si 2 < x < ∞\n\nCalcula, en decimal, su integral entre 0 y 2.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P2 a), primer tramo",
+    "setup": "f1[x_] := Piecewise[{{1/(3 Sqrt[2 - x]), 0 <= x < 2}, {2/((2 - x) Sqrt[x]), 2 < x < Infinity}}]",
+    "solution": "Integrate[f1[x], {x, 0, 2}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "2 Sqrt[2]/3",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "`Integrate[f1[x], {x, 0, 2}] // N`",
+     "El resultado empieza por 0.94."
+    ],
+    "explain": "Vale 0.942809: es el mismo primer trozo que tenía f2."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e15",
+    "kind": "code",
+    "title": "El segundo tramo y la integral completa",
+    "prompt": "El segundo tramo de `f1` es `2/((2 - x) Sqrt[x])` para x > 2. Para ver si converge, integra esa fórmula cerca de la asíntota, entre 2 y 3.\n\nEn la última línea devuelve la lista `{integral entre 2 e ∞, integral completa entre 0 e ∞}` con **0 en lo que sea divergente**.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P2 a), segundo tramo e integral completa",
+    "solution": "Integrate[2/((2 - x) Sqrt[x]), {x, 2, 3}]\n{0, 0}",
+    "check": {
+     "type": "expr",
+     "expected": "{0, 0}",
+     "compare": "numeric",
+     "tol": 1e-09
+    },
+    "requires": [
+     "Integrate"
+    ],
+    "hints": [
+     "`Integrate[2/((2 - x) Sqrt[x]), {x, 2, 3}]` no da un número finito: ese tramo diverge.",
+     "Si un tramo diverge, la integral completa también. Última línea: `{0, 0}`."
+    ],
+    "explain": "Cerca de x = 2 el segundo tramo se comporta como 1/(2 − x), que diverge. Basta un tramo divergente para que toda la integral lo sea: casillas 0.942809, 0 y 0. En Mathematica de escritorio, `Integrate[f1[x], {x, 2, Infinity}] // N` suelta los avisos `NIntegrate::slwcon` y `ncvb` con un número absurdo (−214.38): eso es «divergente»."
+   }
+  },
+  {
+   "type": "build",
+   "section": "La longitud de una espiral infinita",
+   "title": "Longitud dentro de un círculo",
+   "md": "Ya está definida la espiral en polares `r[t_] := 2/t^2`, que se enrolla hacia el origen dando infinitas vueltas. Queremos la longitud del trozo que queda dentro del círculo de radio 0.5. La longitud en polares es la integral de `Sqrt[r'[t]^2 + r[t]^2]`.",
+   "target": "NIntegrate[Sqrt[r'[t]^2 + r[t]^2], {t, 2, Infinity}]",
+   "setup": "r[t_] := 2/t^2",
+   "parts": [
+    {
+     "code": "PolarPlot[{r[t], 0.5}, {t, 1, 40}]",
+     "md": "Espiral y círculo juntos: en `PolarPlot`, un número constante es una circunferencia de ese radio.",
+     "run": true
+    },
+    {
+     "code": "NSolve[r[t] == 0.5, t]",
+     "md": "Dónde entra la espiral en el círculo: el ángulo positivo, t = 2.",
+     "run": true
+    },
+    {
+     "code": "Sqrt[r'[t]^2 + r[t]^2]",
+     "md": "Lo que se integra para medir una curva polar. `r'[t]` es la derivada."
+    },
+    {
+     "code": "NIntegrate[Sqrt[r'[t]^2 + r[t]^2], {t, 2, Infinity}]",
+     "md": "Desde la entrada hasta el infinito, con `NIntegrate`. Sale un número finito: la longitud converge.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con la misma `r`: calcula la longitud de la espiral desde t = 2 hasta el infinito.",
+    "hints": [
+     "El integrando es `Sqrt[r'[t]^2 + r[t]^2]`.",
+     "Integra numéricamente: `NIntegrate`, con el intervalo `{t, 2, Infinity}`.",
+     "`NIntegrate[Sqrt[ ^2 + ^2], { , , }]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1.1477936",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "NIntegrate",
+    "PolarPlot",
+    "NSolve",
+    "Derivative"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "¿Converge? Mira si se estabiliza",
+   "md": "Cuando dudes de una integral hasta el infinito, calcúlala hasta 100, hasta 10 000 y hasta 1 000 000. Si el valor se estabiliza, converge; si sigue creciendo, diverge. Lo probamos con `1/t`, que ya sabes que diverge.",
+   "target": "Table[NIntegrate[1/t, {t, 1, 10^k}], {k, 2, 6, 2}]",
+   "parts": [
+    {
+     "code": "NIntegrate[1/t, {t, 1, 10^2}]",
+     "md": "La integral hasta 100.",
+     "run": true
+    },
+    {
+     "code": "{k, 2, 6, 2}",
+     "md": "Un iterador con paso: k = 2, 4, 6. Servirá para los extremos 10², 10⁴ y 10⁶."
+    },
+    {
+     "code": "Table[NIntegrate[1/t, {t, 1, 10^k}], {k, 2, 6, 2}]",
+     "md": "Las tres integrales en una lista: 4.6, 9.2, 13.8. No para de crecer: diverge.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: haz una tabla con la integral numérica de `1/t` entre 1 y `10^k`, para k = 2, 4 y 6.",
+    "hints": [
+     "Dentro: `NIntegrate[1/t, {t, 1, 10^k}]`.",
+     "El iterador de la tabla: `{k, 2, 6, 2}`.",
+     "`Table[NIntegrate[ , { , , }], { , , , }]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{Log[100.], Log[10.^4], Log[10.^6]}",
+     "compare": "numeric",
+     "tol": 0.0001
+    }
+   },
+   "cmds": [
+    "Table",
+    "NIntegrate"
+   ]
+  },
+  {
+   "type": "explain",
+   "title": "Un nombre prohibido",
+   "md": "Un aviso real de esta práctica: no llames `C` a nada (ni a la circunferencia). `C` está reservado para las constantes de integración y Mathematica responde con el error `Set::write: Tag C … is Protected`. Usa otro nombre, como `r1`, `r2` o `circ`.\n\nComo las letras griegas del enunciado (ρ, α) son incómodas de teclear, aquí las espirales se llaman `r1[t]` y `r2[t]`, con `t` como ángulo.",
+   "cells": []
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e16",
+    "kind": "code",
+    "title": "Espiral r2: el ángulo de entrada",
+    "prompt": "Considera la circunferencia de radio 0.11 y la espiral en polares `r2(t) = 5/(3 t)^2`, con 0 < t < ∞.\n\nDefine `r2[t_]`, resuelve con `NSolve` dónde entra la espiral en la circunferencia y guarda el ángulo (el positivo) en `t0`.",
+    "difficulty": 3,
+    "cmds": [
+     "NSolve"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P3 b), intervalo de integración",
+    "solution": "r2[t_] := 5/(3 t)^2\nNSolve[r2[t] == 0.11, t]\nt0 = 2.24733",
+    "check": {
+     "type": "value",
+     "expr": "t0",
+     "expected": "2.2473329",
+     "compare": "numeric",
+     "tol": 2e-05,
+     "msg": "`t0` no es el ángulo de entrada: resuelve `r2[t] == 0.11` y quédate con la solución positiva."
+    },
+    "requires": [
+     "NSolve"
+    ],
+    "hints": [
+     "`r2[t_] := 5/(3 t)^2` y `NSolve[r2[t] == 0.11, t]`: salen dos soluciones, una negativa y una positiva.",
+     "Guarda la positiva: `t0 = 2.24733`."
+    ],
+    "explain": "La espiral entra en el círculo en t ≈ 2.24733. Para ángulos mayores el radio es menor que 0.11: ese es el tramo «dentro»."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e17",
+    "kind": "code",
+    "title": "Espiral r2: la longitud",
+    "prompt": "Ya están definidos `r2[t_] := 5/(3 t)^2` y el ángulo de entrada `t0 = 2.24733`. Calcula la longitud del tramo de espiral que queda dentro de la circunferencia (desde `t0` hasta el infinito) y guárdala en `long`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate",
+     "Infinity",
+     "Derivative"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P3 b), longitud",
+    "setup": "r2[t_] := 5/(3 t)^2\nt0 = 2.2473328748774737;",
+    "solution": "long = NIntegrate[Sqrt[r2'[t]^2 + r2[t]^2], {t, t0, Infinity}]",
+    "check": {
+     "type": "value",
+     "expr": "long",
+     "expected": "0.2767642",
+     "compare": "numeric",
+     "tol": 2e-05,
+     "msg": "`long` no es la longitud pedida: integra `Sqrt[r2'[t]^2 + r2[t]^2]` desde `t0` hasta `Infinity`."
+    },
+    "requires": [
+     "NIntegrate",
+     "Infinity"
+    ],
+    "hints": [
+     "El integrando es `Sqrt[r2'[t]^2 + r2[t]^2]`.",
+     "`long = NIntegrate[Sqrt[r2'[t]^2 + r2[t]^2], {t, t0, Infinity}]`"
+    ],
+    "explain": "Mide solo 0.276764: da infinitas vueltas, pero cada una es tan pequeña que la suma es finita."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e18",
+    "kind": "code",
+    "title": "Espiral r1: la que no converge",
+    "prompt": "Misma circunferencia de radio 0.11, ahora con la espiral `r1(t) = 5/(3 t)`.\n\nHalla el ángulo de entrada y estudia la longitud dentro de la circunferencia integrando hasta 10², 10⁴ y 10⁶. En la última línea devuelve la lista `{ángulo de entrada, longitud}`, con **0 si la longitud es divergente**.",
     "difficulty": 4,
     "cmds": [
      "NSolve",
@@ -597,32 +947,48 @@
      "`NSolve[r1[t] == 0.11, t]` da el ángulo de entrada: 15.1515.",
      "`Table[NIntegrate[Sqrt[r1'[t]^2 + r1[t]^2], {t, 15.1515, 10^k}], {k, 2, 6, 2}]` da 3.1, 10.8, 18.5…: no para de crecer. Respuesta: `{15.1515, 0}`."
     ],
-    "explain": "Para t grande el integrando se parece a 5/(3t), y la integral de 1/t diverge: la espiral mide infinito aunque quepa en un círculo diminuto. En la casilla: 0. (En Mathematica de escritorio, el `NIntegrate` hasta `Infinity` protesta con avisos en vez de dar un número fiable.)"
+    "explain": "Para t grande el integrando se parece a 5/(3t), y la integral de 1/t diverge: la espiral mide infinito aunque quepa en un círculo diminuto. En la casilla: 0."
    }
   },
   {
-   "type": "explain",
+   "type": "build",
+   "section": "Las funciones Gamma y Beta",
    "title": "La función Gamma",
-   "md": "Algunas integrales impropias salen tanto en ingeniería que tienen nombre. La más famosa es la **función Gamma**:\n\nΓ(x) = integral de `t^(x - 1) Exp[-t]` entre 0 e infinito.\n\nEn Mathematica es `Gamma[x]`. Lo que debes saber:\n\n- Para un entero n, `Gamma[n]` es el factorial de n − 1: `Gamma[5]` = 4! = 24. Gamma es el factorial extendido a números no enteros.\n- `Gamma[1/2]` vale `Sqrt[Pi]`.\n- En 0, −1, −2, … no existe (tiene asíntotas verticales): Mathematica devuelve `ComplexInfinity`.",
-   "cells": [
+   "md": "Algunas integrales impropias salen tanto que tienen nombre. La **función Gamma** es Γ(x) = integral de `t^(x - 1) Exp[-t]` entre 0 e infinito. En Mathematica: `Gamma[x]`.",
+   "target": "{Gamma[5], Gamma[1/2], Gamma[2.3]}",
+   "parts": [
     {
      "code": "Integrate[t^4 Exp[-t], {t, 0, Infinity}]",
-     "note": "Γ(5) con la definición"
+     "md": "Γ(5) con la definición: el exponente de `t` es 5 − 1.",
+     "run": true
     },
     {
      "code": "Gamma[5]",
-     "note": "lo mismo: 4!"
+     "md": "Lo mismo con el comando. Para un entero n, `Gamma[n]` es el factorial de n − 1: aquí 4! = 24.",
+     "run": true
     },
     {
-     "code": "{Gamma[1/2], Gamma[2.3]}",
-     "note": "también con no enteros"
+     "code": "{Gamma[5], Gamma[1/2], Gamma[2.3]}",
+     "md": "También vale para no enteros: `Gamma[1/2]` es la raíz de π. Es el factorial extendido.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: devuelve una lista con Γ(5), Γ(1/2) y Γ(2.3).",
+    "hints": [
+     "El comando es `Gamma[x]`, con mayúscula y corchetes.",
+     "Tres llamadas dentro de una lista con llaves.",
+     "`{Gamma[ ], Gamma[ ], Gamma[ ]}`"
+    ]
+   },
+   "cmds": [
+    "Gamma"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p11-e14",
+    "id": "1-p11-e19",
     "kind": "code",
     "title": "Un factorial con Gamma",
     "prompt": "Calcula 6! (factorial de 6) usando la función `Gamma`.",
@@ -653,7 +1019,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p11-e15",
+    "id": "1-p11-e20",
     "kind": "code",
     "title": "Gamma en un entero negativo",
     "prompt": "El primer apartado de la pregunta real pedía Γ(−5). Calcúlalo y fíjate en lo que devuelve.",
@@ -681,42 +1047,63 @@
    }
   },
   {
-   "type": "explain",
-   "title": "La función Beta y su relación con Gamma",
-   "md": "La otra función especial de la práctica es **Beta**, con dos argumentos: `Beta[p, q]`.\n\nSe puede calcular de tres maneras que dan lo mismo (esa es la propiedad que pide reconocer la prueba):\n\n- Directamente: `Beta[p, q]`.\n- Con Gammas: `Gamma[p] Gamma[q]/Gamma[p + q]`.\n- Con una integral trigonométrica: 2 por la integral entre 0 y π/2 de `Sin[x]^(2 p - 1) Cos[x]^(2 q - 1)`.\n\nAbajo lo compruebas con p = 2 y q = 3 (los exponentes son 3 y 5). Si p y q son decimales, calcula la integral con `NIntegrate`.",
-   "cells": [
+   "type": "build",
+   "title": "La función Beta",
+   "md": "La otra función especial es **Beta**, con dos argumentos: `Beta[p, q]`. Se puede calcular de tres maneras que dan lo mismo; esa es la propiedad que pide reconocer la prueba. Lo vemos con p = 2 y q = 3.",
+   "target": "2 Integrate[Sin[x]^3 Cos[x]^5, {x, 0, Pi/2}]",
+   "parts": [
     {
-     "code": "Beta[2, 3]"
+     "code": "Beta[2, 3]",
+     "md": "Directamente, con el comando.",
+     "run": true
     },
     {
-     "code": "Gamma[2] Gamma[3]/Gamma[5]",
-     "note": "lo mismo con Gammas"
+     "code": "Gamma[2] Gamma[3]/Gamma[2 + 3]",
+     "md": "Con Gammas: Γ(p)·Γ(q) entre Γ(p + q). Mismo valor.",
+     "run": true
+    },
+    {
+     "code": "Sin[x]^3 Cos[x]^5",
+     "md": "El integrando de la tercera forma: seno elevado a 2p − 1 y coseno elevado a 2q − 1."
     },
     {
      "code": "2 Integrate[Sin[x]^3 Cos[x]^5, {x, 0, Pi/2}]",
-     "note": "y con la integral"
+     "md": "Dos veces su integral entre 0 y π/2: otra vez 1/12.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: calcula 2 por la integral de `Sin[x]^3 Cos[x]^5` entre 0 y `Pi/2`.",
+    "hints": [
+     "El exponente va fuera del corchete: `Sin[x]^3`.",
+     "El intervalo es `{x, 0, Pi/2}`.",
+     "`2 Integrate[ , { , , }]`"
+    ]
+   },
+   "cmds": [
+    "Beta",
+    "Gamma",
+    "Integrate"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p11-e16",
+    "id": "1-p11-e21",
     "kind": "code",
-    "title": "La propiedad Beta–Gamma con decimales",
-    "prompt": "Con p = 2.3 y q = 1.9, calcula con 6 cifras significativas:\n\n- b) β(p, q)\n- c) Γ(p)·Γ(q) / Γ(p + q)\n- d) 2 por la integral entre 0 y π/2 de sen^(2p−1)(x)·cos^(2q−1)(x)\n\nDevuelve la lista `{b, c, d}`. Para la integral usa `NIntegrate`.",
-    "difficulty": 3,
+    "title": "Beta y Gamma con decimales",
+    "prompt": "Con p = 2.3 y q = 1.9, calcula con 6 cifras significativas β(p, q) y Γ(p)·Γ(q)/Γ(p + q). Devuelve la lista con los dos valores.",
+    "difficulty": 2,
     "cmds": [
      "Beta",
-     "Gamma",
-     "NIntegrate"
+     "Gamma"
     ],
     "real": true,
-    "source": "Práctica 11 · P4 b), c) y d)",
-    "solution": "p = 2.3; q = 1.9;\n{Beta[p, q], Gamma[p] Gamma[q]/Gamma[p + q], 2 NIntegrate[Sin[x]^(2 p - 1) Cos[x]^(2 q - 1), {x, 0, Pi/2}]}",
+    "source": "Práctica 11 · P4 b) y c)",
+    "solution": "p = 2.3; q = 1.9;\n{Beta[p, q], Gamma[p] Gamma[q]/Gamma[p + q]}",
     "check": {
      "type": "expr",
-     "expected": "{0.14466270, 0.14466270, 0.14466270}",
+     "expected": "{0.14466270, 0.14466270}",
      "compare": "numeric",
      "tol": 4e-06
     },
@@ -725,10 +1112,37 @@
      "Gamma"
     ],
     "hints": [
-     "Empieza con `p = 2.3; q = 1.9;` y escribe las tres expresiones tal cual, usando `p` y `q`.",
-     "`{Beta[p, q], Gamma[p] Gamma[q]/Gamma[p + q], 2 NIntegrate[Sin[x]^(2 p - 1) Cos[x]^(2 q - 1), {x, 0, Pi/2}]}`"
+     "Empieza con `p = 2.3; q = 1.9;` y usa `p` y `q` en las fórmulas.",
+     "`{Beta[p, q], Gamma[p] Gamma[q]/Gamma[p + q]}`"
     ],
-    "explain": "Los tres valen 0.144663: es la propiedad β(p,q) = Γ(p)Γ(q)/Γ(p+q) = 2∫ sen^(2p−1) cos^(2q−1). Cuidado con los paréntesis de los exponentes: `Sin[x]^(2 p - 1)`."
+    "explain": "Los dos valen 0.144663: β(p,q) = Γ(p)Γ(q)/Γ(p+q)."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p11-e22",
+    "kind": "code",
+    "title": "La integral trigonométrica",
+    "prompt": "Con los mismos p = 2.3 y q = 1.9, calcula 2 por la integral entre 0 y π/2 de sen^(2p−1)(x)·cos^(2q−1)(x). Como los exponentes son decimales, usa `NIntegrate`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "Práctica 11 · P4 d)",
+    "solution": "p = 2.3; q = 1.9;\n2 NIntegrate[Sin[x]^(2 p - 1) Cos[x]^(2 q - 1), {x, 0, Pi/2}]",
+    "check": {
+     "type": "expr",
+     "expected": "0.14466270",
+     "compare": "numeric",
+     "tol": 4e-06
+    },
+    "hints": [
+     "Los exponentes van entre paréntesis: `Sin[x]^(2 p - 1)` y `Cos[x]^(2 q - 1)`.",
+     "`2 NIntegrate[Sin[x]^(2 p - 1) Cos[x]^(2 q - 1), {x, 0, Pi/2}]`"
+    ],
+    "explain": "Otra vez 0.144663. Esa es la propiedad: β(p,q) = Γ(p)Γ(q)/Γ(p+q) = 2∫ sen^(2p−1) cos^(2q−1)."
    }
   }
  ]

@@ -3,9 +3,7 @@
 import { store } from './store.js';
 
 const ROOT = new URL('../', import.meta.url); // …/site/
-// Modo desarrollo: `?fixtures=1` busca primero en dev/fixtures/ (los datos reales viven en data/).
-const USE_FIXTURES = (() => { try { return new URLSearchParams(location.search).has('fixtures'); } catch { return false; } })();
-const BASES = USE_FIXTURES ? ['data/', 'dev/fixtures/'] : ['data/'];
+const BASES = ['data/'];
 
 const cache = new Map(); // ruta → Promise
 
@@ -96,28 +94,44 @@ function normCommands(raw) {
   return { ...(Array.isArray(raw) ? {} : raw), commands, byName };
 }
 
-const FAMILY_COLORS = ['#22d3ee', '#7c5cff', '#ff9f43', '#3ddc97', '#ff5d73', '#ffd166', '#19e3c5', '#b25cff', '#5E81B5', '#EB6235', '#8FB032', '#f472b6', '#60a5fa', '#a3e635'];
-
+// schema.json real: {anatomy:{example, parts:[{token, role, d}], rules:[…]}, mentalModels:[{id,title,idea,md,cells}],
+//   families:[{id,title,idea,pattern,groups:[{title,commands:[…]}]}], flows:[{id,title,year,when,lessons,steps:[{cmd,d,code}]}]}
 function normSchema(raw) {
   const s = raw && typeof raw === 'object' ? raw : {};
+  const names = (list) => arr(list).map((c) => (typeof c === 'string' ? c : c?.name)).filter(Boolean);
   const fams = arr(s.families || s.familias || s.categories || s.cats);
-  s.families = fams.map((f, i) => ({
-    ...f,
-    id: f.id || f.cat || f.key || f.name || `fam${i}`,
-    name: f.name || f.title || f.label || f.id || `Familia ${i + 1}`,
-    color: f.color || FAMILY_COLORS[i % FAMILY_COLORS.length],
-    desc: f.desc || f.description || f.summary || f.text || '',
-    idea: f.idea || f.pattern || f.patron || '',
-    commands: arr(f.commands || f.cmds).map((c) => (typeof c === 'string' ? c : c?.name)).filter(Boolean),
-  }));
+  s.families = fams.map((f, i) => {
+    const groups = arr(f.groups).map((g) => ({ name: g.title || g.name || '', commands: names(g.commands) })).filter((g) => g.commands.length);
+    const flat = groups.length ? groups.flatMap((g) => g.commands) : names(f.commands || f.cmds);
+    return {
+      ...f,
+      id: f.id || f.cat || f.key || f.name || `fam${i}`,
+      name: f.name || f.title || f.label || f.id || `Familia ${i + 1}`,
+      desc: f.desc || f.description || f.summary || f.text || f.idea || '',
+      pattern: f.pattern || f.patron || '',
+      groups,
+      commands: flat,
+    };
+  });
   const models = arr(s.models || s.mentalModels || s.modelos || s.modelosMentales || s.concepts);
   s.models = models.map((m, i) => ({
     ...m,
     id: m.id || `m${i}`,
     title: m.title || m.name || `Idea ${i + 1}`,
+    idea: m.idea || '',
     text: m.text || m.md || m.desc || m.body || '',
     cells: arr(m.cells || m.examples || m.example || m.code).map((c) => (typeof c === 'string' ? { code: c } : c)).filter((c) => c && c.code),
   }));
+  s.flows = arr(s.flows || s.recetas).filter((f) => f && f.title).map((f, i) => ({
+    ...f,
+    id: f.id || `f${i}`,
+    year: Number(f.year) || 1,
+    when: f.when || '',
+    lessons: arr(f.lessons),
+    steps: arr(f.steps).filter((st) => st && (st.code || st.d)),
+  }));
+  const a = s.anatomy && typeof s.anatomy === 'object' ? s.anatomy : {};
+  s.anatomy = { ...a, parts: arr(a.parts), rules: arr(a.rules).filter((r) => typeof r === 'string') };
   return s;
 }
 
@@ -209,23 +223,26 @@ const CAT_ORDER = Object.keys(CAT_LABEL);
 export function familyIndex(schema, cmds) {
   if (!cmds?.commands?.length) return [];
   const fams = new Map();
-  const famOf = new Map();
+  const famOf = new Map();   // comando → id de familia (según el esquema)
+  const groupOf = new Map(); // comando → nombre de grupo (según el esquema)
   for (const f of schema?.families || []) {
-    fams.set(f.id, { id: f.id, name: f.name, desc: f.desc || '', idea: f.idea || '', commands: [], groups: [] });
+    fams.set(f.id, { id: f.id, name: f.name, desc: f.desc || '', pattern: f.pattern || '', commands: [], groups: [], _order: f.groups.map((g) => g.name) });
     for (const n of f.commands) if (!famOf.has(n)) famOf.set(n, f.id);
+    for (const g of f.groups) for (const n of g.commands) if (!groupOf.has(n)) groupOf.set(n, g.name);
   }
   for (const c of cmds.commands) {
     const id = famOf.get(c.name) || (fams.has(c.cat) ? c.cat : null) || c.cat || 'otros';
-    if (!fams.has(id)) fams.set(id, { id, name: CAT_LABEL[id] || id.charAt(0).toUpperCase() + id.slice(1), desc: '', idea: '', commands: [], groups: [] });
+    if (!fams.has(id)) fams.set(id, { id, name: CAT_LABEL[id] || id.charAt(0).toUpperCase() + id.slice(1), desc: '', pattern: '', commands: [], groups: [], _order: [] });
     c._fam = id;
+    c._group = groupOf.get(c.name) ?? c.group ?? '';
     fams.get(id).commands.push(c);
   }
   const out = [...fams.values()].filter((f) => f.commands.length);
   if (!schema?.families?.length) out.sort((a, b) => ((CAT_ORDER.indexOf(a.id) + 1) || 99) - ((CAT_ORDER.indexOf(b.id) + 1) || 99));
   for (const f of out) {
-    const gs = new Map();
-    for (const c of f.commands) { const g = c.group || ''; if (!gs.has(g)) gs.set(g, []); gs.get(g).push(c); }
-    f.groups = [...gs].map(([name, commands]) => ({ name, commands }));
+    const gs = new Map(f._order.map((n) => [n, []]));
+    for (const c of f.commands) { if (!gs.has(c._group)) gs.set(c._group, []); gs.get(c._group).push(c); }
+    f.groups = [...gs].filter(([, list]) => list.length).map(([name, commands]) => ({ name, commands }));
   }
   return out;
 }
@@ -236,4 +253,3 @@ export function notebookHref(code) { return `#/cuaderno?code=${encodeURIComponen
 
 export const KIND_LABEL = { code: 'Código', fix: 'Corregir', fill: 'Rellenar', order: 'Ordenar', mcq: 'Test', predict: 'Predecir' };
 export const STATUS_LABEL = { hecha: 'Hecha', parcial: 'Parcial', pendiente: 'Pendiente' };
-export const usingFixtures = USE_FIXTURES;

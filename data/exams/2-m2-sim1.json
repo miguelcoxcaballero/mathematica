@@ -194,7 +194,7 @@
      "value": 0.2153372,
      "tol": 0.001,
      "points": 0.4,
-     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s];\nF[2.3] // Chop   (* Chop quita restos imaginarios del orden de 10^-17 *)",
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s]\nF[2.3]",
      "explain": "Una función a trozos se define con `Piecewise` (o con `UnitStep`) y se transforma con `LaplaceTransform[f[t], t, s]`: variable original, variable nueva. Luego se evalúa en `s = 2.3`. Error típico: intercambiar `t` y `s` en el comando."
     },
     {
@@ -204,7 +204,7 @@
      "value": 4.036447,
      "tol": 0.001,
      "points": 0.6,
-     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s] // ComplexExpand // Simplify;   (* TL de f, en forma real *)\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = (LaplaceTransform[y''[t] + y[t], t, s] == F[s] + 5/s) /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\nY[2.3]",
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\necdif = y''[t] + y[t] == f[t] + 5;\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = LaplaceTransform[ecdif, t, s] /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\nY[2.3]",
      "explain": "No hace falta invertir: se transforma la ecuación, se sustituyen `y[0]` e `y'[0]` y se despeja `LaplaceTransform[y[t], t, s]` con `Solve`. Eso ya es `Y(s)`: `(10 s + F(s) + 5/s)/(s^2 + 1)`. Error típico: olvidar las condiciones iniciales y dejar `y[0]`, `y'[0]` simbólicos."
     },
     {
@@ -214,7 +214,7 @@
      "value": 0.8974619,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\nF[s_] = LaplaceTransform[f[t], t, s] // ComplexExpand // Simplify;   (* TL de f, en forma real *)\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = (LaplaceTransform[y''[t] + y[t], t, s] == F[s] + 5/s) /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\n(* ExpandAll separa los sumandos con E^(-3 s) para invertir cada uno *)\nys[t_] = InverseLaplaceTransform[ExpandAll[Y[s]], s, t];\nys[4.]",
+     "solution": "Clear[f, F, y, Y, ys, t, s]\nf[t_] = Piecewise[{{0, t < 0}, {Sin[2 t], 0 <= t < 3}, {t - 3, t >= 3}}];\necdif = y''[t] + y[t] == f[t] + 5;\n(* se transforma la ecuación y se ponen las condiciones iniciales *)\nec1 = LaplaceTransform[ecdif, t, s] /. {y[0] -> 10, y'[0] -> 0};\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nY[s_] = LaplaceTransform[y[t], t, s] /. Flatten[sol1];   (* Y(s) = TL de la solución *)\nys[t_] = InverseLaplaceTransform[Y[s], s, t];   (* solución y(t) *)\nys[4.]",
      "explain": "La solución es la transformada inversa de `Y(s)`. Los términos con `E^(-3 s)` dan funciones retardadas multiplicadas por `HeavisideTheta[t - 3]`, que solo actúan a partir de `t = 3`. Si el resultado sale con números complejos, pásalo a real con `// ComplexExpand // Simplify`."
     }
    ]
@@ -248,7 +248,7 @@
   },
   {
    "title": "P8 · Cuerda forzada con extremos móviles (PL9)",
-   "prompt": "Considera el problema `u_tt = a^2 u_xx + f(x, t)` en `0 < x < L`, con `a = Sqrt[3]`, `L = 5`, fuente `f(x, t) = x (5 - x)/5`, extremos `u(0, t) = 2 Sin[3 t]`, `u(L, t) = 0` y datos iniciales `u(x, 0) = 3 (UnitStep[x - 2] - UnitStep[x - 3])`, `u_t(x, 0) = 0`.\n\nResuélvelo con la plantilla 9.4.1 del guion PL9 usando **5 términos** (`nau = 5`).\n\n(Datos reales del examen de 2021. El cálculo tarda: evalúa la plantilla una sola vez y reutiliza `u`.)",
+   "prompt": "Considera el problema `u_tt = a^2 u_xx + f(x, t)` en `0 < x < L`, con `a = Sqrt[3]`, `L = 5`, fuente `f(x, t) = x (5 - x)/5`, extremos `u(0, t) = 2 Sin[3 t]`, `u(L, t) = 0` y datos iniciales `u(x, 0) = 3 (UnitStep[x - 2] - UnitStep[x - 3])`, `u_t(x, 0) = 0`.\n\nResuélvelo con la plantilla 9.4.1 del guion PL9 usando **5 términos** (`nau = 5`).\n\n(Datos reales del examen de 2021.)\n\nConsejo: el cálculo es pesado. Escribe `a = Sqrt[3.]`, con punto decimal, para que todo se haga en numérico; evalúa la plantilla una sola vez y reutiliza `u`.",
    "points": 1.5,
    "parts": [
     {
@@ -259,7 +259,7 @@
      "tol": 0.001,
      "points": 0.8,
      "solution": "Clear[a, L, nau, f, psi1, psi2, phi1, phi2, u0, du0, u3, g, u10, du3, du10, An, Bn, u1, gn, u2, u, x, t, tau]\n(* datos. a con punto decimal: todo se calcula en numérico y va mucho más rápido *)\na = Sqrt[3.]; L = 5; nau = 5;\nf[x_, t_] = 1/5*x*(5 - x);\npsi1[t_] = 2*Sin[3*t]; psi2[t_] = 0;\nphi1[x_] = 3*(UnitStep[x - 2] - UnitStep[x - 3]); phi2[x_] = 0;\n(* plantilla 9.4.1: u = u1 + u2 + u3 *)\nu0[x_] = phi1[x]; du0[x_] = phi2[x];\nu3[x_, t_] = psi1[t] + (x/L)*(psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\nu10[x_] = u0[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = du0[x] - du3[x, 0];\nAn[n_Integer] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\ngn[n_Integer, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];\nu[3, 6] // N",
-     "explain": "La plantilla descompone `u = u1 + u2 + u3`: `u3` lleva los extremos móviles, `u1` es la onda libre con los datos iniciales corregidos y `u2` la respuesta a la fuente. Solo se cambian los datos (`a`, `L`, `nau`, `f`, `psi1`, `psi2`, `phi1`, `phi2`). Error típico: confundir `phi1`, `phi2` (posición y velocidad iniciales) con `psi1`, `psi2` (extremos)."
+     "explain": "La plantilla descompone `u = u1 + u2 + u3`: `u3` lleva los extremos móviles, `u1` es la onda libre con los datos iniciales corregidos y `u2` la respuesta a la fuente. Solo se cambian los datos (`a`, `L`, `nau`, `f`, `psi1`, `psi2`, `phi1`, `phi2`); `An`, `Bn` y `gn` se definen con `n_Integer` y `:=`, como en las plantillas 9.1 y 9.2, para que cada integral se haga con su `n` concreto. Error típico: confundir `phi1`, `phi2` (posición y velocidad iniciales) con `psi1`, `psi2` (extremos)."
     },
     {
      "label": "b)",

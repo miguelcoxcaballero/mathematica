@@ -310,7 +310,7 @@ export function mdLite(text) {
 /** Resaltado mínimo de Wolfram Language para <pre class="wl sh-wl"> (HTML seguro). */
 export function hlWL(code) {
   const src = String(code ?? '');
-  const re = /(\(\*[\s\S]*?\*\))|("(?:[^"\\]|\\.)*")|(\d+\.?\d*(?:`\d*)?(?:\*\^-?\d+)?)|([A-Za-z$][A-Za-z0-9$]*)(_{1,3}[A-Za-z]*)?|(:=|==|!=|<=|>=|->|:>|\/\.|\/\/|\/@|@@|&&|\|\||\[\[|\]\]|[\[\]{}()])|(\s+)|([\s\S])/g;
+  const re = /(\(\*[\s\S]*?\*\))|("(?:[^"\\]|\\.)*")|(\d+\.?\d*(?:`\d*)?(?:\*\^-?\d+)?)|([\p{L}$][\p{L}\p{N}$]*)(_{1,3}[\p{L}]*)?|(:=|==|!=|<=|>=|->|:>|\/\.|\/\/|\/@|@@|&&|\|\||\[\[|\]\]|[\[\]{}()])|(\s+)|([\s\S])/gu;
   let out = '', m;
   while ((m = re.exec(src))) {
     if (m[1]) out += `<span class="t-com">${esc(m[1])}</span>`;
@@ -319,7 +319,7 @@ export function hlWL(code) {
     else if (m[4]) {
       const name = m[4];
       const next = src[re.lastIndex];
-      const cls = m[5] ? 't-pat' : /^[A-Z]/.test(name) ? (next === '[' ? 't-fn' : 't-sym') : 't-var';
+      const cls = m[5] ? 't-pat' : /^\p{Lu}/u.test(name) ? (next === '[' ? 't-fn' : 't-sym') : 't-var';
       out += `<span class="${cls}">${esc(name + (m[5] || ''))}</span>`;
     } else if (m[6]) {
       const b = m[6];

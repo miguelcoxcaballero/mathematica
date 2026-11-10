@@ -319,3 +319,35 @@ memorizar, pero que haya pistas. La idea no es que sea difícil, sino que aprend
   contenido no trae `section`, un tramo nuevo empieza en cada `build`/`explain`.
 - **Memorizar con repaso**: al terminar un tramo, sus `target` entran en la cola de repaso; la práctica aleatoria y el
   inicio de la siguiente sesión empiezan con 2–3 "recuerdas…" (escribir de memoria con pistas) de tramos anteriores.
+
+## 14. TEXTO MÍNIMO — PETICIÓN EXPRESA DEL USUARIO ("mucho texto; el mínimo posible salvo que pulse un desplegable")
+- En pantalla, por defecto, SOLO: un título corto (≤ 5 palabras), UNA línea de instrucción (≤ 90 caracteres) y la celda.
+  Nada de párrafos, listas ni introducciones. Sin lista de pasos a la vista.
+- Todo lo demás va plegado en dos desplegables discretos bajo la celda, cerrados por defecto:
+  **«Pista»** (breve: 1 frase, ≤ 140 caracteres) y **«Más detalle»** (explicación avanzada: 2–4 frases; por qué funciona,
+  error típico, variantes).
+- Campos de contenido (todos los tipos de paso y cada `part` de un `build`):
+  `md` = la línea visible (≤ 90 caracteres, una sola frase, imperativa: "Escribe la función entre corchetes.");
+  `hint` = pista breve (≤ 140); `more` = más detalle (texto libre corto, markdown ligero).
+  En ejercicios: `prompt` ≤ 160 caracteres (qué hay que conseguir, con los datos); `hints` como hasta ahora (la 1ª es la
+  pista breve); `explain` = más detalle. `build.md` ≤ 90; `recall.prompt` ≤ 120.
+- Reproductor (LEARN): si un texto supera el límite (contenido antiguo), muestra solo su primera frase y manda el resto
+  a «Más detalle» automáticamente. Pantallas de bienvenida/tramo: una línea.
+- `tools/validate.py` avisa (WARN, no error) de los textos que superan estos límites.
+
+### 14.1 Aclaración del usuario: NO esconder el texto — hacerlo INNECESARIO con práctica
+"No escondas todo el texto simplemente para que esto sea el caso; la idea es que se practique todo de la forma más
+práctica posible para que esto no haga falta."
+- El texto no se traslada a los desplegables: se ELIMINA. La explicación es lo que pasa al teclear y ejecutar.
+  `hint`/`more` son un salvavidas breve y opcional (muchas pantallas no llevan ninguno), no un sitio donde volcar párrafos.
+- Enseñar haciendo, con estas técnicas (en `build.parts` con `run:true` para que se vea la salida):
+  - **Par mínimo / contraste**: dos piezas casi iguales cuya salida distinta enseña la regla
+    (`10/4` → `5/2`, luego `10/4.` → `2.5`; `Sin[Pi]` frente a `sin[Pi]`; `x = 3` frente a `x == 3`).
+  - **Variación mínima**: repetir la misma forma cambiando UNA cosa cada vez (otro número, otra función, un argumento más).
+  - **Error provocado**: teclear a propósito la forma incorrecta, ver qué devuelve o qué mensaje sale, y después la correcta.
+  - **Crecimiento**: la misma línea va ganando piezas (`Plot[Sin[x], {x,0,2Pi}]` → + `PlotStyle -> Red` → + `AxesLabel -> …`).
+  - **Recuperación**: al final del tramo, escribirlo todo sin gris; y volver a pedirlo en tramos posteriores.
+- La línea visible dice QUÉ hacer ("Ahora con punto decimal."), no explica teoría. Si una pantalla necesita un párrafo
+  para entenderse, está mal partida: divídela en más piezas ejecutables.
+- Más pantallas pequeñas y más repeticiones valen más que una explicación: un tramo puede tener 10–15 pantallas de
+  10–20 segundos cada una.

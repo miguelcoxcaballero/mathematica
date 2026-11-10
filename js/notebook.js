@@ -135,9 +135,39 @@ function copyButton(text) {
   return b;
 }
 
+// MathML has no automatic line breaking, so a long sum or list would become one endless line. When an output
+// is wider than its cell, split it at its outer structure (terms of a sum, elements of a list) into a run of
+// small <math> pieces that the browser can wrap, like the Mathematica front end does.
+function wrapWide(body) {
+  const m = body.querySelector(':scope > math');
+  if (!m || !body.clientWidth || m.getBoundingClientRect().width <= body.clientWidth) return;
+  const atoms = [];
+  const explode = (node, depth) => {
+    if (node.localName === 'mrow' && depth < 5 && (node.children.length > 3 || (depth < 2 && node.children.length > 0))) {
+      for (const c of [...node.children]) explode(c, depth + 1);
+    } else atoms.push(node);
+  };
+  for (const c of [...m.children]) explode(c, 0);
+  if (atoms.length < 4) return;
+  const wrap = h('div', { class: 'wl-math-wrap' });
+  let piece = null;
+  const flush = () => { if (piece) { wrap.append(piece, document.createElement('wbr')); piece = null; } };
+  for (const a of atoms) {
+    const t = a.textContent;
+    const closer = a.localName === 'mo' && /^[,;)\]}〛]$/.test(t);
+    if (!piece || !closer) { flush(); piece = document.createElementNS(MML, 'math'); piece.setAttribute('display', 'inline'); }
+    piece.append(a);        // commas and closing brackets stay glued to what precedes them
+    if (a.localName === 'mo' && /^[[({〚]$/.test(t)) continue;
+  }
+  flush();
+  m.replaceWith(wrap);
+}
+
 function collapseIfLong(body) {
   requestAnimationFrame(() => {
-    if (!body.isConnected || body.scrollHeight <= 460) return;
+    if (!body.isConnected) return;
+    try { wrapWide(body); } catch (e) { console.warn('[notebook] wrapWide', e); }
+    if (body.scrollHeight <= 460) return;
     body.classList.add('is-collapsed');
     const more = h('button', { class: 'wl-more', type: 'button', text: 'mostrar más' });
     more.addEventListener('click', () => {
@@ -244,7 +274,7 @@ function helpCard(name, onClose) {
       return;
     }
     for (const s of (c.syntax || []).slice(0, 3)) card.append(h('code', { class: 'wl-help-syn', text: s }));
-    if (c.desc) card.append(h('div', { class: 'wl-help-desc', text: c.desc }));
+    if (c.desc) card.append(h('div', { class: 'wl-help-desc', text: String(c.desc).replace(/[`*]/g, '') }));
     const ex = (c.examples || [])[0];
     if (ex && ex.code) card.append(h('div', { class: 'wl-help-ex' }, h('span', { text: 'Ejemplo: ' }), h('code', { text: ex.code })));
     if (location.hash !== undefined) card.append(h('a', { class: 'wl-help-link', href: '#/comandos/' + encodeURIComponent(name), text: 'Ver ficha completa' }));
@@ -299,7 +329,7 @@ function paintPopup() {
   });
   el.append(ul);
   const c = catalog && catalog.get(list[index]);
-  if (c) el.append(h('div', { class: 'wl-ac-desc' }, c.syntax && c.syntax[0] ? h('code', { text: c.syntax[0] }) : null, c.desc ? h('span', { text: ' ' + String(c.desc).split(/(?<=\.)\s/)[0] }) : null));
+  if (c) el.append(h('div', { class: 'wl-ac-desc' }, c.syntax && c.syntax[0] ? h('code', { text: c.syntax[0] }) : null, c.desc ? h('span', { text: ' ' + String(c.desc).replace(/[`*]/g, '').split(/(?<=\.)\s/)[0] }) : null));
   const sel = ul.children[index];
   if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
 }

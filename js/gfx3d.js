@@ -251,7 +251,29 @@ class Scene {
     }
   }
 
+  /** Malla ya triangulada por gfx.py: v[] posiciones, nrm[] gradiente (espacio de datos), m[] máscara, i[] índices. */
+  addMesh(p) {
+    const V = p.v, I = p.i, G = p.nrm || [], M = p.m || null, nv = (V.length / 3) | 0;
+    if (!nv || !I || !I.length) return;
+    const rgba = this.rgba(p.color, p.ci, p.opacity);
+    const base = this.pos.length / 3;
+    const k = [0, 1, 2].map(a => (this.range[a][1] - this.range[a][0]) / this.box[a]);
+    for (let q = 0; q < nv; q++) {
+      const x = V[q * 3], y = V[q * 3 + 1], z = V[q * 3 + 2];
+      this.pos.push(this.N(0, x), this.N(1, y), this.N(2, z));
+      let gx = (G[q * 3] || 0) * k[0], gy = (G[q * 3 + 1] || 0) * k[1], gz = (G[q * 3 + 2] || 0) * k[2];
+      const l = Math.hypot(gx, gy, gz);
+      if (l > 0) { gx /= l; gy /= l; gz /= l; } else { gz = 1; }
+      this.nrm.push(-gx, -gy, -gz);
+      this.uv.push(0.5, 0.5, 0.5, M ? (fin(M[q]) ? M[q] : -1) : 1);
+      this.col.push(rgba[0], rgba[1], rgba[2], rgba[3]);
+    }
+    const idx = rgba[3] < 255 ? this.idxT : this.idxO;
+    for (let q = 0; q + 2 < I.length; q += 3) idx.push(base + I[q], base + I[q + 1], base + I[q + 2]);
+  }
+
   addIso(p) {
+    if (p.v && p.i) { this.addMesh(p); return; }
     const n = p.n, N = n * n * n;
     if (!(n > 1) || !p.data || p.data.length < N) return;
     const F = new Float32Array(N);
@@ -271,16 +293,21 @@ class Scene {
     const n2 = n * n;
     // gradiente en nodos
     const GX = new Float32Array(N), GY = new Float32Array(N), GZ = new Float32Array(N);
+    const pad = !!(p.pad && n > 4);
+    const lo = pad ? 1 : 0, hi = pad ? n - 2 : n - 1;      // las capas de cierre no entran en el gradiente
     const dd = (A, i, s, o) => {
-      const i0 = i > 0 ? i - 1 : i, i1 = i < n - 1 ? i + 1 : i;
+      if (pad && (i === 0 || i === n - 1)) return i === 0 ? 1e6 : -1e6;   // tapa: normal = eje, hacia fuera
+      const i0 = i > lo ? i - 1 : i, i1 = i < hi ? i + 1 : i;
       let a = F[o + (i0 - i) * s], b = F[o + (i1 - i) * s], h = A[i1] - A[i0];
       if (a !== a) { a = F[o]; h = A[i1] - A[i]; }
-      if (b !== b) { b = F[o]; h = A[i] - A[i0]; if (a !== F[o] && F[o + (i0 - i) * s] === F[o + (i0 - i) * s]) h = A[i] - A[i0]; }
+      if (b !== b) { b = F[o]; h = A[i] - A[i0]; }
       return h !== 0 ? (b - a) / h : 0;
     };
     for (let k = 0; k < n; k++) for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
       const o = k * n2 + j * n + i;
       if (F[o] !== F[o]) continue;
+      const px = pad && (i === 0 || i === n - 1), py = pad && (j === 0 || j === n - 1), pz = pad && (k === 0 || k === n - 1);
+      if (px || py || pz) { GX[o] = px ? dd(X, i, 1, o) : 0; GY[o] = py ? dd(Y, j, n, o) : 0; GZ[o] = pz ? dd(Z, k, n2, o) : 0; continue; }
       GX[o] = dd(X, i, 1, o); GY[o] = dd(Y, j, n, o); GZ[o] = dd(Z, k, n2, o);
     }
     const rgba = this.rgba(p.color, p.ci, p.opacity);

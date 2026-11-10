@@ -96,6 +96,45 @@ export function md(src) {
   return out.join('');
 }
 
+/**
+ * SPEC §14 (minimum text): the visible line of a screen and what is left for «Más detalle».
+ * Takes whole sentences of the first paragraph while they fit in `limit` (always at least the first one).
+ */
+export function splitText(src, limit = 90) {
+  const text = String(src ?? '').replace(/\r/g, '').trim();
+  if (!text) return { line: '', rest: '' };
+  const multi = /\n\s*\n|^\s*([-•]|\d+[.)])\s/m.test(text);
+  if (text.length <= limit && !multi) return { line: text.replace(/\s+/g, ' '), rest: '' };
+  const para = text.split(/\n\s*\n|\n(?=\s*([-•]|\d+[.)])\s)/)[0];
+  const ends = [];
+  let inCode = false;
+  for (let i = 0; i < para.length; i++) {
+    const c = para[i];
+    if (c === '`') inCode = !inCode;
+    else if (!inCode && /[.!?:]/.test(c) && (i === para.length - 1 || /\s/.test(para[i + 1])) && i >= 10) ends.push(i + 1);
+  }
+  if (!ends.length || ends[ends.length - 1] !== para.length) ends.push(para.length);
+  let end = ends[0];
+  for (const e of ends) { if (e <= limit) end = e; else break; }
+  let line = para.slice(0, end).replace(/\s+/g, ' ').trim();
+  let rest = (para.slice(end) + text.slice(para.length)).trim();
+  if (line.length > limit * 1.8) {
+    // a single endless sentence: cut at a word boundary (outside `code`) and keep the full text as detail
+    let cut = line.lastIndexOf(' ', Math.round(limit * 1.3));
+    while (cut > 20 && (line.slice(0, cut).split('`').length - 1) % 2 === 1) cut = line.lastIndexOf(' ', cut - 1);
+    if (cut > 20) { line = line.slice(0, cut).replace(/[,;:]$/, '') + '…'; rest = text; }
+  }
+  return { line, rest };
+}
+/** Discreet closed disclosures under the cell: «Pista» (brief) and «Más detalle». Returns null when there is nothing to show. */
+export function moreBox({ hint, more, moreLabel = 'Más detalle', hintLabel = 'Pista' } = {}) {
+  const items = [];
+  const mk = (label, text) => h('details', { class: 'lx-more-d' }, h('summary', null, label), h('div', { class: 'lx-md lx-more-b', html: md(text) }));
+  if (hint && String(hint).trim()) items.push(mk(hintLabel, hint));
+  if (more && String(more).trim()) items.push(mk(moreLabel, more));
+  return items.length ? h('div', { class: 'lx-more' }, items) : null;
+}
+
 /** Minimal Wolfram Language highlighter (safe HTML). Uses fx.hlWL when the shell provides it. */
 export function hl(code) {
   if (typeof fx.hlWL === 'function') { try { return fx.hlWL(code); } catch { /* fall through */ } }
@@ -235,13 +274,10 @@ export function setReview(id, flag) {
 }
 
 /* ---- XP ---- */
-const CHOICE = new Set(['mcq', 'predict']);
+// SPEC §13: gentle tone — hints and failed tries never cost anything; a clean first try gets a small bonus.
 export function xpFor(ex, { fails = 0, hints = 0 } = {}) {
   const base = 10 * Math.max(1, Math.min(5, Math.round(ex.difficulty || 1)));
-  let f = 1 - 0.15 * hints;
-  if (CHOICE.has(ex.kind)) f *= fails === 0 ? 1 : fails === 1 ? 0.5 : 0.25;
-  f = Math.max(0.3, f);
-  return Math.round(base * f) + (fails === 0 && hints === 0 ? 5 : 0);
+  return base + (fails === 0 && hints === 0 ? 5 : 0);
 }
 
 /* ---- combo: consecutive first-try successes (per page session) ---- */
@@ -276,7 +312,7 @@ export function diagnose(code, ex) {
   return tips.slice(0, 2);
 }
 
-const KIND_LABEL = { code: 'Escribe el código', fix: 'Corrige y reescribe', fill: 'Escribe la línea completa', order: 'Escribe las líneas en orden', predict: 'Teclea y observa', mcq: 'Nota' };
+const KIND_LABEL = { recall: 'De memoria', code: 'Escribe el código', fix: 'Corrige y reescribe', fill: 'Escribe la línea completa', order: 'Escribe las líneas en orden', predict: 'Teclea y observa', mcq: 'Nota' };
 const OK_MSGS = ['Correcto.', 'Bien hecho.', 'Eso es.', 'Perfecto.', 'Exacto.'];
 const squash = (s) => String(s ?? '').replace(/\s+/g, '');
 
@@ -286,7 +322,8 @@ export function ghostSupported(cell) { return !!cell && typeof cell.isComplete =
 
 /**
  * A cell whose code the student must type character by character.
- *   mountGhost(host, code, { onDone(result), onTyped(), before(): Promise, evaluate(code): Promise<result> })
+ *   mountGhost(host, code, { onDone(result), onTyped(), before(): Promise, evaluate(code): Promise<result>, run?: false })
+ * `run: false` = the piece is only typed (done as soon as it is complete), never evaluated.
  * `before` runs (inside the kernel lock) right before each evaluation; `evaluate` replaces the plain cell.run().
  * → { cell, el, isDone(), isTyped(), run(), focus(), destroy() }
  */
@@ -301,7 +338,7 @@ export function mountGhost(host, code, opts = {}) {
     done = true; wrap.classList.add('is-done');
     safe(() => opts.onDone && opts.onDone(result));
   };
-  const typed = () => { wrap.classList.add('is-typed'); msg.hidden = true; safe(() => opts.onTyped && opts.onTyped()); };
+  const typed = () => { wrap.classList.add('is-typed'); msg.hidden = true; safe(() => opts.onTyped && opts.onTyped()); if (opts.run === false) finish(null); };
   try {
     cell = createCell(wrap, {
       ghost: code, placeholder: '',
@@ -339,6 +376,7 @@ export function mountGhost(host, code, opts = {}) {
       return Promise.resolve(null);
     }
     msg.hidden = true;
+    if (opts.run === false) { finish(null); return Promise.resolve(null); } // a piece that is only typed, not evaluated
     busy = true; wrap.classList.add('is-busy');
     return exclusive(async () => {
       if (destroyed) return null;
@@ -395,6 +433,72 @@ function localAccept(ex, code) {
   return t === squash(ex.solution || '');
 }
 
+/** Shape of a line: only the command, its brackets, braces and commas — `Plot[ , { , , }]` (SPEC §13 second hint). */
+export function skeletonOf(code) {
+  const out = [];
+  for (const line of String(code || '').split('\n')) {
+    let depth = 0, res = '', i = 0, inStr = false;
+    const brace = []; // depth at which each open brace sits
+    while (i < line.length) {
+      const c = line[i];
+      if (inStr) { if (c === '\\') i++; else if (c === '"') inStr = false; i++; continue; }
+      if (c === '"') { inStr = true; i++; res += ' '; continue; }
+      const id = /^[A-Za-z$][A-Za-z0-9$]*/.exec(line.slice(i));
+      if (id) { const j = i + id[0].length; if (depth === 0 && line[j] === '[') res += id[0]; else res += ' '; i = j; continue; }
+      if (c === '[') { if (depth === 0) res += '['; depth++; i++; continue; }
+      if (c === ']') { depth--; if (depth === 0) res += ']'; i++; continue; }
+      if (c === '{') { if (depth <= 1) { res += '{'; brace.push(depth); } depth++; i++; continue; }
+      if (c === '}') { depth--; if (brace.length && brace[brace.length - 1] === depth) { brace.pop(); res += '}'; } i++; continue; }
+      if (c === ',') { if (depth === 1 || (depth === 2 && brace.length) || (depth === 1 && brace.length)) res += ', '; i++; continue; }
+      if (depth === 0) {
+        const op = /^(:=|==|=|\/\.|\/\/|->|;)/.exec(line.slice(i));
+        if (op) { res += ` ${op[0]} `; i += op[0].length; continue; }
+      }
+      res += ' '; i++;
+    }
+    out.push(res.replace(/\s+/g, ' ').replace(/\[\s+\]/g, '[ ]').replace(/\{\s+\}/g, '{ }').trim());
+  }
+  return out.join('\n');
+}
+
+/* ---- build steps: "write it from memory" as an exercise, and the review queue (SPEC §13) ---- */
+const PLOT3D = /^\s*[A-Za-z]*3D\[/, PLOT2D = /^\s*(Plot|ListPlot|ListLinePlot|ParametricPlot|PolarPlot|ContourPlot|DensityPlot|StreamPlot|VectorPlot|RegionPlot|LogPlot|LogLogPlot|Graphics|Show|BarChart|Histogram|DiscretePlot)\[/;
+/** The recall of a `build` step as a code exercise (id "<lessonId>-b<stepIndex>"). */
+export function recallExercise(lesson, i) {
+  const st = lesson && lesson.steps && lesson.steps[i];
+  if (!st || st.type !== 'build' || !st.target) return null;
+  const rc = st.recall || {};
+  const target = String(st.target);
+  let check = rc.check;
+  if (!check) check = PLOT3D.test(target) ? { type: 'graphics', dim: 3, like: target } : PLOT2D.test(target) ? { type: 'graphics', dim: 2, like: target } : { type: 'expr', expected: target };
+  return {
+    id: `${lesson.id}-b${i}`, kind: 'code', recall: true, lessonId: lesson.id, step: i,
+    title: st.title || 'De memoria', prompt: rc.prompt || `Escribe de memoria: ${st.title || ''}`,
+    difficulty: 2, cmds: st.cmds || [], setup: st.setup || undefined,
+    solution: rc.solution || target, check, hints: rc.hints || [], explain: rc.explain || '',
+    params: st.params,
+  };
+}
+const REVIEW_DAYS = [1, 3, 7, 16, 35, 90];
+const reviewKey = (lessonId, step) => `${lessonId}~${step}`;
+export function reviewState() { return safe(() => store.state.review, null) || {}; }
+/** Records the outcome of a recall. revealed (typed over the full ghost) → comes back soon; clean → longer interval. */
+export function reviewRecord(lessonId, step, { revealed = false, hints = 0 } = {}) {
+  const key = reviewKey(lessonId, step);
+  const prev = reviewState()[key] || { n: 0 };
+  const now = Date.now();
+  let n = prev.n || 0, due;
+  if (revealed) { n = 0; due = now + 10 * 60000; }
+  else if (!prev.t) { due = now + 10 * 60000; }                      // first time (end of the build): due for the next session
+  else { if (!hints) n = Math.min(REVIEW_DAYS.length - 1, n + 1); due = now + REVIEW_DAYS[Math.max(0, n - 1)] * 86400000 * (hints ? 0.5 : 1); }
+  safe(() => store.set(`review.${key}`, { n, t: now, due }));
+}
+/** Targets whose review is due (oldest first): [{lessonId, step, due}] */
+export function reviewDue(now = Date.now()) {
+  return Object.entries(reviewState()).map(([key, v]) => { const k = key.lastIndexOf('~'); return { lessonId: key.slice(0, k), step: +key.slice(k + 1), due: (v && v.due) || 0, n: (v && v.n) || 0 }; })
+    .filter((r) => r.lessonId && Number.isFinite(r.step) && r.due <= now).sort((a, b) => a.due - b.due);
+}
+
 /* ============================================================ the widget */
 export function mountExercise(container, exRaw, opts = {}) {
   ensureCss();
@@ -418,7 +522,8 @@ export function mountExercise(container, exRaw, opts = {}) {
     const rnd = rng(seed ^ 0x5bd1e995);
     const yr = opts.year || yearOf(opts.lesson) || yearOf(ex);
     const prior = exStatus(ex.id);
-    const st = { fails: 0, hints: 0, done: false, revealed: false, busy: false, t0: Date.now(), reported: false };
+    const st = { fails: 0, hints: 0, done: false, revealed: false, busy: false, t0: Date.now(), reported: false, shape: false };
+    const gentle = !!(opts.recall || ex.recall); // recall from memory: hints always available, nothing is penalised
 
     root.className = `ex ex--${kind} ex--v-${view}${ex.real ? ' ex--real' : ''} ex--${mode}`;
     root.dataset.state = 'idle';
@@ -439,12 +544,12 @@ export function mountExercise(container, exRaw, opts = {}) {
       if (isExam || view !== 'code') { xpChip.hidden = true; return; }
       const already = safe(() => store.exercise(ex.id), null);
       if (already && already.ok) { xpChip.textContent = 'repaso'; xpChip.classList.add('is-zero'); return; }
-      xpChip.textContent = `+${xpFor(ex, st)} XP`;
+      xpChip.textContent = `+${gentle ? 15 : xpFor(ex, st)} XP`;
     };
     updXp();
     const badges = h('div', { class: 'ex-badges' },
       yearBadge(yr),
-      h('span', { class: 'ex-kind' }, KIND_LABEL[kind] || kind),
+      h('span', { class: 'ex-kind' }, KIND_LABEL[gentle ? 'recall' : kind] || kind),
       view === 'code' ? diffDots(ex.difficulty) : null,
       ex.real ? h('span', { class: 'badge real', title: 'Ejercicio real de práctica o examen' }, ex.source ? `Real · ${ex.source}` : 'Real') : null,
       statusBadge,
@@ -478,10 +583,12 @@ export function mountExercise(container, exRaw, opts = {}) {
 
     /* ============================ note (old mcq): nothing to choose, just the idea ============================ */
     if (view === 'note') {
-      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || '') }));
+      const pr = splitText(ex.prompt || '', 160);
+      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline(pr.line) }));
       const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
       if (ans) body.appendChild(h('div', { class: 'ex-note-a lx-md', html: mdInline(/`/.test(ans) || kind !== 'predict' ? ans : '`' + ans + '`') }));
-      if (ex.explain) body.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
+      const mb = moreBox({ more: [pr.rest, ex.explain].filter(Boolean).join('\n\n') });
+      if (mb) body.appendChild(mb);
       root.append(body);
       if (foot) root.appendChild(foot);
       // a note is "done" by reading it: recorded without XP, combo or command mastery
@@ -494,11 +601,11 @@ export function mountExercise(container, exRaw, opts = {}) {
 
     /* ============================ ghost (old predict): type the cell and watch what it returns ============================ */
     if (view === 'ghost') {
-      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || 'Teclea la celda y mira qué devuelve.') }));
+      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline('Teclea la celda y mira qué devuelve.') }));
       const host = h('div', { class: 'ex-cell' });
       const after = h('div', { class: 'ex-feedback' });
       body.append(host);
-      root.append(body, h('div', { class: 'ex-typehint muted' }, 'Teclea la línea gris y evalúala con ', h('kbd', null, 'Shift'), '+', h('kbd', null, 'Enter'), '.'), after);
+      root.append(body, after);
       if (foot) root.appendChild(foot);
       let primed = false;
       const g = mountGhost(host, ex.code, {
@@ -512,8 +619,9 @@ export function mountExercise(container, exRaw, opts = {}) {
           for (const c of ex.cmds || []) safe(() => store.markSeen(c));
           const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
           const box = h('div', { class: 'ex-fb ex-fb--ok' }, h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'), h('strong', null, ans ? 'Devuelve ' : 'Evaluada.'), ans ? h('code', null, ans) : null, gained ? h('span', { class: 'ex-gain' }, `+${gained} XP`) : null));
-          if (ex.explain) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
           after.replaceChildren(box);
+          const mb = moreBox({ more: ex.explain });
+          if (mb) after.appendChild(mb);
           if (gained) safe(() => xpFloat(xpChip.hidden ? root : xpChip, gained));
           report({ ok: true, xp: gained, typed: true });
         },
@@ -525,51 +633,65 @@ export function mountExercise(container, exRaw, opts = {}) {
     }
 
     /* ============================ code: an empty cell, the student writes everything ============================ */
-    root.appendChild(h('div', { class: 'ex-prompt lx-md', html: md(ex.prompt || '') }));
-    if (kind === 'fix' && ex.broken) body.appendChild(refBlock('Código con errores (no se edita: escribe abajo la versión corregida)', codeBlock(ex.broken), 'ex-ref--bad'));
-    else if (kind === 'fill' && ex.template) body.appendChild(refBlock('Forma de la línea (□ = lo que falta)', codeBlock(String(ex.template).replace(/__\d+__/g, '□'))));
+    const pr = splitText(ex.prompt || '', 160);
+    root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline(pr.line) }));
+    if (pr.rest) root.appendChild(moreBox({ more: pr.rest, moreLabel: 'Enunciado completo' }));
+    if (kind === 'fix' && ex.broken) body.appendChild(refBlock('Con errores: escríbelo bien abajo', codeBlock(ex.broken), 'ex-ref--bad'));
+    else if (kind === 'fill' && ex.template) body.appendChild(refBlock('Forma (□ = lo que falta)', codeBlock(String(ex.template).replace(/__\d+__/g, '□'))));
     else if (kind === 'order' && Array.isArray(ex.lines)) {
       let lines = shuffled(ex.lines, rnd);
       if (ex.lines.length > 1) { let guard = 0; while (lines.every((l, i) => l === ex.lines[i]) && guard++ < 20) lines = shuffled(lines, rnd); }
-      body.appendChild(refBlock('Líneas desordenadas (escríbelas en el orden correcto)', h('div', { class: 'ex-lines' }, lines.map((l) => codeBlock(l)))));
+      body.appendChild(refBlock('Desordenadas: escríbelas en orden', h('div', { class: 'ex-lines' }, lines.map((l) => codeBlock(l)))));
     } else if (ex.starter) body.appendChild(refBlock('Punto de partida', codeBlock(ex.starter)));
-    if (ex.setup && !isExam) body.appendChild(h('details', { class: 'ex-setup' }, h('summary', null, 'Datos ya definidos'), codeBlock(ex.setup)));
+    if (ex.setup && !isExam) body.appendChild(h('details', { class: 'ex-setup lx-more-d' }, h('summary', null, 'Datos ya definidos'), codeBlock(ex.setup)));
     const host = h('div', { class: 'ex-cell' });
     body.appendChild(host);
     root.append(body, actions, hintsBox, fb);
+    const placeShape = () => { if (shapeEl && host.isConnected) host.parentNode.insertBefore(shapeEl, host); };
     if (foot) root.appendChild(foot);
 
     const needsKernel = !!ex.check || kind === 'code' || kind === 'fix';
     const label = 'Comprobar';
     const btnCheck = h('button', { class: 'btn primary ex-check', type: 'button', 'data-nosfx': '' }, label);
     const btnHint = h('button', { class: 'lx-link ex-hint', type: 'button' });
-    const btnSol = h('button', { class: 'lx-link ex-sol', type: 'button', hidden: true }, 'Ver solución');
+    const btnSol = h('button', { class: 'lx-link ex-sol', type: 'button', hidden: true }, gentle ? 'Verla entera y teclearla' : 'Ver solución');
     const btnVariant = h('button', { class: 'lx-link ex-variant', type: 'button', hidden: true, title: 'El mismo ejercicio con otros números' }, 'Otra variante');
     const kbd = h('span', { class: 'ex-kbd' });
-    kbd.innerHTML = '<kbd>Shift</kbd>+<kbd>Enter</kbd> evalúa · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> comprueba';
+    kbd.innerHTML = '<kbd>Ctrl</kbd>+<kbd>Enter</kbd>';
+    kbd.title = 'Ctrl+Enter comprueba · Shift+Enter solo evalúa';
     const hints = Array.isArray(ex.hints) ? ex.hints.filter(Boolean) : [];
+    // hint ladder (never penalised): text hints → the shape of the line (brackets, braces, commas) → the whole solution as a ghost to type
+    const shape = (() => { const sk = skeletonOf(solutionOf(ex)); return /[[{]/.test(sk) && squash(sk) !== squash(solutionOf(ex)) ? sk : ''; })();
+    const shapeEl = h('pre', { class: 'lx-ghostref ex-shape', hidden: true, title: 'La forma de la línea: comando, corchetes, llaves y comas' });
     const updHintBtn = () => {
-      if (isExam || !hints.length) { btnHint.hidden = true; return; }
+      if (isExam) { btnHint.hidden = true; return; }
       const left = hints.length - st.hints;
-      btnHint.hidden = st.done || st.revealed;
-      btnHint.disabled = left <= 0;
-      btnHint.textContent = left > 0 ? (st.hints ? `Otra pista (${st.hints + 1}/${hints.length})` : hints.length > 1 ? `Pista (1/${hints.length})` : 'Pista') : 'No hay más pistas';
-      btnHint.title = left > 0 ? 'Cada pista resta un poco de XP' : '';
+      const canShape = !!shape && !st.shape;
+      btnHint.hidden = st.done || st.revealed || (left <= 0 && !canShape);
+      btnHint.textContent = left > 0 ? (st.hints ? 'Otra pista' : 'Pista') : 'Ver la forma';
+      btnHint.title = 'Las pistas no restan nada';
     };
     updHintBtn();
-    const solutionDue = () => st.fails >= 3 || (st.fails >= 1 && hints.length > 0 && st.hints >= hints.length) || (st.fails >= 2 && !hints.length);
+    const solutionDue = () => st.shape || (st.hints >= hints.length && !shape && (gentle || st.fails >= 1 || hints.length > 0)) || st.fails >= (gentle ? 2 : 3);
     const offerSolution = () => { if (isExam || st.done || st.revealed || !btnSol.hidden || !solutionOf(ex)) return; btnSol.hidden = false; };
     btnHint.addEventListener('click', () => {
-      if (st.hints >= hints.length || st.done) return;
-      const i = st.hints++;
-      hintsBox.appendChild(h('div', { class: 'ex-hintitem' }, h('span', { class: 'ex-hint-n' }, `Pista ${i + 1}`), h('div', { class: 'lx-md', html: md(hints[i]) })));
+      if (st.done || st.revealed) return;
+      if (st.hints < hints.length) {
+        const i = st.hints++;
+        hintsBox.appendChild(h('div', { class: 'ex-hintitem' }, h('span', { class: 'ex-hint-n' }, `Pista ${i + 1}`), h('div', { class: 'lx-md', html: md(hints[i]) })));
+      } else if (shape && !st.shape) {
+        st.shape = true; st.hints++;
+        shapeEl.textContent = shape; shapeEl.hidden = false;
+      }
       updHintBtn(); updXp();
       if (solutionDue()) offerSolution();
+      if (cell) safe(() => cell.focus());
     });
     btnVariant.addEventListener('click', () => { seed = newSeed(); build(); });
 
     let cell = null;
-    try { cell = createCell(host, { code: '', placeholder: 'Escribe aquí tu código…' }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
+    placeShape();
+    try { cell = createCell(host, { code: '', placeholder: gentle ? 'Escríbelo de memoria…' : 'Escribe aquí tu código…' }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
 
     /* ---------- kernel gate ---------- */
     let pillEl = null;
@@ -620,8 +742,8 @@ export function mountExercise(container, exRaw, opts = {}) {
       root.dataset.state = 'fail';
       host.classList.remove('lx-shake'); void host.offsetWidth; host.classList.add('lx-shake');
       play('fail');
-      if (!isExam) combo = 0;
-      safe(() => store.markExercise(ex.id, { ok: false, cmds: ex.cmds || [], xp: 0 }));
+      if (!isExam && !gentle) combo = 0;
+      if (!gentle) safe(() => store.markExercise(ex.id, { ok: false, cmds: ex.cmds || [], xp: 0 }));
       const box = h('div', { class: 'ex-fb ex-fb--bad' });
       box.appendChild(h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✗'), h('div', { class: 'lx-md', html: mdInline((res && res.feedback) || 'Todavía no es correcto.') })));
       if (!isExam && res && (res.got || res.expected)) {
@@ -636,7 +758,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       }
       if (!isExam) {
         const left = hints.length - st.hints;
-        box.appendChild(h('div', { class: 'ex-fb-sub muted' }, solutionDue() ? 'Llevas varios intentos: puedes ver la solución (la teclearás tú) y repetir el ejercicio otro día.' : left > 0 ? `Intento ${st.fails}. Si te atascas, pide una pista.` : `Intento ${st.fails}. Revisa el enunciado con calma.`));
+        if (st.fails === 1) box.appendChild(h('div', { class: 'ex-fb-sub muted' }, left > 0 || (shape && !st.shape) ? 'Equivocarse no resta: prueba otra vez o pide una pista.' : 'Equivocarse no resta: prueba otra vez.'));
       }
       fb.replaceChildren(box);
       if (solutionDue()) offerSolution();
@@ -650,7 +772,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       const firstTry = st.fails === 0 && st.hints === 0 && !dry;
       let gained = 0, r = null;
       if (!dry && !isExam) {
-        r = safe(() => store.markExercise(ex.id, { ok: true, cmds: ex.cmds || [], xp: xpFor(ex, st) }), null);
+        r = safe(() => store.markExercise(ex.id, { ok: true, cmds: ex.cmds || [], xp: gentle ? 15 : xpFor(ex, st) }), null);
         gained = r && typeof r.xp === 'number' ? r.xp : 0;
         setReview(ex.id, false);
         combo = r && typeof r.combo === 'number' ? r.combo : firstTry ? combo + 1 : 0;
@@ -660,14 +782,14 @@ export function mountExercise(container, exRaw, opts = {}) {
       if (!isExam && gained > 0) safe(() => xpFloat(xpChip, gained));
       const box = h('div', { class: 'ex-fb ex-fb--ok' });
       const head = h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'),
-        h('strong', null, dry ? 'Así funciona. Volverá a salir en la práctica para que lo escribas sin mirar.' : OK_MSGS[Math.floor(Math.random() * OK_MSGS.length)]));
+        h('strong', null, dry ? 'Así es. Volverá a salir para que lo escribas sin mirar.' : OK_MSGS[Math.floor(Math.random() * OK_MSGS.length)]));
       if (gained > 0) head.appendChild(h('span', { class: 'ex-gain' }, `+${gained} XP`));
       if (!dry && firstTry && !isExam) head.appendChild(h('span', { class: 'ex-first' }, 'a la primera'));
       if (!dry && !isExam && combo >= 3) head.appendChild(h('span', { class: 'ex-combo' }, `${combo} seguidos`));
       box.appendChild(head);
-      if (ex.explain && !isExam) box.appendChild(h('div', { class: 'ex-explain lx-md', html: md(ex.explain) }));
       fb.replaceChildren(box);
-      btnCheck.hidden = true; btnSol.hidden = true; btnHint.hidden = true; kbd.hidden = true;
+      if (ex.explain && !isExam) fb.appendChild(moreBox({ more: ex.explain }));
+      btnCheck.hidden = true; btnSol.hidden = true; btnHint.hidden = true; kbd.hidden = true; shapeEl.hidden = true;
       if (exRaw.params && !isExam && !dry) btnVariant.hidden = false;
       setPrior(dry ? 'review' : 'ok');
       xpChip.classList.add('is-zero'); xpChip.textContent = gained > 0 ? `+${gained} XP` : dry ? 'sin XP' : 'repaso';
@@ -702,13 +824,13 @@ export function mountExercise(container, exRaw, opts = {}) {
       root.dataset.state = 'revealed';
       setReview(ex.id, true);
       combo = 0;
-      btnSol.hidden = true; btnHint.hidden = true; btnCheck.hidden = true; kbd.hidden = true;
+      btnSol.hidden = true; btnHint.hidden = true; btnCheck.hidden = true; kbd.hidden = true; shapeEl.hidden = true;
       if (pillEl) pillEl.remove();
       setPrior('review');
       xpChip.classList.add('is-zero'); xpChip.textContent = 'sin XP';
       if (cell && cell.destroy) safe(() => cell.destroy());
       cell = null;
-      host.replaceChildren(h('div', { class: 'ex-ref-l' }, 'Solución — tecléala (aparece en gris) y evalúala con Shift+Enter para ver cómo funciona'));
+      host.replaceChildren();
       const g = mountGhost(host, sol, {
         evaluate: async (code) => {
           await kernel.reset();
@@ -718,7 +840,7 @@ export function mountExercise(container, exRaw, opts = {}) {
         onDone: () => { if (!destroyed) showOk(); },
       });
       cleanup.push(() => g.destroy());
-      fb.replaceChildren(h('div', { class: 'ex-fb ex-fb--sol' }, h('div', { class: 'ex-fb-sub muted' }, 'No suma XP y el ejercicio queda marcado para repetir: te volverá a salir en la práctica.')));
+      fb.replaceChildren();
       setTimeout(() => g.focus(), 30);
     });
 

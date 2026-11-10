@@ -675,6 +675,11 @@ def make_fn(expr, vars, ev, complex_out=False, raw=None):
         shape = n.broadcast(*arrs).shape
         flat = [n.ravel(n.broadcast_to(n.asarray(a, dtype=float), shape)) for a in arrs]
         out = n.full(flat[0].shape, n.nan, dtype=complex if complex_out else float)
+        if out.size > 24:
+            # not numeric anywhere (undefined function, typo...): do not waste a second finding it out
+            probe_idx = [int(q) for q in n.linspace(0, out.size - 1, 7)]
+            if all(one_slow([a[i] for a in flat]) is None for i in probe_idx):
+                return out.reshape(shape)
         for i in range(out.size):
             v = one_slow([a[i] for a in flat])
             if v is None:
@@ -1279,8 +1284,73 @@ def list_data(data, ev, options=None):
     return out
 
 
+def fast_table(e, ev):
+    """ListPlot[Table[{x, f}, {x, a, b, dx}]] (the course's favourite inside Manipulate): sample f vectorised instead
+    of letting the kernel evaluate it point by point. Returns (xs, ys) or None when that is not possible."""
+    n = np()
+    if not (isinstance(e, Expression) and e.get_head_name() == "System`Table" and len(e.elements) == 2):
+        return None
+    body, it = e.elements
+    if not it.has_form("List", None) or len(it.elements) not in (2, 3, 4):
+        return None
+    var = it.elements[0]
+    if not isinstance(var, Symbol):
+        return None
+    vals = [num(x.evaluate(ev), ev) for x in it.elements[1:]]
+    if any(v is None for v in vals):
+        return None
+    if len(vals) == 1:
+        a, b, st = 1.0, vals[0], 1.0
+    elif len(vals) == 2:
+        a, b, st = vals[0], vals[1], 1.0
+    else:
+        a, b, st = vals
+    if st == 0 or (b - a) / st < 0:
+        return None
+    npts = int(math.floor((b - a) / st + 1e-9)) + 1
+    if npts < 2 or npts > 20000:
+        return None
+    xs = a + st * n.arange(npts)
+    he = hold_eval(body, [var], ev)
+    if isinstance(he, Expression) and he.has_form("List", None):
+        if len(he.elements) != 2:
+            return None
+        fx, fy = make_fn(he.elements[0], [var], ev), make_fn(he.elements[1], [var], ev)
+        if fx.slow or fy.slow:
+            return None
+        X, Y = fx(xs), fy(xs)
+    else:
+        fy = make_fn(he, [var], ev)
+        if fy.slow:
+            return None
+        X, Y = n.arange(1, npts + 1, dtype=float), fy(xs)
+    ok = n.isfinite(X) & n.isfinite(Y)
+    if not ok.any():
+        return None
+    return X[ok], Y[ok]
+
+
+def held_data(data, ev):
+    """Datasets of a held ListPlot argument: fast path for Table[...] (or a list of them), else evaluate."""
+    try:
+        if isinstance(data, Expression):
+            if data.get_head_name() == "System`Table":
+                r = fast_table(data, ev)
+                if r is not None:
+                    return [r], None
+            elif data.has_form("List", None) and data.elements and \
+                    all(isinstance(x, Expression) and x.get_head_name() == "System`Table" for x in data.elements):
+                rs = [fast_table(x, ev) for x in data.elements]
+                if all(r is not None for r in rs):
+                    return rs, None
+    except ext_Deadline():
+        raise
+    except Exception:
+        pass
+    return None, data.evaluate(ev)
+
+
 class ListPlot(GB):
-    attributes = A_PROTECTED
 
     def eval(self, data, evaluation, options):
         "ListPlot[data_, OptionsPattern[ListPlot]]"
@@ -1289,7 +1359,6 @@ class ListPlot(GB):
 
 
 class ListLinePlot(GB):
-    attributes = A_PROTECTED
 
     def eval(self, data, evaluation, options):
         "ListLinePlot[data_, OptionsPattern[ListLinePlot]]"
@@ -1297,7 +1366,6 @@ class ListLinePlot(GB):
 
 
 class ListLogPlot(GB):
-    attributes = A_PROTECTED
 
     def eval(self, data, evaluation, options):
         "ListLogPlot[data_, OptionsPattern[ListLogPlot]]"
@@ -1318,7 +1386,9 @@ class DiscretePlot(GB):
 
 def list_plot(data, ev, options, joined, stems=False, log=False):
     n = np()
-    sets = list_data(data, ev, options)
+    sets, evaluated = held_data(data, ev)
+    if sets is None:
+        sets = list_data(evaluated, ev, options)
     if not sets:
         return None
     styles = styles_for(options, len(sets), ev)
@@ -1525,7 +1595,10 @@ class ParametricPlot(GB):
                           "width": 1.2 if is_edge else 0.6, "opacity": 1.0 if is_edge else 0.55, "nohover": not is_edge})
             allx.append(rx)
             ally.append(ry)
-        return finish_xy(prims, allx, ally, options, ev, [he], [st], extra={"Frame": SymbolTrue, "Axes": SymbolFalse})
+        fr = opt(options, "Frame")
+        noframe = fr is SymbolFalse or (fr is not None and is_sym(fr, "None"))
+        return finish_xy(prims, allx, ally, options, ev, [he], [st],
+                         extra={"Frame": SymbolTrue, "Axes": SymbolTrue if noframe else SymbolFalse})
 
 
 def finish_xy(prims, allx, ally, options, ev, exprs, styles, aspect="Automatic", extra=None, robust=False):
@@ -2415,6 +2488,208 @@ class ContourPlot3D(GB):
         return G3(prims, rules3(options, defaults))
 
 
+def _extrap(A):
+    """Pad a 3D array by one layer on every side using linear extrapolation."""
+    n = np()
+    A = n.pad(A, 1, mode="edge")
+    A[0], A[-1] = 2 * A[1] - A[2], 2 * A[-2] - A[-3]
+    A[:, 0], A[:, -1] = 2 * A[:, 1] - A[:, 2], 2 * A[:, -2] - A[:, -3]
+    A[:, :, 0], A[:, :, -1] = 2 * A[:, :, 1] - A[:, :, 2], 2 * A[:, :, -2] - A[:, :, -3]
+    return A
+
+
+def snet_mesh(F, axes, mask=None):
+    """Surface nets (vectorised) for the level set F = 0 on a grid F[iz, iy, ix]: one vertex per cell crossed by
+    the surface (mean of its edge crossings), one quad per sign-changing grid edge. The grid is extended one
+    layer by extrapolation so the surface reaches (slightly past) the box; the renderer clips at the box.
+    Returns (P[k,3], G[k,3] gradient of F, m[k] mask or None, tris[t,3]) or None."""
+    n = np()
+    F = _extrap(n.asarray(F, dtype=float))
+    M = _extrap(n.asarray(mask, dtype=float)) if mask is not None else None
+    ax = [n.concatenate([[2 * a[0] - a[1]], a, [2 * a[-1] - a[-2]]]) for a in axes]
+    xs, ys, zs = ax
+    nz, ny, nx = F.shape
+    S = F > 0
+    c = n.zeros((nz - 1, ny - 1, nx - 1), dtype=n.int8)
+    for dz in (0, 1):
+        for dy in (0, 1):
+            for dx in (0, 1):
+                c += S[dz:nz - 1 + dz, dy:ny - 1 + dy, dx:nx - 1 + dx]
+    active = (c > 0) & (c < 8)
+    K = int(active.sum())
+    if K == 0:
+        return None
+    cid = n.full(active.shape, -1, dtype=n.int64)
+    cid[active] = n.arange(K)
+    gz, gy, gx = n.gradient(F, zs, ys, xs)
+    nf = 7 if M is not None else 6
+    acc = n.zeros((K, nf))
+    cnt = n.zeros(K)
+    quads = []
+    coords = (zs, ys, xs)
+    for axis in (0, 1, 2):                       # edge direction: 0 = z, 1 = y, 2 = x  (array axes)
+        sl_a = [slice(None)] * 3
+        sl_b = [slice(None)] * 3
+        sl_a[axis] = slice(0, -1)
+        sl_b[axis] = slice(1, None)
+        sl_a, sl_b = tuple(sl_a), tuple(sl_b)
+        E = S[sl_a] != S[sl_b]
+        idx = n.nonzero(E)
+        if idx[0].size == 0:
+            continue
+        fa, fb = F[sl_a][E], F[sl_b][E]
+        with n.errstate(all="ignore"):
+            t = fa / (fa - fb)
+        t = n.where(n.isfinite(t), n.clip(t, 0.0, 1.0), 0.5)
+        pos = [coords[q][idx[q]].astype(float) for q in range(3)]
+        ca = coords[axis]
+        pos[axis] = ca[idx[axis]] + (ca[idx[axis] + 1] - ca[idx[axis]]) * t
+        feats = [pos[2], pos[1], pos[0]]
+        for g in (gx, gy, gz):
+            ga, gb = g[sl_a][E], g[sl_b][E]
+            feats.append(ga + (gb - ga) * t)
+        if M is not None:
+            ma, mb = M[sl_a][E], M[sl_b][E]
+            feats.append(ma + (mb - ma) * t)
+        feats = n.stack(feats, 1)
+        # the four cells around this edge: offsets (0 or -1) along the two other axes
+        o1, o2 = [q for q in range(3) if q != axis]
+        ring = []
+        for d1, d2 in ((-1, -1), (0, -1), (0, 0), (-1, 0)):
+            ci = [idx[0].copy(), idx[1].copy(), idx[2].copy()]
+            ci[o1] = ci[o1] + d1
+            ci[o2] = ci[o2] + d2
+            ok = (ci[o1] >= 0) & (ci[o2] >= 0) & (ci[o1] < active.shape[o1]) & (ci[o2] < active.shape[o2])
+            ids = n.full(idx[0].shape, -1, dtype=n.int64)
+            ids[ok] = cid[ci[0][ok], ci[1][ok], ci[2][ok]]
+            good = ids >= 0
+            n.add.at(acc, ids[good], feats[good])
+            n.add.at(cnt, ids[good], 1.0)
+            ring.append(ids)
+        ring = n.stack(ring, 1)
+        quads.append(ring[(ring >= 0).all(1)])
+    if not quads:
+        return None
+    Q = n.concatenate(quads)
+    if Q.shape[0] == 0:
+        return None
+    acc = acc / n.maximum(cnt, 1.0)[:, None]
+    tris = n.concatenate([Q[:, [0, 1, 2]], Q[:, [0, 2, 3]]])
+    return acc[:, 0:3], acc[:, 3:6], (acc[:, 6] if M is not None else None), tris
+
+
+def region_terms(expr, vars, ev):
+    """Condition -> list of vectorised scalar fields, one per conjunct (region = all fields > 0), or None."""
+    n = np()
+    names = [v.get_name() for v in vars]
+    for cand in _candidates(expr, vars, ev, None):
+        try:
+            c = PConv()
+            s0 = c.to(cand)
+            parts = list(s0.args) if isinstance(s0, (sp.And, sp.Or)) else [s0]
+            union = isinstance(s0, sp.Or)
+            if not parts or len(parts) > 8:
+                return None
+            fields = [cond_to_field(p_) for p_ in parts]
+            syms = [c.sym(nm) for nm in names]
+            if any(_bad_sympy(f_, syms) for f_ in fields):
+                continue
+            c.extra["WLXMin"] = lambda *a: _reduce(n.minimum, a)
+            c.extra["WLXMax"] = lambda *a: _reduce(n.maximum, a)
+            fs = [_lambdify(c, syms, f_) for f_ in fields]
+
+            def make(f):
+                def fn(*arrs):
+                    shape = n.broadcast(*arrs).shape
+                    with n.errstate(all="ignore"):
+                        r = n.asarray(f(*[n.asarray(a, dtype=float) for a in arrs]))
+                        if n.iscomplexobj(r):
+                            r = n.where(n.abs(r.imag) > 1e-12, n.nan, r.real)
+                        r = n.asarray(r, dtype=float)
+                    if r.shape != shape:
+                        r = n.broadcast_to(r, shape).copy()
+                    return n.where(n.isfinite(r), r, -1.0)
+                return fn
+            fns = [make(f) for f in fs]
+            for fn in fns:
+                fn(*[n.array([0.3, 0.7]) for _ in vars])
+            return fns, union
+        except ext_Deadline():
+            raise
+        except Exception:
+            continue
+    return None
+
+
+def region_solid(fns, r, m, st, ci, union=False):
+    """Boundary of {all fields > 0} (or {any field > 0} if union) inside the box r as crisp prims: one masked
+    iso-mesh per term (surface F_i = 0 where the other terms allow it) plus the six box faces masked by the region."""
+    n = np()
+    axes = [n.linspace(lo, hi, m) for lo, hi in r]
+    X, Y, Z = grid3(r, m)
+    Fs = [fn(X, Y, Z) for fn in fns]
+    total = _reduce(n.maximum if union else n.minimum, Fs)
+    prims = []
+    color = st.get("color") if st.get("explicit") else None
+    opacity = st.get("opacity")
+
+    def style(p):
+        if color:
+            p["color"] = color
+        if opacity is not None:
+            p["opacity"] = opacity
+        return p
+    sig = nlist(total[::4, ::4, ::4], 2)          # coarse signature of the region (used when comparing plots)
+    for i, F in enumerate(Fs):
+        if not (F <= 0).any() or not (F > 0).any():
+            continue                                # this condition does not cut the box
+        others = [Fs[j] for j in range(len(Fs)) if j != i]
+        mask = (-_reduce(n.maximum, others) if union else _reduce(n.minimum, others)) if others else None
+        res = snet_mesh(F, axes, mask)
+        if res is None:
+            continue
+        P, G, mk, tris = res
+        if mk is not None:
+            keep = (mk[tris] > 0).any(1)
+            tris = tris[keep]
+            if tris.shape[0] == 0:
+                continue
+            used, inv = n.unique(tris, return_inverse=True)
+            tris = inv.reshape(-1, 3)
+            P, G, mk = P[used], G[used], mk[used]
+            sc = float(n.max(n.abs(mk))) or 1.0
+            mk = mk / sc
+        p = {"t": "iso", "n": 0, "r": [[float(a_), float(b_)] for a_, b_ in r], "data": sig, "ci": ci,
+             "v": nlist(P, 3), "nrm": nlist(G / (n.linalg.norm(G, axis=1, keepdims=True) + 1e-300), 1),
+             "i": tris.ravel().tolist()}
+        sig = []
+        if mk is not None:
+            p["m"] = nlist(mk, 2)
+        prims.append(style(p))
+    # box faces
+    scale = float(n.max(n.abs(total))) or 1.0
+    for ax_ in range(3):                             # 0: x, 1: y, 2: z  (arrays are indexed [iz, iy, ix])
+        for side in (0, -1):
+            sl = [slice(None)] * 3
+            sl[2 - ax_] = side
+            sl = tuple(sl)
+            live = [F[sl] for F in Fs if float(n.max(n.abs(F[sl]))) > 1e-9 * scale]
+            if union:
+                M = total[sl]
+            else:
+                M = _reduce(n.minimum, live) if live else n.ones_like(total[sl])
+            if not (M > 0).any():
+                continue
+            p = surf_prim(X[sl], Y[sl], Z[sl], None, ci, False, mask=n.clip(M / (float(n.max(n.abs(M))) or 1.0), -1, 1))
+            p["cap"] = True
+            prims.append(style(p))
+    if sig:
+        # no curved boundary inside the box: keep the signature in an empty iso prim
+        prims.append({"t": "iso", "n": 0, "r": [[float(a_), float(b_)] for a_, b_ in r], "data": sig, "ci": ci,
+                      "v": [], "nrm": [], "i": []})
+    return prims
+
+
 class RegionPlot3D(GB):
     def eval(self, f, x, a, b, y, c, d, z, e, g, evaluation, options):
         "RegionPlot3D[f_, {x_Symbol, a_, b_}, {y_Symbol, c_, d_}, {z_Symbol, e_, g_}, OptionsPattern[RegionPlot3D]]"
@@ -2433,6 +2708,16 @@ class RegionPlot3D(GB):
             mesh = mesh[0]
         prims = []
         for i, ex in enumerate(exprs):
+            rt = region_terms(ex, [x, y, z], ev)
+            if rt is not None:
+                fns, union = rt
+                m = 30 if len(exprs) == 1 else 24
+                if pp:
+                    m = int(max(20, min(36, pp)))
+                if len(fns) > 4:
+                    m = min(m, 30)
+                prims.extend(region_solid(fns, r, m, sts[i], i, union))
+                continue
             fn = make_cond_fn(ex, [x, y, z], ev)
             if fn.slow:
                 m = 10
@@ -2445,12 +2730,13 @@ class RegionPlot3D(GB):
             # close the solid at the box faces: an extra outer layer just outside the box with negative values
             F2 = n.full((m + 2, m + 2, m + 2), -1.0)
             F2[1:-1, 1:-1, 1:-1] = F
-            F2[0, :, :] = -n.maximum(F2[1, :, :], 0) - 1e-9
-            F2[-1, :, :] = -n.maximum(F2[-2, :, :], 0) - 1e-9
-            F2[:, 0, :] = -n.maximum(F2[:, 1, :], 0) - 1e-9
-            F2[:, -1, :] = -n.maximum(F2[:, -2, :], 0) - 1e-9
-            F2[:, :, 0] = -n.maximum(F2[:, :, 1], 0) - 1e-9
-            F2[:, :, -1] = -n.maximum(F2[:, :, -2], 0) - 1e-9
+            # pad = -|F| of the adjacent inner node: the cap then ends exactly where the surface F = 0 does
+            F2[0, :, :] = -n.abs(F2[1, :, :]) - 1e-9
+            F2[-1, :, :] = -n.abs(F2[-2, :, :]) - 1e-9
+            F2[:, 0, :] = -n.abs(F2[:, 1, :]) - 1e-9
+            F2[:, -1, :] = -n.abs(F2[:, -2, :]) - 1e-9
+            F2[:, :, 0] = -n.abs(F2[:, :, 1]) - 1e-9
+            F2[:, :, -1] = -n.abs(F2[:, :, -2]) - 1e-9
             h = [(hi - lo) / (m - 1) for lo, hi in r]
             r2 = [[lo - hh * 0.02, hi + hh * 0.02] for (lo, hi), hh in zip(r, h)]
             p = {"t": "iso", "n": m + 2, "r": [[float(a_), float(b_)] for a_, b_ in r2], "pad": True,

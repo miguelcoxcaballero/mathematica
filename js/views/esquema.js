@@ -48,7 +48,17 @@ function partsRow(parts, big) {
       h('span', { class: 'esq-p-c' }, txt), big ? h('span', { class: 'esq-p-l' }, PARTS[p].k) : null)));
 }
 
-function anatomy() {
+// schema.json trae sus propias explicaciones de cada pieza ({role, d}): si están, mandan
+const ROLE_KEY = [[/comando|cabeza/i, 'head'], [/corchete/i, 'br'], [/^qu[eé]/i, 'what'], [/coma/i, 'sep'], [/variable|recorrido|d[oó]nde/i, 'spec'], [/opci[oó]n/i, 'opt']];
+function applySchemaAnatomy(a) {
+  for (const p of a?.parts || []) {
+    const hit = ROLE_KEY.find(([re]) => re.test(p.role || ''));
+    if (hit && p.d) PARTS[hit[1]] = { k: PARTS[hit[1]].k, t: p.d };
+  }
+}
+
+function anatomy(schema) {
+  applySchemaAnatomy(schema?.anatomy);
   const info = h('div', { class: 'esq-info', 'aria-live': 'polite' }, h('b', null, 'Pulsa cada pieza'), 'Casi todos los comandos tienen esta misma forma. Si aprendes a leer uno, los lees todos.');
   const sec = h('section', { id: 'esq-anatomia' },
     h('h2', { class: 'sec-title' }, 'Anatomía de un comando'),
@@ -113,6 +123,7 @@ function families(schema, cmds) {
       h('h3', null, f.name),
       h('p', { class: 'esq-fam-meta' }, `${s.n} comandos · ${s.learned} dominados · ${s.prac} en práctica`),
       f.desc ? h('div', { class: 'md esq-fam-desc', html: mdLite(f.desc) }) : null,
+      f.pattern ? h('p', { class: 'esq-fam-pat' }, h('code', { class: 'wlc', html: hlWL(f.pattern) })) : null,
       ...groups,
       h('p', { class: 'esq-legend' }, 'Pulsa un comando para ver su resumen. ', h('span', { class: 'ok' }, '✓'), ' dominado · ', h('span', { class: 'pr' }, '·'), ' visto o en práctica'));
   };
@@ -135,16 +146,47 @@ function families(schema, cmds) {
     h('div', { class: 'esq-fam' }, list, main));
 }
 
+function rules(schema) {
+  const rs = schema?.anatomy?.rules || [];
+  if (!rs.length) return null;
+  return h('section', { id: 'esq-reglas' },
+    h('h2', { class: 'sec-title' }, 'Reglas que no fallan'),
+    h('ol', { class: 'esq-rules' }, rs.map((r) => h('li', { class: 'md', html: mdLite(r).replace(/^<p>|<\/p>$/g, '') }))));
+}
+
+/** Fila plegable: título + resumen a la vista; el contenido (con sus celdas fantasma) se monta al abrirla. */
+function fold(title, summary, build, extra) {
+  const body = h('div', { class: 'esq-fold-b' });
+  const d = h('details', { class: 'esq-fold' }, h('summary', null, h('span', { class: 'esq-fold-t' }, extra, title), summary ? h('span', { class: 'esq-fold-s' }, summary) : null), body);
+  d.addEventListener('toggle', () => { if (d.open && !body.firstChild) body.append(...build().filter(Boolean)); });
+  return d;
+}
+
 /* ---------- ideas clave (modelos mentales) ---------- */
 function models(schema) {
   const ms = schema?.models || [];
   if (!ms.length) return null;
   return h('section', { id: 'esq-ideas' },
-    h('h2', { class: 'sec-title' }, 'Ideas clave', h('small', null, 'teclea cada ejemplo: el gris se vuelve negro al escribirlo')),
-    ms.map((m) => h('article', { class: 'esq-model' },
-      h('h3', null, m.title),
+    h('h2', { class: 'sec-title' }, 'Ideas clave', h('small', null, 'ábrelas una a una y teclea sus ejemplos')),
+    ms.map((m) => fold(m.title, m.idea, () => [
       m.text ? h('div', { class: 'md esq-model-t', html: mdLite(m.text) }) : null,
-      m.cells.map((c) => h('div', { class: 'esq-cell' }, c.note ? h('small', null, c.note) : null, ghostCell(h('div'), c.code))))));
+      ...m.cells.map((c) => h('div', { class: 'esq-cell' }, c.note ? h('small', null, c.note.charAt(0).toUpperCase() + c.note.slice(1) + ':') : null, ghostCell(h('div'), c.code))),
+    ])));
+}
+
+/* ---------- recetas: qué comandos encadenar en cada problema típico ---------- */
+function flows(schema, cmds) {
+  const fs = schema?.flows || [];
+  if (!fs.length) return null;
+  const sym = (n) => (cmds?.byName.has(n) ? h('a', { class: 'sym', href: cmdHref(n) }, n) : h('b', null, n));
+  return h('section', { id: 'esq-recetas' },
+    h('h2', { class: 'sec-title' }, 'Recetas de examen', h('small', null, 'qué comandos encadenar en cada problema típico')),
+    fs.map((f) => fold(f.title, f.when, () => [
+      h('ol', { class: 'esq-steps' }, f.steps.map((st) => h('li', null,
+        h('div', { class: 'esq-step-d' }, st.cmd ? [sym(st.cmd), h('span', { class: 'dash' }, ' — ')] : null, h('span', { class: 'md', html: mdLite(st.d || '').replace(/^<p>|<\/p>$/g, '') })),
+        st.code ? ghostCell(h('div', { class: 'esq-cell' }), st.code) : null))),
+      f.lessons.length ? h('p', { class: 'esq-fold-l' }, 'Se trabaja en: ', h('span', { class: 'sqs' }, f.lessons.map((id) => h('a', { href: `#/leccion/${encodeURIComponent(id)}` }, id)))) : null,
+    ], yearBadge(f.year))));
 }
 
 function jumpTo(id) {
@@ -158,15 +200,15 @@ export default {
     el.appendChild(h('div', { class: 'page esq' }, skeleton(6, 'skel-page')));
     const [schema, cmds] = await Promise.all([safe(loadSchema()), safe(loadCommands())]);
     if (!alive) return;
-    const mm = models(schema);
-    const nav = [['esq-anatomia', 'Anatomía de un comando'], ['esq-signos', 'Signos'], ['esq-familias', 'Familias'], ...(mm ? [['esq-ideas', 'Ideas clave']] : [])];
+    const mm = models(schema), rr = rules(schema), ff = flows(schema, cmds);
+    const nav = [['esq-anatomia', 'Anatomía de un comando'], ['esq-signos', 'Signos'], ...(rr ? [['esq-reglas', 'Reglas']] : []), ['esq-familias', 'Familias'], ...(mm ? [['esq-ideas', 'Ideas clave']] : []), ...(ff ? [['esq-recetas', 'Recetas de examen']] : [])];
     el.replaceChildren(h('div', { class: 'page esq' },
       h('header', { class: 'page-head doc' },
         h('span', { class: 'doc-tag' }, 'Guía'),
         h('h1', null, 'Esquema de comandos'),
         h('p', null, 'La forma que comparten todos los comandos, los signos que no debes confundir y el mapa de familias: lo que necesitas tener en la cabeza para leer y escribir Mathematica.'),
         h('div', { class: 'esq-toc sqs' }, nav.map(([id, t]) => h('button', { type: 'button', onclick: () => jumpTo(id) }, t)))),
-      anatomy(), signs(), families(schema, cmds), mm));
+      anatomy(schema), signs(), rr, families(schema, cmds), mm, ff));
   },
   unmount() { alive = false; root = null; },
 };

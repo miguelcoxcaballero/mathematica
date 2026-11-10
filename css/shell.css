@@ -175,7 +175,7 @@ kbd { font: 500 .72rem var(--mono); padding: .05em .4em; border-radius: 3px; bor
 .kicker { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
 /* etiqueta pequeña sobre el título, como «BUILT-IN SYMBOL» / «GUIDE» */
 .doc-tag { display: inline-block; font-size: .66rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--on-dark); background: var(--accent-2); padding: .25em .7em; margin-bottom: 14px; }
-.doc-tag.sym { background: var(--y1); }
+.doc-tag.is-sym { background: var(--y1); }
 /* sección: naranja con chevrón y regla fina encima */
 .sec-title { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 1.2rem; font-weight: 400; color: var(--accent-2); letter-spacing: .01em; }
 .sec-title::before { content: "›"; font-weight: 600; }
@@ -394,7 +394,7 @@ a.chip:hover { text-decoration: none; }
 .esq-code.big { gap: 10px 2px; }
 .esq-p { all: unset; cursor: pointer; display: inline-flex; flex-direction: column; align-items: stretch; -webkit-tap-highlight-color: transparent; }
 .esq-p-c { font: 600 .9rem var(--mono); color: var(--ink); padding: 0 1px; white-space: pre-wrap; }
-.esq-code.big .esq-p-c { font-size: clamp(1rem, 2vw, 1.45rem); padding: 2px 5px; text-align: center; }
+.esq-code.big .esq-p-c { font-size: clamp(.98rem, 1.7vw, 1.22rem); padding: 2px 5px; text-align: center; }
 .esq-p-l { margin: 7px 3px 0; padding-top: 5px; border-top: 1px solid var(--rule-2); font: 400 .74rem var(--font); color: var(--muted); text-align: center; white-space: nowrap; }
 .esq-p.p-br .esq-p-l, .esq-p.p-sep .esq-p-l { border-top-color: transparent; color: transparent; font-size: 0; }
 .esq-p.on .esq-p-c { color: var(--accent); }
@@ -438,12 +438,30 @@ a.chip:hover { text-decoration: none; }
 .esq-cmdcard code { background: none; border: 0; padding: 0; font: 400 .95rem var(--mono); color: var(--ink); }
 .esq-cmdcard p { margin: 0; font-size: .95rem; max-width: 72ch; }
 .esq-cmdcard .row { gap: 8px 20px; font-size: .92rem; margin-top: 2px; }
-.esq-model { padding: 16px 0 18px; border-top: 1px solid var(--rule); }
-.esq-model:first-of-type { border-top: 0; padding-top: 0; }
-.esq-model h3 { margin: 0 0 6px; font-size: 1.15rem; font-weight: 600; color: var(--text); }
+.esq-fam-pat { margin: 0 0 14px; }
+.esq-fam-pat code { background: none; border: 0; padding: 0; font-size: .9rem; white-space: pre-wrap; }
+.esq-rules { margin: 0; padding-left: 1.5em; font-size: .97rem; max-width: 76ch; }
+.esq-rules li { margin: 5px 0; padding-left: 4px; }
+.esq-rules li::marker { color: var(--dim); }
+/* filas plegables (ideas clave y recetas): título azul como un enlace de símbolo + resumen gris */
+.esq-fold { border-bottom: 1px solid var(--rule); }
+.esq-fold summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; padding: 8px 0 8px 18px; position: relative; }
+.esq-fold summary::-webkit-details-marker { display: none; }
+.esq-fold summary::before { content: "›"; position: absolute; left: 2px; top: 7px; color: var(--accent-2); font-weight: 600; transition: transform .15s; }
+.esq-fold[open] summary::before { transform: rotate(90deg); }
+.esq-fold summary:hover { background: var(--bg-2); }
+.esq-fold-t { font-weight: 600; color: var(--text); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.esq-fold-s { font-size: .9rem; color: var(--muted); }
+.esq-fold-b { padding: 6px 0 20px 18px; }
+.esq-fold-l { font-size: .88rem; color: var(--muted); margin: 12px 0 0; }
 .esq-model-t { font-size: .97rem; max-width: 72ch; margin-bottom: 8px; }
 .esq-cell { margin-top: 8px; max-width: 720px; }
-.esq-cell small { display: block; color: var(--muted); font-size: .84rem; margin-bottom: 2px; }
+.esq-cell small { display: block; font-size: .93rem; margin-bottom: 2px; }
+.esq-steps { margin: 0; padding-left: 1.4em; max-width: 740px; }
+.esq-steps li { margin: 0 0 10px; padding-left: 4px; }
+.esq-steps li::marker { color: var(--dim); }
+.esq-step-d { font-size: .95rem; }
+.esq-step-d .dash { color: var(--dim); }
 @media (max-width: 760px) {
   .esq-fam { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .esq-famlist { display: flex; overflow-x: auto; scrollbar-width: none; }
@@ -479,6 +497,7 @@ a.chip:hover { text-decoration: none; }
 .cmd-row-s .badge { font-size: .62rem; }
 .cmd-crumb { font-size: .86rem; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; }
 .cmd-crumb a { color: var(--muted); } .cmd-crumb a:hover { color: var(--accent); }
+.cmd-crumb a.sym { color: var(--sym); }
 .cmd-detail { gap: 0; }
 .cmd-name { font: 600 clamp(2rem, 6vw, 2.7rem) var(--font); color: var(--text); margin: 0 0 16px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
 .cmd-name .cmd-sym { font: 400 1.4rem var(--mono); color: var(--muted); }
@@ -492,6 +511,7 @@ a.chip:hover { text-decoration: none; }
 .cmd-syn p { margin: 4px 0 0 14px; font-size: .97rem; }
 .cmd-state { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 20px 0 0; font-size: .92rem; }
 .cmd-state .btn { margin-left: auto; }
+.cmd-state .muted { flex: 1 1 220px; min-width: 0; }
 .cmd-state-l { font-weight: 600; color: var(--text); }
 .cmd-sec { margin-top: 30px; }
 .cmd-args { display: grid; grid-template-columns: minmax(90px, auto) minmax(0, 1fr); gap: 0 22px; margin: 0; }
@@ -523,7 +543,7 @@ a.chip:hover { text-decoration: none; }
 /* =====================================================================
    CUADERNO
    ===================================================================== */
-.cua-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: .9rem; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+.cua-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: .88rem; padding-top: 10px; border-top: 1px solid var(--rule); }
 .cua-bar .sp { flex: 1; }
 .cua-ref { padding: 10px 0 12px 14px; border-left: 2px solid var(--accent-2); }
 .cua-ref small { display: block; color: var(--muted); font-size: .86rem; margin-bottom: 2px; }

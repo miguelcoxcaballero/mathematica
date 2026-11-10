@@ -87,7 +87,8 @@
 
 .wl-tools { position: relative; display: flex; align-items: flex-start; padding: 3px 3px 0 4px; }
 .wl-run, .wl-del { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--radius-s); background: none; color: var(--dim); cursor: pointer; }
-.wl-run:hover { color: var(--accent); background: var(--panel-2); }
+@media (hover: hover) { .wl-run:hover { color: var(--accent); background: var(--panel-2); } }
+.wl-run:active { color: var(--accent); }
 .wl-run[disabled] { opacity: .4; cursor: default; }
 /* delete sits just left of ▶, only while the cell is hovered or focused */
 .wl-del { position: absolute; right: 100%; top: 3px; font: 400 17px/1 var(--font); background: var(--paper); visibility: hidden; }
@@ -115,6 +116,8 @@
 .wl-expr math mtable { margin: 2px 0; }
 .wl-expr math mtd { padding: .3em .55em; }
 .wl-expr math msqrt, .wl-expr math mroot { margin: 0 1px; }
+.wl-math-wrap { line-height: 1.9; overflow-wrap: anywhere; }
+.wl-math-wrap > math { vertical-align: baseline; }
 .wl-plain { margin: 0; font: 400 var(--wl-fs)/1.45 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); background: none; }
 .wl-body.is-collapsed { max-height: 300px; overflow-y: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .wl-more { display: inline-block; margin: 0 0 4px; font: 12.5px/1 var(--font); color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; }

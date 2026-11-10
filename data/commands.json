@@ -16722,6 +16722,57 @@
     "sombrear",
     "area entre curvas"
    ]
+  },
+  {
+   "name": "SeriesCoefficient",
+   "kind": "function",
+   "cat": "series",
+   "group": "Taylor y Laurent",
+   "year": 2,
+   "level": 4,
+   "firstLesson": "2-m3-pl2",
+   "usedIn": [
+    "2-m3-pl2"
+   ],
+   "freq": 0,
+   "syntax": [
+    "SeriesCoefficient[f, {x, x0, n}]"
+   ],
+   "desc": "Coeficiente de (x - x0)^n en el desarrollo en serie de una función, sin tener que escribir toda la serie. Con n = -1 en un polo da el residuo.",
+   "args": [
+    {
+     "n": "f",
+     "d": "función"
+    },
+    {
+     "n": "{x, x0, n}",
+     "d": "variable, centro y potencia cuyo coeficiente quieres"
+    }
+   ],
+   "examples": [
+    {
+     "code": "SeriesCoefficient[Exp[2 x], {x, 0, 3}]",
+     "note": "coeficiente de x^3 en el desarrollo de Maclaurin"
+    },
+    {
+     "code": "SeriesCoefficient[1/(z (z - 2)), {z, 0, -1}]",
+     "note": "coeficiente de 1/z en la serie de Laurent: el residuo en 0"
+    }
+   ],
+   "options": [],
+   "related": [
+    "Series",
+    "Normal",
+    "Residue",
+    "Coefficient"
+   ],
+   "pitfalls": [
+    "Confundir el coeficiente con la derivada: el coeficiente de x^n es la derivada n-ésima dividida por n!."
+   ],
+   "aka": [
+    "coeficiente de la serie",
+    "coeficiente de laurent"
+   ]
   }
  ]
 }

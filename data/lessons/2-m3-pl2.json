@@ -6,7 +6,7 @@
  "order": 2,
  "title": "Variable Compleja II: series de Laurent y residuos",
  "summary": "Desarrollos de Taylor y de Laurent por regiones con Series y Apart, dibujo de coronas con RegionPlot, residuos por tres métodos e integrales de contorno por residuos.",
- "minutes": 80,
+ "minutes": 90,
  "commands": [
   "Residue",
   "With",
@@ -32,22 +32,54 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Para qué sirve: series de potencias con Series y Normal",
-   "md": "Cerca de un punto, toda función «buena» es un polinomio infinito (serie de Taylor); cerca de una singularidad aparece además una parte con potencias negativas (serie de **Laurent**). El coeficiente de 1/(z − z0) es el **residuo**, y con residuos se calculan en una línea integrales de contorno que a mano llevan una página. Eso es la PL2, y son dos de las cinco preguntas del examen.\n\n- `Series[f, {z, a, n}]` desarrolla `f` en potencias de (z − a) hasta orden n. Los argumentos de la llave: variable, centro, orden.\n- El término `O[z]^5` indica que la serie sigue. `Normal[serie]` lo quita y deja un polinomio normal.\n- `SeriesCoefficient[f, {z, a, k}]` da directamente el coeficiente de (z − a)^k.\n\nMathematica **no dice dónde vale** el desarrollo. Regla: una serie de Taylor centrada en `a` converge en el disco que llega hasta la singularidad más cercana. Para f = 1/((z+1)(z+3)) centrada en 0, la más cercana es −1: vale en |z| < 1.",
-   "cells": [
+   "section": "Series de Taylor",
+   "title": "Para qué sirve esta práctica",
+   "md": "Cerca de un punto, una función «buena» es un polinomio infinito (serie de Taylor); cerca de una singularidad aparece además una parte con potencias negativas (serie de **Laurent**). El coeficiente de 1/(z − z0) se llama **residuo**, y con residuos se calculan en una línea integrales de contorno que a mano llevan una página.\n\nEso es la PL2, y son dos de las cinco preguntas del examen de Mathematica: Laurent por regiones con coeficientes sueltos, e integrales por residuos.",
+   "cells": []
+  },
+  {
+   "type": "build",
+   "title": "Desarrollar en serie: Series y Normal",
+   "md": "Vamos a desarrollar f = 1/((z + 1)(z + 3)) en potencias de z y a quedarnos con el polinomio.",
+   "target": "Normal[Series[f, {z, 0, 4}]]",
+   "parts": [
     {
-     "code": "f = 1/((z + 1) (z + 3));\nSeries[f, {z, 0, 4}]",
-     "note": "Taylor en z = 0, válido para |z| < 1"
+     "code": "f = 1/((z + 1) (z + 3));",
+     "md": "La función. Sus singularidades son z = −1 y z = −3.",
+     "run": true
+    },
+    {
+     "code": "{z, 0, 4}",
+     "md": "La llave de `Series`: variable, **centro** del desarrollo y orden."
+    },
+    {
+     "code": "Series[f, {z, 0, 4}]",
+     "md": "Serie de potencias de z hasta orden 4. El `O[z]^5` final indica que la serie sigue. Mathematica no dice dónde vale: en el disco que llega hasta la singularidad más cercana, aquí |z| < 1.",
+     "run": true
     },
     {
      "code": "Normal[Series[f, {z, 0, 4}]]",
-     "note": "el mismo desarrollo como polinomio, sin el O[z]^5"
-    },
-    {
-     "code": "SeriesCoefficient[f, {z, 2 I, 1}]",
-     "note": "coeficiente de (z − 2i) en el desarrollo centrado en 2i (válido en |z − 2i| < √5)"
+     "md": "`Normal` quita el `O[z]^5` y deja un polinomio corriente, que ya se puede evaluar o sumar.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "De memoria: con `f` ya definida, obtén su polinomio de Taylor de orden 4 en z = 0 (sin el término `O`).",
+    "hints": [
+     "`Series[f, {z, 0, 4}]` da la serie.",
+     "Envuélvela con `Normal[...]`.",
+     "Esqueleto: `Normal[Series[f, { , , }]]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1/3 - 4 z/9 + 13 z^2/27 - 40 z^3/81 + 121 z^4/243"
+    }
+   },
+   "cmds": [
+    "Series",
+    "Normal"
+   ],
+   "setup": "f = 1/((z + 1) (z + 3));"
   },
   {
    "type": "exercise",
@@ -80,49 +112,119 @@
    }
   },
   {
+   "type": "build",
+   "title": "Un coeficiente suelto: SeriesCoefficient",
+   "md": "En la prueba y en el examen piden coeficientes concretos (c0, c4, c6…). En vez de copiarlos a ojo de una serie larga, se piden uno a uno.",
+   "target": "SeriesCoefficient[1/(z + 2), {z, I, 3}]",
+   "parts": [
+    {
+     "code": "{z, I, 3}",
+     "md": "La llave: variable, centro (aquí z = i) y el exponente k del término (z − i)^k que quieres."
+    },
+    {
+     "code": "SeriesCoefficient[1/(z + 2), {z, I, 3}]",
+     "md": "El coeficiente de (z − i)³ en el Taylor de 1/(z + 2) centrado en i.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: calcula el coeficiente de (z − i)³ en el desarrollo de `1/(z + 2)` centrado en z = i.",
+    "hints": [
+     "El comando es `SeriesCoefficient`.",
+     "La llave es `{z, I, 3}`: variable, centro, exponente.",
+     "Esqueleto: `SeriesCoefficient[ , {z, , }]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-1/(2 + I)^4"
+    }
+   },
+   "cmds": [
+    "SeriesCoefficient"
+   ]
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl2-e02",
     "kind": "code",
-    "title": "Un coeficiente concreto",
-    "prompt": "Calcula el coeficiente de (z − i)³ en el desarrollo de Taylor de `1/(z + 2)` centrado en z = i. Usa `SeriesCoefficient`.",
+    "title": "Otro coeficiente",
+    "prompt": "Calcula el coeficiente de (z − 1)² en el desarrollo de Taylor de `Exp[2 z]` centrado en z = 1.",
     "difficulty": 2,
     "cmds": [
      "SeriesCoefficient"
     ],
     "real": false,
     "source": null,
-    "solution": "SeriesCoefficient[1/(z + 2), {z, I, 3}]",
+    "solution": "SeriesCoefficient[Exp[2 z], {z, 1, 2}]",
     "check": {
      "type": "expr",
-     "expected": "-1/(2 + I)^4"
+     "expected": "2 E^2"
     },
     "requires": [
      "SeriesCoefficient"
     ],
     "hints": [
-     "La llave es `{variable, centro, k}`: `{z, I, 3}`.",
-     "`SeriesCoefficient[1/(z + 2), {z, I, 3}]`"
+     "Llave: `{z, 1, 2}`.",
+     "`SeriesCoefficient[Exp[2 z], {z, 1, 2}]`"
     ],
-    "explain": "Vale −1/(2 + i)⁴ = 7/625 + 24i/625. En el examen piden coeficientes sueltos así (c0, c4, c6…): es más seguro pedirlos con `SeriesCoefficient` que copiarlos a ojo de una serie larga."
+    "explain": "Es f''(1)/2! = 4e²/2 = 2e²."
    }
   },
   {
-   "type": "explain",
-   "title": "Laurent «hacia fuera»: potencias negativas",
-   "md": "Lejos de las singularidades (fuera de un disco) la función se desarrolla en potencias **negativas**: 1/z, 1/z², …\n\n- En el guion se pide con el centro `Infinity`: `Series[f, {z, Infinity, 4}]`. Para f = 1/((z+1)(z+3)) da 1/z² − 4/z³ + 13/z⁴, válido en |z| > 3 (fuera de las dos singularidades).\n- `SeriesCoefficient[f, {z, Infinity, k}]` da el coeficiente de 1/z^k.\n- Truco equivalente y muy claro: «hacia fuera» es Taylor en la variable u = 1/z. Sustituye `z -> 1/u`, desarrolla en `u = 0` y deshaz el cambio (segunda celda).\n\n**Centro distinto de 0.** Para potencias negativas de (z − a) se hace un cambio de variable. En el guion: w = z − a, `Series[f /. z -> w + a, {w, Infinity, n}] /. w -> z - a` (Mathematica suelta un aviso `SeriesData::sdatv` inofensivo). Con el truco: `z -> a + 1/u` y al final `u -> 1/(z - a)` (tercera celda, con a = 3: válido en |z − 3| > 6, la distancia a la singularidad más lejana, −3).",
-   "cells": [
+   "type": "build",
+   "section": "Laurent hacia fuera",
+   "title": "Potencias negativas: desarrollar en 1/z",
+   "md": "Lejos de las singularidades (fuera de un disco) la función se desarrolla en potencias **negativas**: 1/z, 1/z²… El truco: «hacia fuera» es un Taylor en la variable u = 1/z.",
+   "target": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z",
+   "parts": [
     {
-     "code": "f = 1/((z + 1) (z + 3));\nSeriesCoefficient[f, {z, Infinity, 3}]",
-     "note": "coeficiente de 1/z³ en el desarrollo válido para |z| > 3"
+     "code": "f /. z -> 1/u",
+     "md": "Cambio de variable: se sustituye z por 1/u. Cuando z es grande, u es pequeña.",
+     "run": true
+    },
+    {
+     "code": "Series[f /. z -> 1/u, {u, 0, 4}]",
+     "md": "Taylor normal en u = 0.",
+     "run": true
+    },
+    {
+     "code": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]]",
+     "md": "Sin el término `O`, para poder deshacer el cambio.",
+     "run": true
     },
     {
      "code": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z",
-     "note": "todo el desarrollo en potencias negativas de z"
-    },
+     "md": "Se deshace el cambio: u vuelve a ser 1/z. Resultado: 1/z² − 4/z³ + 13/z⁴, válido en |z| > 3 (fuera de las dos singularidades).",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: con `f` ya definida, obtén su desarrollo en potencias negativas de z hasta 1/z⁴.",
+    "hints": [
+     "Sustituye `z -> 1/u` y desarrolla en `{u, 0, 4}`.",
+     "Quita el resto con `Normal` y deshaz el cambio con `/. u -> 1/z`.",
+     "Esqueleto: `Normal[Series[f /. z -> , {u, 0, 4}]] /. u -> `"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1/z^2 - 4/z^3 + 13/z^4"
+    }
+   },
+   "cmds": [
+    "Series",
+    "Normal"
+   ],
+   "setup": "f = 1/((z + 1) (z + 3));"
+  },
+  {
+   "type": "explain",
+   "title": "Cómo lo escribe el guion: centro Infinity",
+   "md": "El guion pide lo mismo poniendo `Infinity` como centro: `Series[f, {z, Infinity, 4}]` devuelve `(1/z)^2 - 4/z^3 + 13/z^4 + O[1/z]^5`. Las dos formas son equivalentes; conviene conocer ambas.\n\nPara potencias negativas de (z − a), con a ≠ 0, el guion cambia de variable w = z − a: `Series[f /. z -> w + a, {w, Infinity, n}] /. w -> z - a` (Mathematica suelta un aviso `SeriesData::sdatv` inofensivo). Con el truco de u: `z -> a + 1/u` y al final `u -> 1/(z - a)`.\n\nPara un coeficiente suelto, `SeriesCoefficient` también admite `Infinity`: el número de la llave es entonces la potencia de 1/z.",
+   "cells": [
     {
-     "code": "Normal[Series[f /. z -> 3 + 1/u, {u, 0, 4}]] /. u -> 1/(z - 3)",
-     "note": "en potencias negativas de (z − 3)"
+     "code": "SeriesCoefficient[1/((z + 1) (z + 3)), {z, Infinity, 3}]",
+     "note": "coeficiente de 1/z³: −4"
     }
    ]
   },
@@ -184,19 +286,95 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Dibujar discos y coronas con RegionPlot",
-   "md": "Un Laurent centrado en `a` vale en una **corona** r < |z − a| < R cuyos bordes pasan por singularidades. Dibujarla junto a los puntos singulares evita equivocarse de región.\n\n- `RegionPlot[condición, {u, u1, u2}, {v, v1, v2}]` colorea los puntos (u, v) que cumplen la condición.\n- `With[{z = u + I v}, ...]` sustituye `z` por `u + I v` **solo dentro** de esa expresión, sin dejar `z` definida. Así la condición se escribe en complejo: `2 < Abs[z + 1] < 3`.\n- Los puntos singulares: `Graphics[{Red, PointSize[Large], Point[{x, y}], ...}]`. El complejo a + b i es el punto `{a, b}`.\n- `Show[corona, puntos]` superpone ambos.\n\nEjemplo del guion: f = −1/((z − 1)(z − 2)) en potencias de (z + 1). Las singularidades 1 y 2 están a distancia 2 y 3 del centro −1: la corona intermedia es 2 < |z + 1| < 3.",
-   "cells": [
+   "type": "build",
+   "section": "Dibujar coronas",
+   "title": "Una corona con RegionPlot",
+   "md": "Un Laurent centrado en `a` vale en una **corona** r < |z − a| < R cuyos bordes pasan por singularidades. Dibujarla evita equivocarse de región. Ejemplo del guion: 2 < |z + 1| < 3.",
+   "target": "With[{z = u + I v}, RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]]",
+   "parts": [
     {
-     "code": "corona = With[{z = u + I v}, RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]]",
-     "note": "la corona 2 < |z + 1| < 3"
+     "code": "2 < Abs[z + 1] < 3",
+     "md": "La condición, escrita en complejo: distancia de z al centro −1 entre 2 y 3."
+    },
+    {
+     "code": "RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]",
+     "md": "`RegionPlot[condición, {u, desde, hasta}, {v, desde, hasta}]` colorea los puntos (u, v) que la cumplen. Pero la condición habla de `z`…"
+    },
+    {
+     "code": "With[{z = u + I v}, RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]]",
+     "md": "…y `With[{z = u + I v}, ...]` sustituye `z` por `u + I v` **solo dentro** de esa expresión, sin dejar `z` definida para después.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: dibuja la corona 2 < |z + 1| < 3 con u entre −5 y 3 y v entre −4 y 4.",
+    "hints": [
+     "La condición es `2 < Abs[z + 1] < 3`.",
+     "Va dentro de `RegionPlot[..., {u, -5, 3}, {v, -4, 4}]`, y todo dentro de `With[{z = u + I v}, ...]`.",
+     "Esqueleto: `With[{z = u + I v}, RegionPlot[ , {u, , }, {v, , }]]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 1,
+     "like": "RegionPlot[2 < Abs[u + I v + 1] < 3, {u, -5, 3}, {v, -4, 4}]",
+     "tol": 0.05
+    }
+   },
+   "cmds": [
+    "RegionPlot",
+    "With",
+    "Abs"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Añadir los puntos singulares",
+   "md": "Sobre la corona se marcan las singularidades (aquí z = 1 y z = 2) para ver que caen en los bordes. La corona ya está guardada en `corona`.",
+   "target": "puntos = Graphics[{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}];\nShow[corona, puntos]",
+   "parts": [
+    {
+     "code": "Point[{1, 0}]",
+     "md": "El complejo a + b i es el punto `{a, b}`: z = 1 es `{1, 0}`."
+    },
+    {
+     "code": "{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}",
+     "md": "Lista de directivas y primitivas: color, tamaño y los dos puntos."
+    },
+    {
+     "code": "puntos = Graphics[{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}];",
+     "md": "`Graphics` convierte la lista en un gráfico; lo guardamos en `puntos`.",
+     "run": true
     },
     {
      "code": "puntos = Graphics[{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}];\nShow[corona, puntos]",
-     "note": "las singularidades z = 1 y z = 2 quedan justo en los bordes"
+     "md": "`Show` superpone los dos gráficos.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "De memoria: crea `puntos` con z = 1 y z = 2 en rojo y tamaño grande, y superponlo a `corona` con `Show`.",
+    "hints": [
+     "`Graphics[{Red, PointSize[Large], Point[{1, 0}], Point[{2, 0}]}]`",
+     "Guárdalo en `puntos` y termina con `Show[corona, puntos]`."
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "has": [
+      "field",
+      "points"
+     ]
+    }
+   },
+   "cmds": [
+    "Graphics",
+    "Point",
+    "PointSize",
+    "Show"
+   ],
+   "setup": "corona = With[{z = u + I v}, RegionPlot[2 < Abs[z + 1] < 3, {u, -5, 3}, {v, -4, 4}]];"
   },
   {
    "type": "exercise",
@@ -204,7 +382,7 @@
     "id": "2-m3-pl2-e05",
     "kind": "code",
     "title": "Dibuja una corona con sus singularidades",
-    "prompt": "Dibuja la corona **1 < |z − i| < 3** con `RegionPlot` (u de −4 a 4, v de −3 a 5) y superpón con `Show` los puntos z = 0 y z = −2 + i·... no: los puntos **z = 0** y **z = 3 + i**, en rojo.",
+    "prompt": "Dibuja la corona **1 < |z − i| < 3** con `RegionPlot` (u de −4 a 4, v de −3 a 5) y superpón con `Show` los puntos **z = 0** y **z = 3 + i**, en rojo.",
     "difficulty": 3,
     "cmds": [
      "RegionPlot",
@@ -237,22 +415,50 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Laurent en una corona: Apart y cada fracción hacia su lado",
-   "md": "Receta para desarrollar una función racional en una corona centrada en `a`:\n\n- **1.** `Apart[f]` la separa en fracciones simples, una por singularidad.\n- **2.** Fracción cuya singularidad está en el borde **exterior** (o más lejos): se desarrolla «hacia dentro», Taylor normal `Series[frac, {z, a, n}]` (potencias positivas).\n- **3.** Fracción cuya singularidad está en el borde **interior** (o más cerca): «hacia fuera», potencias negativas con el cambio de variable.\n- **4.** El Laurent en la corona es la suma de ambos trozos.\n\nEjemplo del guion: f = −1/((z − 1)(z − 2)) en 2 < |z + 1| < 3. `Apart` da −1/(z − 2) + 1/(z − 1). La de z = 2 (borde exterior) va hacia dentro; la de z = 1 (borde interior), hacia fuera.\n\nEl guion extrae las fracciones con `desc[[1]]`, `desc[[2]]`. El orden en que `Apart` las escribe puede variar: mira siempre la salida antes de elegir, o escríbelas tú, como aquí.",
-   "cells": [
+   "type": "build",
+   "section": "Laurent en una corona",
+   "title": "Cada fracción hacia su lado",
+   "md": "Para desarrollar f = −1/((z − 1)(z − 2)) en la corona 2 < |z + 1| < 3 se separa en fracciones simples. La fracción cuya singularidad está en el borde **exterior** se desarrolla hacia dentro (Taylor); la del borde **interior**, hacia fuera (potencias negativas).",
+   "target": "Apart[-1/((z - 1) (z - 2))]\nSeries[-1/(z - 2), {z, -1, 3}]\nNormal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
+   "parts": [
     {
-     "code": "f = -1/((z - 1) (z - 2));\nApart[f]",
-     "note": "dos fracciones simples: singularidades en 1 y en 2"
+     "code": "Apart[-1/((z - 1) (z - 2))]",
+     "md": "`Apart` separa en fracciones simples: −1/(z − 2) + 1/(z − 1). El guion las extrae con `desc[[1]]`, `desc[[2]]`; el orden puede variar, así que mira la salida.",
+     "run": true
     },
     {
      "code": "Series[-1/(z - 2), {z, -1, 3}]",
-     "note": "parte regular: potencias positivas de (z + 1)"
+     "md": "La de z = 2 (borde exterior, a distancia 3 del centro −1): Taylor en potencias positivas de (z + 1).",
+     "run": true
     },
     {
      "code": "Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
-     "note": "parte principal: potencias negativas de (z + 1)"
+     "md": "La de z = 1 (borde interior): hacia fuera. Con centro a = −1 el cambio es z = −1 + 1/u, y al final u = 1/(z + 1).",
+     "run": true
+    },
+    {
+     "code": "Apart[-1/((z - 1) (z - 2))]\nSeries[-1/(z - 2), {z, -1, 3}]\nNormal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
+     "md": "Los tres pasos. El Laurent en la corona es la suma de la parte de potencias positivas y la de potencias negativas.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: obtén la parte de potencias **negativas** de (z + 1) del desarrollo en la corona: la fracción `1/(z - 1)` desarrollada hacia fuera hasta orden 3.",
+    "hints": [
+     "Cambio de variable: `1/(z - 1) /. z -> -1 + 1/u`.",
+     "Desarrolla en `{u, 0, 3}`, aplica `Normal` y deshaz con `/. u -> 1/(z + 1)`.",
+     "`Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1/(z + 1) + 2/(z + 1)^2 + 4/(z + 1)^3"
+    },
+    "solution": "Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)"
+   },
+   "cmds": [
+    "Apart",
+    "Series",
+    "Normal"
    ]
   },
   {
@@ -281,22 +487,47 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Residuos: tres formas de calcularlos",
-   "md": "El **residuo** de f en una singularidad z0 es el coeficiente c₋₁, el de 1/(z − z0), de su Laurent alrededor de z0. Ejemplo del guion: f = 1/(z (z + 4)³), con un polo triple en −4 y uno simple en 0.\n\n- **a) Con la serie**: `Series[f, {z, -4, 0}]` y se lee el coeficiente de 1/(z + 4).\n- **b) Con el límite**: si z0 es un polo de orden m, Res = límite cuando z → z0 de la derivada (m − 1)-ésima de (z − z0)^m · f, dividida entre (m − 1)!. Para m = 3: `D[..., {z, 2}]` entre `2!`.\n- **c) Con `Residue[f, {z, z0}]`**: directo. Ojo a la llave `{variable, punto}`.\n\nLas tres dan −1/64. En el examen usa `Residue`; las otras dos sirven para comprobar y son las que se hacen a mano.",
-   "cells": [
+   "type": "build",
+   "section": "Residuos",
+   "title": "El comando Residue",
+   "md": "El **residuo** de f en una singularidad z0 es el coeficiente de 1/(z − z0) de su Laurent alrededor de z0. Ejemplo del guion: f = 1/(z (z + 4)³), con un polo triple en −4 y uno simple en 0.",
+   "target": "f = 1/(z (z + 4)^3);\n{Residue[f, {z, -4}], Residue[f, {z, 0}]}",
+   "parts": [
     {
-     "code": "f = 1/(z (z + 4)^3);\nSeries[f, {z, -4, 0}]",
-     "note": "el coeficiente de 1/(z + 4) es −1/64"
+     "code": "f = 1/(z (z + 4)^3);",
+     "md": "La función, guardada en `f`.",
+     "run": true
     },
     {
-     "code": "Limit[D[(z + 4)^3 f, {z, 2}]/2!, z -> -4]",
-     "note": "fórmula del límite con m = 3"
+     "code": "Series[f, {z, -4, 0}]",
+     "md": "Primera forma: el Laurent alrededor de −4. El coeficiente de 1/(z + 4) es −1/64: ese es el residuo.",
+     "run": true
     },
     {
-     "code": "{Residue[f, {z, -4}], Residue[f, {z, 0}]}",
-     "note": "con Residue, en los dos polos"
+     "code": "Residue[f, {z, -4}]",
+     "md": "Segunda forma, la directa: `Residue[función, {variable, punto}]`. Variable y punto van juntos entre llaves.",
+     "run": true
+    },
+    {
+     "code": "f = 1/(z (z + 4)^3);\n{Residue[f, {z, -4}], Residue[f, {z, 0}]}",
+     "md": "Los residuos en los dos polos, en una lista.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: define `f = 1/(z (z + 4)^3)` y devuelve la lista con sus residuos en z = −4 y en z = 0.",
+    "hints": [
+     "`Residue[f, {z, -4}]`: variable y punto entre llaves.",
+     "Mete los dos en una lista: `{Residue[f, {z, -4}], Residue[f, {z, 0}]}`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{-1/64, 1/64}"
+    }
+   },
+   "cmds": [
+    "Residue",
+    "Series"
    ]
   },
   {
@@ -357,6 +588,46 @@
    }
   },
   {
+   "type": "build",
+   "title": "El residuo con la fórmula del límite",
+   "md": "Tercera forma, la que se hace a mano: si z0 es un polo de orden m, el residuo es el límite cuando z → z0 de la derivada (m − 1)-ésima de (z − z0)^m · f, dividida entre (m − 1)!. Para el polo triple z = −4 de `f` (ya definida): m = 3.",
+   "target": "Limit[D[(z + 4)^3 f, {z, 2}]/2!, z -> -4]",
+   "parts": [
+    {
+     "code": "(z + 4)^3 f",
+     "md": "Se multiplica por (z − z0)^m para cancelar el polo: queda 1/z.",
+     "run": true
+    },
+    {
+     "code": "D[(z + 4)^3 f, {z, 2}]/2!",
+     "md": "Derivada de orden m − 1 = 2, entre (m − 1)! = 2!.",
+     "run": true
+    },
+    {
+     "code": "Limit[D[(z + 4)^3 f, {z, 2}]/2!, z -> -4]",
+     "md": "Y el límite cuando z tiende al polo. Sale −1/64, igual que con `Residue`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: calcula el residuo de `f` en z = −4 con la fórmula del límite (polo de orden 3).",
+    "hints": [
+     "Multiplica por `(z + 4)^3` y deriva dos veces: `D[(z + 4)^3 f, {z, 2}]`.",
+     "Divide entre `2!` y toma `Limit[..., z -> -4]`.",
+     "Esqueleto: `Limit[D[(z + 4)^3 f, {z, }]/2!, z -> ]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-1/64"
+    }
+   },
+   "cmds": [
+    "Limit",
+    "D"
+   ],
+   "setup": "f = 1/(z (z + 4)^3);"
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl2-e09",
@@ -390,22 +661,54 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Integrales de contorno por residuos",
-   "md": "**Teorema de los residuos**: si C es una curva cerrada recorrida en sentido antihorario, ∫ f(z) dz = 2πi × (suma de los residuos de f en las singularidades **interiores** a C). Las de fuera no cuentan.\n\nReceta del guion, con C la circunferencia |z + 1 − i| = 2 (centro −1 + i, radio 2) y f = 1/((z + 1)²(z² + 1)):\n\n- **1. Polos**: `z /. Solve[den == 0, z]` da la lista de ceros del denominador (los múltiples, repetidos).\n- **2. ¿Dentro o fuera?** Distancia al centro: `Abs[polo - centro]`. Si es menor que el radio, está dentro. Restando un número a una lista se resta a todos sus elementos, así que sale de una vez.\n- **3. Sumar** los residuos de los de dentro y multiplicar por `2 Pi I`.\n\nAquí −1 e i están a distancia 1 (dentro) y −i a 2.236 (fuera). Si el contorno no es una circunferencia (elipse, cuadrado), se dibuja con los polos y se decide a ojo.",
-   "cells": [
+   "type": "build",
+   "section": "Integrales por residuos",
+   "title": "La receta: polos, distancias y suma de residuos",
+   "md": "**Teorema de los residuos**: sobre una curva cerrada (antihorario), ∫ f dz = 2πi × suma de los residuos en las singularidades **interiores**. Ejemplo del guion: f = 1/((z + 1)²(z² + 1)) sobre la circunferencia de centro −1 + i y radio 2.",
+   "target": "den = (z + 1)^2 (z^2 + 1);\npolos = z /. Solve[den == 0, z];\nN[Abs[polos - (-1 + I)]]\n2 Pi I (Residue[1/den, {z, -1}] + Residue[1/den, {z, I}])",
+   "parts": [
     {
-     "code": "den = (z + 1)^2 (z^2 + 1);\npolos = z /. Solve[den == 0, z]",
-     "note": "−1 (doble), −i e i"
+     "code": "den = (z + 1)^2 (z^2 + 1);",
+     "md": "El denominador, aparte: sus ceros son los polos.",
+     "run": true
+    },
+    {
+     "code": "polos = z /. Solve[den == 0, z]",
+     "md": "La lista de polos: −1 (doble, sale repetido), −i e i.",
+     "run": true
     },
     {
      "code": "N[Abs[polos - (-1 + I)]]",
-     "note": "distancias al centro −1 + i; el radio es 2"
+     "md": "Distancia de cada polo al centro (restar un número a una lista lo resta a todos). Menor que el radio 2: dentro. Aquí −i queda fuera (2.236).",
+     "run": true
     },
     {
      "code": "2 Pi I (Residue[1/den, {z, -1}] + Residue[1/den, {z, I}])",
-     "note": "solo los polos interiores: resultado iπ/2"
+     "md": "2πi por la suma de los residuos de los polos interiores: −1 e i.",
+     "run": true
+    },
+    {
+     "code": "den = (z + 1)^2 (z^2 + 1);\npolos = z /. Solve[den == 0, z];\nN[Abs[polos - (-1 + I)]]\n2 Pi I (Residue[1/den, {z, -1}] + Residue[1/den, {z, I}])",
+     "md": "La receta completa. Si el contorno no es una circunferencia (elipse, cuadrado), se dibuja con los polos y se decide a ojo.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "De memoria: calcula ∫ 1/((z + 1)²(z² + 1)) dz sobre la circunferencia de centro −1 + i y radio 2 (polos, distancias al centro y suma de residuos).",
+    "hints": [
+     "`den = (z + 1)^2 (z^2 + 1);` y `polos = z /. Solve[den == 0, z];`",
+     "Distancias: `N[Abs[polos - (-1 + I)]]`. Dentro están −1 e i.",
+     "`2 Pi I (Residue[1/den, {z, -1}] + Residue[1/den, {z, I}])`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "I Pi/2"
+    }
+   },
+   "cmds": [
+    "Residue",
+    "Solve",
+    "Abs"
    ]
   },
   {
@@ -467,6 +770,7 @@
   },
   {
    "type": "exercise",
+   "section": "Ejercicios del guion y de la prueba",
    "ex": {
     "id": "2-m3-pl2-e12",
     "kind": "code",
