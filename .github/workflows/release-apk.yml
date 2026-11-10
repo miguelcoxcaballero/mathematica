@@ -1,0 +1,22 @@
+# Publica una release con la APK de Android cada vez que se sube una etiqueta de versión (v1.0.0, v1.1.0, ...).
+name: Release APK
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publicar release con la APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          NOTES="APK para Android 7 o superior. Abre WolframLab Aero en una ventana propia a pantalla completa y guarda el progreso en la app. Necesita conexión a internet.
+
+          Instalación: descarga WolframLabAero.apk en el móvil, ábrela y acepta instalar aplicaciones de origen desconocido."
+          gh release create "$GITHUB_REF_NAME" app/WolframLabAero.apk --title "WolframLab Aero $VERSION (Android)" --notes "$NOTES" \
+            || gh release upload "$GITHUB_REF_NAME" app/WolframLabAero.apk --clobber

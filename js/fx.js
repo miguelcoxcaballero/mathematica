@@ -1,6 +1,6 @@
 // fx.js (SHELL) — sonido WebAudio sintetizado (sin ficheros) + efectos visuales + utilidades de interfaz.
 // Todo respeta store.settings.sound / store.settings.fx y prefers-reduced-motion.
-import { store } from './store.js?v=1794354103';
+import { store } from './store.js?v=1794354584';
 
 /* =====================================================================
    SONIDO
@@ -338,7 +338,7 @@ export function wlPre(code, extraClass = '') {
 let nbModule = null;
 export function ghostCell(host, code, opts = {}) {
   host.replaceChildren(wlPre(code));
-  (nbModule ||= import('./notebook.js?v=1794354103')).then((nb) => {
+  (nbModule ||= import('./notebook.js?v=1794354584')).then((nb) => {
     if (!host.isConnected || typeof nb.createCell !== 'function') return;
     const box = document.createElement('div');
     try {
@@ -435,6 +435,7 @@ const ICONS = {
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
   dice: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="8.7" cy="8.7" r=".9"/><circle cx="15.3" cy="15.3" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="15.3" cy="8.7" r=".9"/><circle cx="8.7" cy="15.3" r=".9"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  list: '<path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.6" cy="6.5" r="1"/><circle cx="4.6" cy="12" r="1"/><circle cx="4.6" cy="17.5" r="1"/>',
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   wrench: '<path d="M14.5 6.5a4.5 4.5 0 0 0-6 5.6L3.5 17l3.5 3.5 4.9-5a4.5 4.5 0 0 0 5.6-6l-3 3-2.5-2.5z"/>',
   alert: '<path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.2v.3"/>',

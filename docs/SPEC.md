@@ -186,6 +186,11 @@ Cada ejercicio se evalúa en limpio: reset de `Global`*` → `setup` → código
 - `{"type":"defined","name":"f"}`, `{"type":"all","checks":[…]}`, `{"type":"any","checks":[…]}`, `{"type":"none"}`.
 - `requires`/`forbids` (al nivel del ejercicio): símbolos que deben/no deben aparecer en el código (operadores por nombre:
   `ReplaceAll` `/.`, `Rule` `->`, `SetDelayed` `:=`, `Map` `/@`, `Part` `[[`, `Postfix` `//`, `Function` `&`, `Out` `%`, `Derivative` `'`).
+- (ENGINE, añadidos compatibles) `graphics` acepta también un `Manipulate[...]`/`Animate[...]`: comprueba el gráfico de su
+  estado inicial; campo opcional `"controls":n` = nº mínimo de controles. `like` compara además rangos x/y(/z), valores
+  al 23 % y 71 % del recorrido y el `mode` de los campos (un gráfico reflejado o `==` frente a contorno ya no pasa).
+  `numeric` y `equal` sobre números usan tolerancia RELATIVA (`|a-b| ≤ tol·max(|a|,|b|)`; frente a 0, absoluta).
+  En `test`/`expr`/`expected`, `%` es la última salida de la celda del alumno (también si acabó en `;`) y `%%` la anterior.
 Validación OBLIGATORIA del contenido: `engine-test/venv/bin/python tools/validate.py site/data/lessons/<id>.json`
 (desde `/home/user/work`). Debe terminar con `TOTAL ERRORS: 0`.
 
@@ -361,3 +366,46 @@ La línea visible de cada pantalla (`md` de una pieza, `prompt` de un ejercicio,
 grande (≈ 30–36 px en escritorio, 22–26 px en móvil), justo encima de la celda. Escríbela como un titular: una frase
 simple y directa, sin subordinadas, ideal ≤ 70 caracteres ("Divide 10 entre 4.", "Ahora con punto decimal.",
 "Dibuja `Sin[x]` de 0 a 2 Pi."). El `title` del paso es solo una etiqueta pequeña y puede omitirse.
+
+## 15. MÓVIL PRIMERO DE VERDAD — PETICIÓN EXPRESA DEL USUARIO
+"Optimizar lo máximo posible la web y la app para pantallas de móviles: cómoda, bien pensada y que simplemente funcione."
+La app Android es un WebView sobre esta misma web (objeto `window.WolframLabApp` presente dentro de ella), así que todo
+lo de aquí vale para ambas. Pantallas objetivo: 360×640, 390×844, 412×915; y CON TECLADO ABIERTO (≈ 390×430 útiles).
+
+### 15.1 Barra de teclas Wolfram (NOTEBOOK: `js/keybar.js`, estilos en notebook.css)
+Teclear `[ ] { } -> /. == :=` en un teclado de móvil es lo que más estorba. En dispositivos táctiles (`pointer: coarse`),
+al enfocar cualquier celda aparece una barra pegada justo encima del teclado (posicionada con `visualViewport`):
+- Una fila con desplazamiento horizontal de teclas grandes (≥ 40×44 px): `[` `]` `{` `}` `(` `)` `,` `->` `/.` `==` `=` `:=`
+  `^` `_` `*` `/` `+` `-` `'` `"` `;` `%` `<` `>` `#` `&` `.` `Pi` y flechas `←` `→` para mover el cursor.
+- En celdas fantasma, la tecla que toca ahora (si es un símbolo de la barra) se RESALTA y se desplaza a la vista: guía sin
+  escribir por él. Las teclas insertan por el mismo camino que el teclado (la validación del fantasma se aplica igual).
+- A la derecha, fija, la ACCIÓN PRINCIPAL (botón grande): por defecto «▶ Evaluar» (= Shift+Enter). El anfitrión puede
+  cambiarla: `createCell(el, {primary: {label, onPress}})` o `cell.setPrimary({label, onPress} | null)`.
+- API: `import { keybar } from './keybar.js'` → `keybar.visible`, `keybar.height`; mantiene en `document.documentElement`
+  las variables CSS `--vvh` (alto del viewport visual en px) y `--kb-h` (alto ocupado por barra + teclado) para que las
+  vistas reserven espacio. No tapa nunca la celda enfocada: la celda se desplaza a la vista por encima de la barra.
+- Enter en táctil: en celda fantasma completa = evaluar (y nueva línea solo donde el fantasma la espera); en ejercicios
+  de una línea, Enter = acción principal; en el cuaderno libre, Enter = nueva línea. `enterkeyhint` acorde.
+- Teclado: `autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"`, fuente ≥ 16 px (sin zoom de
+  iOS), y robustez total ante composición IME / texto predictivo de Android (probar con composición simulada por CDP).
+
+### 15.2 Lecciones, práctica y simulacros en móvil (LEARN)
+- Modo inmersivo: dentro de un tramo/sesión/examen se oculta la navegación global; arriba solo una línea fina de
+  progreso y «×» para salir. Con el teclado abierto deben verse a la vez: titular (puede encoger), celda y su salida.
+- Un solo pulgar: la acción siguiente SIEMPRE está en el mismo sitio — la acción principal de la barra de teclas:
+  «Evaluar» → (tras ejecutar) «Siguiente ›»; en ejercicios «Comprobar» → «Siguiente ›». Al avanzar, el foco pasa solo a
+  la celda siguiente y el teclado NO se cierra. Sin botones al pie tapados por el teclado.
+- Pistas y «Más detalle» como hoja inferior (bottom sheet) que no saca al alumno de la pantalla.
+- Simulador: preguntas y cuaderno en pestañas, cronómetro fino siempre visible, casillas numéricas con `inputmode="decimal"`.
+- Salidas y gráficos caben en el ancho; lo ancho (matrices) se desplaza dentro de su celda con inercia.
+
+### 15.3 Shell en móvil (SHELL)
+- Navegación con el pulgar: barra inferior fina con 4 destinos (Inicio · Índice · Práctica · Más), sobria (texto pequeño +
+  icono lineal), que se oculta en modo inmersivo y con el teclado abierto. «Más» abre el resto (Simulacros, Comandos,
+  Esquema, Registro, Cuaderno, Ajustes).
+- `viewport-fit=cover` + `env(safe-area-inset-*)`; objetivos táctiles ≥ 44 px; nada depende de hover; sin zoom por doble
+  toque en controles; tablas (registro) como listas de tarjetas; sin desplazamiento horizontal de página en 360 px.
+- PWA: `manifest.webmanifest` (nombre, iconos 192/512 y maskable, `display: standalone`, colores), `theme-color`,
+  iconos apple-touch; así en iPhone/Android se puede «Añadir a pantalla de inicio» y abre sin barra del navegador.
+- El kernel: arranque perezoso con progreso claro; si el sistema mata el worker al ir a segundo plano, se rearranca
+  solo al volver sin perder el punto de la lección.

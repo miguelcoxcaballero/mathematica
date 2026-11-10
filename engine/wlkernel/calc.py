@@ -134,6 +134,14 @@ def real_form(expr, real=True):
         e = expr.xreplace(fwd) if fwd else expr
         e = e.replace(lambda q: isinstance(q, sp.exp) and q.args[0].has(sp.I), _cis)
         re_, im_ = e.as_real_imag()
+
+        def arg2atan(z):
+            zr, zi = z.as_real_imag()
+            return sp.atan2(zi, zr)
+        if re_.has(sp.arg):
+            re_ = re_.replace(sp.arg, arg2atan)
+        if im_.has(sp.arg):
+            im_ = im_.replace(sp.arg, arg2atan)
         if re_.has(sp.re, sp.im, sp.arg) or im_.has(sp.re, sp.im, sp.arg):
             return expr
         out = re_ if real else re_ + sp.I * im_

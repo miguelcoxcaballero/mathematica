@@ -528,3 +528,112 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 @media (max-width: 620px) {
   .pr-session .pr-shead { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "back titles finish" "meters meters meters"; }
 }
+
+/* ============================================================ mobile first, for real (SPEC §15.2) */
+/* bottom sheet: hints and «Más detalle» on touch */
+.lx-sheet-scrim { position: fixed; inset: 0; z-index: 180; background: rgba(0, 0, 0, .22); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.lx-sheet-scrim.is-open { opacity: 1; pointer-events: auto; }
+.lx-sheet { position: fixed; z-index: 181; left: 0; right: 0; bottom: var(--kb-h, var(--lx-kb-h, 0px)); max-height: min(62vh, calc(var(--vvh, var(--lx-vvh, 100vh)) * .7)); display: flex; flex-direction: column; background: var(--bg); border-top: 1px solid var(--line); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 30px rgba(0, 0, 0, .14); transform: translateY(105%); transition: transform .2s var(--ease); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.lx-sheet.is-open { transform: none; }
+.lx-sheet-h { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 0 18px; font-size: .8rem; color: var(--muted); }
+.lx-sheet-x { width: 44px; height: 44px; font-size: 1.5rem; line-height: 1; color: var(--muted); }
+.lx-sheet-b { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 18px 18px; font-size: 1.02rem; }
+.lx-sheet-b .lx-more-b { border-left: 0; padding: 0; margin: 0; font-size: 1.02rem; max-width: none; }
+.lx-sheet-b .ex-hints { gap: 12px; }
+.lx-sheet-acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.lx-sheet-acts .ex-shape { flex: 1 1 100%; padding-left: 0; }
+.lx-sheet-acts .btn { min-height: 44px; }
+
+/* «×» of the immersive screens */
+.ls-x { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; font-size: 1.6rem; line-height: 1; color: var(--muted); flex: none; }
+.ls-x:hover { color: var(--text); text-decoration: none; }
+.sm-keys { display: none; }
+
+@media (max-width: 900px), (pointer: coarse) {
+  /* immersive: the global navigation goes away; only a thin progress line and «×» */
+  body.lx-immersive { --hud-h: 0px; --tab-h: 0px; }
+  body.lx-immersive .top, body.lx-immersive .hud, body.lx-immersive .tabbar, body.lx-immersive .side { display: none !important; }
+  body.lx-immersive .view { padding-top: max(6px, env(safe-area-inset-top, 0px)); padding-bottom: 0; }
+  .ls-x { display: inline-flex; }
+
+  /* lesson screen */
+  .ls--tramo { min-height: calc(var(--vvh, var(--lx-vvh, 100dvh)) - 12px - env(safe-area-inset-top, 0px)); }
+  .ls--tramo .ls-top { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 4px; }
+  .ls--tramo .ls-top .lp-back, .ls--tramo .ls-top .ls-top-t, .ls--tramo .ls-top .ls-count { display: none; }
+  .ls--tramo .ls-bar { grid-column: 1; grid-row: 1; height: 3px; }
+  .ls--tramo .ls-x { grid-column: 2; grid-row: 1; margin-right: -10px; }
+  .ls-body { padding: 10px 0 18px; }
+  .ls-screen { gap: 16px; }
+  .ls-nav { bottom: 0; padding: 8px 0 max(8px, env(safe-area-inset-bottom, 0px)); }
+  .ls-nav .btn, .lp-nav .btn { min-height: 46px; }
+  .ls-next, .lp-next { flex: 1; }
+  .ls-nav-hint, .lp-nav-hint { display: none; }
+  .ls-skip { min-height: 44px; display: inline-flex; align-items: center; padding: 0 6px; }
+  .ls-skip[hidden] { display: none; }
+
+  /* targets ≥ 44 px */
+  .ls .btn, .pr .btn, .sm .btn, .ex .btn { min-height: 44px; }
+  .lx-link { min-height: 44px; display: inline-flex; align-items: center; }
+  .lx-link[hidden] { display: none; }
+  .lx-more-d > summary { min-height: 44px; display: flex; align-items: center; }
+  .lx-more { gap: 0 24px; }
+  .ls-tramo { min-height: 56px; align-items: center; }
+  .pr-tile { min-height: 46px; }
+  .pr-tema { min-height: 52px; }
+  .pr-filter { min-height: 44px; padding: 0 2px; }
+  .pr-nbtn { min-height: 44px; min-width: 52px; }
+  .pr-search { min-height: 46px; font-size: 16px; }
+  .ex-check { min-height: 48px; }
+  .ex-actions { gap: 4px 22px; }
+  .ex-foot { opacity: .7; }
+  .lp-weak li { min-height: 48px; align-items: center; }
+  .lp-end-actions { gap: 6px 18px; }
+  .lp-back { min-height: 44px; display: inline-flex; align-items: center; }
+
+  /* practice session */
+  .pr-session .pr-shead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "meters x"; align-items: center; gap: 0 4px; }
+  .pr-session .pr-shead .lp-back, .pr-session .pr-shead .lp-titles, .pr-session .pr-finish { display: none; }
+  .pr-session .pr-x { grid-area: x; margin-right: -10px; }
+  .pr-session .pr-meters { grid-area: meters; }
+  .pr-session { gap: 8px; }
+  .pr-session .lp-prog { order: -1; }
+  .pr-session .lp-prog .lp-count { display: none; }
+  .pr-session .lp-nav { bottom: 0; }
+
+  /* exam */
+  .sm-run .sm-bar { top: 0; }
+  .sm-x { margin-right: -10px; }
+  .sm-run .sm-submit { min-height: 40px; }
+  .sm-tab { min-height: 44px; }
+  .sm-input { min-height: 46px; font-size: 16px; }
+  .sm-keys { display: inline-flex; gap: 4px; }
+  .sm-key { min-width: 44px; height: 46px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--bg-2); color: var(--text); font: 500 1rem var(--mono); display: inline-flex; align-items: center; justify-content: center; }
+  .sm-key--abc { font: 400 .8rem var(--font); color: var(--muted); }
+  .sm-chk { min-height: 46px; }
+  .sm-mode { min-height: 56px; }
+}
+
+/* keyboard open (or a very short viewport): the statement shrinks, secondary things step aside so that
+   statement + cell + output fit in ≈ 390 × 430 */
+.lx-kb .lx-statement, .lx-kb .ex-prompt.lx-statement { font-size: 1.14rem; line-height: 1.25; }
+.lx-kb .ls-label, .lx-kb .ex-label { display: none; }
+.lx-kb .ls-screen { gap: 10px; }
+.lx-kb .ls-body { padding: 4px 0 10px; }
+.lx-kb .ls-asm-target { font-size: .78rem; }
+.lx-kb .ls-asm { margin-bottom: -4px; }
+.lx-kb .ex { gap: 10px; }
+.lx-kb .ex-foot, .lx-kb .pr-src { display: none; }
+.lx-kb .ls--tramo { min-height: 0; }
+.lx-kb .ls--tramo .ls-x, .lx-kb .pr-session .pr-x, .lx-kb .sm-x { height: 34px; }
+.lx-kb .pr-session .pr-meters { font-size: .72rem; }
+.lx-kb .pr-session .lp-step { gap: 10px; }
+/* with the key bar, «Evaluar / Comprobar / Siguiente» live there: no footer under the keyboard */
+.lx-keybar.lx-kb.lx-touch .ls-nav, .lx-keybar.lx-kb.lx-touch .pr-session .lp-nav { display: none; }
+.lx-keybar.lx-kb.lx-touch .ex-check { display: none; }
+/* without it, the footer stays reachable right above the keyboard */
+.lx-kb .ls-nav, .lx-kb .pr-session .lp-nav { padding: 4px 0; }
+.lx-kb .ls-nav .btn, .lx-kb .lp-nav .btn { min-height: 40px; }
+@media (max-width: 380px) {
+  .lx-statement { font-size: 1.3rem; }
+  .ls-tramo { grid-template-columns: 1.3em minmax(0, 1fr) auto; }
+}

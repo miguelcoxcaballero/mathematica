@@ -3,12 +3,12 @@
 //   #/practica/comando/<Nombre>     exercises (from every lesson) that use that command, easy → hard, unsolved first
 //   #/practica/tema/<lessonId>      exercises of one lesson
 //   #/practica/aleatoria[?n=10]     N exercises sampled from what the student has already studied (weak/stale first)
-import { store } from '../store.js?v=1794354103';
-import * as data from '../data.js?v=1794354103';
-import * as fx from '../fx.js?v=1794354103';
+import { store } from '../store.js?v=1794354584';
+import * as data from '../data.js?v=1794354584';
+import * as fx from '../fx.js?v=1794354584';
 import {
-  mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
-} from '../exercise.js?v=1794354103';
+  mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel, setImmersive, touchUI,
+} from '../exercise.js?v=1794354584';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];
@@ -164,6 +164,7 @@ function unmount() {
   const me = V;
   if (!me) return;
   V = null; me.alive = false;
+  setImmersive(false);
   if (me.widget) safe(() => me.widget.destroy());
   me.cleanup.forEach((f) => safe(f));
   if (me.el) me.el.innerHTML = '';
@@ -379,6 +380,7 @@ function runSession(me, cfg) {
   const head = h('header', { class: 'pr-shead' },
     h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica' }, '← Práctica'),
     h('div', { class: 'lp-titles' }, h('div', { class: 'lp-crumbs' }, cfg.year ? yearBadge(cfg.year) : null, h('span', null, cfg.kicker)), h('h1', { class: 'lp-title' }, cfg.title)),
+    h('button', { class: 'ls-x pr-x', type: 'button', 'aria-label': 'Terminar la sesión', title: 'Terminar la sesión', onclick: () => summary() }, '×'),
     h('div', { class: 'pr-meters', 'aria-live': 'polite' }, h('span', { title: 'Aciertos' }, okEl, ' bien'), h('span', { title: 'Fallos, saltos y soluciones vistas' }, badEl, ' mal'), h('span', { title: 'XP de esta sesión' }, xpEl, ' XP')),
     finishBtn);
   const bar = h('i');
@@ -391,6 +393,7 @@ function runSession(me, cfg) {
   const nav = h('footer', { class: 'lp-nav' }, skipBtn, hint, nextBtn);
   root.className = 'pr pr-session';
   root.replaceChildren(head, prog, stage, nav);
+  setImmersive(true);
 
   const meters = () => {
     const ok = S.results.filter((r) => r.ok).length;
@@ -430,6 +433,7 @@ function runSession(me, cfg) {
     // a new variant every time the exercise comes up again
     me.widget = mountExercise(host, it.ex, {
       mode: 'practice', seed: newSeed(), year: it.year, lesson: it.lesson, recall: !!it.recall,
+      onNext: () => { if (S.current && S.current.it === it && S.current.done && !nextBtn.disabled) advance(); },
       onDone: (res) => {
         if (S.current.it !== it || S.current.done) return;
         S.current.done = true;
@@ -440,11 +444,11 @@ function runSession(me, cfg) {
         skipBtn.hidden = true;
         nextBtn.disabled = false; nextBtn.classList.add('primary');
         hint.textContent = 'Enter';
-        setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
+        if (!(touchUI() && document.documentElement.classList.contains('lx-keybar'))) setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
       },
     });
     S.seen.add(it.ex.id);
-    if (!window.matchMedia('(pointer: coarse)').matches) setTimeout(() => { if (S.current && S.current.it === it && me.widget) safe(() => me.widget.focus()); }, 320);
+    if (me.widget) safe(() => me.widget.focus()); // at once: on a phone the keyboard stays open between exercises
     const top = root.getBoundingClientRect().top + window.scrollY - 70;
     if (window.scrollY > top) window.scrollTo({ top: Math.max(0, top) });
   };
@@ -485,6 +489,8 @@ function runSession(me, cfg) {
     const acc = ok / n;
     const mins = Math.max(1, Math.round((Date.now() - S.t0) / 60000));
     const improved = [...S.cmd0.entries()].map(([c, lv0]) => ({ c, lv0, lv1: cmdLv(c) })).filter((x) => x.lv1 > x.lv0);
+    // how many of this command / tema are still unsolved (after this round)
+    const left = cfg.endless ? cfg.build().filter((it) => exStatus(it.ex.id) !== 'ok').length : 0;
     const msg = acc === 1 ? 'Sesión perfecta.' : acc >= 0.8 ? 'Muy bien.' : 'Repite las falladas ahora que las tienes frescas.';
     const wrap = h('div', { class: 'lp-step lp-in pr-sum' });
     wrap.appendChild(h('div', { class: `lp-end-hero${acc >= 0.8 ? ' is-complete' : ''}` },
@@ -510,8 +516,6 @@ function runSession(me, cfg) {
       }
       wrap.appendChild(h('div', { class: 'lp-end-card' }, h('h3', null, 'Para repetir'), list));
     }
-    // how many of this command / tema are still unsolved (after this round)
-    const left = cfg.endless ? cfg.build().filter((it) => exStatus(it.ex.id) !== 'ok').length : 0;
     const actions = h('div', { class: 'lp-end-actions' });
     if (failed.length) {
       const ids = new Set();
@@ -524,6 +528,7 @@ function runSession(me, cfg) {
     actions.appendChild(h('a', { class: 'btn ghost', href: '#/practica' }, 'Volver a práctica'));
     wrap.appendChild(actions);
     root.replaceChildren(head, wrap);
+    setImmersive(false);
     finishBtn.hidden = true;
     play(acc >= 0.8 ? 'unlock' : 'click');
     window.scrollTo({ top: 0 });
@@ -533,6 +538,7 @@ function runSession(me, cfg) {
     S.results = []; S.xp = 0; S.t0 = Date.now(); S.cmd0 = new Map();
     finishBtn.hidden = false;
     root.replaceChildren(head, prog, stage, nav);
+    setImmersive(true);
     newRound(items ? (onlyFailed ? items : items) : null);
     meters();
     if (!S.queue.length) { location.hash = '#/practica'; return; }

@@ -7,12 +7,21 @@
   <meta name="description" content="Aprende Wolfram Mathematica desde cero hasta resolver todas las prácticas y exámenes de 1º y 2º de Ingeniería Aeroespacial.">
   <meta name="theme-color" content="#222222">
   <meta name="color-scheme" content="light">
+  <!-- PWA: «Añadir a pantalla de inicio» abre la web sin barra del navegador -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="WolframLab">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23dd1100'/%3E%3Cpath d='M12 7H7v18h5M20 7h5v18h-5' fill='none' stroke='%23fff' stroke-width='2.4'/%3E%3Cpath d='M12 20 20.5 11.5l-2 9-2.8-2.6z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/tokens.css?v=1794354103">
-  <link rel="stylesheet" href="css/shell.css?v=1794354103">
-  <link rel="stylesheet" href="css/notebook.css?v=1794354103">
-  <link rel="stylesheet" href="css/gfx.css?v=1794354103">
-  <link rel="stylesheet" href="css/learn.css?v=1794354103">
+  <link rel="stylesheet" href="css/tokens.css?v=1794354584">
+  <link rel="stylesheet" href="css/shell.css?v=1794354584">
+  <link rel="stylesheet" href="css/notebook.css?v=1794354584">
+  <link rel="stylesheet" href="css/gfx.css?v=1794354584">
+  <link rel="stylesheet" href="css/learn.css?v=1794354584">
 </head>
 <body>
   <a class="skip-link" href="#view">Saltar al contenido</a>
@@ -40,7 +49,6 @@
         </button>
         <button class="st-icon" id="hud-sound" type="button" aria-pressed="true" aria-label="Sonido activado" title="Sonido (m)"></button>
         <button class="st-icon" id="hud-settings" type="button" aria-label="Ajustes y progreso" title="Ajustes y progreso"></button>
-        <button class="st-icon menu-btn" id="menu-btn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="side"></button>
       </div>
       <div class="kbar" id="kbar" aria-hidden="true"><i id="kpill-fill"></i></div>
     </header>
@@ -65,9 +73,6 @@
           <div class="nav-group">
             <a class="nav-item" data-nav="cuaderno" href="#/cuaderno">Cuaderno libre</a>
           </div>
-          <div class="nav-group nav-extra">
-            <button class="nav-item" id="nav-settings" type="button">Ajustes y progreso</button>
-          </div>
         </nav>
       </aside>
 
@@ -75,10 +80,18 @@
         <div class="page"><div class="skel skel-page" aria-hidden="true"><i style="width:36%;height:30px"></i><i style="width:64%"></i><i style="width:100%;height:90px"></i></div></div>
       </main>
     </div>
+
+    <!-- móvil: navegación con el pulgar (se oculta en modo inmersivo y con el teclado abierto) -->
+    <nav class="tabbar" id="tabbar" aria-label="Navegación">
+      <a class="tab" data-nav="home" href="#/"><span class="tab-ic" data-icon="home"></span><span>Inicio</span></a>
+      <a class="tab" data-nav="indice" href="#/indice"><span class="tab-ic" data-icon="list"></span><span>Índice</span></a>
+      <a class="tab" data-nav="practica" href="#/practica"><span class="tab-ic" data-icon="bolt"></span><span>Práctica</span></a>
+      <button class="tab" id="tab-more" type="button" data-nav="more" aria-haspopup="dialog" aria-expanded="false"><span class="tab-ic" data-icon="more"></span><span>Más</span></button>
+    </nav>
   </div>
 
   <div id="fx-layer" aria-hidden="true"></div>
   <noscript><div class="noscript">WolframLab Aero necesita JavaScript para funcionar (el motor de Mathematica corre en tu navegador).</div></noscript>
-  <script type="module" src="js/app.js?v=1794354103"></script>
+  <script type="module" src="js/app.js?v=1794354584"></script>
 </body>
 </html>

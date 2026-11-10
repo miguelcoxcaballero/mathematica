@@ -2559,7 +2559,7 @@ class IntQ(XB):
 
     def eval(self, f, spec, assum, evaluation):
         "WLX`IntQ[f_, spec_, assum_]"
-        if _INT_SPENT[0] > 12.0:
+        if _INT_SPENT[0] > 12.0 or not is_free_of(f, "System`Integrate"):
             # this cell already burnt its symbolic-integration allowance: leave the rest unevaluated
             SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             return SymbolFalse
@@ -2629,6 +2629,21 @@ class IntQ(XB):
                 raise
             except Exception:
                 pass
+        rat = None
+        if fs.is_rational_function(xs) and not fs.is_polynomial(xs) and not fs.has(sp.I):
+            # rational functions: real partial fractions (ArcTan/Log), never complex logarithms
+            try:
+                from sympy.integrals.rationaltools import ratint
+
+                rat = ratint(sp.together(fs), xs, real=True)
+                if rat.has(sp.Integral) or rat.has(sp.RootSum) or rat.has(sp.I):
+                    rat = None
+            except SympyTimeout:
+                raise
+            except Exception:
+                rat = None
+        if not definite and rat is not None:
+            return c.back(_tidy_antiderivative(rat, xs)).evaluate(ev)
         if not definite:
             r = _heaviside_antiderivative(fs, xs) if fs.has(sp.Heaviside) else None
             if r is None and not piecewise and fs.has(sp.exp, sp.sin, sp.cos, sp.sinh, sp.cosh):
@@ -2688,6 +2703,16 @@ class IntQ(XB):
         r = calc.no_stray_complex(r, fs, a, b)
         if r is not None:
             return c.back(self._finish(_trig_tidy(r))).evaluate(ev)
+        if rat is not None and a not in (sp.oo, -sp.oo) and b not in (sp.oo, -sp.oo):
+            try:
+                den = sp.fraction(sp.together(fs))[1]
+                if not sp.Poly(den, xs).free_symbols - {xs} and not sp.real_roots(sp.Poly(den, xs)):
+                    r = rat.subs(xs, b) - rat.subs(xs, a)
+                    return c.back(self._finish(r)).evaluate(ev)
+            except SympyTimeout:
+                raise
+            except Exception:
+                pass
         r = calc.no_stray_complex(self._by_pieces(fs, xs, a, b), fs, a, b) if piecewise else None
         if r is not None:
             return c.back(self._finish(r)).evaluate(ev)
@@ -2723,6 +2748,7 @@ class IntQ(XB):
                 SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             return None
         r = _generic_branch(r, xs)
+        suspicious = r.has(sp.I) and not fs.has(sp.I)
         r = calc.no_stray_complex(r, fs, a, b)
         if r is None:
             return None
@@ -2731,12 +2757,12 @@ class IntQ(XB):
             # complex integrand: SymPy can take the wrong branch of a logarithm (closed contours give 0)
             r = self._branch_check(r, fs, xs, a, b)
         elif (fs.free_symbols - {xs}) or a.free_symbols or b.free_symbols:
-            if not self._probe_ok(r, fs, xs, a, b, c):
+            if not self._probe_ok(r, fs, xs, a, b, c, strict=suspicious):
                 return None
         return c.back(r).evaluate(ev)
 
     @staticmethod
-    def _probe_ok(r, fs, xs, a, b, c):
+    def _probe_ok(r, fs, xs, a, b, c, strict=False):
         """Definite integral with parameters from SymPy's general machinery: compare with quadrature at two
         parameter values (SymPy sometimes returns a wrong branch, e.g. complex logs for a real area).
         True unless both probes clearly disagree."""
@@ -2748,7 +2774,7 @@ class IntQ(XB):
         if not syms or len(syms) > 4:
             return True
         bad = 0
-        for trial in range(2):
+        for trial in range(3 if strict else 2):
             sub = {}
             for i, s_ in enumerate(syms):
                 nm = s_.name
@@ -2756,22 +2782,36 @@ class IntQ(XB):
                     v = sp.Integer(2 + i + 3 * trial)
                 elif nm in c.negative:
                     v = -sp.Rational(37 + 11 * i + 24 * trial, 100)
+                elif strict and trial == 1 and nm not in c.positive:
+                    v = -sp.Rational(83 + 9 * i, 100)       # a complex-looking primitive may be right only for x > 0
+                elif strict and trial == 2:
+                    v = sp.Rational(190 + 13 * i, 100)
                 else:
                     v = sp.Rational(37 + 11 * i + 24 * trial, 100)
                 sub[s_] = v
             try:
                 lo, hi = a.subs(sub), b.subs(sub)
                 if not (lo.is_real and hi.is_real) and lo not in (sp.oo, -sp.oo) and hi not in (sp.oo, -sp.oo):
+                    if strict:
+                        continue
                     return True
                 nv = numeric.quick_numeric(fs.subs(sub), xs, lo, hi)
                 if nv is None:
+                    if strict:
+                        continue
                     return True
                 sv = complex(sp.N(r.subs(sub)))
                 if sv != sv:
+                    if strict:
+                        continue
                     return True
                 if abs(nv - sv) > 1e-5 * (1 + abs(nv)):
+                    if os.environ.get("WLX_DEBUG"):
+                        print("WLX_DEBUG probe mismatch", sub, nv, sv, file=__import__("sys").stderr)
+                    if strict:
+                        return False
                     bad += 1
-                else:
+                elif not strict:
                     return True
             except SympyTimeout:
                 raise
@@ -3310,6 +3350,8 @@ def _init_numpy_extra():
 
     NUMPY_EXTRA.update({
         "Heaviside": lambda x, h0=0.5: np.heaviside(x, h0),
+        # -0.0 must behave as 0 (exact results use atan2(0, -r) = +Pi; IEEE gives -Pi for atan2(-0.0, -r))
+        "arctan2": lambda y, x: np.arctan2(y + 0.0, x),
         "DiracDelta": lambda x: np.zeros_like(np.asarray(x, dtype=float)),
         "sign": np.sign, "Abs": np.abs, "re": np.real, "im": np.imag, "conjugate": np.conjugate,
         "arg": np.angle, "sinc": lambda x: np.sinc(np.asarray(x) / np.pi),

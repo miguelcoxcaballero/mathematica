@@ -1,7 +1,7 @@
 // Vista: comandos (#/comandos = página guía con tres listas · #/comandos/<Nombre> = ficha tipo página de símbolo).
-import { store } from '../store.js?v=1794354103';
-import { loadCommands, loadSchema, loadCourse, safe, flatUnits, cmdHref, lessonHref, familyIndex } from '../data.js?v=1794354103';
-import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, timeAgo, ghostCell } from '../fx.js?v=1794354103';
+import { store } from '../store.js?v=1794354584';
+import { loadCommands, loadSchema, loadCourse, safe, flatUnits, cmdHref, lessonHref, familyIndex } from '../data.js?v=1794354584';
+import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, timeAgo, ghostCell } from '../fx.js?v=1794354584';
 
 let alive = false;
 const S = { tab: null, q: '', fam: '', year: 0, sort: 'curso' };

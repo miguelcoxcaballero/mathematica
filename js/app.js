@@ -1,7 +1,7 @@
 // app.js (SHELL) — arranque: barra superior (navegación, nivel/XP, racha, motor, sonido), ajustes y atajos.
-import { store, dayKey } from './store.js?v=1794354103';
-import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794354103';
-import { router } from './router.js?v=1794354103';
+import { store, dayKey } from './store.js?v=1794354584';
+import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794354584';
+import { router } from './router.js?v=1794354584';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -63,7 +63,7 @@ const hud = (() => {
 
   function init() {
     $('#hud-settings').innerHTML = icon('gear', 17);
-    $('#menu-btn').innerHTML = icon('menu', 20);
+    for (const el of $$('[data-icon]')) el.innerHTML = icon(el.dataset.icon, 21);
     render();
     store.on((_, evt) => { render(); onEvent(evt); });
     $('#hud-sound').addEventListener('click', () => {
@@ -150,7 +150,7 @@ const kernelUI = (() => {
     if (!pill) return;
     const st = missing ? 'missing' : status;
     pill.dataset.status = st;
-    let label = '', tip = 'Motor de cálculo: Wolfram Language (Mathics3) dentro de tu navegador.';
+    let label = '', short = '', tip = 'Motor de cálculo: Wolfram Language (Mathics3) dentro de tu navegador.';
     const pct = Math.max(0, Math.min(1, Number(progress?.pct) || 0));
     if (st === 'missing') { label = 'Sin motor'; tip = 'El motor todavía no está instalado en esta versión de la web. Pulsa para reintentar.'; }
     else if (st === 'idle') { label = 'Motor en reposo'; tip += ' Pulsa para arrancarlo.'; }
@@ -158,29 +158,54 @@ const kernelUI = (() => {
       const raw = String(progress?.phase || '').trim();
       const ph = (PHASES[raw] ? `Cargando ${PHASES[raw]}` : raw).replace(/[.…]+$/, '');
       label = `Cargando motor${pct ? ` ${Math.round(pct * 100)} %` : '…'}`;
+      short = `Motor ${pct ? Math.round(pct * 100) + ' %' : '…'}`;
       tip = `${ph || 'Preparando el motor de cálculo'}. La primera vez tarda un poco; después va de caché.`;
     } else if (st === 'ready') { label = 'Motor listo'; tip += ' Pulsa para opciones.'; }
     else if (st === 'busy') { label = 'Calculando…'; tip = 'El motor está evaluando una celda.'; }
     else if (st === 'error') { label = 'Motor caído'; tip = `${String(progress?.phase || 'El motor ha fallado al cargar.')} Pulsa para reintentar.`; }
-    // en pantallas estrechas se oculta la palabra "Motor" (.opt) y queda "listo", "en reposo", "caído"…
-    const m = label.match(/^(Motor |Cargando motor ?)(.*)$/);
-    if (m && m[2]) tx.replaceChildren(h('span', { class: 'opt' }, m[1]), m[2]); else tx.textContent = label;
+    // dos textos: el completo (escritorio) y uno corto para el móvil («Motor 42 %», «Reintentar»…)
+    if (st === 'error') short = 'Reintentar';
+    else if (st === 'busy') short = 'Calculando…';
+    tx.replaceChildren(h('span', { class: 'k-long' }, label), h('span', { class: 'k-short' }, short));
     pill.title = tip;
     pill.setAttribute('aria-label', `${label}. ${tip}`);
     bar.dataset.status = st;
     fill.style.transform = `scaleX(${st === 'loading' ? Math.max(0.03, pct) : 0})`;
   }
 
+  // Recuperación: si el motor ya estuvo listo y vuelve a cargar (el sistema mató el worker en segundo plano, se colgó
+  // o alguien lo reinició), se avisa una vez con texto claro y otra al volver a estar listo.
+  let everReady = false, recovering = false, lastWarn = 0;
   function onStatus(s, p) {
+    const prev = status;
     status = s || kernel?.status || 'idle';
     progress = p || kernel?.progress || null;
+    if (status !== prev) {
+      if (status === 'ready') {
+        if (recovering) toast('Motor listo otra vez. Las definiciones se han borrado: vuelve a evaluar las celdas que necesites.', 'ok', 5200);
+        everReady = true; recovering = false;
+      } else if (status === 'loading' && everReady && !recovering) {
+        recovering = true;
+        toast('El motor se está reiniciando. Tu progreso está guardado: en unos segundos puedes seguir.', 'info', 4200);
+      } else if (status === 'error' && Date.now() - lastWarn > 8000) {
+        lastWarn = Date.now();
+        recovering = everReady;
+        toast(h('span', null, 'El motor no ha podido cargar. ', h('button', { class: 'btn link', type: 'button', onclick: () => start(true) }, 'Reintentar')), 'bad', 7000);
+      }
+    }
     paint();
+  }
+  // al volver a la pestaña/app: si el motor se cayó mientras estaba en segundo plano, se rearranca solo
+  function onVisible() {
+    if (document.hidden || !kernel) return;
+    const st = kernel.status || status;
+    if (st === 'error' || (st === 'idle' && everReady)) start(false);
   }
 
   async function load() {
     if (kernel) return kernel;
     try {
-      const mod = await import('./kernel-client.js?v=1794354103');
+      const mod = await import('./kernel-client.js?v=1794354584');
       kernel = mod.kernel || mod.default;
       if (!kernel || typeof kernel.start !== 'function') throw new Error('kernel-client sin kernel.start');
       missing = false;
@@ -242,6 +267,9 @@ const kernelUI = (() => {
     const kick = () => setTimeout(warm, 1500);
     if (document.readyState === 'complete') requestAnimationFrame(kick);
     else window.addEventListener('load', () => requestAnimationFrame(kick), { once: true });
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pageshow', onVisible);
+    window.addEventListener('online', onVisible);
   }
   return { init, start, restart };
 })();
@@ -259,6 +287,11 @@ function toggleRow(label, desc, key) {
   });
   return h('label', { class: 'set-row', for: id }, h('span', null, h('b', null, label), h('small', { class: 'muted' }, desc)), input);
 }
+
+// PWA: si el navegador ofrece instalar, se guarda el aviso para ofrecerlo desde Ajustes (sin banners)
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; });
+window.addEventListener('appinstalled', () => { installEvt = null; });
 
 let dialog = null;
 function openSettings() {
@@ -307,11 +340,15 @@ function openSettings() {
         h('h3', null, 'Tu progreso'),
         h('p', { class: 'muted' }, `Nivel ${li.level} (${li.title}) · ${li.xp} XP · ${c.exOk} ${c.exOk === 1 ? 'ejercicio resuelto' : 'ejercicios resueltos'} · ${c.learned} ${c.learned === 1 ? 'comando dominado' : 'comandos dominados'}. Se guarda solo en este navegador: haz una copia de vez en cuando.`),
         store.memoryOnly ? h('p', { class: 'set-warn' }, 'Este navegador no deja guardar datos (modo privado): el progreso se perderá al cerrar la pestaña.') : null,
-        h('div', { class: 'row' },
+        h('div', { class: 'row set-actions' },
           h('button', { class: 'btn', type: 'button', onclick: () => { store.exportFile(); toast('Copia descargada.', 'ok'); } }, 'Exportar copia (.json)'),
           h('button', { class: 'btn', type: 'button', onclick: () => fileInput.click() }, 'Importar copia'),
           resetBtn,
           fileInput)),
+      installEvt ? h('section', null,
+        h('h3', null, 'Instalar'),
+        h('p', { class: 'muted' }, 'Añade WolframLab Aero a la pantalla de inicio: se abre a pantalla completa, como una app.'),
+        h('div', { class: 'row set-actions' }, h('button', { class: 'btn', type: 'button', onclick: async () => { const e = installEvt; installEvt = null; try { await e.prompt(); } catch { /* cancelado */ } dialog?.close(); } }, 'Instalar en este dispositivo'))) : null,
       h('section', null,
         h('h3', null, 'Atajos de teclado'),
         h('div', { class: 'set-keys' }, keys.map(([k, d]) => h('div', null, h('span', null, k.split(' ').map((x) => h('kbd', null, x))), h('span', { class: 'muted' }, d)))),
@@ -325,20 +362,85 @@ function openSettings() {
 /* =====================================================================
    Navegación: resaltado, menú móvil, sonido de clic, atajos de teclado
    ===================================================================== */
-function setMenu(open) {
-  document.body.classList.toggle('menu-open', open);
-  $('#menu-btn').setAttribute('aria-expanded', String(open));
-  $('#menu-btn').innerHTML = icon(open ? 'x' : 'menu', 20);
+/* ---- móvil: hoja «Más» (el resto de destinos + ajustes), pensada para el pulgar ---- */
+const MORE = [
+  ['simulacros', '#/simulacros', 'timer', 'Simulacros de examen', 'Con tiempo y casillas, como el real'],
+  ['comandos', '#/comandos', 'brackets', 'Comandos', 'Las fichas y tu nivel en cada uno'],
+  ['esquema', '#/esquema', 'graph', 'Esquema de comandos', 'Anatomía, signos, familias y recetas'],
+  ['registro', '#/registro', 'table', 'Registro de prácticas', 'Qué has hecho y qué te falta'],
+  ['cuaderno', '#/cuaderno', 'book', 'Cuaderno libre', 'Una hoja en blanco'],
+];
+let sheet = null;
+function closeSheet() {
+  if (!sheet) return;
+  const s = sheet; sheet = null;
+  s.classList.add('out');
+  setTimeout(() => s.remove(), 200);
+  $('#tab-more').setAttribute('aria-expanded', 'false');
+  document.documentElement.classList.remove('sheet-open');
+}
+function openMore() {
+  if (sheet) { closeSheet(); return; }
+  closePopover();
+  const cur = router.current.nav;
+  const row = (ic, title, sub, attrs) => h(attrs.href ? 'a' : 'button', { class: `sheet-item${attrs.active ? ' active' : ''}`, type: attrs.href ? null : 'button', href: attrs.href || null, onclick: attrs.onclick },
+    h('span', { class: 'sheet-ic', html: icon(ic, 22) }), h('span', { class: 'sheet-tx' }, h('b', null, title), h('small', null, sub)));
+  const on = store.settings.sound;
+  sheet = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Más secciones' },
+    h('div', { class: 'sheet-back', onclick: closeSheet }),
+    h('div', { class: 'sheet-panel' },
+      h('div', { class: 'sheet-grip', 'aria-hidden': 'true' }),
+      MORE.map(([nav, href, ic, t, d]) => row(ic, t, d, { href, active: nav === cur, onclick: closeSheet })),
+      h('div', { class: 'sheet-sep' }),
+      row(on ? 'sound' : 'mute', on ? 'Sonido activado' : 'Sonido silenciado', 'Toca para cambiarlo', { onclick: () => { closeSheet(); $('#hud-sound').click(); } }),
+      row('gear', 'Ajustes y progreso', 'Efectos, copia de seguridad, atajos', { onclick: () => { closeSheet(); openSettings(); } })));
+  document.body.appendChild(sheet);
+  document.documentElement.classList.add('sheet-open');
+  $('#tab-more').setAttribute('aria-expanded', 'true');
+  // deslizar hacia abajo para cerrar
+  const panel = sheet.querySelector('.sheet-panel');
+  let y0 = null;
+  panel.addEventListener('touchstart', (e) => { y0 = panel.scrollTop <= 0 ? e.touches[0].clientY : null; }, { passive: true });
+  panel.addEventListener('touchmove', (e) => { if (y0 != null) { const dy = e.touches[0].clientY - y0; if (dy > 0) panel.style.transform = `translateY(${dy}px)`; } }, { passive: true });
+  panel.addEventListener('touchend', (e) => { if (y0 == null) return; const dy = (e.changedTouches[0]?.clientY ?? y0) - y0; panel.style.transform = ''; if (dy > 70) closeSheet(); y0 = null; });
+}
+
+/* ---- móvil: ¿teclado en pantalla abierto? → <html data-kb="1"> (la barra inferior se aparta) ---- */
+function watchKeyboard() {
+  const root = document.documentElement;
+  const vv = window.visualViewport;
+  const coarse = (() => { try { return window.matchMedia('(pointer: coarse)').matches; } catch { return false; } })();
+  let base = window.innerHeight; // alto sin teclado (se actualiza al girar)
+  const editing = () => {
+    const a = document.activeElement;
+    return !!a && a !== document.body && (a.isContentEditable || /^(TEXTAREA)$/.test(a.tagName) || (a.tagName === 'INPUT' && !/^(checkbox|radio|button|file|range|submit)$/i.test(a.type)) || !!a.closest?.('.cm-editor, [data-editor]'));
+  };
+  const upd = () => {
+    const vh = vv ? vv.height : window.innerHeight;
+    if (!editing()) base = Math.max(window.innerHeight, vh);
+    const shrink = base - vh;                                              // el viewport visual encoge (iOS, Android con resize)
+    const kbVar = parseFloat(getComputedStyle(root).getPropertyValue('--kb-h')) || 0; // lo mantiene la barra de teclas (keybar.js)
+    const open = shrink > 110 || kbVar > 0 || (coarse && editing());
+    if (open) root.dataset.kb = '1'; else delete root.dataset.kb;
+  };
+  if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
+  window.addEventListener('resize', upd);
+  window.addEventListener('orientationchange', () => { base = 0; setTimeout(upd, 300); });
+  document.addEventListener('focusin', upd);
+  document.addEventListener('focusout', () => setTimeout(upd, 80));
+  try { new MutationObserver(upd).observe(root, { attributes: true, attributeFilter: ['style'] }); } catch { /* opcional */ }
+  upd();
 }
 
 function initNav() {
   router.onChange((info) => {
     closePopover();
-    setMenu(false);
-    for (const a of $$('#nav [data-nav]')) {
-      const on = a.dataset.nav === info.nav;
+    closeSheet();
+    const inMore = MORE.some(([nav]) => nav === info.nav);
+    for (const a of $$('#nav [data-nav], #tabbar [data-nav]')) {
+      const on = a.dataset.nav === info.nav || (a.dataset.nav === 'more' && inMore);
       a.classList.toggle('active', on);
-      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      if (a.tagName === 'A') { if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); }
     }
     document.body.dataset.route = info.view || '404';
     // recuerda la última lección abierta para "continuar donde lo dejaste"
@@ -346,9 +448,13 @@ function initNav() {
       store.set('last', { lessonId: info.params.lessonId, step: store.state.lesson[info.params.lessonId]?.step || 0, ts: Date.now() });
     }
   });
-  $('#menu-btn').addEventListener('click', () => setMenu(!document.body.classList.contains('menu-open')));
-  $('#nav').addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
-  $('#nav-settings').addEventListener('click', () => { setMenu(false); openSettings(); });
+  $('#tab-more').addEventListener('click', openMore);
+  // tocar la pestaña en la que ya estás sube al principio (gesto habitual en apps)
+  $('#tabbar').addEventListener('click', (e) => {
+    const a = e.target.closest('a.tab');
+    if (a && a.getAttribute('href') === (location.hash || '#/')) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  });
+  watchKeyboard();
 
   // clic suave en elementos de interfaz (no dentro de celdas/editores)
   document.addEventListener('click', (e) => {
@@ -364,7 +470,7 @@ function initNav() {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const t = e.target;
     const typing = t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.closest('.cm-editor, [contenteditable="true"], [data-editor]'));
-    if (e.key === 'Escape') { closePopover(); setMenu(false); return; }
+    if (e.key === 'Escape') { closePopover(); closeSheet(); return; }
     if (typing || document.querySelector('dialog[open]')) return;
     const k = e.key.toLowerCase();
     if (gAt && performance.now() - gAt < 1200 && GO[k]) { e.preventDefault(); gAt = 0; router.navigate(GO[k]); return; }

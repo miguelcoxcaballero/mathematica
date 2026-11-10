@@ -6,10 +6,10 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794354103';
-import { createCell } from './notebook.js?v=1794354103';
-import { store } from './store.js?v=1794354103';
-import * as fx from './fx.js?v=1794354103';
+import { kernel } from './kernel-client.js?v=1794354584';
+import { createCell } from './notebook.js?v=1794354584';
+import { store } from './store.js?v=1794354584';
+import * as fx from './fx.js?v=1794354584';
 
 const { sfx, xpFloat } = fx;
 
@@ -126,10 +126,94 @@ export function splitText(src, limit = 90) {
   }
   return { line, rest };
 }
-/** Discreet closed disclosures under the cell: «Pista» (brief) and «Más detalle». Returns null when there is nothing to show. */
+/* ============================================================ mobile (SPEC §15.2) */
+/** Touch UI? (phones/tablets, or a narrow window) */
+export function touchUI() { return safe(() => window.matchMedia('(pointer: coarse)').matches, false) || window.innerWidth <= 620; }
+/** Sets the key bar's primary action of a cell (SPEC §15.1: `cell.setPrimary`). No-op until notebook.js provides it. */
+export function setPrimary(cell, action) { if (cell && typeof cell.setPrimary === 'function') safe(() => cell.setPrimary(action)); }
+
+// Keeps <html> informed about the on-screen keyboard: class `lx-kb` while it is open (or the viewport is very short) and
+// the variables --lx-vvh / --lx-kb-h as a fallback for keybar.js' --vvh / --kb-h.
+let vvWatching = false;
+function watchViewport() {
+  if (vvWatching || typeof window === 'undefined') return;
+  vvWatching = true;
+  const root = document.documentElement;
+  const vv = window.visualViewport;
+  const upd = () => {
+    const h0 = window.innerHeight;
+    const vh = vv ? vv.height : h0;
+    const kb = Math.max(0, h0 - vh - (vv ? vv.offsetTop : 0));
+    root.style.setProperty('--lx-vvh', `${Math.round(vh)}px`);
+    root.style.setProperty('--lx-kb-h', `${Math.round(kb)}px`);
+    root.classList.toggle('lx-kb', kb > 120 || vh <= 560);
+    root.classList.toggle('lx-touch', touchUI());
+  };
+  upd();
+  if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
+  window.addEventListener('resize', upd);
+  // keybar.js is optional (it may not be deployed yet): with it, the next action lives in the key bar
+  import('./keybar.js?v=1794354584').then((m) => { if (m && m.keybar) root.classList.add('lx-keybar'); }).catch(() => {});
+}
+/** Immersive mode inside a tramo / session / exam: the global navigation goes away (class on <body> + event for the shell). */
+export function setImmersive(on) {
+  watchViewport();
+  const b = document.body;
+  if (b.classList.contains('lx-immersive') === !!on) return;
+  b.classList.toggle('lx-immersive', !!on);
+  if (on) document.documentElement.dataset.immersive = '1'; else delete document.documentElement.dataset.immersive;
+  safe(() => window.dispatchEvent(new CustomEvent('wl:immersive', { detail: { on: !!on } })));
+}
+
+let sheetOpen = null;
+/** Bottom sheet (touch): hints and details open over the screen without leaving it, above the keyboard. */
+export function openSheet({ title = '', node, onClose } = {}) {
+  ensureCss(); watchViewport();
+  if (sheetOpen) sheetOpen.close();
+  const active = document.activeElement;
+  const body = h('div', { class: 'lx-sheet-b' });
+  const x = h('button', { class: 'lx-sheet-x', type: 'button', 'aria-label': 'Cerrar' }, '×');
+  const sheet = h('div', { class: 'lx-sheet', role: 'dialog', 'aria-label': title || 'Detalle' }, h('div', { class: 'lx-sheet-h' }, h('span', null, title), x), body);
+  const scrim = h('div', { class: 'lx-sheet-scrim' });
+  if (node) body.appendChild(node);
+  const api = {
+    el: sheet, body,
+    close() {
+      if (sheetOpen !== api) return;
+      sheetOpen = null;
+      sheet.classList.remove('is-open'); scrim.classList.remove('is-open');
+      document.removeEventListener('keydown', onKey, true);
+      setTimeout(() => { sheet.remove(); scrim.remove(); }, 200);
+      safe(() => onClose && onClose());
+    },
+  };
+  const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); api.close(); } };
+  // tapping the sheet must not take the focus (and the keyboard) away from the cell
+  const keep = (e) => { if (!(e.target instanceof Element && e.target.closest('input, textarea'))) e.preventDefault(); };
+  sheet.addEventListener('mousedown', keep); scrim.addEventListener('mousedown', keep);
+  x.addEventListener('click', api.close); scrim.addEventListener('click', api.close);
+  document.addEventListener('keydown', onKey, true);
+  document.body.append(scrim, sheet);
+  void sheet.offsetWidth;
+  sheet.classList.add('is-open'); scrim.classList.add('is-open');
+  sheetOpen = api;
+  void active;
+  return api;
+}
+
+/** Discreet closed disclosures under the cell: «Pista» (brief) and «Más detalle». On touch they open as a bottom sheet. Returns null when there is nothing to show. */
 export function moreBox({ hint, more, moreLabel = 'Más detalle', hintLabel = 'Pista' } = {}) {
   const items = [];
-  const mk = (label, text) => h('details', { class: 'lx-more-d' }, h('summary', null, label), h('div', { class: 'lx-md lx-more-b', html: md(text) }));
+  const mk = (label, text) => {
+    const bodyEl = h('div', { class: 'lx-md lx-more-b', html: md(text) });
+    const d = h('details', { class: 'lx-more-d' }, h('summary', null, label), bodyEl);
+    d.querySelector('summary').addEventListener('click', (e) => {
+      if (!touchUI()) return;
+      e.preventDefault();
+      openSheet({ title: label, node: bodyEl, onClose: () => d.appendChild(bodyEl) });
+    });
+    return d;
+  };
   if (hint && String(hint).trim()) items.push(mk(hintLabel, hint));
   if (more && String(more).trim()) items.push(mk(moreLabel, more));
   return items.length ? h('div', { class: 'lx-more' }, items) : null;
@@ -322,7 +406,8 @@ export function ghostSupported(cell) { return !!cell && typeof cell.isComplete =
 
 /**
  * A cell whose code the student must type character by character.
- *   mountGhost(host, code, { onDone(result), onTyped(), before(): Promise, evaluate(code): Promise<result>, run?: false })
+ *   mountGhost(host, code, { onDone(result), onTyped(), onNext(), before(): Promise, evaluate(code): Promise<result>, run?: false })
+ * `onNext` = what the key bar's primary button does once the cell is done («Siguiente ›», touch).
  * `run: false` = the piece is only typed (done as soon as it is complete), never evaluated.
  * `before` runs (inside the kernel lock) right before each evaluation; `evaluate` replaces the plain cell.run().
  * → { cell, el, isDone(), isTyped(), run(), focus(), destroy() }
@@ -333,9 +418,17 @@ export function mountGhost(host, code, opts = {}) {
   host.appendChild(wrap);
   const msg = h('div', { class: 'lx-ghost-msg', hidden: true, 'aria-live': 'polite' });
   let done = false, destroyed = false, busy = false, cell = null, refEl = null;
+  // SPEC §15.2: on touch the next action is always the key bar's primary button: «Evaluar» → «Siguiente ›»
+  const primary = () => {
+    if (destroyed || !cell) return;
+    if (done) setPrimary(cell, opts.onNext ? { label: 'Siguiente ›', onPress: () => opts.onNext() } : null);
+    else if (opts.run === false) setPrimary(cell, { label: 'Siguiente ›', onPress: () => run() });
+    else setPrimary(cell, { label: 'Evaluar', onPress: () => run() });
+  };
   const finish = (result) => {
     if (done || destroyed) return;
     done = true; wrap.classList.add('is-done');
+    primary();
     safe(() => opts.onDone && opts.onDone(result));
   };
   const typed = () => { wrap.classList.add('is-typed'); msg.hidden = true; safe(() => opts.onTyped && opts.onTyped()); if (opts.run === false) finish(null); };
@@ -367,7 +460,8 @@ export function mountGhost(host, code, opts = {}) {
     wrap.addEventListener('drop', (e) => e.preventDefault(), true);
   }
   wrap.appendChild(msg);
-  const run = () => {
+  primary();
+  function run() {
     if (busy || destroyed || !cell) return Promise.resolve(null);
     if (!matches()) {
       msg.hidden = false;
@@ -376,7 +470,7 @@ export function mountGhost(host, code, opts = {}) {
       return Promise.resolve(null);
     }
     msg.hidden = true;
-    if (opts.run === false) { finish(null); return Promise.resolve(null); } // a piece that is only typed, not evaluated
+    if (opts.run === false) { const was = done; finish(null); if (was && opts.onNext) opts.onNext(); return Promise.resolve(null); } // a piece that is only typed, not evaluated
     busy = true; wrap.classList.add('is-busy');
     return exclusive(async () => {
       if (destroyed) return null;
@@ -388,7 +482,7 @@ export function mountGhost(host, code, opts = {}) {
       }
       return cell.run();
     }).catch((e) => { console.warn('[learn] ghost run', e); return null; }).finally(() => { busy = false; wrap.classList.remove('is-busy'); });
-  };
+  }
   // every evaluation request goes through run(): completeness check + kernel priming
   wrap.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); run(); } }, true);
   wrap.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('.wl-run')) { e.preventDefault(); e.stopPropagation(); run(); } }, true);
@@ -444,7 +538,7 @@ export function skeletonOf(code) {
       if (inStr) { if (c === '\\') i++; else if (c === '"') inStr = false; i++; continue; }
       if (c === '"') { inStr = true; i++; res += ' '; continue; }
       const id = /^[A-Za-z$][A-Za-z0-9$]*/.exec(line.slice(i));
-      if (id) { const j = i + id[0].length; if (depth === 0 && line[j] === '[') res += id[0]; else res += ' '; i = j; continue; }
+      if (id) { const j = i + id[0].length; if (depth === 0 && line[j] === '[') res += id[0]; else res += depth === 0 ? '□' : ' '; i = j; continue; }
       if (c === '[') { if (depth === 0) res += '['; depth++; i++; continue; }
       if (c === ']') { depth--; if (depth === 0) res += ']'; i++; continue; }
       if (c === '{') { if (depth <= 1) { res += '{'; brace.push(depth); } depth++; i++; continue; }
@@ -454,9 +548,9 @@ export function skeletonOf(code) {
         const op = /^(:=|==|=|\/\.|\/\/|->|;)/.exec(line.slice(i));
         if (op) { res += ` ${op[0]} `; i += op[0].length; continue; }
       }
-      res += ' '; i++;
+      res += depth === 0 && /[0-9]/.test(c) ? '□' : ' '; i++;
     }
-    out.push(res.replace(/\s+/g, ' ').replace(/\[\s+\]/g, '[ ]').replace(/\{\s+\}/g, '{ }').trim());
+    out.push(res.replace(/□[□\s]*□/g, '□').replace(/\s+/g, ' ').replace(/\[\s+\]/g, '[ ]').replace(/\{\s+\}/g, '{ }').trim());
   }
   return out.join('\n');
 }
@@ -611,6 +705,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       if (foot) root.appendChild(foot);
       let primed = false;
       const g = mountGhost(host, ex.code, {
+        onNext: opts.onNext,
         before: async () => { if (!primed) { primed = true; await prime(); } },
         onDone: () => {
           st.done = true; root.dataset.state = 'ok';
@@ -689,13 +784,38 @@ export function mountExercise(container, exRaw, opts = {}) {
       }
       updHintBtn(); updXp();
       if (solutionDue()) offerSolution();
-      if (cell) safe(() => cell.focus());
+      if (touchUI()) showHintSheet(); else if (cell) safe(() => cell.focus());
     });
-    btnVariant.addEventListener('click', () => { seed = newSeed(); build(); });
+    let hintSheet = null;
+    function showHintSheet() {
+      if (hintSheet) { refreshHintSheet(); return; }
+      const acts = h('div', { class: 'lx-sheet-acts' });
+      const node = h('div', { class: 'ex-hintsheet' }, hintsBox, acts);
+      hintSheet = openSheet({ title: 'Pistas', node, onClose: () => { hintSheet = null; fb.parentNode.insertBefore(hintsBox, fb); } });
+      hintSheet.acts = acts;
+      refreshHintSheet();
+    }
+    function refreshHintSheet() {
+      if (!hintSheet) return;
+      const acts = hintSheet.acts;
+      acts.replaceChildren();
+      if (st.shape && shape) acts.appendChild(h('pre', { class: 'lx-ghostref ex-shape' }, shape));
+      if (!btnHint.hidden) acts.appendChild(h('button', { class: 'btn', type: 'button', onclick: () => btnHint.click() }, btnHint.textContent));
+      if (!btnSol.hidden) acts.appendChild(h('button', { class: 'btn', type: 'button', onclick: () => { hintSheet.close(); btnSol.click(); } }, btnSol.textContent));
+      hintSheet.body.scrollTop = hintSheet.body.scrollHeight;
+    }
+    btnVariant.addEventListener('click', () => {
+      // a variant with different numbers (when the params allow it)
+      const cur = JSON.stringify(ex._vals || {});
+      for (let n = 0; n < 12; n++) { seed = newSeed(); if (JSON.stringify(instantiate(exRaw, seed)._vals || {}) !== cur) break; }
+      build();
+    });
 
     let cell = null;
     placeShape();
-    try { cell = createCell(host, { code: '', placeholder: gentle ? 'Escríbelo de memoria…' : 'Escribe aquí tu código…' }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
+    // SPEC §15.2 (touch): the key bar's primary button is «Comprobar», and «Siguiente ›» once solved
+    const keyPrimary = () => { if (!cell) return; setPrimary(cell, st.done ? (opts.onNext ? { label: 'Siguiente ›', onPress: () => opts.onNext() } : null) : { label: 'Comprobar', onPress: () => doCheck() }); };
+    try { cell = createCell(host, { code: '', placeholder: gentle ? 'Escríbelo de memoria…' : 'Escribe aquí tu código…', primary: { label: 'Comprobar', onPress: () => doCheck() } }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
 
     /* ---------- kernel gate ---------- */
     let pillEl = null;
@@ -802,6 +922,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       setPrior(dry ? 'review' : 'ok');
       xpChip.classList.add('is-zero'); xpChip.textContent = gained > 0 ? `+${gained} XP` : dry ? 'sin XP' : 'repaso';
       for (const c of cmds.querySelectorAll('.chip')) { const lv = safe(() => store.cmdLevel(c.dataset.cmd), 0) || 0; c.className = `chip l${lv}`; }
+      keyPrimary();
       report({ ok: !dry, revealed: dry, firstTry, xp: gained, leveledUp: !!(r && r.leveledUp), level: r && r.level });
     }
 
@@ -840,6 +961,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       cell = null;
       host.replaceChildren();
       const g = mountGhost(host, sol, {
+        onNext: opts.onNext,
         evaluate: async (code) => {
           await kernel.reset();
           const res = await kernel.check({ code, setup: ex.setup || undefined, check: ex.check || { type: 'none' }, requires: [], forbids: [] });

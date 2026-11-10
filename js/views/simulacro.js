@@ -1,12 +1,12 @@
 // views/simulacro.js (LEARN) — exam simulator (SPEC §9).
 //   #/simulacros            list of mock exams (grouped by year, best score, attempts, countdown to the real exam)
 //   #/simulacro/<examId>    intro → timed run (questions with numeric boxes + free notebook) → grading → review
-import { store } from '../store.js?v=1794354103';
-import * as data from '../data.js?v=1794354103';
-import { kernel } from '../kernel-client.js?v=1794354103';
-import { createNotebook } from '../notebook.js?v=1794354103';
-import * as fx from '../fx.js?v=1794354103';
-import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794354103';
+import { store } from '../store.js?v=1794354584';
+import * as data from '../data.js?v=1794354584';
+import { kernel } from '../kernel-client.js?v=1794354584';
+import { createNotebook } from '../notebook.js?v=1794354584';
+import * as fx from '../fx.js?v=1794354584';
+import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost, setImmersive, touchUI } from '../exercise.js?v=1794354584';
 
 const KEY = (id) => `wolframlab-aero-exam-${id}`;
 const WARN_AT = [600, 300, 60]; // seconds left → warning
@@ -32,11 +32,13 @@ function fmtDur(ms) {
   if (m < 1) return 'menos de 1 min';
   return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`;
 }
-function fmtNum(v) {
+function fmtNum(v, tol) {
   if (typeof v !== 'number' || !Number.isFinite(v)) return String(v ?? '—');
   if (Number.isInteger(v) && Math.abs(v) < 1e9) return String(v);
   const a = Math.abs(v);
-  const s = a !== 0 && (a < 1e-4 || a >= 1e7) ? v.toExponential(5) : String(+v.toPrecision(7));
+  // enough digits for the tolerance asked (a part that wants 10 significant figures must show them)
+  const digits = Math.max(7, Math.min(15, tol > 0 ? Math.ceil(-Math.log10(tol)) + 4 : 7));
+  const s = a !== 0 && (a < 1e-4 || a >= 1e7) ? v.toExponential(digits - 2) : String(+v.toPrecision(digits));
   return s.replace('.', ',').replace(/e([+-]?)(\d+)/, ' ×10^$1$2').replace('^+', '^');
 }
 function fmtScore(x) { return (Math.round(x * 100) / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 }); }
@@ -144,6 +146,7 @@ function unmount() {
   const me = V;
   if (!me) return;
   V = null; me.alive = false;
+  setImmersive(false);
   me.cleanup.forEach((f) => safe(f));
   if (me.el) me.el.innerHTML = '';
 }
@@ -179,6 +182,10 @@ async function mountList(me) {
     return;
   }
   const timed = []; // running attempts: their remaining time is shown live
+  // one primary action on the page: the attempt in progress or, if none, the first published exam not tried yet
+  const anyOpen = exams.some((e) => { const st = load(e.id); return st && st.phase === 'run'; });
+  const focus = anyOpen ? null : (exams.find((e) => avail.get(e.id) && !attempts(e.id).length) || exams.find((e) => avail.get(e.id)));
+  const focusId = focus ? focus.id : null;
   const groups = new Map();
   for (const e of exams) { const y = Number(e.year) || 0; if (!groups.has(y)) groups.set(y, []); groups.get(y).push(e); }
   const soon = (list) => Math.min(...list.map((e) => { const d = daysTo(e.date); return d != null && d >= 0 ? d : 1e9; }));
@@ -209,7 +216,7 @@ async function mountList(me) {
         h('div', { class: 'sm-card-foot' },
           best ? h('div', { class: `sm-best${bestPct >= 0.5 ? ' is-pass' : ''}` }, h('b', null, fmtScore(best.max ? (10 * best.score) / best.max : best.score)), h('span', null, `mejor nota · ${att.length} ${att.length === 1 ? 'intento' : 'intentos'}`))
             : h('div', { class: 'sm-best is-none' }, h('b', null, '—'), h('span', null, 'sin intentos')),
-          exam ? h('a', { class: 'btn primary', href: `#/simulacro/${encodeURIComponent(e.id)}` }, running ? 'Continuar →' : expired ? 'Ver corrección →' : best ? 'Repetir →' : 'Empezar →') : h('span', { class: 'btn', 'aria-disabled': 'true' }, 'Pronto')));
+          exam ? h('a', { class: `btn${open || e.id === focusId ? ' primary' : ''}`, href: `#/simulacro/${encodeURIComponent(e.id)}` }, running ? 'Continuar →' : expired ? 'Ver corrección →' : best ? 'Repetir →' : 'Empezar →') : h('span', { class: 'btn', 'aria-disabled': 'true' }, 'Pronto')));
       grid.appendChild(card);
     }
     nodes.push(h('section', { class: 'pr-sec' }, h('h3', { class: 'pr-year' }, y ? `${y}º curso` : 'General'), grid));
@@ -268,6 +275,7 @@ function examHead(X, kicker) {
 /* ---------- intro ---------- */
 function renderIntro(me, prev) {
   const { root, X } = me;
+  setImmersive(false);
   const { exam } = X;
   const nParts = X.parts.length;
   const total = X.parts.reduce((s, p) => s + p.pts, 0);
@@ -323,6 +331,7 @@ function renderRun(me, st, resumed) {
   const { exam } = X;
   const study = st.mode === 'study';
   const R = (me.R = { st, timer: 0, nb: null, saveT: 0, inputs: new Map(), done: false });
+  setImmersive(true); // SPEC §15.2: only the thin timer bar while the exam runs
   st.answers = st.answers || {}; st.checked = st.checked || {}; st.loaded = st.loaded || {}; st.warned = st.warned || [];
   const persist = () => { if (R.done) return; if (R.nb) { const cells = safe(() => R.nb.getCells(), null); if (Array.isArray(cells)) st.cells = cells.map((c) => (typeof c === 'string' ? c : (c && c.code) || '')); } save(X.id, st); };
   const persistSoon = () => { clearTimeout(R.saveT); R.saveT = setTimeout(persist, 350); };
@@ -340,7 +349,8 @@ function renderRun(me, st, resumed) {
   const bar = h('div', { class: `sm-bar${study ? ' is-study' : ''}` },
     h('div', { class: 'sm-bar-row' },
       h('div', { class: 'sm-bar-t' }, yearBadge(X.year), h('strong', null, exam.title || X.id), study ? h('span', { class: 'badge muted' }, 'modo estudio') : null),
-      answered, clock, submitBtn),
+      answered, clock, submitBtn,
+      h('a', { class: 'ls-x sm-x', href: '#/simulacros', 'aria-label': 'Salir (el reloj sigue corriendo)', title: 'Salir: el reloj sigue corriendo y tus respuestas quedan guardadas' }, '×')),
     h('div', { class: 'sm-timeline', 'aria-hidden': 'true' }, timeline), tabs, confirmBox);
 
   /* questions */
@@ -377,18 +387,27 @@ function renderRun(me, st, resumed) {
       const idAttr = `sm-a-${key.replace('.', '-')}`;
       const input = type === 'text'
         ? h('textarea', { class: 'sm-input sm-input--text', id: idAttr, rows: '2', placeholder: 'Tu respuesta (se autoevalúa al final)', spellcheck: 'false' })
-        : h('input', { class: 'sm-input', id: idAttr, type: 'text', inputmode: 'text', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'resultado', 'aria-label': `Respuesta ${p.label || ''}` });
+        : h('input', { class: 'sm-input', id: idAttr, type: 'text', inputmode: 'decimal', enterkeyhint: 'next', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', placeholder: 'resultado', 'aria-label': `Respuesta ${p.label || ''}` });
       input.value = st.answers[key] || '';
       const mark = h('span', { class: 'sm-mark', 'aria-live': 'polite' });
       const row = h('div', { class: 'sm-part', dataset: { key } },
         h('label', { class: 'sm-part-l', for: idAttr }, p.label ? h('b', null, p.label) : null, h('span', { class: 'lx-md', html: mdInline(p.prompt || '') }), part.pts ? h('span', { class: 'sm-pts sm-pts--s' }, `${fmtScore(part.pts)} ${part.pts === 1 ? 'pt' : 'pts'}`) : type === 'text' ? h('span', { class: 'sm-pts sm-pts--s' }, 'autoevaluación') : null),
         h('div', { class: 'sm-ans' }, type === 'numeric' ? h('span', { class: 'sm-eq', 'aria-hidden': 'true' }, '=') : null, input, mark));
+      if (type === 'numeric') {
+        const fire = () => input.dispatchEvent(new Event('input', { bubbles: true }));
+        const sign = h('button', { class: 'sm-key', type: 'button', title: 'Cambiar el signo', 'aria-label': 'Cambiar el signo' }, '±');
+        const abc = h('button', { class: 'sm-key sm-key--abc', type: 'button', title: 'Teclado completo, para escribir expresiones como 1/3 o 2 Pi', 'aria-label': 'Teclado completo' }, 'abc');
+        for (const b of [sign, abc]) b.addEventListener('mousedown', (e) => e.preventDefault()); // keep the focus (and the keyboard) in the box
+        sign.addEventListener('click', () => { const v = input.value.trim(); input.value = v.startsWith('-') ? v.slice(1) : '-' + v; fire(); input.focus(); });
+        abc.addEventListener('click', () => { const full = input.getAttribute('inputmode') !== 'text'; input.setAttribute('inputmode', full ? 'text' : 'decimal'); abc.textContent = full ? '123' : 'abc'; input.blur(); setTimeout(() => input.focus(), 30); });
+        row.querySelector('.sm-ans').append(h('span', { class: 'sm-keys' }, sign, abc));
+      }
       input.addEventListener('input', () => { st.answers[key] = input.value; delete st.checked[key]; row.classList.remove('is-ok', 'is-bad'); mark.textContent = ''; updAnswered(); persistSoon(); });
       if (study && type === 'numeric') {
         const chk = h('button', { class: 'btn sm-chk', type: 'button', 'data-nosfx': '' }, 'Comprobar');
         const extra = h('div', { class: 'sm-part-x' });
         const showSol = () => {
-          extra.replaceChildren(h('div', { class: 'sm-sol' }, h('div', { class: 'sm-sol-v' }, 'Valor correcto: ', h('code', null, fmtNum(p.value))), p.solution ? codeBlock(p.solution) : null, p.explain ? h('div', { class: 'lx-md', html: md(p.explain) }) : null));
+          extra.replaceChildren(h('div', { class: 'sm-sol' }, h('div', { class: 'sm-sol-v' }, 'Valor correcto: ', h('code', null, fmtNum(Number(p.value), p.tol))), p.solution ? codeBlock(p.solution) : null, p.explain ? h('div', { class: 'lx-md', html: md(p.explain) }) : null));
         };
         const paint = (c) => {
           row.classList.toggle('is-ok', !!c.ok); row.classList.toggle('is-bad', !c.ok);
@@ -503,6 +522,7 @@ function renderRun(me, st, resumed) {
 /* ---------- grading ---------- */
 async function finish(me, st, auto) {
   const { root, X } = me;
+  setImmersive(false);
   root.className = 'sm';
   root.replaceChildren(examHead(X, 'Corrigiendo'), h('div', { class: 'sm-grading' }, h('i', { class: 'lx-spin' }), h('strong', null, 'Corrigiendo tus respuestas…'), h('span', { class: 'muted' }, 'Las expresiones como 1/3 o 2 Pi se evalúan con Mathematica.')));
   const usedMs = st.mode === 'study' ? Date.now() - st.startTs : Math.min(st.durMs, elapsedOf(st));
@@ -574,7 +594,7 @@ function renderResults(me, st) {
           : h('span', null, h('code', null, g.raw), g.how === 'kernel' && g.value != null ? h('small', { class: 'muted' }, ` = ${fmtNum(g.value)}`) : g.how === 'notnum' ? h('small', { class: 'sm-note' }, ' · no se evalúa a un número') : g.how === 'nokernel' ? h('small', { class: 'sm-note' }, ' · no se pudo evaluar (motor no disponible)') : null);
       row.appendChild(h('div', { class: 'sm-cmp' },
         h('span', { class: 'ex-diff-l' }, 'Tu respuesta'), h('div', { class: 'sm-cmp-v yours' }, yours),
-        h('span', { class: 'ex-diff-l' }, type === 'numeric' ? 'Valor correcto' : 'Respuesta modelo'), h('div', { class: 'sm-cmp-v right' }, h('code', null, type === 'numeric' ? fmtNum(Number(p.value)) : String(p.value ?? '—')), type === 'numeric' && p.tol ? h('small', { class: 'muted' }, ` (tolerancia ${p.tol})`) : null)));
+        h('span', { class: 'ex-diff-l' }, type === 'numeric' ? 'Valor correcto' : 'Respuesta modelo'), h('div', { class: 'sm-cmp-v right' }, h('code', null, type === 'numeric' ? fmtNum(Number(p.value), p.tol) : String(p.value ?? '—')), type === 'numeric' && p.tol ? h('small', { class: 'muted' }, ` (tolerancia ${p.tol})`) : null)));
       if (p.explain) row.appendChild(h('div', { class: 'sm-explain lx-md', html: md(p.explain) }));
       card.appendChild(row);
     }

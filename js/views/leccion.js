@@ -4,14 +4,14 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794354103';
-import * as data from '../data.js?v=1794354103';
-import { kernel } from '../kernel-client.js?v=1794354103';
-import * as fx from '../fx.js?v=1794354103';
+import { store } from '../store.js?v=1794354584';
+import * as data from '../data.js?v=1794354584';
+import { kernel } from '../kernel-client.js?v=1794354584';
+import * as fx from '../fx.js?v=1794354584';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
-  safe, play, exStatus, startKernel, kernelPill, newSeed,
-} from '../exercise.js?v=1794354103';
+  safe, play, exStatus, startKernel, kernelPill, newSeed, setImmersive, touchUI,
+} from '../exercise.js?v=1794354584';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson
@@ -179,7 +179,9 @@ function sync(S, paso) {
   if (S.view === 'tramo' && S.t === t) {
     if (S.entering) return;
     const scr = S.screens[S.pos];
-    if (scr && scr.i === i) return;
+    // already there — or in the «¿Recuerdas?» warm-up that precedes the tramo (the same URL change reaches us twice:
+    // through the router and through our own hashchange listener; the second must not skip the warm-up)
+    if (scr && (scr.i === i || scr.type === 'review')) return;
     const p = S.screens.findIndex((s) => s.i === i);
     if (p >= 0) { goScreen(S, p); return; }
   }
@@ -195,6 +197,7 @@ function clearScreen(S) {
 /* ============================================================ list of tramos */
 function renderList(S) {
   clearScreen(S);
+  setImmersive(false);
   S.view = 'list'; S.t = -1;
   const { lesson, root, tramos } = S;
   root.className = 'ls ls--list';
@@ -253,6 +256,7 @@ async function enterTramo(S, t, stepIdx) {
   const tramo = S.tramos[t];
   const { lesson, root } = S;
   S.view = 'tramo'; S.t = t; S.entering = true;
+  setImmersive(true); // SPEC §15.2: inside a tramo only a thin progress line and «×»
   S.screens = screensOf(lesson, tramo);
   S.kses = { step: null, upTo: -1 };
   let pos = S.screens.findIndex((s) => s.i === stepIdx);
@@ -264,6 +268,7 @@ async function enterTramo(S, t, stepIdx) {
   const top = h('header', { class: 'ls-top' },
     h('a', { class: 'lp-back', href: `#/leccion/${encodeURIComponent(lesson.id)}`, title: 'Volver a la lista de tramos' }, '← Tramos'),
     h('span', { class: 'ls-top-t' }, tramo.title), count,
+    h('a', { class: 'ls-x', href: `#/leccion/${encodeURIComponent(lesson.id)}`, 'aria-label': 'Salir del tramo', title: 'Salir del tramo' }, '×'),
     h('div', { class: 'ls-bar', role: 'progressbar', 'aria-label': 'Avance del tramo' }, bar));
   const body = h('main', { class: 'ls-body' });
   const prevBtn = h('button', { class: 'btn ghost ls-prev', type: 'button' }, '‹ Atrás');
@@ -330,7 +335,9 @@ function setComplete(S, pos, done, focus) {
   S.navHint.textContent = '';
   if (done && focus) {
     S.navHint.textContent = 'Enter';
-    setTimeout(() => { if (S.pos === pos && S.nextBtn.isConnected) S.nextBtn.focus({ preventScroll: true }); }, 80);
+    // desktop: Enter moves on. Touch with the key bar: the focus stays in the cell so the keyboard does not close.
+    const keepKeyboard = touchUI() && document.documentElement.classList.contains('lx-keybar');
+    if (!keepKeyboard) setTimeout(() => { if (S.pos === pos && S.nextBtn.isConnected) S.nextBtn.focus({ preventScroll: true }); }, 80);
   }
 }
 
@@ -386,16 +393,19 @@ function labelOf(wrap, ...bits) {
   if (txt) wrap.appendChild(h('div', { class: 'ls-label' }, txt));
 }
 const joinMd = (...xs) => xs.filter((x) => x && String(x).trim()).join('\n\n');
+/** What the key bar's primary button does once the screen is done (touch): on to the next screen. */
+const nextOf = (S) => () => { if (S.view === 'tramo' && S.nextBtn && !S.nextBtn.disabled) goScreen(S, S.pos + 1); };
 function ghostScreen(S, wrap, code, { run, before, onDone, hint, more }) {
   const host = h('div', { class: 'ls-cell' });
   wrap.appendChild(host);
   const pill = kernelPill();
   if (run) wrap.appendChild(h('div', { class: 'ls-hint' }, pill.el));
-  const g = mountGhost(host, code, { run: run ? undefined : false, before, onDone });
+  const g = mountGhost(host, code, { run: run ? undefined : false, before, onDone, onNext: nextOf(S) });
   const mb = moreBox({ hint, more });
   if (mb) wrap.appendChild(mb);
   S.screenCleanup.push(() => { pill.destroy(); g.destroy(); });
-  setTimeout(() => { if (wrap.isConnected) g.focus(); }, 240);
+  // focus at once (same task as the tap that brought us here): on a phone the keyboard then stays open between screens
+  g.focus();
   return g;
 }
 
@@ -477,7 +487,7 @@ function screenRecall(S, wrap, step, scr, done) {
   if (!ex) { markTyped(S, scr.i); done(false); return; }
   if (!S.seeds.has(scr.i)) S.seeds.set(scr.i, newSeed());
   S.widget = mountExercise(host, ex, {
-    mode: 'lesson', recall: true, seed: S.seeds.get(scr.i), year: S.year, lesson: S.lesson, noTitle: true,
+    mode: 'lesson', recall: true, seed: S.seeds.get(scr.i), year: S.year, lesson: S.lesson, noTitle: true, onNext: nextOf(S),
     onDone: (res) => {
       if (res.xp) S.sess.xp += res.xp;
       S.sess.results.set(ex.id, res);
@@ -486,7 +496,7 @@ function screenRecall(S, wrap, step, scr, done) {
       done(true);
     },
   });
-  setTimeout(() => { if (wrap.isConnected && S.widget) safe(() => S.widget.focus()); }, 280);
+  if (S.widget) safe(() => S.widget.focus());
 }
 
 /* ---------- exercise: one per screen ---------- */
@@ -501,14 +511,14 @@ function screenExercise(S, wrap, step, scr, done) {
   wrap.appendChild(host);
   if (!S.seeds.has(scr.i)) S.seeds.set(scr.i, newSeed());
   S.widget = mountExercise(host, ex, {
-    mode: 'lesson', seed: S.seeds.get(scr.i), year: S.year, lesson: S.lesson, noTitle: true,
+    mode: 'lesson', seed: S.seeds.get(scr.i), year: S.year, lesson: S.lesson, noTitle: true, onNext: nextOf(S),
     onDone: (res) => {
       S.sess.results.set(ex.id, res);
       if (res.xp) S.sess.xp += res.xp;
       done(!res.note);
     },
   });
-  if (scr.kind !== 'note') setTimeout(() => { if (wrap.isConnected && S.widget) safe(() => S.widget.focus()); }, 280);
+  if (scr.kind !== 'note' && S.widget) safe(() => S.widget.focus());
 }
 
 /* ---------- "¿recuerdas…?" (review queue) ---------- */
@@ -519,14 +529,14 @@ function screenReview(S, wrap, scr, done) {
   const host = h('div', { class: 'ls-ex' });
   wrap.appendChild(host);
   S.widget = mountExercise(host, ex, {
-    mode: 'practice', recall: true, seed: newSeed(), year: yearOf(l), lesson: l, noTitle: true,
+    mode: 'practice', recall: true, seed: newSeed(), year: yearOf(l), lesson: l, noTitle: true, onNext: nextOf(S),
     onDone: (res) => {
       if (res.xp) S.sess.xp += res.xp;
       reviewRecord(r.lessonId, r.step, { revealed: !!res.revealed, hints: res.hints || 0 });
       done(true);
     },
   });
-  setTimeout(() => { if (wrap.isConnected && S.widget) safe(() => S.widget.focus()); }, 280);
+  if (S.widget) safe(() => S.widget.focus());
 }
 
 /* ---------- end of the tramo: three lines ---------- */
@@ -573,6 +583,7 @@ function unmount() {
   me.alive = false;
   S = null;
   safe(() => clearScreen(me));
+  setImmersive(false);
   (me.cleanup || []).forEach((f) => safe(f));
   if (me.el) me.el.innerHTML = '';
 }
