@@ -476,7 +476,7 @@ def solve_single(expr, x, floats, info):
 
 
 # ----------------------------------------------------------------- Solve
-def sort_key(vals, probes):
+def sort_key(vals, probes, numeric=False):
     key = []
     for v in vals:
         nv = numeric_value(v, probes)
@@ -487,7 +487,7 @@ def sort_key(vals, probes):
             im_ = 0.0
         if abs(re_) < 1e-12 * (1 + abs(im_)):
             re_ = 0.0
-        exact_number = isinstance(v, sp.Basic) and v.is_number and all(
+        exact_number = (not numeric) and isinstance(v, sp.Basic) and v.is_number and all(
             q.is_Rational for q in (sp.re(v), sp.im(v)))
         key.append((0 if exact_number else 1, round(re_, 10), round(im_, 10)))
     return tuple(key)
@@ -663,7 +663,7 @@ class Solve(XB):
         keyed = []
         sortable = True
         for i, sol in enumerate(sols):
-            k_ = sort_key([sol.get(x, sp.Integer(0)) for x in used if x in sol], probes)
+            k_ = sort_key([sol.get(x, sp.Integer(0)) for x in used if x in sol], probes, floats or self.numeric)
             if k_ is None:
                 sortable = False
                 break

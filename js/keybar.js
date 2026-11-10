@@ -2,7 +2,7 @@
 // A row of big keys ( [ ] { } -> /. == := … ) pinned right above the on-screen keyboard whenever a notebook cell
 // is focused, plus one fixed primary action at the right («▶ Evaluar» unless the host of the cell overrides it).
 //
-//   import { keybar } from './keybar.js?v=1794354584'
+//   import { keybar } from './keybar.js?v=1794354627'
 //   keybar.visible          true while the bar is shown
 //   keybar.height           px taken by the bar itself (0 when hidden)
 //   keybar.isTouch()        is this a touch device (pointer: coarse / Android app)?  keybar.force(true|false|null) for tests

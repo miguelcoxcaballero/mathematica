@@ -369,6 +369,53 @@ class NIntegrate(XB):
                     fns.append(cq)
             lim_fns.append(fns)
         state = {"ok": True, "err": 0.0, "nan": 0, "count": 0}
+        # switching surfaces of Boole/If/Piecewise/UnitStep/Abs integrands: for every level, polynomials in that
+        # level's variable whose real roots (given the outer variables) are break points of the integrand
+        kinks = [[] for _ in range(n)]
+        if n > 1 and comp.sym is not None:
+            try:
+                from . import calc
+
+                bexprs = set()
+                for h in comp.sym.atoms(sp.Heaviside, sp.Abs, sp.sign):
+                    bexprs.add(h.args[0])
+                for pw in comp.sym.atoms(sp.Piecewise):
+                    for _, cond in pw.args:
+                        if cond in (sp.true, sp.false):
+                            continue
+                        for rel in cond.atoms(sp.core.relational.Relational):
+                            bexprs.add(rel.lhs - rel.rhs)
+                for g in bexprs:
+                    for lev in range(n):
+                        v = comp.syms[lev]
+                        if not g.has(v) or (g.free_symbols - set(comp.syms[:lev + 1])):
+                            continue
+                        try:
+                            pl = sp.Poly(g, v)
+                        except Exception:
+                            continue
+                        if pl.degree() < 1 or pl.degree() > 6:
+                            continue
+                        cf = sp.lambdify(comp.syms[:lev], pl.all_coeffs(), modules=[NUMPY_EXTRA, "numpy"])
+                        kinks[lev].append(cf)
+            except Exception:
+                kinks = [[] for _ in range(n)]
+
+        def kink_points(level, outer, a, b):
+            pts = []
+            for cf in kinks[level]:
+                try:
+                    co = np.array([complex(q) for q in cf(*outer)])
+                    while len(co) > 1 and co[0] == 0:
+                        co = co[1:]
+                    if len(co) < 2:
+                        continue
+                    for r in np.roots(co):
+                        if abs(r.imag) < 1e-9 * (1 + abs(r.real)) and a < r.real < b:
+                            pts.append(float(r.real))
+                except Exception:
+                    continue
+            return pts
         rt = [1e-9, 1e-7, 1e-6, 1e-5][min(n - 1, 3)]
         limit = [140, 40, 14, 8][min(n - 1, 3)]
 
@@ -397,6 +444,8 @@ class NIntegrate(XB):
                     bounds.append(float(np.real(np.ravel(val)[0])))
             a, b = bounds[0], bounds[-1]
             inner_pts = [p for p in bounds[1:-1]] + (brk(level, outer) if level == 0 else [])
+            if kinks[level] and a == a and b == b and abs(a) != float("inf") and abs(b) != float("inf"):
+                inner_pts = inner_pts + kink_points(level, outer, min(a, b), max(a, b))
             if a != a or b != b:
                 return 0.0
             if level == n - 1:

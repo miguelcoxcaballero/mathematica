@@ -6,10 +6,10 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794354584';
-import { createCell } from './notebook.js?v=1794354584';
-import { store } from './store.js?v=1794354584';
-import * as fx from './fx.js?v=1794354584';
+import { kernel } from './kernel-client.js?v=1794354627';
+import { createCell } from './notebook.js?v=1794354627';
+import { store } from './store.js?v=1794354627';
+import * as fx from './fx.js?v=1794354627';
 
 const { sfx, xpFloat } = fx;
 
@@ -153,7 +153,7 @@ function watchViewport() {
   if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
   window.addEventListener('resize', upd);
   // keybar.js is optional (it may not be deployed yet): with it, the next action lives in the key bar
-  import('./keybar.js?v=1794354584').then((m) => { if (m && m.keybar) root.classList.add('lx-keybar'); }).catch(() => {});
+  import('./keybar.js?v=1794354627').then((m) => { if (m && m.keybar) root.classList.add('lx-keybar'); }).catch(() => {});
 }
 /** Immersive mode inside a tramo / session / exam: the global navigation goes away (class on <body> + event for the shell). */
 export function setImmersive(on) {
