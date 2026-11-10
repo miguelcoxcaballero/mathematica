@@ -142,6 +142,11 @@ def _patch_nvalues():
         finally:
             depth[0] -= 1
 
+    try:
+        # N[machine number, n] is still a machine number (Mathics lowered it to an n-digit bignum)
+        MachineReal.round = lambda self, d=None: self
+    except Exception:
+        pass
     eval_NValues._wlx = True
     for mod in list(sys.modules.values()):
         try:

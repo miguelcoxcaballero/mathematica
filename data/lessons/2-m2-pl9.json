@@ -385,7 +385,7 @@
    "ex": {
     "id": "2-m2-pl9-e04",
     "kind": "code",
-    "title": "Guion 1: cuerda con un pulso",
+    "title": "Guion 1: cuerda con pulso",
     "prompt": "`u_tt = 4 u_xx`, `L = 5`, pulso inicial de altura 5 entre 2 y 4, velocidad 0. Calcula `{u[2, 5, 2], u[2, 5, 7]} // N`.",
     "difficulty": 3,
     "cmds": [
@@ -584,7 +584,7 @@
    "ex": {
     "id": "2-m2-pl9-e07",
     "kind": "code",
-    "title": "Guion 2: barra con un pulso",
+    "title": "Guion 2: barra con pulso",
     "prompt": "`u_t = 4 u_xx`, `L = 5`, pulso inicial de altura 5 entre 2 y 4. Calcula `u[3, 1, 7] // N`.",
     "difficulty": 3,
     "cmds": [
@@ -620,7 +620,7 @@
    "ex": {
     "id": "2-m2-pl9-e08",
     "kind": "code",
-    "title": "Guion 2: ¿cuándo baja a 1?",
+    "title": "Guion 2: ¿cuándo vale 1?",
     "prompt": "`solcalor[x, t]` (barra del ejercicio anterior, 7 términos) ya está definida. Halla el `t` con `solcalor[3, t] == 1`, desde `t = 0.5`.",
     "difficulty": 3,
     "cmds": [
@@ -839,7 +839,7 @@
   },
   {
    "type": "build",
-   "section": "Cuerda forzada (1): u3, g y datos corregidos",
+   "section": "Cuerda forzada (1): u3 y g",
    "title": "u3 y la fuerza corregida",
    "md": "`u_tt = a^2 u_xx + f` con extremos que se mueven: `u(0, t) = psi1`, `u(L, t) = psi2`.",
    "target": "L = 1; f[x_, t_] = x (L - x); psi1[t_] = t^2; psi2[t_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]",

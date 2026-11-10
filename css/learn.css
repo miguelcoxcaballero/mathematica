@@ -23,15 +23,12 @@
 .lx-md code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .lx-code { margin: 0; padding: 9px 12px; border-radius: var(--radius-s); background: var(--bg-2); border: 1px solid var(--line); color: var(--ink); font: 400 .88rem/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: auto; tab-size: 2; }
-.lx-paper { background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius-s); }
-.lx-paper pre, pre.lx-paper { font: 400 .92rem/1.6 var(--mono); margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
-pre.lx-paper { padding: 9px 12px; }
 /* Mathematica-like syntax colouring (classes from fx.hlWL) */
-.lx-code .t-fn, .lx-code .t-sym, .lx-paper .t-fn, .lx-paper .t-sym, .ex-ord-code .t-fn, .ex-ord-code .t-sym { color: var(--ink); font-weight: 500; }
-.lx-code .t-var, .lx-paper .t-var, .ex-ord-code .t-var { color: var(--wl-sym-undef); }
-.lx-code .t-pat, .lx-paper .t-pat, .ex-ord-code .t-pat { color: var(--wl-local); font-style: italic; }
-.lx-code .t-str, .lx-paper .t-str, .ex-ord-code .t-str { color: var(--wl-string); }
-.lx-code .t-com, .lx-paper .t-com, .ex-ord-code .t-com { color: var(--wl-comment); }
+.lx-code .t-fn, .lx-code .t-sym { color: var(--ink); font-weight: 500; }
+.lx-code .t-var { color: var(--wl-sym-undef); }
+.lx-code .t-pat { color: var(--wl-local); font-style: italic; }
+.lx-code .t-str { color: var(--wl-string); }
+.lx-code .t-com { color: var(--wl-comment); }
 
 .lx-spin { display: inline-block; width: .95em; height: .95em; border-radius: 50%; border: 1.5px solid currentColor; border-right-color: transparent; animation: lx-spin .7s linear infinite; vertical-align: -.12em; opacity: .8; }
 @keyframes lx-spin { to { transform: rotate(360deg); } }
@@ -67,7 +64,6 @@ pre.lx-paper { padding: 9px 12px; }
 .lx-nudge { animation: lx-shake .2s ease both; }
 @keyframes lx-pop { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
 .lx-pop { animation: lx-pop .3s var(--ease) both; }
-.lx-pulse { }
 @keyframes lx-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 /* ============================================================ ghost cells (typed character by character) */
@@ -90,7 +86,6 @@ pre.lx-paper { padding: 9px 12px; }
 
 /* ============================================================ exercise widget */
 .ex { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.ex-head { display: flex; flex-direction: column; gap: 6px; }
 .ex-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .78rem; color: var(--muted); min-height: 1.5em; }
 .ex-kind { color: var(--muted); }
 .ex-spacer { flex: 1; }
@@ -98,7 +93,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-xp.is-zero { color: var(--dim); }
 .ex-xp[hidden] { display: none; }
 .ex-prior:empty { display: none; }
-.ex-title { font-size: 1.25rem; font-weight: 600; margin: 0; }
 .ex-prompt { max-width: 32ch; }
 .ex-label { font-size: .8rem; color: var(--muted); margin-bottom: -6px; }
 .ex-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
@@ -109,7 +103,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-ref--bad .lx-code { border-left: 2px solid var(--bad); }
 .ex-lines { display: flex; flex-direction: column; gap: 4px; }
 .ex-note-a { font-size: 1.04rem; font-weight: 600; }
-.ex-typehint { font-size: .82rem; }
 .ex-setup { font-size: .82rem; color: var(--muted); }
 .ex-setup summary { cursor: pointer; }
 .ex-setup pre { margin-top: 6px; }
@@ -139,7 +132,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-gain { color: var(--xp); font-weight: 600; }
 .ex-gain::before, .ex-combo::before, .ex-first::before { content: "· "; color: var(--dim); font-weight: 400; }
 .ex-fb-sub { font-size: .84rem; }
-.ex-explain { font-size: 1rem; color: var(--text); max-width: 70ch; }
 .ex-diff { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: baseline; font-size: .86rem; }
 .ex-diff-l { color: var(--muted); font-size: .78rem; white-space: nowrap; }
 .ex-diff-v { background: none !important; border: 0 !important; padding: 0 !important; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 5.4em; overflow: auto; color: var(--ink); }
@@ -147,7 +139,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-tips b { font-weight: 600; }
 .ex-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--line); opacity: .8; }
 .ex-foot .ex-badges { flex: 1 1 auto; font-size: .74rem; }
-.ex-foot-l { font-size: .76rem; color: var(--dim); }
 .ex-cmds { display: flex; flex-wrap: wrap; gap: 5px; }
 .ex-cmds .chip { text-decoration: none; font-size: .76rem; }
 @media (max-width: 620px) {
@@ -158,54 +149,26 @@ pre.lx-paper { padding: 9px 12px; }
 
 /* ============================================================ lesson player (layout after Wolfram's "Fast Introduction") */
 .lp { display: block; min-width: 0; max-width: 760px; margin: 0 auto; }
-.lp--docked { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 0 52px; max-width: 1100px; align-items: start; }
-.lp-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-width: 760px; }
-.lp-head { display: flex; flex-direction: column; gap: 8px; }
-.lp-top { display: flex; align-items: baseline; gap: 14px; }
 .lp-crumbs { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: .82rem; color: var(--muted); }
 .lp-crumbs .badge { align-self: center; }
-.lp-crumb-l::before { content: "· "; color: var(--dim); }
 .lp-back { font-size: .84rem; color: var(--muted); }
 .lp-back:hover { color: var(--accent); }
-.lp-xp { font-size: .82rem; color: var(--xp); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.lp-xp:empty { display: none; }
-.lp-toc-btn { font-size: .84rem; }
-.lp--docked .lp-toc-btn { display: none; }
 .lp-prog { display: flex; align-items: center; gap: 12px; }
 .lp-prog .progress { flex: 1; }
 .lp-count { font: 400 .74rem var(--mono); color: var(--dim); white-space: nowrap; }
-.lp-stage { min-width: 0; }
 .lp-step { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 @keyframes lp-in-r { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 @keyframes lp-in-l { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 .lp-in-r { animation: lp-in-r .22s var(--ease) both; } .lp-in-l { animation: lp-in-l .22s var(--ease) both; } .lp-in { animation: lx-rise .22s var(--ease) both; }
 .lp-kicker { font-size: .8rem; color: var(--muted); margin-bottom: -12px; }
-.lp-kicker-real { color: var(--warn); }
 .lp-end-txt .lp-kicker, .sm-count-t .lp-kicker { margin-bottom: 0; }
 .lp-title { font-size: clamp(1.75rem, 5vw, 2.4rem); font-weight: 300; line-height: 1.15; color: var(--accent); margin: 0 0 4px; letter-spacing: -.005em; }
 .lp-title code { font-size: .9em; background: none; border: 0; padding: 0; color: inherit; }
-.lp-md { font-size: 1.06rem; line-height: 1.6; max-width: 68ch; }
-.lp-cells { display: flex; flex-direction: column; }
-.lp-cell { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 18px 0; border-top: 1px solid var(--line); animation: lx-rise .25s var(--ease) both; }
-.lp-cell:first-child { border-top: 0; padding-top: 0; }
-.lp-cell-note { font-size: 1.02rem; max-width: 68ch; }
-.lp-cell--ghost.is-done .lp-cell-note { color: var(--muted); }
-.lp-cell-host { min-width: 0; }
-.lp-cell--static .lx-code { color: var(--muted); }
-.lp-typehint, .lp-cells-foot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; font-size: .82rem; padding-top: 12px; border-top: 1px solid var(--line); }
-.lp-cellcount { margin-left: auto; }
-.lp-cells-foot .lx-link { font-size: .82rem; }
-.lp-exhost { min-width: 0; }
 
 .lp-nav { position: sticky; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 16px; padding: 10px 0; margin-top: 4px; background: var(--bg); border-top: 1px solid var(--line); }
 .lp-nav-hint { flex: 1; text-align: right; font-size: .76rem; color: var(--dim); }
-.lp-skip { font-size: .84rem; }
-.lp-skip[hidden] { display: none; }
 .lp-next { min-width: 8em; justify-content: center; }
 .lp-next[hidden] { display: none; }
-.lp-prev { padding-left: 0; }
-.lp-prev[disabled] { visibility: hidden; }
-.lp--end .lp-nav { display: none; }
 
 /* end of lesson / session summary */
 .lp-end-hero { display: flex; align-items: flex-start; gap: 28px; flex-wrap: wrap; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
@@ -221,11 +184,8 @@ pre.lx-paper { padding: 9px 12px; }
 .lp-end-stats { display: flex; flex-wrap: wrap; gap: 12px 0; margin-top: 8px; }
 .lp-end-card { padding-bottom: 20px; border-bottom: 1px solid var(--line); }
 .lp-end-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 10px; }
-.lp-end-chips, .lp-end-uses { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.lp-end-uses { margin-top: 10px; font-size: .86rem; }
-.lp-end-chips .chip, .lp-end-uses .chip { text-decoration: none; }
-.lp-legend { font-size: .76rem; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.lp-legend .chip { font-size: .7rem; cursor: default; }
+.lp-end-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lp-end-chips .chip { text-decoration: none; }
 .lp-weak { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .lp-weak li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
 .lp-weak li:first-child { border-top: 0; }
@@ -233,19 +193,14 @@ pre.lx-paper { padding: 9px 12px; }
 .lp-weak-st.st-ok { color: var(--ok); } .lp-weak-st.st-review { color: var(--warn); } .lp-weak-st.st-tried { color: var(--bad); }
 .lp-weak-t { flex: 1; min-width: 0; font-size: .96rem; }
 .lp-end-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
-.lp-next-slot:empty { display: none; }
-.lp-next-soon { font-size: .84rem; }
 
 @media (max-width: 900px) {
   .lp-nav { bottom: calc(var(--tab-h, 0px) + var(--safe-b, 0px)); }
 }
 @media (max-width: 520px) {
-  .lp-col { gap: 16px; }
-  .lp-md { font-size: 1.02rem; }
   .lp-end-hero { gap: 16px; }
   .lx-stat { padding-right: 12px; margin-right: 12px; }
   .lp-nav-hint { display: none; }
-  .lp-skip { margin-left: auto; }
 }
 
 /* ============================================================ lesson: one thing per screen (SPEC §13) */
@@ -254,8 +209,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ls--list .lp-title { margin-top: 2px; }
 .ls-summary { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 62ch; }
 .ls-done { margin: 0; color: var(--ok); }
-.ls-kicker { font-size: .8rem; color: var(--muted); }
-.ls--list .ls-kicker { margin-top: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 .ls-tramos { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--line); }
 .ls-tramo { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto 6.2em; align-items: baseline; gap: 10px; padding: 13px 2px; border-bottom: 1px solid var(--line); color: var(--text); text-decoration: none; }
 .ls-tramo:hover { background: var(--bg-2); text-decoration: none; }
@@ -269,7 +222,6 @@ pre.lx-paper { padding: 9px 12px; }
 .ls-tramo.is-next .ls-tramo-t { font-weight: 600; }
 .ls-tramo.is-next .ls-tramo-st { color: var(--accent); }
 .ls-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 10px; }
-.ls-cmds { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; font-size: .82rem; }
 
 .ls--tramo { min-height: calc(100dvh - var(--hud-h, 60px) - 150px); max-width: 720px; }
 .ls-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 6px 14px; padding-bottom: 0; }
@@ -281,22 +233,14 @@ pre.lx-paper { padding: 9px 12px; }
 .ls-screen { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .ls-label { font-size: .8rem; color: var(--muted); margin-bottom: -12px; }
 .ls-screen .lp-title { margin: -8px 0 0; font-size: clamp(1.5rem, 4.4vw, 2rem); }
-.ls-line { margin: 0; font-size: 1.12rem; line-height: 1.5; max-width: 62ch; }
-.ls-text { font-size: 1.12rem; line-height: 1.6; max-width: 62ch; }
-.ls-text.ls-note { color: var(--muted); font-size: 1.02rem; }
 .ls-cell { min-width: 0; padding: 6px 0; }
 .ls-ex { min-width: 0; }
 .ls-hint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0; font-size: .82rem; color: var(--muted); }
 .ls-hint[hidden] { display: none; }
 .ls-asm { min-width: 0; margin-bottom: -10px; }
-.ls-asm-l { font-size: .72rem; color: var(--dim); }
-.ls-asm-parts { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-bottom: 4px; }
-.ls-asm-parts code { font-size: .78rem; color: var(--muted); }
 .ls-asm-target { margin: 0; font: 400 .9rem/1.5 var(--mono); color: #c9c9c9; white-space: pre-wrap; overflow-wrap: anywhere; user-select: none; -webkit-user-select: none; }
 .ls-asm-target .is-on { color: #555; }
 .ls-asm-target .is-now { color: #555; border-bottom: 1.5px solid var(--accent); }
-.ls-screen--intro .ls-asm { border-bottom: 0; padding-bottom: 0; }
-.ls-screen--intro .ls-asm-target { color: var(--ink); font-size: 1rem; }
 .ls-sum { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .ls-sum li { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); align-items: baseline; }
 .ls-sum li:last-child { border-bottom: 1px solid var(--line); }
@@ -318,7 +262,6 @@ pre.lx-paper { padding: 9px 12px; }
 @media (max-width: 520px) {
   .ls-tramo { grid-template-columns: 1.4em minmax(0, 1fr) auto; }
   .ls-tramo-m { display: none; }
-  .ls-text { font-size: 1.05rem; }
   .ls-nav-hint { display: none; }
   .ls-skip { margin-left: auto; }
   .ls-sum li { grid-template-columns: 1fr; gap: 2px; }
@@ -551,8 +494,6 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 .sm-solbox summary { cursor: pointer; font-size: .9rem; color: var(--muted); }
 .sm-solbox summary:hover { color: var(--text); }
 .sm-solbox-b { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-.sm-solbox-n { font-size: .78rem; }
-.sm-runall { padding: .35em .85em; font-size: .86rem; }
 .sm-solrow { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 
 @media (max-width: 1100px) {

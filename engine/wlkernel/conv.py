@@ -199,6 +199,8 @@ class Conv:
                     inner = fn(*[d if j == i else aa for j, aa in enumerate(args)])
                     res = sp.Subs(sp.Derivative(inner, (d, o)), d, a)
             return res
+        if isinstance(head, Symbol) and hn.endswith("`atan2") and len(el) == 2:
+            return sp.atan2(self.to(el[0]), self.to(el[1]))     # name leaked by Mathics' own SymPy bridge
         # user/undetermined function f[x]
         if isinstance(head, Symbol) and (hn in self.funcs or not hn.startswith("System`")):
             return sp.Function(hn)(*[self.to(x) for x in el])

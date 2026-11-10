@@ -369,7 +369,7 @@
    "ex": {
     "id": "2-m2-pl7-e05",
     "kind": "code",
-    "title": "Prueba: un valor de la serie",
+    "title": "Prueba: valor de la serie",
     "prompt": "`(1 - x^2) y'' - 2 x y' + 12 y = 0`, serie hasta `x^4`. Valor con `a0 = 1`, `a1 = 2` en `x = 0.5`.",
     "difficulty": 3,
     "cmds": [

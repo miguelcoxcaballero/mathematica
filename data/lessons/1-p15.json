@@ -466,9 +466,11 @@
     "solution": "Det[M]",
     "check": {
      "type": "value",
-     "expr": "1/%",
-     "expected": "567608335088055579476125286400",
-     "msg": "Calcula exactamente `Det[M]`."
+     "expr": "N[1/%]",
+     "expected": "5.676083350880556*^29",
+     "compare": "numeric",
+     "tol": 1e-06,
+     "msg": "Calcula `Det[M]`."
     },
     "requires": [
      "Det"

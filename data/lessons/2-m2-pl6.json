@@ -761,7 +761,7 @@
   {
    "type": "build",
    "section": "Los PVI del guion",
-   "title": "De la regla a la expresión",
+   "title": "De regla a expresión",
    "md": "La receta devuelve una regla entre dos llaves. Saca la expresión.",
    "target": "soluc = {{y[t] -> 3 Exp[-2 t]}};\nsol = y[t] /. Flatten[soluc]",
    "parts": [
