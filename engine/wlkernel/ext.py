@@ -219,7 +219,7 @@ class LaplaceTransform(XB):
 
         tn = t.get_name()
         params = [nm for nm in _user_symbols(f) if nm != tn]
-        c = Conv(positive=[tn], real=params)
+        c = Conv(real=[tn] + params)
         try:
             fs = c.to(f)
             ts = c.sym(tn)
@@ -228,6 +228,30 @@ class LaplaceTransform(XB):
             ss = c.to(s)
             sd = sp.Symbol("WLX`sdummy", positive=True)
             r = None
+            delta_part = 0
+            if fs.has(sp.DiracDelta):
+                # g(t) DiracDelta[k t - k a] -> g(a) e^(-a s)/|k|   (a >= 0)
+                rest = 0
+                for term in sp.Add.make_args(sp.expand(fs)):
+                    ds = [d_ for d_ in term.atoms(sp.DiracDelta) if d_.has(ts)]
+                    if not ds:
+                        rest += term
+                        continue
+                    if len(ds) != 1 or len(ds[0].args) != 1:
+                        return None
+                    g = term / ds[0]
+                    pl = sp.Poly(ds[0].args[0], ts)
+                    if pl.degree() != 1 or g.has(sp.DiracDelta):
+                        return None
+                    k1, k0 = pl.all_coeffs()
+                    a0 = -k0 / k1
+                    delta_part += g.subs(ts, a0) * sp.exp(-a0 * sd) / sp.Abs(k1)
+                fs = rest
+                if fs == 0:
+                    return c.back(delta_part.subs(sd, ss)).evaluate(evaluation)
+            tpos = sp.Symbol("WLX`tpos", positive=True)
+            fs = fs.subs(ts, tpos)
+            ts = tpos
             try:
                 with budget(6.0):
                     r = calc.laplace_fast(fs, ts, sd)
@@ -241,7 +265,7 @@ class LaplaceTransform(XB):
                     if r.has(sp.LaplaceTransform) or r.has(sp.Integral):
                         return None
                     r = calc.real_form(simp_light(r)) if r.has(sp.I) else simp_light(r)
-            r = r.subs(sd, ss)
+            r = (r + delta_part).subs(sd, ss)
             return c.back(r).evaluate(evaluation)
         except Exception:
             _dbg()

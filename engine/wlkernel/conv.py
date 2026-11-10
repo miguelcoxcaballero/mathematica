@@ -266,6 +266,9 @@ class Conv:
             return E(S("ArcTan"), self.back(s.args[1]), self.back(s.args[0]))
         if isinstance(s, sp.atan):
             return E(S("ArcTan"), self.back(s.args[0]))
+        if isinstance(s, sp.sinc):
+            a_ = self.back(s.args[0])
+            return E(S("Times"), E(S("Sin"), a_), E(S("Power"), a_, Integer(-1)))
         if isinstance(s, sp.Heaviside):
             return E(S("UnitStep" if self._unitstep and not self._theta else self.heaviside), self.back(s.args[0]))
         if isinstance(s, sp.polygamma):

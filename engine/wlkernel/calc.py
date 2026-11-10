@@ -494,13 +494,22 @@ def tidy_transform(r, s):
         return r
 
 
-def _residue_term(R, s, t, root, mult):
-    """Residue of R(s) e^(s t) at a pole of multiplicity mult."""
-    g = sp.cancel(R * (s - root) ** mult)
-    expr = g * sp.exp(s * t)
+def _residue_term(pn, pd, s, t, root, mult):
+    """Residue of pn(s)/pd(s) e^(s t) at a root of pd of multiplicity mult.
+    Uses the Taylor shift of pd at the root (no symbolic cancellation of algebraic numbers needed)."""
+    w = sp.Symbol("WLX`w")
+    deg = pd.degree()
+    Q = 0
+    dk = pd
+    for k in range(deg + 1):
+        if k >= mult:
+            ck = sp.simplify(dk.as_expr().subs(s, root)) / sp.factorial(k)
+            Q += ck * w ** (k - mult)
+        dk = dk.diff(s)
+    g = pn.as_expr().subs(s, root + w) * sp.exp((root + w) * t) / Q
     if mult > 1:
-        expr = sp.diff(expr, s, mult - 1) / sp.factorial(mult - 1)
-    return expr.subs(s, root)
+        g = sp.diff(g, w, mult - 1) / sp.factorial(mult - 1)
+    return g.subs(w, 0)
 
 
 def inverse_rational(R, s, t):
@@ -520,6 +529,7 @@ def inverse_rational(R, s, t):
         if pn.is_zero:
             return result
     Rp = pn.as_expr() / pd.as_expr()
+    pn = sp.Poly(pn.as_expr(), s)
     roots = sp.roots(pd, s)
     if sum(roots.values()) != pd.degree():
         # numeric poles for numeric denominators without closed-form roots
@@ -539,23 +549,32 @@ def inverse_rational(R, s, t):
     for r, m in roots.items():
         if r in done:
             continue
-        cr = sp.conjugate(r)
-        is_real = sp.im(r) == 0 or r.is_real
-        term = _residue_term(Rp, s, t, r, m)
-        if is_real is True:
+        term = _residue_term(pn, pd, s, t, r, m)
+        is_real = r.is_real
+        if is_real is None:
+            try:
+                is_real = abs(complex(sp.N(r.subs({q: 0.731 + 0.1 * i for i, q in enumerate(sorted(r.free_symbols, key=str))}))).imag) < 1e-14
+            except Exception:
+                is_real = False
+        if is_real:
             result += sp.expand(term)
             done.add(r)
             continue
-        if cr != r and cr in roots and not Rp.atoms(sp.I) :
+        cr = None
+        if not Rp.has(sp.I):
+            for q in roots:
+                if q not in done and q != r and sp.simplify(sp.conjugate(r) - q) == 0:
+                    cr = q
+                    break
+        if cr is not None:
             # real coefficients: conjugate poles give twice the real part
-            re_part = sp.re(sp.expand_complex(term))
-            result += 2 * re_part
+            result += 2 * real_form(term)
             done.add(r)
             done.add(cr)
         else:
             result += term
             done.add(r)
-    if result.has(sp.re) or result.has(sp.im):
+    if result.has(sp.re) or result.has(sp.im) or result.has(sp.nan) or result.has(sp.zoo):
         return None
     if result.has(sp.I):
         result = real_form(result, real=not R.has(sp.I))

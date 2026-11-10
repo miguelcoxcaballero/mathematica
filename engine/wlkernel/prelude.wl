@@ -22,8 +22,6 @@ LaplaceTransform[c_ f_, t_, s_] := c LaplaceTransform[f, t, s] /; FreeQ[c, t] &&
 LaplaceTransform[c_, t_, s_] := c/s /; FreeQ[c, t];
 LaplaceTransform[Derivative[n_Integer][y_][t_], t_, s_] :=
   s^n LaplaceTransform[y[t], t, s] - Sum[s^(n - 1 - k) Derivative[k][y][0], {k, 0, n - 1}] /; AtomQ[y];
-LaplaceTransform[DiracDelta[t_ - a_.], t_, s_] := Exp[-a s] /; FreeQ[a, t];
-LaplaceTransform[DiracDelta[t_ - a_.] f_, t_, s_] := Exp[-a s] (f /. t -> a) /; FreeQ[a, t];
 LaplaceTransform[eq_Equal, t_, s_] := LaplaceTransform[#, t, s] & /@ eq;
 LaplaceTransform[l_List, t_, s_] := LaplaceTransform[#, t, s] & /@ l;
 LaplaceTransform[Integrate[f_, {u_, 0, t_}], t_, s_] := LaplaceTransform[f /. u -> t, t, s]/s /; FreeQ[f, t];

@@ -463,10 +463,22 @@
     "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};\nM = Inverse[Transpose[B].B];",
     "solution": "d = Det[M]",
     "check": {
-     "type": "value",
-     "expr": "1/d",
-     "expected": "567608335088055579476125286400",
-     "msg": "`d` no es el determinante de `M`: `d = Det[M]`."
+     "type": "any",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "1/d",
+       "expected": "567608335088055579476125286400"
+      },
+      {
+       "type": "value",
+       "expr": "N[1/d]/10^29",
+       "expected": "5.67608335088",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "`d` no es el determinante de `M`: `d = Det[M]`."
+      }
+     ]
     },
     "requires": [
      "Det"
