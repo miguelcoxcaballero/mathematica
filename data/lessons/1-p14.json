@@ -1052,7 +1052,7 @@
    "section": "Cofactores y adjunta",
    "title": "La adjunta, cofactor a cofactor",
    "md": "`A` es una matriz 3×3 ya definida. Monta su adjunta pieza a pieza.",
-   "target": "Transpose[Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]]",
+   "target": "Transpose[Table[Cofactor[A, {i, j}], {i, 1, 3}, {j, 1, 3}]]",
    "setup": "A = {{2, 0, 1}, {1, 3, 2}, {1, 1, 2}};",
    "parts": [
     {
@@ -1066,22 +1066,28 @@
      "run": true
     },
     {
-     "code": "Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]",
-     "md": "Lo mismo para todas las posiciones (i,j), con `Table`.",
+     "code": "Cofactor[A, {1, 2}]",
+     "md": "El comando `Cofactor` da lo mismo de un golpe.",
+     "run": true,
+     "hint": "En Mathematica de escritorio hay que cargar antes su paquete: ``<< Combinatorica` ``."
+    },
+    {
+     "code": "Table[Cofactor[A, {i, j}], {i, 1, 3}, {j, 1, 3}]",
+     "md": "Todos los cofactores (i,j), con `Table`.",
      "run": true
     },
     {
-     "code": "Transpose[Table[(-1)^(i + j) Det[Drop[A, {i}, {j}]], {i, 1, 3}, {j, 1, 3}]]",
+     "code": "Transpose[Table[Cofactor[A, {i, j}], {i, 1, 3}, {j, 1, 3}]]",
      "md": "Traspón la matriz de cofactores: esa es la adjunta.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Escribe la matriz adjunta de `A` (3×3) con cofactores.",
+    "prompt": "Escribe la matriz adjunta de `A` (3×3) con `Cofactor`, `Table` y `Transpose`.",
     "hints": [
-     "Cofactor (i,j): `(-1)^(i + j) Det[Drop[A, {i}, {j}]]`.",
+     "El cofactor (i,j) es `Cofactor[A, {i, j}]`.",
      "Mételo en un `Table` con `{i, 1, 3}` y `{j, 1, 3}`.",
-     "Todo dentro de `Transpose[ ]`."
+     "`Transpose[Table[Cofactor[A, { , }], { , , }, { , , }]]`"
     ]
    },
    "cmds": [
@@ -1145,7 +1151,7 @@
     "real": true,
     "source": "Práctica 14 · P5 a)",
     "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};",
-    "solution": "adjW = Inverse[W]*Det[W];\n{adjW[[4, 3]], adjW[[4, 4]]}",
+    "solution": "adjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];\n{adjW[[4, 3]], adjW[[4, 4]]}",
     "check": {
      "type": "all",
      "checks": [
@@ -1162,10 +1168,10 @@
      ]
     },
     "hints": [
-     "Atajo: `adjW = Inverse[W]*Det[W]`.",
+     "`adjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];` (o el atajo `Inverse[W]*Det[W]`).",
      "Después: `{adjW[[4, 3]], adjW[[4, 4]]}`."
     ],
-    "explain": "El enunciado real la pide con `Cofactor[W, {i, j}]` (existe en Mathematica de escritorio tras ``<< Combinatorica` ``). Con `Drop` y `Det`, o con el atajo, sale lo mismo: −3 y 5."
+    "explain": "Salen −3 y 5. El enunciado real pide `Cofactor` y `Table`; con el atajo `Inverse[W]*Det[W]` se obtiene la misma matriz. Si olvidas el `Transpose`, el (4,3) sale cambiado por el (3,4)."
    }
   },
   {

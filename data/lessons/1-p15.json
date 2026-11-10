@@ -12,8 +12,7 @@
   "Join",
   "LinearSolve",
   "MatrixRank",
-  "RowReduce",
-  "Append"
+  "RowReduce"
  ],
  "uses": [
   "Table",
@@ -235,38 +234,37 @@
   {
    "type": "build",
    "title": "Pegar una columna: la ampliada",
-   "md": "`A = {{1, 2}, {3, 4}}` y `b = {5, 6}` ya existen. Pega `b` como última columna de `A`.",
-   "target": "Transpose[Append[Transpose[A], b]]",
-   "setup": "A = {{1, 2}, {3, 4}}; b = {5, 6};",
+   "md": "`A = {{1, 2}, {3, 4}}` y la columna `b = {{5}, {6}}` ya existen. Pega `b` al lado de `A`.",
+   "target": "Join[A, b, 2]",
+   "setup": "A = {{1, 2}, {3, 4}}; b = {{5}, {6}};",
    "parts": [
     {
-     "code": "Transpose[A]",
-     "md": "Traspón `A`: sus columnas pasan a ser filas.",
+     "code": "b",
+     "md": "Mira `b`: una matriz de una sola columna.",
      "run": true
     },
     {
-     "code": "Append[Transpose[A], b]",
-     "md": "Añádele `b` como una fila más con `Append`.",
+     "code": "Join[A, b]",
+     "md": "Error provocado: sin más, `Join` la pega debajo.",
      "run": true
     },
     {
-     "code": "Transpose[Append[Transpose[A], b]]",
-     "md": "Vuelve a trasponer: `b` queda como última columna.",
+     "code": "Join[A, b, 2]",
+     "md": "Con un 2 al final pega al lado: `b` es la última columna.",
      "run": true,
-     "hint": "En los cuadernos de la práctica verás `Join[A, b, 2]`, con `b` como columna `{{5}, {6}}`."
+     "hint": "Así se forma la matriz ampliada de un sistema."
     }
    ],
    "recall": {
-    "prompt": "Pega el vector `b` como última columna de la matriz `A`.",
+    "prompt": "Pega la columna `b` a la derecha de la matriz `A`.",
     "hints": [
-     "Traspón, añade `b` con `Append` y vuelve a trasponer.",
-     "Por dentro: `Append[Transpose[A], b]`.",
-     "`Transpose[Append[Transpose[ ], ]]`"
+     "Es un `Join` con un tercer argumento.",
+     "El 2 significa «por columnas».",
+     "`Join[A, b, ]`"
     ]
    },
    "cmds": [
-    "Transpose",
-    "Append"
+    "Join"
    ]
   },
   {
@@ -455,7 +453,7 @@
     "id": "1-p15-e09",
     "kind": "code",
     "title": "El determinante de M",
-    "prompt": "`M` ya está definida. Calcula su determinante (es una fracción de numerador 1).",
+    "prompt": "`M` ya está definida. Guarda en `d` su determinante (es una fracción de numerador 1).",
     "difficulty": 2,
     "cmds": [
      "Det"
@@ -463,18 +461,19 @@
     "real": true,
     "source": "Práctica 15 · P2 d)",
     "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};\nM = Inverse[Transpose[B].B];",
-    "solution": "Det[M]",
+    "solution": "d = Det[M]",
     "check": {
-     "type": "satisfies",
-     "test": "Abs[(1/%)/567608335088055579476125286400 - 1] < 10^-6",
-     "msg": "Calcula `Det[M]`."
+     "type": "value",
+     "expr": "1/d",
+     "expected": "567608335088055579476125286400",
+     "msg": "`d` no es el determinante de `M`: `d = Det[M]`."
     },
     "requires": [
      "Det"
     ],
     "hints": [
      "Un solo comando con `M` entre corchetes.",
-     "`Det[M]`"
+     "`d = Det[M]`"
     ],
     "explain": "Sale 1/567608335088…: la casilla pedía las 6 primeras cifras del denominador, 567608."
    }
@@ -581,7 +580,7 @@
    "md": "Ya existen `A` (3×3), `b` y su ampliada `aug` (A con `b` pegado). Compara los rangos.",
    "target": "RowReduce[aug]",
    "more": "Teorema de Rouché-Frobenius: rango(A) = rango(ampliada) = nº de incógnitas → compatible determinado (una solución); rangos iguales pero menores → compatible indeterminado (infinitas); rango(A) < rango(ampliada) → incompatible.",
-   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {1, 2, 3};\naug = Transpose[Append[Transpose[A], b]];",
+   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {{1}, {2}, {3}};\naug = Join[A, b, 2];",
    "parts": [
     {
      "code": "MatrixRank[A]",
@@ -617,7 +616,7 @@
    "title": "Rangos distintos: incompatible",
    "md": "Misma `A`, pero en `aug2` el último término independiente es 4 en vez de 3.",
    "target": "RowReduce[aug2]",
-   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\naug2 = Transpose[Append[Transpose[A], {1, 2, 4}]];",
+   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\naug2 = Join[A, {{1}, {2}, {4}}, 2];",
    "parts": [
     {
      "code": "MatrixRank[aug2]",
@@ -676,17 +675,16 @@
     "id": "1-p15-e13",
     "kind": "code",
     "title": "Rangos de un sistema",
-    "prompt": "`A` (3×3) y `b = {1, 2, 4}` ya existen. Guarda la ampliada en `aug` y devuelve `{MatrixRank[A], MatrixRank[aug]}`.",
+    "prompt": "`A` (3×3) y la columna `b = {{1}, {2}, {4}}` ya existen. Guarda la ampliada en `aug` y devuelve `{MatrixRank[A], MatrixRank[aug]}`.",
     "difficulty": 2,
     "cmds": [
      "MatrixRank",
-     "Transpose",
-     "Append"
+     "Join"
     ],
     "real": false,
     "source": null,
-    "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {1, 2, 4};",
-    "solution": "aug = Transpose[Append[Transpose[A], b]];\n{MatrixRank[A], MatrixRank[aug]}",
+    "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {{1}, {2}, {4}};",
+    "solution": "aug = Join[A, b, 2];\n{MatrixRank[A], MatrixRank[aug]}",
     "check": {
      "type": "all",
      "checks": [
@@ -694,7 +692,7 @@
        "type": "value",
        "expr": "aug",
        "expected": "{{1, 2, 3, 1}, {4, 5, 6, 2}, {7, 8, 9, 4}}",
-       "msg": "`aug` debe ser A con `b` como cuarta columna: `Transpose[Append[Transpose[A], b]]`."
+       "msg": "`aug` debe ser A con `b` como cuarta columna: `Join[A, b, 2]`."
       },
       {
        "type": "expr",
@@ -706,7 +704,7 @@
      "MatrixRank"
     ],
     "hints": [
-     "Ampliada: `aug = Transpose[Append[Transpose[A], b]]`.",
+     "Ampliada: `aug = Join[A, b, 2]`.",
      "`{MatrixRank[A], MatrixRank[aug]}`"
     ],
     "explain": "Rangos 2 y 3: incompatible."
@@ -798,7 +796,7 @@
     ],
     "real": true,
     "source": "Práctica 15 · P3 a), valor crítico",
-    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {1, 1, 5 m - 10};",
+    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {{1}, {1}, {5 m - 10}};",
     "solution": "Solve[Det[A] == 0, k]",
     "check": {
      "type": "any",
@@ -832,7 +830,7 @@
     "id": "1-p15-e15",
     "kind": "code",
     "title": "La solución con k = m = 4",
-    "prompt": "`A` (con `k`) y `b` (con `m`) ya están definidas. Resuelve el sistema para k = 4 y m = 4.",
+    "prompt": "`A` (con `k`) y la columna `b` (con `m`) ya están definidas. Resuelve el sistema para k = 4 y m = 4.",
     "difficulty": 3,
     "cmds": [
      "LinearSolve",
@@ -840,7 +838,7 @@
     ],
     "real": true,
     "source": "Práctica 15 · P3 a), solución",
-    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {1, 1, 5 m - 10};",
+    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {{1}, {1}, {5 m - 10}};",
     "solution": "LinearSolve[A /. k -> 4, b /. m -> 4]",
     "check": {
      "type": "expr",
@@ -855,7 +853,7 @@
      "Sustituye en cada uno: `A /. k -> 4` y `b /. m -> 4`.",
      "`LinearSolve[A /. k -> 4, b /. m -> 4]`"
     ],
-    "explain": "(x, y, z) = (3, −5, 4). Los cuadernos de la práctica asignan `k = m = 4`; funciona, pero luego hay que hacer `Clear[k, m]`."
+    "explain": "(x, y, z) = (3, −5, 4); sale como columna porque `b` es una columna. Los cuadernos de la práctica asignan `k = m = 4`; funciona, pero luego hay que hacer `Clear[k, m]`."
    }
   },
   {
@@ -870,13 +868,12 @@
      "Take",
      "Det",
      "Solve",
-     "Transpose",
-     "Append"
+     "Join"
     ],
     "real": true,
     "source": "Práctica 15 · P3 b)",
-    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {1, 1, 5 m - 10};",
-    "solution": "aug = Transpose[Append[Transpose[A /. k -> 17/5], b]];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
+    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {{1}, {1}, {5 m - 10}};",
+    "solution": "aug = Join[A /. k -> 17/5, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
     "check": {
      "type": "any",
      "checks": [
@@ -898,7 +895,7 @@
      "Det"
     ],
     "hints": [
-     "`aug = Transpose[Append[Transpose[A /. k -> 17/5], b]];`",
+     "`aug = Join[A /. k -> 17/5, b, 2];`",
      "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
     ],
     "explain": "m = 5/2. Con k = k0 el rango de A es 2; la ampliada también tiene rango 2 solo si se anula su menor de las columnas 2 a 4: entonces es compatible indeterminado. Con otro m, incompatible. Usa la fracción 17/5, no 3.4, para que los rangos sean exactos."
@@ -919,7 +916,7 @@
     ],
     "real": true,
     "source": "Práctica 15 · P2 a) (versión de clase)",
-    "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {3, -1, m - 5};",
+    "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {{3}, {-1}, {m - 5}};",
     "solution": "sol15 = LinearSolve[A /. k -> 3/2, b /. m -> 3/2];\nSolve[Det[A] == 0, k]",
     "check": {
      "type": "all",
@@ -976,8 +973,8 @@
     ],
     "real": true,
     "source": "Práctica 15 · P2 b) (versión de clase)",
-    "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {3, -1, m - 5};",
-    "solution": "aug = Transpose[Append[Transpose[A /. k -> 9/5], b]];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
+    "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {{3}, {-1}, {m - 5}};",
+    "solution": "aug = Join[A /. k -> 9/5, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
     "check": {
      "type": "any",
      "checks": [
@@ -998,7 +995,7 @@
      "Det"
     ],
     "hints": [
-     "`aug = Transpose[Append[Transpose[A /. k -> 9/5], b]];`",
+     "`aug = Join[A /. k -> 9/5, b, 2];`",
      "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
     ],
     "explain": "m = 6: la misma receta del ejercicio anterior con otros números."

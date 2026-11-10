@@ -400,7 +400,6 @@
    "title": "Cada curva, su parámetro",
    "md": "`c1` y `c2` se cortan cerca de (1.25, 1.56). Halla el parámetro de cada una.",
    "target": "t0 = t /. FindRoot[c1[t][[1]] == 1.25, {t, 0.9}]",
-   "more": "En Mathematica de escritorio se pueden pedir los dos parámetros de golpe con un sistema y una semilla por incógnita: `FindRoot[{2 Cos[t] == s, 2 Sin[t] == s^2}, {t, 0.9}, {s, 1.2}]` devuelve `{t -> 0.895907, s -> 1.24962}`. Para la prueba: `FindRoot[{6 Cos[t]^3 == 2 x - 2 Sin[x], 6 Sin[t]^3 == 2 - 2 Cos[x]}, {t, 1}, {x, 1}]`.",
    "setup": "c1[t_] := {2 Cos[t], 2 Sin[t]}\nc2[t_] := {t, t^2}",
    "parts": [
     {
@@ -439,6 +438,52 @@
    "cmds": [
     "FindRoot",
     "Part",
+    "ReplaceAll"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Los dos parámetros, de golpe",
+   "md": "Mismas `c1` y `c2`. Pide los dos parámetros a la vez con un sistema.",
+   "target": "{t, s} /. FindRoot[c1[t] == c2[s], {t, 0.9}, {s, 1.2}]",
+   "setup": "c1[t_] := {2 Cos[t], 2 Sin[t]}\nc2[t_] := {t, t^2}",
+   "parts": [
+    {
+     "code": "{2 Cos[t] == s, 2 Sin[t] == s^2}",
+     "md": "Iguala las dos coordenadas: dos ecuaciones con dos incógnitas, `t` y `s`."
+    },
+    {
+     "code": "FindRoot[{2 Cos[t] == s, 2 Sin[t] == s^2}, {t, 0.9}, {s, 1.2}]",
+     "md": "En `FindRoot`, con una semilla por incógnita.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[c1[t] == c2[s], {t, 0.9}, {s, 1.2}]",
+     "md": "Más corto: iguala directamente las dos curvas.",
+     "run": true
+    },
+    {
+     "code": "{t, s} /. FindRoot[c1[t] == c2[s], {t, 0.9}, {s, 1.2}]",
+     "md": "Saca los dos números con `{t, s} /.` delante.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Devuelve `{t, s}` del corte de `c1[t]` con `c2[s]` usando un sistema (semillas 0.9 y 1.2).",
+    "hints": [
+     "La ecuación: `c1[t] == c2[s]`, cada curva con su letra.",
+     "Una semilla por incógnita: `{t, 0.9}, {s, 1.2}`.",
+     "`{t, s} /. FindRoot[ == , {t, }, {s, }]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{0.8959074812, 1.249621068}",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "FindRoot",
     "ReplaceAll"
    ]
   },
@@ -537,7 +582,7 @@
      "La x de la astroide es `r1[t][[1]]`.",
      "`ta = t /. FindRoot[r1[t][[1]] == 1.744, {t, 0.8}]`"
     ],
-    "explain": "ta ≈ 0.847 (la casilla admitía de 0.846 a 0.8471). Con el sistema de dos ecuaciones en Mathematica sale 0.847049."
+    "explain": "ta ≈ 0.847 (la casilla admitía de 0.846 a 0.8471)."
    }
   },
   {
@@ -570,6 +615,37 @@
      "`tc = t /. FindRoot[r2[t][[1]] == 1.744, {t, 1.8}]`"
     ],
     "explain": "tc ≈ 1.836 (la casilla admitía de 1.833 a 1.838). El valor fino es 1.836134."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p13-e11",
+    "kind": "code",
+    "title": "ta y tc con un sistema",
+    "prompt": "`r1` y `r2` ya definidas. Resuelve `r1[a] == r2[b]` con `FindRoot` (semillas 0.8 y 1.8) y guarda `a` en `ta` y `b` en `tc`.",
+    "difficulty": 4,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 13 · P2 d) y f) (con sistema)",
+    "setup": "r1[t_] := {6 Cos[t]^3, 6 Sin[t]^3}\nr2[t_] := {2 t - 2 Sin[t], 2 - 2 Cos[t]}",
+    "solution": "sol = FindRoot[r1[a] == r2[b], {a, 0.8}, {b, 1.8}]\nta = a /. sol;\ntc = b /. sol;",
+    "check": {
+     "type": "satisfies",
+     "test": "NumberQ[ta] && NumberQ[tc] && Abs[ta - 0.8470494] < 10^-4 && Abs[tc - 1.8361339] < 10^-4",
+     "msg": "`ta` y `tc` no son los parámetros del corte: `sol = FindRoot[r1[a] == r2[b], {a, 0.8}, {b, 1.8}]`, y después `ta = a /. sol`, `tc = b /. sol`."
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`sol = FindRoot[r1[a] == r2[b], {a, 0.8}, {b, 1.8}]`",
+     "`ta = a /. sol; tc = b /. sol;`"
+    ],
+    "explain": "ta = 0.847049 y tc = 1.836134, sin depender de la lectura de la gráfica. En el cuaderno de la prueba: `FindRoot[{6*Cos[t]^3 == 2x - 2Sin[x], 6*Sin[t]^3 == 2 - 2Cos[x]}, {t, 1}, {x, 1}]`."
    }
   },
   {
@@ -658,7 +734,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e11",
+    "id": "1-p13-e12",
     "kind": "code",
     "title": "Longitud del arco de astroide",
     "prompt": "`ta` y `tc` (valores finos del corte) ya están definidos. Guarda en `long` la longitud de (6cos³t, 6sen³t) entre `ta` y π/2.",
@@ -693,7 +769,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e12",
+    "id": "1-p13-e13",
     "kind": "code",
     "title": "Área bajo la cicloide",
     "prompt": "`tc` ya está definido. Guarda en `A1` el área bajo la cicloide (2t − 2sen t, 2 − 2cos t) para t de 0 a `tc`.",
@@ -727,7 +803,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e13",
+    "id": "1-p13-e14",
     "kind": "code",
     "title": "Área bajo la astroide y total",
     "prompt": "`ta` y `A1` ya definidos. Guarda en `A2` el área bajo la astroide (6cos³t, 6sen³t) para t de `ta` a 0 y devuelve `A1 + A2`.",
@@ -813,7 +889,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e14",
+    "id": "1-p13-e15",
     "kind": "code",
     "title": "Cardioide y parábola: p y q",
     "prompt": "Guarda en `p` la curva polar ρ = 4 + 4·sen(α), α de −π a π, y en `q` la curva y = 4x − 2x², x de −6 a 6.",
@@ -844,7 +920,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e15",
+    "id": "1-p13-e16",
     "kind": "code",
     "title": "Las dos con Show",
     "prompt": "`p` y `q` ya están guardadas. Júntalas con `Show`, con `GridLines -> Automatic` y `PlotRange -> {{-6, 6}, {-2, 8}}`.",
@@ -881,7 +957,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e16",
+    "id": "1-p13-e17",
     "kind": "code",
     "title": "El punto M, a ojo",
     "prompt": "`p` y `q` ya están guardadas. Con zooms de `Show` y `PlotRange`, lee con 3 decimales el corte del cuarto cuadrante. Guárdalo en `M`.",
@@ -952,7 +1028,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e17",
+    "id": "1-p13-e18",
     "kind": "code",
     "title": "M en polares",
     "prompt": "`M = {2.215, -0.957}` ya está definido. Guarda en `Mpolar` sus coordenadas polares `{r, α}` usando `Abs` y `Arg`.",
@@ -1018,7 +1094,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e18",
+    "id": "1-p13-e19",
     "kind": "code",
     "title": "Un sector de la cardioide",
     "prompt": "`ro[a_] := 4 + 4 Sin[a]` ya existe. Guarda en `sector` el área que barre entre `-Pi/2` y `-0.40783`.",
@@ -1051,7 +1127,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e19",
+    "id": "1-p13-e20",
     "kind": "code",
     "title": "Entre la parábola y la recta OM",
     "prompt": "`par[x_]` (parábola) y `M` ya definidos. La recta OM es `m x` con `m = M[[2]]/M[[1]]`. Guarda en `A1` la integral de `par[x] - m x` de 0 a `M[[1]]`.",
@@ -1085,7 +1161,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e20",
+    "id": "1-p13-e21",
     "kind": "code",
     "title": "El área entre cardioide y parábola",
     "prompt": "`A1`, `ro[a_]` (cardioide) y `alfaM` (ángulo de M) ya definidos. Guarda en `area` la suma de `A1` y el sector polar de `-Pi/2` a `alfaM`.",
@@ -1119,7 +1195,7 @@
    "type": "exercise",
    "section": "El otro modelo de la prueba",
    "ex": {
-    "id": "1-p13-e21",
+    "id": "1-p13-e22",
     "kind": "code",
     "title": "Modelo 2: longitud de la astroide",
     "prompt": "Modelo 2: astroide (3cos³t, 3sen³t); `ta` es el mismo y ya está definido. Guarda en `long` su longitud entre `ta` y π/2.",
@@ -1153,7 +1229,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e22",
+    "id": "1-p13-e23",
     "kind": "code",
     "title": "Modelo 2: el área",
     "prompt": "Modelo 2: cicloide (t − sen t, 1 − cos t) de 0 a `tc` más astroide (3cos³t, 3sen³t) de `ta` a 0. Devuelve el área total.",
@@ -1185,7 +1261,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e23",
+    "id": "1-p13-e24",
     "kind": "code",
     "title": "Modelo 2: M en polares",
     "prompt": "Modelo 2: el corte leído es M = (2.302, −0.505). Devuelve sus polares `{r, α}` con `Abs` y `Arg`.",
@@ -1217,7 +1293,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p13-e24",
+    "id": "1-p13-e25",
     "kind": "code",
     "title": "Modelo 2: el área",
     "prompt": "Cardioide `3 + 3 Sin[a]`, parábola `9 x - 4 x^2`, M = (2.302, −0.505), α = −0.21595. Área: trozo parábola − recta OM más sector polar.",
