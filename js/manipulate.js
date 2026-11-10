@@ -41,6 +41,16 @@ export function renderManipulate(el, item, kernel, renderItems) {
   let playing = null, playTimer = 0;
 
   // ------------------------------------------------------------ salida
+  // ajusta el ancho del panel al del gráfico (que puede llegar más tarde si el cuaderno lo pinta de forma asíncrona)
+  const fit = () => {
+    if (dead || !root.isConnected || !root.classList.contains('has-gfx')) return;
+    const gs = out.querySelectorAll('.wl-gfx');
+    if (gs.length !== 1 || !gs[0].offsetWidth) return;
+    const want = Math.max(gs[0].offsetWidth + 36, 240) + 'px';
+    if (root.style.maxWidth !== want) root.style.maxWidth = want;
+  };
+  let fitRO = null;
+  if (typeof ResizeObserver !== 'undefined') { fitRO = new ResizeObserver(() => fit()); fitRO.observe(out); }
   const show = items => {
     if (dead || !items) return;
     // camino rápido: un único gráfico -> actualizar en el sitio (conserva la rotación 3D y evita parpadeos)
@@ -61,15 +71,7 @@ export function renderManipulate(el, item, kernel, renderItems) {
     root.style.maxWidth = '';
     try { renderItems(out, items); } catch (e) { h('div', 'wl-manip-err', out, String(e && e.message || e)); }
     shown = gi ? { g: true, dim: gi.g.dim } : null;
-    const fit = () => {
-      out.style.minHeight = '';
-      if (!hasG || dead || !root.isConnected) return;
-      let w = 0;
-      out.querySelectorAll('.wl-gfx').forEach(n => { w = Math.max(w, n.offsetWidth); });
-      const single = out.querySelectorAll('.wl-gfx').length === 1;
-      if (w > 0 && single) root.style.maxWidth = Math.max(w + 36, 240) + 'px';
-    };
-    requestAnimationFrame(fit);
+    requestAnimationFrame(() => { out.style.minHeight = ''; fit(); });
   };
 
   // ------------------------------------------------------------ peticiones (la última gana; como mucho una en cola)
@@ -211,6 +213,7 @@ export function renderManipulate(el, item, kernel, renderItems) {
       dead = true;
       stop();
       clearTimeout(timer);
+      if (fitRO) fitRO.disconnect();
       out.querySelectorAll('.wl-gfx').forEach(n => { try { n.__wlgfx && n.__wlgfx.destroy && n.__wlgfx.destroy(); } catch (e) { /* */ } });
       root.remove();
     },

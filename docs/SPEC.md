@@ -355,3 +355,9 @@ práctica posible para que esto no haga falta."
   para entenderse, está mal partida: divídela en más piezas ejecutables.
 - Más pantallas pequeñas y más repeticiones valen más que una explicación: un tramo puede tener 10–15 pantallas de
   10–20 segundos cada una.
+
+### 14.2 El enunciado es el titular (petición del usuario: "corto, sencillo y en fuente grande y vistosa")
+La línea visible de cada pantalla (`md` de una pieza, `prompt` de un ejercicio, `recall.prompt`) se muestra como TITULAR
+grande (≈ 30–36 px en escritorio, 22–26 px en móvil), justo encima de la celda. Escríbela como un titular: una frase
+simple y directa, sin subordinadas, ideal ≤ 70 caracteres ("Divide 10 entre 4.", "Ahora con punto decimal.",
+"Dibuja `Sin[x]` de 0 a 2 Pi."). El `title` del paso es solo una etiqueta pequeña y puede omitirse.

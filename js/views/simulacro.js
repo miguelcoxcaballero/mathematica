@@ -1,12 +1,12 @@
 // views/simulacro.js (LEARN) — exam simulator (SPEC §9).
 //   #/simulacros            list of mock exams (grouped by year, best score, attempts, countdown to the real exam)
 //   #/simulacro/<examId>    intro → timed run (questions with numeric boxes + free notebook) → grading → review
-import { store } from '../store.js?v=1794351414';
-import * as data from '../data.js?v=1794351414';
-import { kernel } from '../kernel-client.js?v=1794351414';
-import { createNotebook } from '../notebook.js?v=1794351414';
-import * as fx from '../fx.js?v=1794351414';
-import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794351414';
+import { store } from '../store.js?v=1794351634';
+import * as data from '../data.js?v=1794351634';
+import { kernel } from '../kernel-client.js?v=1794351634';
+import { createNotebook } from '../notebook.js?v=1794351634';
+import * as fx from '../fx.js?v=1794351634';
+import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794351634';
 
 const KEY = (id) => `wolframlab-aero-exam-${id}`;
 const WARN_AT = [600, 300, 60]; // seconds left → warning
@@ -518,7 +518,7 @@ function renderResults(me, st) {
   const pass = res.score >= 5;
   const nOk = X.parts.filter((p) => res.graded[p.key] && res.graded[p.key].ok).length;
   const nNum = X.parts.filter((p) => p.type === 'numeric').length;
-  const msg = res.score >= 9 ? 'Sobresaliente. Estás listo para el examen de verdad.' : res.score >= 7 ? 'Notable. Repasa los fallos y vuelve a intentarlo otro día.' : pass ? 'Aprobado justo: mira dónde se te fue cada punto.' : 'Todavía no llega. Estudia las soluciones de abajo y repite: la segunda vuelta siempre sale mejor.';
+  const msg = res.score >= 9 ? 'Estás listo para el examen de verdad.' : res.score >= 7 ? 'Repasa los fallos y repítelo otro día.' : pass ? 'Mira dónde se te fue cada punto.' : 'Teclea las soluciones de abajo y repite: la segunda vuelta siempre sale mejor.';
   const hero = h('div', { class: `lp-end-hero sm-hero${pass ? ' is-complete' : ' is-fail'}` },
     h('div', { class: 'lp-end-big' }, h('b', null, fmtScore(res.score)), h('span', null, '/ 10'), h('small', null, 'nota')),
     h('div', { class: 'lp-end-txt' },

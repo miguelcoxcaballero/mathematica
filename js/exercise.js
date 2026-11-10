@@ -6,10 +6,10 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794351414';
-import { createCell } from './notebook.js?v=1794351414';
-import { store } from './store.js?v=1794351414';
-import * as fx from './fx.js?v=1794351414';
+import { kernel } from './kernel-client.js?v=1794351634';
+import { createCell } from './notebook.js?v=1794351634';
+import { store } from './store.js?v=1794351634';
+import * as fx from './fx.js?v=1794351634';
 
 const { sfx, xpFloat } = fx;
 
@@ -556,14 +556,16 @@ export function mountExercise(container, exRaw, opts = {}) {
       h('span', { class: 'ex-spacer' }),
       xpChip);
     const cmds = h('div', { class: 'ex-cmds' }, (ex.cmds || []).map(cmdChip));
-    if (!opts.noHead) root.appendChild(h('header', { class: 'ex-head' }, badges, ex.title && !opts.noTitle ? h('h3', { class: 'ex-title' }, ex.title) : null));
-    else root.appendChild(h('header', { class: 'ex-head' }, badges));
+    // SPEC §14: the statement is the headline; the title (if it says something) is a small gray label, the meta goes to the foot
+    const generic = !ex.title || /^(ejercicio|nota|teclea y observa|de memoria)\.?$/i.test(String(ex.title).trim());
+    if (!opts.noTitle && !generic) root.appendChild(h('div', { class: 'ex-label' }, ex.title));
+    const statement = (text, fallback) => h('div', { class: 'ex-prompt lx-statement lx-md', html: mdInline(String(text || '').trim() || fallback) });
 
     const body = h('div', { class: 'ex-body' });
     const actions = h('div', { class: 'ex-actions' });
     const hintsBox = h('div', { class: 'ex-hints' });
     const fb = h('div', { class: 'ex-feedback', 'aria-live': 'polite' });
-    const foot = (ex.cmds || []).length ? h('footer', { class: 'ex-foot' }, h('span', { class: 'ex-foot-l' }, 'Comandos:'), cmds) : null;
+    const foot = h('footer', { class: 'ex-foot' }, badges, cmds);
 
     function report(extra) {
       if (!isExam && st.reported) return;
@@ -584,7 +586,7 @@ export function mountExercise(container, exRaw, opts = {}) {
     /* ============================ note (old mcq): nothing to choose, just the idea ============================ */
     if (view === 'note') {
       const pr = splitText(ex.prompt || '', 160);
-      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline(pr.line) }));
+      root.appendChild(statement(pr.line, ex.title || 'Una idea para recordar.'));
       const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
       if (ans) body.appendChild(h('div', { class: 'ex-note-a lx-md', html: mdInline(/`/.test(ans) || kind !== 'predict' ? ans : '`' + ans + '`') }));
       const mb = moreBox({ more: [pr.rest, ex.explain].filter(Boolean).join('\n\n') });
@@ -601,7 +603,7 @@ export function mountExercise(container, exRaw, opts = {}) {
 
     /* ============================ ghost (old predict): type the cell and watch what it returns ============================ */
     if (view === 'ghost') {
-      root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline('Teclea la celda y mira qué devuelve.') }));
+      root.appendChild(statement('Teclea la celda y mira qué devuelve.', ''));
       const host = h('div', { class: 'ex-cell' });
       const after = h('div', { class: 'ex-feedback' });
       body.append(host);
@@ -634,7 +636,7 @@ export function mountExercise(container, exRaw, opts = {}) {
 
     /* ============================ code: an empty cell, the student writes everything ============================ */
     const pr = splitText(ex.prompt || '', 160);
-    root.appendChild(h('div', { class: 'ex-prompt lx-md', html: mdInline(pr.line) }));
+    root.appendChild(statement(pr.line, ex.title && !generic ? ex.title : 'Escribe el código que se pide.'));
     if (pr.rest) root.appendChild(moreBox({ more: pr.rest, moreLabel: 'Enunciado completo' }));
     if (kind === 'fix' && ex.broken) body.appendChild(refBlock('Con errores: escríbelo bien abajo', codeBlock(ex.broken), 'ex-ref--bad'));
     else if (kind === 'fill' && ex.template) body.appendChild(refBlock('Forma (□ = lo que falta)', codeBlock(String(ex.template).replace(/__\d+__/g, '□'))));
@@ -656,9 +658,8 @@ export function mountExercise(container, exRaw, opts = {}) {
     const btnHint = h('button', { class: 'lx-link ex-hint', type: 'button' });
     const btnSol = h('button', { class: 'lx-link ex-sol', type: 'button', hidden: true }, gentle ? 'Verla entera y teclearla' : 'Ver solución');
     const btnVariant = h('button', { class: 'lx-link ex-variant', type: 'button', hidden: true, title: 'El mismo ejercicio con otros números' }, 'Otra variante');
-    const kbd = h('span', { class: 'ex-kbd' });
-    kbd.innerHTML = '<kbd>Ctrl</kbd>+<kbd>Enter</kbd>';
-    kbd.title = 'Ctrl+Enter comprueba · Shift+Enter solo evalúa';
+    const kbd = h('span', { class: 'ex-kbd', hidden: true });
+    btnCheck.title = 'Ctrl+Enter comprueba · Shift+Enter solo evalúa';
     const hints = Array.isArray(ex.hints) ? ex.hints.filter(Boolean) : [];
     // hint ladder (never penalised): text hints → the shape of the line (brackets, braces, commas) → the whole solution as a ghost to type
     const shape = (() => { const sk = skeletonOf(solutionOf(ex)); return /[[{]/.test(sk) && squash(sk) !== squash(solutionOf(ex)) ? sk : ''; })();

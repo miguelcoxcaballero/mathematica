@@ -66,8 +66,9 @@ def _patch_builtin_errors():
             b = budgets.get(self.name)
             if b is None:
                 return orig(self, expression, vars, options, evaluation)
-            if ext.SKIP_ONCE.pop(self.name, None):
-                return expression       # our own attempt already ran out of time
+            sk = ext.SKIP_ONCE.get(self.name)
+            if sk is not None and (sk is True or sk.sameQ(expression)):
+                return expression       # our own attempt already decided to leave it unevaluated
             with ext.budget(b):
                 return orig(self, expression, vars, options, evaluation)
         except soft as exc:

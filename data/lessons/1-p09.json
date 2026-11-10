@@ -6,7 +6,7 @@
  "order": 9,
  "title": "Cálculos iterativos, Newton e interpolación",
  "summary": "Repite una operación con NestList y NestWhileList usando funciones puras, programa el método de Newton-Raphson con control del error y calcula el polinomio que pasa por unos puntos con InterpolatingPolynomial.",
- "minutes": 50,
+ "minutes": 55,
  "commands": [
   "Function",
   "Slot",
@@ -34,37 +34,42 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Funciones puras: # y &",
-   "title": "Repetir para mejorar",
-   "md": "Muchos cálculos de ingeniería no tienen fórmula cerrada: se parte de una estimación y se **mejora repitiendo la misma operación** una y otra vez. Así trabajan `FindRoot`, los simuladores de vuelo y los programas de cálculo de estructuras.\n\nEn esta lección vas a programar tú esas repeticiones, y con ellas el método de Newton que pide el examen. Al final verás también cómo sacar un polinomio que pase por unos puntos dados.\n\nPara repetir una operación, primero hay que saber escribirla de forma compacta: con una **función pura**.",
-   "cells": []
-  },
-  {
    "type": "build",
+   "section": "Funciones puras: # y &",
    "title": "Una función sin nombre",
-   "md": "Una **función pura** es una función a la que no hace falta poner nombre. Vamos a escribir «lo que me den, al cuadrado, más uno» y a aplicarla al 3.",
+   "md": "Escribe «al cuadrado más uno» sin darle nombre, y aplícalo al 3.",
    "target": "(#^2 + 1) &[3]",
    "parts": [
     {
      "code": "#^2 + 1",
-     "md": "`#` es el hueco donde entrará el argumento. Así, sola, es una expresión a medias."
+     "md": "`#` es el hueco donde entrará el argumento. Sola, es una expresión a medias.",
+     "run": true
     },
     {
      "code": "(#^2 + 1) &",
-     "md": "`&` marca dónde termina la función. Ahora sí es una función: lo mismo que `f[x_] := x^2 + 1`, pero sin nombre. Olvidar el `&` es el error número uno."
+     "md": "Añade `&` para cerrarla: ahora es una función.",
+     "run": true
     },
     {
      "code": "(#^2 + 1) &[3]",
-     "md": "Se usa poniendo el argumento entre corchetes: el 3 entra en el hueco.",
+     "md": "Aplícala: el argumento, entre corchetes.",
+     "run": true
+    },
+    {
+     "code": "(#^2 + 1) &[10]",
+     "md": "Otra vez, con otro número.",
+     "run": true
+    },
+    {
+     "code": "(#^2 + 1) &[3]",
+     "md": "Y de nuevo con el 3.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: escribe la función pura «al cuadrado más uno» y aplícala al 3.",
+    "prompt": "Sin mirar: escribe la función pura «al cuadrado más uno» y aplícala al 3.",
     "hints": [
-     "El hueco es `#` y el cierre es `&`.",
-     "El argumento va al final entre corchetes: `...&[3]`.",
+     "El hueco es `#`, el cierre es `&` y el argumento va entre corchetes.",
      "`(#^2 + 1) &[3]`"
     ],
     "check": {
@@ -76,7 +81,8 @@
    "cmds": [
     "Function",
     "Slot"
-   ]
+   ],
+   "more": "Es lo mismo que `f[x_] := x^2 + 1`, pero sin gastar un nombre. Las funciones puras son la forma de decirle a Mathematica «repite esta operación», que es de lo que trata la lección: iterar hasta llegar al método de Newton del examen."
   },
   {
    "type": "exercise",
@@ -84,7 +90,7 @@
     "id": "1-p09-e01",
     "kind": "code",
     "title": "Tu primera función pura",
-    "prompt": "Escribe una función pura que calcule `x/2 + 1/x` (con `#` en lugar de `x`) y aplícala al número `2`, todo en una línea.",
+    "prompt": "Escribe una función pura que calcule `x/2 + 1/x` (con `#` en lugar de `x`) y aplícala al 2.",
     "difficulty": 1,
     "cmds": [
      "Function",
@@ -103,39 +109,84 @@
      "Slot"
     ],
     "hints": [
-     "La función: `(#/2 + 1/#) &`. No olvides el `&`.",
-     "Para aplicarla, el argumento va entre corchetes: `(#/2 + 1/#) &[2]`."
+     "La función es `(#/2 + 1/#) &`; el argumento va después, entre corchetes.",
+     "`(#/2 + 1/#) &[2]`"
     ],
-    "explain": "El 2 ocupa el lugar de cada `#`: 2/2 + 1/2 = `3/2`. Los paréntesis no son obligatorios, pero ayudan a ver dónde empieza y acaba la función."
+    "explain": "El 2 ocupa el lugar de cada `#`: 2/2 + 1/2 = `3/2`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p09-e02",
+    "kind": "code",
+    "title": "El doble menos uno",
+    "prompt": "Escribe la función pura «el doble menos uno» y aplícala al 7.",
+    "difficulty": 1,
+    "cmds": [
+     "Function",
+     "Slot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "(2 # - 1) &[7]",
+    "check": {
+     "type": "expr",
+     "expected": "13",
+     "compare": "equal"
+    },
+    "requires": [
+     "Function",
+     "Slot"
+    ],
+    "hints": [
+     "«El doble menos uno» es `2 # - 1`. No olvides el `&`.",
+     "`(2 # - 1) &[7]`"
+    ],
+    "explain": "2·7 − 1 = 13. Los paréntesis no son obligatorios, pero ayudan a ver dónde empieza y acaba la función."
    }
   },
   {
    "type": "build",
    "section": "Repetir n veces: NestList",
    "title": "Aplicar una función varias veces",
-   "md": "`NestList` aplica una función una y otra vez empezando en un valor, y guarda todos los pasos. Vamos a duplicar el 1 cinco veces.",
+   "md": "Duplica el 1 cinco veces y guarda todos los pasos.",
    "target": "NestList[2 # &, 1, 5]",
    "parts": [
     {
      "code": "2 # &",
-     "md": "La operación que se repite, como función pura: «el doble»."
+     "md": "La operación que se repite: «el doble»."
     },
     {
      "code": "Nest[2 # &, 1, 5]",
-     "md": "`Nest[función, valor inicial, veces]` la aplica 5 veces y da solo el resultado final.",
+     "md": "`Nest[función, inicial, veces]`: solo el resultado final.",
      "run": true
     },
     {
      "code": "NestList[2 # &, 1, 5]",
-     "md": "`NestList` da la lista con todos los pasos. Tiene 6 elementos: el inicial y las 5 aplicaciones. Si empiezas con `1.` en vez de `1`, todo sale con decimales.",
+     "md": "`NestList`: la lista con todos los pasos.",
+     "run": true
+    },
+    {
+     "code": "NestList[2 #, 1, 5]",
+     "md": "Quita el `&` a propósito: sin él no hay función y sale un disparate.",
+     "run": true
+    },
+    {
+     "code": "NestList[2 # &, 1., 5]",
+     "md": "Con el `&`, y empezando en `1.`: todo con decimales.",
+     "run": true
+    },
+    {
+     "code": "NestList[2 # &, 1, 5]",
+     "md": "Y la versión exacta otra vez.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: genera la lista que resulta de duplicar el 1 cinco veces, con todos los pasos.",
+    "prompt": "Sin mirar: genera la lista de duplicar el 1 cinco veces, con todos los pasos.",
     "hints": [
-     "`NestList[función, valor inicial, veces]`",
-     "La función es `2 # &`.",
+     "`NestList[función, valor inicial, veces]`, con la función `2 # &`.",
      "`NestList[2 # &, 1, 5]`"
     ],
     "check": {
@@ -148,15 +199,16 @@
     "NestList",
     "Nest",
     "Function"
-   ]
+   ],
+   "more": "La lista tiene 6 elementos: el valor inicial y las 5 aplicaciones."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e02",
+    "id": "1-p09-e03",
     "kind": "code",
     "title": "Duplicar y restar uno",
-    "prompt": "Empieza en `3` y aplica **4 veces** la operación «duplicar y restar 1», guardando todos los pasos.",
+    "prompt": "Empieza en 3 y aplica 4 veces «duplicar y restar 1», guardando todos los pasos.",
     "difficulty": 1,
     "cmds": [
      "NestList",
@@ -184,10 +236,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e03",
+    "id": "1-p09-e04",
     "kind": "code",
     "title": "La raíz de 2 a mano",
-    "prompt": "Los babilonios calculaban √2 repitiendo la operación «media entre `x` y `2/x`». Empieza en `1.` y aplica 5 veces la función pura `(# + 2/#)/2 &` guardando todos los pasos.",
+    "prompt": "Empieza en `1.` y aplica 5 veces `(# + 2/#)/2 &` (la media entre `x` y `2/x`), con todos los pasos.",
     "difficulty": 2,
     "cmds": [
      "NestList",
@@ -207,19 +259,19 @@
      "Function"
     ],
     "hints": [
-     "`NestList[función, valor inicial, número de veces]`.",
+     "`NestList[función, valor inicial, número de veces]`",
      "`NestList[(# + 2/#)/2 &, 1., 5]`"
     ],
-    "explain": "En cinco pasos ya tienes 1.41421356237…: cada iteración duplica las cifras correctas. Este es, en realidad, el método de Newton aplicado a `x^2 - 2`."
+    "explain": "Así calculaban √2 los babilonios: en cinco pasos ya tienes 1.41421356237… Es, en realidad, el método de Newton aplicado a `x^2 - 2`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e04",
+    "id": "1-p09-e05",
     "kind": "fix",
     "title": "El & olvidado",
-    "prompt": "Esta celda quería dividir 100 entre 2 cuatro veces seguidas y mostrar todos los pasos. Tiene dos errores. Corrígela.",
+    "prompt": "Esta celda quería dividir 100 entre 2 cuatro veces y mostrar todos los pasos. Tiene dos errores: escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "NestList",
@@ -239,49 +291,53 @@
      "Function"
     ],
     "hints": [
-     "Mayúsculas: `NestList` (la L también).",
-     "A la función pura le falta el cierre `&`."
+     "`NestList` con N y L mayúsculas, y a la función pura le falta el `&`.",
+     "`NestList[#/2 &, 100, 4]`"
     ],
-    "explain": "`#/2 &` con su `&`, y `NestList` con N y L mayúsculas. Fíjate en que, al empezar con el entero 100, salen fracciones exactas (`25/2`, `25/4`)."
+    "explain": "Al empezar con el entero 100 salen fracciones exactas (`25/2`, `25/4`). Con `100.` saldrían decimales."
    }
   },
   {
    "type": "build",
    "section": "Repetir mientras…: NestWhileList",
-   "title": "Iterar hasta que algo deje de cumplirse",
-   "md": "Muchas veces no sabes cuántas repeticiones hacen falta: quieres seguir **mientras** se cumpla una condición. Vamos a dividir 64 entre 2 mientras el valor sea mayor que 1.",
+   "title": "Iterar hasta que algo falle",
+   "md": "Divide 64 entre 2 **mientras** el valor sea mayor que 1.",
    "target": "lista = NestWhileList[#/2 &, 64, # > 1 &];\n{Length[lista], lista[[-2]], lista[[-1]]}",
    "parts": [
     {
      "code": "# > 1 &",
-     "md": "La condición también es una función pura, que responde verdadero o falso: «¿es mayor que 1?»."
+     "md": "La condición también es una función pura: «¿es mayor que 1?»."
     },
     {
      "code": "NestWhileList[#/2 &, 64, # > 1 &]",
-     "md": "`NestWhileList[operación, inicial, condición]`. Ojo: la lista **incluye el primer valor que ya no cumple** la condición (el 1), porque hubo que calcularlo para saber que tocaba parar.",
+     "md": "Operación, inicial y condición. El 1 final ya no cumple, pero sale.",
      "run": true
     },
     {
      "code": "lista = NestWhileList[#/2 &, 64, # > 1 &];",
-     "md": "La guardamos con un nombre para preguntarle cosas.",
+     "md": "Guárdala con un nombre.",
      "run": true
     },
     {
-     "code": "{Length[lista], lista[[-2]], lista[[-1]]}",
-     "md": "Lo que piden los exámenes: cuántos elementos hay (`Length`), el último que sí cumplía (`[[-2]]`) y el que rompe la condición (`[[-1]]`).",
+     "code": "Length[lista]",
+     "md": "Cuántos elementos tiene.",
+     "run": true
+    },
+    {
+     "code": "{lista[[-2]], lista[[-1]]}",
+     "md": "El último que cumplía y el que rompe la condición.",
      "run": true
     },
     {
      "code": "lista = NestWhileList[#/2 &, 64, # > 1 &];\n{Length[lista], lista[[-2]], lista[[-1]]}",
-     "md": "Las dos líneas juntas. `NestWhile` (sin `List`) daría solo el valor final.",
+     "md": "Todo junto, en dos líneas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: guarda en `lista` el resultado de dividir 64 entre 2 mientras sea mayor que 1, y devuelve `{número de elementos, penúltimo, último}`.",
+    "prompt": "Sin mirar: `lista` = dividir 64 entre 2 mientras sea > 1; da `{nº elementos, penúltimo, último}`.",
     "hints": [
-     "`lista = NestWhileList[operación, 64, condición];`",
-     "Operación `#/2 &`, condición `# > 1 &`.",
+     "`lista = NestWhileList[#/2 &, 64, # > 1 &];`",
      "Segunda línea: `{Length[lista], lista[[-2]], lista[[-1]]}`."
     ],
     "check": {
@@ -295,15 +351,16 @@
     "Function",
     "Length",
     "Part"
-   ]
+   ],
+   "more": "La lista incluye el primer valor que ya no cumple la condición: hubo que calcularlo para saber que tocaba parar. `NestWhile` (sin `List`) da solo el valor final."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e05",
+    "id": "1-p09-e06",
     "kind": "code",
     "title": "Mientras no llegue a mil",
-    "prompt": "Con `NestWhileList`, duplica el valor, empezando en `1`, **mientras sea menor que 1000**.",
+    "prompt": "Con `NestWhileList`, duplica el valor, empezando en 1, mientras sea menor que 1000.",
     "difficulty": 2,
     "cmds": [
      "NestWhileList",
@@ -322,8 +379,7 @@
      "Function"
     ],
     "hints": [
-     "La operación: `2 # &`.",
-     "La condición para continuar: `# < 1000 &`.",
+     "Operación `2 # &`, condición `# < 1000 &`.",
      "`NestWhileList[2 # &, 1, # < 1000 &]`"
     ],
     "explain": "La lista llega hasta 1024: es el primer valor que ya no es menor que 1000, y por eso se detiene ahí (pero queda incluido)."
@@ -332,10 +388,41 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e06",
+    "id": "1-p09-e07",
     "kind": "code",
-    "title": "¿Cuándo se acaba el combustible?",
-    "prompt": "Un depósito tiene 800 litros y en cada maniobra se gasta el 15 % de lo que queda (es decir, queda el 85 %). Con `NestWhileList`, genera la lista de litros restantes mientras queden **más de 100**. Empieza en `800.` y guarda la lista en `dep` (sin `;`).",
+    "title": "Solo el valor final",
+    "prompt": "Con `NestWhile`, halla el primer entero cuyo cuadrado ya no es menor que 50: suma 1, desde 1, mientras `#^2 < 50`.",
+    "difficulty": 2,
+    "cmds": [
+     "NestWhile",
+     "Function"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "NestWhile[# + 1 &, 1, #^2 < 50 &]",
+    "check": {
+     "type": "expr",
+     "expected": "8",
+     "compare": "equal"
+    },
+    "requires": [
+     "NestWhile",
+     "Function"
+    ],
+    "hints": [
+     "Operación `# + 1 &`, condición `#^2 < 50 &`.",
+     "`NestWhile[# + 1 &, 1, #^2 < 50 &]`"
+    ],
+    "explain": "Sale 8 (7² = 49 aún es menor que 50). Este mismo truco, «sumar 1 mientras…», da el `n` de la regla de Simpson en la Práctica 10."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p09-e08",
+    "kind": "code",
+    "title": "El combustible",
+    "prompt": "Empieza en `800.` y multiplica por 0.85 mientras el valor sea mayor que 100. Guarda la lista en `dep`.",
     "difficulty": 2,
     "cmds": [
      "NestWhileList",
@@ -367,51 +454,55 @@
      "Function"
     ],
     "hints": [
-     "La operación es multiplicar por 0.85: `0.85 # &`.",
-     "La condición para seguir: `# > 100 &`.",
+     "Operación `0.85 # &`, condición `# > 100 &`.",
      "`dep = NestWhileList[0.85 # &, 800., # > 100 &]`"
     ],
-    "explain": "Salen 14 elementos: el valor inicial y 13 maniobras. Tras la número 13 quedan unos 96.7 litros, que ya no son más de 100, y la lista se detiene."
+    "explain": "Un depósito de 800 litros que en cada maniobra pierde el 15 %. Salen 14 elementos: tras 13 maniobras quedan unos 96.7 litros, que ya no son más de 100."
    }
   },
   {
    "type": "build",
    "section": "El método de Newton",
    "title": "Newton en dos líneas",
-   "md": "Para resolver `f(x) = 0`, Newton propone: desde un punto, sigue la **recta tangente** hasta que corta al eje X. Ese corte es una estimación mejor: `x nuevo = x - f(x)/f'(x)`. Repetirlo es justo lo que hace `NestList`.",
+   "md": "Newton mejora una estimación con `x - f(x)/f'(x)`. Úsalo para hallar √2.",
    "target": "f[x_] := x^2 - 2\nNestList[# - f[#]/f'[#] &, 1., 5]",
    "parts": [
     {
      "code": "f[x_] := x^2 - 2",
-     "md": "La función cuya raíz buscamos (aquí la raíz es √2). Con `x_` y `:=`.",
+     "md": "La función cuya raíz buscas.",
      "run": true
     },
     {
      "code": "f'[1.]",
-     "md": "La comilla simple es la **derivada**: `f'[1.]` es la pendiente en 1. Dos comillas, `f''`, la derivada segunda.",
+     "md": "La comilla es la derivada: la pendiente de `f` en 1.",
      "run": true
     },
     {
-     "code": "# - f[#]/f'[#] &",
-     "md": "El paso de Newton como función pura: «lo que me den, menos `f` entre `f'` en ese punto»."
+     "code": "1. - f[1.]/f'[1.]",
+     "md": "Un paso de Newton desde 1, a mano.",
+     "run": true
+    },
+    {
+     "code": "(# - f[#]/f'[#]) &[1.]",
+     "md": "El mismo paso, como función pura aplicada a `1.`.",
+     "run": true
     },
     {
      "code": "NestList[# - f[#]/f'[#] &, 1., 5]",
-     "md": "Cinco pasos de Newton desde `1.`: en tres o cuatro ya no cambian los decimales.",
+     "md": "Repítelo 5 veces con `NestList`.",
      "run": true
     },
     {
      "code": "f[x_] := x^2 - 2\nNestList[# - f[#]/f'[#] &, 1., 5]",
-     "md": "Las dos líneas juntas. Es el método que usa `FindRoot` por dentro.",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: define `f[x_] := x^2 - 2` y aplica 5 pasos de Newton empezando en `1.`.",
+    "prompt": "Sin mirar, en dos líneas: define `f[x_] := x^2 - 2` y da 5 pasos de Newton desde `1.`.",
     "hints": [
-     "Primera línea: `f[x_] := x^2 - 2`.",
      "El paso de Newton es `# - f[#]/f'[#] &`.",
-     "`NestList[# - f[#]/f'[#] &, 1., 5]`"
+     "Segunda línea: `NestList[# - f[#]/f'[#] &, 1., 5]`."
     ],
     "check": {
      "type": "expr",
@@ -424,15 +515,16 @@
     "NestList",
     "Function",
     "Derivative"
-   ]
+   ],
+   "more": "Geométricamente: desde un punto de la curva se sigue la recta tangente hasta que corta al eje X; ese corte es la nueva estimación. Es el método que usa `FindRoot` por dentro."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e07",
+    "id": "1-p09-e09",
     "kind": "code",
     "title": "Tu primer Newton",
-    "prompt": "Define `f[x_] := x^3 - 2 x - 5` y aplica 5 iteraciones del método de Newton empezando en `2.`. Guarda la lista con todos los pasos en `pasos` (sin `;`).",
+    "prompt": "Define `f[x_] := x^3 - 2 x - 5` y guarda en `pasos` 5 iteraciones de Newton empezando en `2.`.",
     "difficulty": 2,
     "cmds": [
      "NestList",
@@ -455,24 +547,63 @@
      "Derivative"
     ],
     "hints": [
-     "Primera línea: la definición de `f` con `:=`.",
-     "La iteración de Newton es `# - f[#]/f'[#] &`.",
-     "`pasos = NestList[# - f[#]/f'[#] &, 2., 5]`"
+     "Primera línea, la definición; segunda, `pasos = NestList[# - f[#]/f'[#] &, 2., 5]`.",
+     "`f[x_] := x^3 - 2 x - 5`"
     ],
-    "explain": "En tres o cuatro pasos los decimales dejan de cambiar: 2.0945514815… Esa es la raíz. Newton converge muy deprisa cuando se arranca cerca."
+    "explain": "En tres o cuatro pasos los decimales dejan de cambiar: 2.0945514815… Esa es la raíz."
    }
   },
   {
-   "type": "explain",
-   "section": "Newton con garantías",
-   "title": "Las tres preguntas del examen",
-   "md": "En el examen, Newton viene siempre con tres preguntas. Para resolver `f(x) = 0` en un intervalo `[a, b]`:\n\n**1. ¿Desde dónde arranco?** El método converge seguro si empiezas en un punto donde `f` y `f''` tienen el mismo signo: `f[x0]*f''[x0] > 0`. Se evalúa ese producto en los candidatos y se elige el que da **positivo**.\n\n**2. ¿Cuál es la cota m?** Hace falta un número `m` que quede por debajo de `|f'(x)|` en todo el intervalo. Se dibuja `Abs[f'[x]]`, se mira dónde está el mínimo y se toma su parte entera con `Floor`.\n\n**3. ¿Cuándo paro?** El error de una aproximación `x` es, como mucho, `|f(x)|/m`. Se itera **mientras** ese valor sea mayor o igual que el error permitido.\n\nLo construimos en dos pasos con `f(x) = x^3 - 2x - 5` en el intervalo `[2, 3]`.",
-   "cells": []
+   "type": "exercise",
+   "ex": {
+    "id": "1-p09-e10",
+    "kind": "code",
+    "title": "Newton para cos x = x",
+    "prompt": "Define `f[x_] := Cos[x] - x` y guarda en `pasos` 4 iteraciones de Newton empezando en `1.`.",
+    "difficulty": 2,
+    "cmds": [
+     "NestList",
+     "Function",
+     "Derivative"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f[x_] := Cos[x] - x\npasos = NestList[# - f[#]/f'[#] &, 1., 4]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "Length[pasos]",
+       "expected": "5",
+       "compare": "equal"
+      },
+      {
+       "type": "value",
+       "expr": "pasos[[-1]]",
+       "expected": "0.7390851332151607",
+       "compare": "numeric",
+       "tol": 1e-09
+      }
+     ]
+    },
+    "requires": [
+     "NestList",
+     "Function",
+     "Derivative"
+    ],
+    "hints": [
+     "Solo cambia la función; el paso de Newton es siempre `# - f[#]/f'[#] &`.",
+     "`pasos = NestList[# - f[#]/f'[#] &, 1., 4]`"
+    ],
+    "explain": "Llega a 0.7390851332, la misma solución que daba `FindRoot[Cos[x] == x, {x, 0.7}]` en la Práctica 8."
+   }
   },
   {
    "type": "build",
+   "section": "Newton con garantías",
    "title": "Elegir el punto inicial",
-   "md": "Entre los extremos 2 y 3, ¿desde cuál arrancamos? Desde aquel en que `f·f''` sea positivo.",
+   "md": "Para `f = x^3 - 2x - 5` en [2, 3]: arranca donde `f·f''` sea positivo.",
    "target": "f[x_] := x^3 - 2 x - 5\nTable[{c, f[c]*f''[c]}, {c, {2, 3}}]",
    "parts": [
     {
@@ -481,27 +612,31 @@
      "run": true
     },
     {
+     "code": "f[2]*f''[2]",
+     "md": "El producto de `f` por su derivada segunda en 2: negativo, no vale.",
+     "run": true
+    },
+    {
      "code": "f[3]*f''[3]",
-     "md": "El producto de `f` por su derivada segunda en un candidato. Da positivo: el 3 vale.",
+     "md": "En 3: positivo. Arrancaremos en 3.",
      "run": true
     },
     {
      "code": "Table[{c, f[c]*f''[c]}, {c, {2, 3}}]",
-     "md": "Con `Table` se prueban todos los candidatos de una vez: `c` recorre la lista `{2, 3}`. En 2 sale negativo y en 3 positivo.",
+     "md": "Con `Table`, todos los candidatos de una vez.",
      "run": true
     },
     {
      "code": "f[x_] := x^3 - 2 x - 5\nTable[{c, f[c]*f''[c]}, {c, {2, 3}}]",
-     "md": "Las dos líneas juntas. Arrancaremos en `x0 = 3`.",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: define `f[x_] := x^3 - 2 x - 5` y haz la tabla de parejas `{c, f[c]*f''[c]}` para los candidatos 2 y 3.",
+    "prompt": "Sin mirar: define `f[x_] := x^3 - 2 x - 5` y tabula `{c, f[c]*f''[c]}` para `c` en `{2, 3}`.",
     "hints": [
      "La derivada segunda se escribe con dos comillas simples: `f''[c]`.",
-     "`Table[{c, ...}, {c, {2, 3}}]`",
-     "`Table[{c, f[c]*f''[c]}, {c, {2, 3}}]`"
+     "Segunda línea: `Table[{c, f[c]*f''[c]}, {c, {2, 3}}]`."
     ],
     "check": {
      "type": "expr",
@@ -512,13 +647,14 @@
    "cmds": [
     "Table",
     "Derivative"
-   ]
+   ],
+   "more": "Criterio de Fourier: Newton converge seguro si se empieza en un punto donde `f` y `f''` tienen el mismo signo, es decir `f(x0)·f''(x0) > 0`. En el examen dan tres candidatos y hay que elegir el del producto positivo."
   },
   {
    "type": "build",
-   "title": "Cota, parada y lista de iteraciones",
-   "md": "Con el punto inicial `3` elegido, falta la cota `m` y el criterio de parada. `|f'|` es creciente en `[2, 3]`, así que su mínimo está en 2.",
-   "target": "f[x_] := x^3 - 2 x - 5\nm = Floor[Abs[f'[2]]];\nlista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
+   "title": "La cota m",
+   "md": "Hace falta un entero `m` por debajo de `|f'|` en todo el intervalo [2, 3].",
+   "target": "f[x_] := x^3 - 2 x - 5\nm = Floor[Abs[f'[2]]]",
    "parts": [
     {
      "code": "f[x_] := x^3 - 2 x - 5",
@@ -526,42 +662,93 @@
      "run": true
     },
     {
+     "code": "Plot[Abs[f'[x]], {x, 2, 3}]",
+     "md": "Dibuja `|f'|`: es creciente, su mínimo está en `x = 2`.",
+     "run": true
+    },
+    {
+     "code": "Abs[f'[2]]",
+     "md": "Ese mínimo vale 10.",
+     "run": true
+    },
+    {
      "code": "m = Floor[Abs[f'[2]]]",
-     "md": "La cota: la parte entera (`Floor`) del mínimo de `|f'|`, que está en `x = 2`. Sale 10.",
+     "md": "`Floor` toma la parte entera: esa es la cota.",
      "run": true
     },
     {
-     "code": "Abs[f[#]]/m >= 10^-10 &",
-     "md": "La condición para **seguir** iterando: que la cota del error, `|f(x)|/m`, aún sea mayor o igual que el error permitido. Lleva `>=`."
-    },
-    {
-     "code": "lista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
-     "md": "Newton desde `3.` mientras el error no esté garantizado. El último elemento es la solución; el penúltimo, la iteración anterior.",
-     "run": true
-    },
-    {
-     "code": "f[x_] := x^3 - 2 x - 5\nm = Floor[Abs[f'[2]]];\nlista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
-     "md": "Las tres líneas juntas. Si te piden ver 20 cifras: `SetPrecision[lista, 20]`.",
+     "code": "f[x_] := x^3 - 2 x - 5\nm = Floor[Abs[f'[2]]]",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en tres líneas: define `f[x_] := x^3 - 2 x - 5`, guarda en `m` la parte entera de `|f'(2)|` y genera en `lista` las iteraciones de Newton desde `3.` mientras `|f(x)|/m` sea `>= 10^-10`.",
+    "prompt": "Sin mirar, en dos líneas: define `f[x_] := x^3 - 2 x - 5` y guarda en `m` la parte entera de `|f'(2)|`.",
     "hints": [
-     "`m = Floor[Abs[f'[2]]];`",
+     "Parte entera: `Floor[...]`; valor absoluto: `Abs[...]`.",
+     "Segunda línea: `m = Floor[Abs[f'[2]]]`."
+    ],
+    "check": {
+     "type": "value",
+     "expr": "m",
+     "expected": "10",
+     "compare": "equal"
+    }
+   },
+   "cmds": [
+    "Floor",
+    "Abs",
+    "Derivative",
+    "Plot"
+   ],
+   "more": "Si el mínimo fuera 4.59, la cota sería 4: el mayor entero que queda por debajo de `|f'|` en todo el intervalo."
+  },
+  {
+   "type": "build",
+   "title": "Parar cuando el error es pequeño",
+   "md": "El error es como mucho `|f(x)|/m`. Itera mientras no baje de `10^-10`.",
+   "target": "f[x_] := x^3 - 2 x - 5\nm = 10;\nlista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
+   "parts": [
+    {
+     "code": "f[x_] := x^3 - 2 x - 5\nm = 10;",
+     "md": "La función y la cota que ya has calculado.",
+     "run": true
+    },
+    {
+     "code": "Abs[f[#]]/m >= 10^-10 &",
+     "md": "La condición para **seguir**: la cota del error aún es grande."
+    },
+    {
+     "code": "lista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
+     "md": "Newton desde `3.` mientras se cumpla la condición.",
+     "run": true
+    },
+    {
+     "code": "{Length[lista], lista[[-2]], lista[[-1]]}",
+     "md": "Lo que pide el examen: nº de elementos, penúltimo y último.",
+     "run": true
+    },
+    {
+     "code": "f[lista[[-1]]]",
+     "md": "Comprueba: `f` en la solución es prácticamente cero.",
+     "run": true
+    },
+    {
+     "code": "f[x_] := x^3 - 2 x - 5\nm = 10;\nlista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]",
+     "md": "Las tres líneas juntas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: `f[x_] := x^3 - 2 x - 5`, `m = 10;` y `lista` = Newton desde `3.` mientras `Abs[f[#]]/m >= 10^-10`.",
+    "hints": [
      "`lista = NestWhileList[paso de Newton, 3., condición]`",
-     "Condición: `Abs[f[#]]/m >= 10^-10 &`.",
+     "Paso: `# - f[#]/f'[#] &`. Condición: `Abs[f[#]]/m >= 10^-10 &`.",
      "`lista = NestWhileList[# - f[#]/f'[#] &, 3., Abs[f[#]]/m >= 10^-10 &]`"
     ],
     "check": {
      "type": "all",
      "checks": [
-      {
-       "type": "value",
-       "expr": "m",
-       "expected": "10",
-       "compare": "equal"
-      },
       {
        "type": "value",
        "expr": "lista[[-1]]",
@@ -580,18 +767,18 @@
    },
    "cmds": [
     "NestWhileList",
-    "Floor",
     "Abs",
     "Derivative"
-   ]
+   ],
+   "more": "La condición lleva `>=` porque dice cuándo seguir, no cuándo parar. Si te piden ver 20 cifras: `SetPrecision[lista, 20]`."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e08",
+    "id": "1-p09-e11",
     "kind": "code",
     "title": "Newton hasta un error dado",
-    "prompt": "Queremos la solución de `x - Cos[x] = 0` en `[0, 1]` con error menor que `10^-8`.\n\nYa está comprobado que el punto inicial válido es `x0 = 1` y que `m = 1` es cota inferior de `|f'|`. Define `f[x_] := x - Cos[x]` y genera con `NestWhileList` la lista de iteraciones (empieza en `1.`). Guárdala en `lista` (sin `;`).",
+    "prompt": "Define `f[x_] := x - Cos[x]` y guarda en `lista` las iteraciones de Newton desde `1.` mientras `Abs[f[#]]/1 >= 10^-8`.",
     "difficulty": 3,
     "cmds": [
      "NestWhileList",
@@ -633,18 +820,17 @@
      "Abs"
     ],
     "hints": [
-     "La operación: `# - f[#]/f'[#] &`.",
-     "La condición para seguir iterando: `Abs[f[#]]/1 >= 10^-8 &`.",
-     "`lista = NestWhileList[# - f[#]/f'[#] &, 1., Abs[f[#]]/1 >= 10^-8 &]`"
+     "`lista = NestWhileList[# - f[#]/f'[#] &, 1., Abs[f[#]]/1 >= 10^-8 &]`",
+     "Primera línea: `f[x_] := x - Cos[x]`."
     ],
-    "explain": "Bastan 3 iteraciones (4 elementos) para llegar a 0.7390851332 con el error garantizado. La condición lleva `>=` porque dice cuándo **seguir**, no cuándo parar."
+    "explain": "Aquí el punto inicial válido es 1 y la cota es `m = 1` (porque `f' = 1 + Sin[x] >= 1` en [0, 1]). Bastan 3 iteraciones para tener 0.7390851332 con el error garantizado."
    }
   },
   {
    "type": "build",
    "section": "Interpolación",
-   "title": "El polinomio que pasa por unos puntos",
-   "md": "Tienes una tabla de medidas y quieres una fórmula que pase **exactamente** por todos los puntos. Por `n` puntos pasa un único polinomio de grado `n - 1` como máximo: el **polinomio interpolador**.",
+   "title": "El polinomio por unos puntos",
+   "md": "Halla el polinomio que pasa exactamente por tres puntos.",
    "target": "pts = {{0, 1}, {1, 2}, {3, 10}};\nExpand[InterpolatingPolynomial[pts, x]]",
    "parts": [
     {
@@ -654,25 +840,30 @@
     },
     {
      "code": "InterpolatingPolynomial[pts, x]",
-     "md": "El polinomio interpolador en la variable `x`. Mathematica lo devuelve en una forma anidada poco legible.",
+     "md": "El polinomio interpolador, en la variable `x`.",
      "run": true
     },
     {
      "code": "Expand[InterpolatingPolynomial[pts, x]]",
-     "md": "`Expand` lo desarrolla en potencias de `x`. Con `// N` tendrías los coeficientes en decimales.",
+     "md": "`Expand` lo desarrolla en potencias de `x`.",
+     "run": true
+    },
+    {
+     "code": "Expand[InterpolatingPolynomial[pts, x]] /. x -> 3",
+     "md": "Comprueba: en `x = 3` debe valer 10.",
      "run": true
     },
     {
      "code": "pts = {{0, 1}, {1, 2}, {3, 10}};\nExpand[InterpolatingPolynomial[pts, x]]",
-     "md": "Las dos líneas juntas. Tres puntos: polinomio de grado 2.",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: guarda en `pts` los puntos `(0, 1)`, `(1, 2)` y `(3, 10)` y calcula su polinomio interpolador desarrollado.",
+    "prompt": "Sin mirar: guarda en `pts` los puntos (0,1), (1,2), (3,10) y da su polinomio interpolador desarrollado.",
     "hints": [
      "`pts = {{0, 1}, {1, 2}, {3, 10}};`",
-     "`InterpolatingPolynomial[pts, x]`, envuelto en `Expand[...]`."
+     "Segunda línea: `Expand[InterpolatingPolynomial[pts, x]]`."
     ],
     "check": {
      "type": "expr",
@@ -683,59 +874,13 @@
    "cmds": [
     "InterpolatingPolynomial",
     "Expand"
-   ]
-  },
-  {
-   "type": "build",
-   "title": "La curva y los puntos, juntos",
-   "md": "Para comprobar a ojo que el polinomio pasa por los puntos, se dibujan los puntos con `ListPlot` y se superponen a la curva con `Show`.",
-   "target": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]",
-   "parts": [
-    {
-     "code": "ListPlot[{{0, 1}, {1, 2}, {3, 10}}]",
-     "md": "`ListPlot` dibuja una lista de puntos `{x, y}`.",
-     "run": true
-    },
-    {
-     "code": "PlotStyle -> {Red, PointSize[Large]}",
-     "md": "Opción para verlos bien: rojos y grandes."
-    },
-    {
-     "code": "Plot[x^2 + 1, {x, -1, 4}]",
-     "md": "La curva del polinomio.",
-     "run": true
-    },
-    {
-     "code": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]",
-     "md": "`Show` superpone las dos gráficas: la curva pasa por los tres puntos.",
-     "run": true
-    }
    ],
-   "recall": {
-    "prompt": "De memoria: dibuja `x^2 + 1` entre −1 y 4 junto con los puntos `(0, 1)`, `(1, 2)` y `(3, 10)` en rojo y tamaño grande.",
-    "hints": [
-     "`Show[Plot[...], ListPlot[...]]`",
-     "Dentro de `ListPlot`: los puntos y `PlotStyle -> {Red, PointSize[Large]}`.",
-     "`Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]`"
-    ],
-    "check": {
-     "type": "graphics",
-     "dim": 2,
-     "min": 2,
-     "like": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}]]"
-    }
-   },
-   "cmds": [
-    "Show",
-    "Plot",
-    "ListPlot",
-    "PointSize"
-   ]
+   "more": "Por `n` puntos pasa un único polinomio de grado `n - 1` como máximo. Mathematica lo devuelve en una forma anidada; `Expand` lo deja legible y `// N` pone los coeficientes en decimales."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e09",
+    "id": "1-p09-e12",
     "kind": "code",
     "title": "Parábola por tres puntos",
     "prompt": "Calcula, desarrollado, el polinomio que pasa por los puntos `(0, 1)`, `(1, 3)` y `(2, 11)`.",
@@ -756,19 +901,66 @@
      "InterpolatingPolynomial"
     ],
     "hints": [
-     "Los puntos van como lista de parejas: `{{0, 1}, {1, 3}, {2, 11}}`.",
+     "Los puntos, como lista de parejas: `{{0, 1}, {1, 3}, {2, 11}}`.",
      "`InterpolatingPolynomial[{{0, 1}, {1, 3}, {2, 11}}, x] // Expand`"
     ],
     "explain": "Sale `1 - x + 3 x^2`. Compruébalo mentalmente: en 0 vale 1, en 1 vale 3 y en 2 vale 11."
    }
   },
   {
+   "type": "build",
+   "title": "La curva y los puntos",
+   "md": "Dibuja los puntos y superponlos a la curva del polinomio.",
+   "target": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]",
+   "parts": [
+    {
+     "code": "ListPlot[{{0, 1}, {1, 2}, {3, 10}}]",
+     "md": "`ListPlot` dibuja una lista de puntos.",
+     "run": true
+    },
+    {
+     "code": "ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]",
+     "md": "Hazlos rojos y grandes.",
+     "run": true
+    },
+    {
+     "code": "Plot[x^2 + 1, {x, -1, 4}]",
+     "md": "La curva del polinomio.",
+     "run": true
+    },
+    {
+     "code": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]",
+     "md": "`Show` superpone las dos gráficas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: `x^2 + 1` de −1 a 4 junto con los puntos (0,1), (1,2), (3,10) en rojo y grandes.",
+    "hints": [
+     "`Show[Plot[...], ListPlot[..., PlotStyle -> {Red, PointSize[Large]}]]`",
+     "`Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}, PlotStyle -> {Red, PointSize[Large]}]]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "like": "Show[Plot[x^2 + 1, {x, -1, 4}], ListPlot[{{0, 1}, {1, 2}, {3, 10}}]]"
+    }
+   },
+   "cmds": [
+    "Show",
+    "Plot",
+    "ListPlot",
+    "PointSize"
+   ]
+  },
+  {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e10",
+    "id": "1-p09-e13",
     "kind": "code",
     "title": "Curva y puntos juntos",
-    "prompt": "La lista `datos = {{1, 2}, {2, 3}, {4, 1}, {5, 4}}` ya está definida.\n\nGuarda en `pol` su polinomio interpolador desarrollado (con `;`) y dibújalo para `x` entre 0 y 6 junto con los puntos, en rojo y tamaño grande, usando `Show`.",
+    "prompt": "`datos` ya existe. Guarda en `pol` su polinomio interpolador desarrollado y dibújalo de 0 a 6 junto con los puntos (`Show`).",
     "difficulty": 3,
     "cmds": [
      "InterpolatingPolynomial",
@@ -803,19 +995,19 @@
     ],
     "hints": [
      "`pol = Expand[InterpolatingPolynomial[datos, x]];`",
-     "`Show[Plot[pol, {x, 0, 6}], ListPlot[datos, PlotStyle -> {Red, PointSize[Large]}]]`"
+     "Segunda línea: `Show[Plot[pol, {x, 0, 6}], ListPlot[datos, PlotStyle -> {Red, PointSize[Large]}]]`."
     ],
-    "explain": "Primero el polinomio (que necesita los datos) y al final el `Show`, que superpone la curva y los puntos. La curva pasa exactamente por los cuatro."
+    "explain": "Los datos son `{{1, 2}, {2, 3}, {4, 1}, {5, 4}}`. La curva pasa exactamente por los cuatro puntos."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica real · Pregunta 2: el número áureo",
+   "section": "Práctica real · Pregunta 2",
    "ex": {
-    "id": "1-p09-e11",
+    "id": "1-p09-e14",
     "kind": "code",
-    "title": "Real · P2: una lista con el número áureo",
-    "prompt": "El número áureo `φ = (1 + √5)/2 = 1.618…` viene predefinido en Mathematica con el nombre `GoldenRatio`.\n\nConstruye una lista cuyo primer elemento sea `0` y en la que cada elemento siguiente sea `(7 φ/6)` **elevado al elemento anterior**, terminando el proceso cuando el valor obtenido sea mayor que `10^14`. Usa aproximaciones numéricas en el resultado (`// N`) y guarda la lista en `lista` (sin `;`).",
+    "title": "Real P2 · El número áureo",
+    "prompt": "`lista`: empieza en 0 y eleva `7 GoldenRatio/6` al valor anterior, mientras no supere `10^14`. Añade `// N`.",
     "difficulty": 3,
     "cmds": [
      "NestWhileList",
@@ -838,20 +1030,19 @@
      "Function"
     ],
     "hints": [
-     "La operación es «(7φ/6) elevado a lo anterior»: `(7 GoldenRatio/6)^# &`.",
-     "Se continúa mientras el valor no supere 10^14: `# <= 10^14 &`.",
+     "Operación `(7 GoldenRatio/6)^# &`; se continúa mientras `# <= 10^14 &`.",
      "`lista = NestWhileList[(7 GoldenRatio/6)^# &, 0, # <= 10^14 &] // N`"
     ],
-    "explain": "La lista tiene 7 elementos. El último (≈ 3.9·10^51) es el primero que supera 10^14: por eso el proceso se detiene, pero queda dentro de la lista."
+    "explain": "El número áureo `φ = (1 + √5)/2 = 1.618…` viene predefinido como `GoldenRatio`. La lista tiene 7 elementos; el último (≈ 3.9·10^51) es el primero que supera 10^14: por eso el proceso se detiene, pero queda dentro."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e12",
+    "id": "1-p09-e15",
     "kind": "code",
-    "title": "Real · P2: las dos respuestas",
-    "prompt": "La lista `lista` del ejercicio anterior ya está calculada.\n\nLa prueba preguntaba dos cosas: **cuántos elementos de la lista son menores que `10^14`** y **cuál es el último número que no supera `10^14`**. Obtén las dos respuestas con `Length` y con índices negativos, y devuélvelas en una lista `{número de elementos, último valor}`.",
+    "title": "Real P2 · Las respuestas",
+    "prompt": "`lista` ya existe. Devuelve `{cuántos elementos son menores que 10^14, el último que no lo supera}`.",
     "difficulty": 3,
     "cmds": [
      "Length",
@@ -868,20 +1059,63 @@
      "tol": 1e-06
     },
     "hints": [
-     "Todos los elementos son menores que 10^14 salvo el último: `Length[lista] - 1`.",
-     "El último que no lo supera es el penúltimo: `lista[[-2]]`."
+     "Todos son menores salvo el último: `Length[lista] - 1`. El buscado es el penúltimo.",
+     "`{Length[lista] - 1, lista[[-2]]}`"
     ],
     "explain": "Respuestas de la prueba: **6** elementos y **186.983**. La clave es recordar que el último elemento de `NestWhileList` es el que rompe la condición."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica real · Pregunta 3: Newton-Raphson",
+   "section": "Práctica real · Pregunta 3",
    "ex": {
-    "id": "1-p09-e13",
+    "id": "1-p09-e16",
     "kind": "code",
-    "title": "Real · P3 a): elegir el punto inicial",
-    "prompt": "Queremos hallar por Newton-Raphson la solución en `[2.4, 5.0]` de `f(x) = 0`, con\n\n`f(x) = 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]`.\n\nDefine `f` y calcula el producto `f(x)·f''(x)` en los tres candidatos a punto inicial, `x = 2.4`, `x = 3.9` y `x = 5.0`. Guarda en `prod` la lista con los tres productos, en ese orden (sin `;`).",
+    "title": "Real P3 (1/4) · La función",
+    "prompt": "Define `f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]` y dibújala para `x` entre 2.4 y 5.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 9 · Pregunta 3 (planteamiento)",
+    "solution": "f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]\nPlot[f[x], {x, 2.4, 5}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[3.]",
+       "expected": "2 + (3./12)^3 + 0.5 3.^2 - 2 Log[3.] - 3 3.^2 Sin[3.]",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "like": "Plot[2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x], {x, 2.4, 5}]"
+      }
+     ]
+    },
+    "requires": [
+     "Plot",
+     "SetDelayed"
+    ],
+    "hints": [
+     "Primera línea, la definición con `x_` y `:=`; segunda, `Plot[f[x], {x, 2.4, 5}]`.",
+     "`f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]`"
+    ],
+    "explain": "Enunciado real: hallar por Newton-Raphson la solución de `f(x) = 0` en [2.4, 5.0]. La gráfica muestra que la curva cruza el eje cerca de `x = 3`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p09-e17",
+    "kind": "code",
+    "title": "Real P3 (2/4) · Punto inicial",
+    "prompt": "`f` ya existe. Guarda en `prod` la lista de `f[c]*f''[c]` para los candidatos `2.4`, `3.9` y `5.0`.",
     "difficulty": 3,
     "cmds": [
      "Derivative",
@@ -889,7 +1123,8 @@
     ],
     "real": true,
     "source": "Práctica 9 · Pregunta 3, apartado a)",
-    "solution": "f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]\nprod = {f[2.4]*f''[2.4], f[3.9]*f''[3.9], f[5.0]*f''[5.0]}",
+    "setup": "f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]",
+    "solution": "prod = {f[2.4]*f''[2.4], f[3.9]*f''[3.9], f[5.0]*f''[5.0]}",
     "check": {
      "type": "value",
      "expr": "prod",
@@ -898,13 +1133,12 @@
      "tol": 1e-06
     },
     "requires": [
-     "Derivative",
-     "SetDelayed"
+     "Derivative"
     ],
     "hints": [
-     "`f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]`",
-     "La derivada segunda es `f''[x]` (dos comillas simples).",
-     "`prod = {f[2.4]*f''[2.4], f[3.9]*f''[3.9], f[5.0]*f''[5.0]}`"
+     "`f''[x]` es la derivada segunda (dos comillas simples).",
+     "`prod = {f[2.4]*f''[2.4], f[3.9]*f''[3.9], f[5.0]*f''[5.0]}`",
+     "También vale `prod = Table[f[c]*f''[c], {c, {2.4, 3.9, 5.0}}]`."
     ],
     "explain": "Solo en `x = 3.9` el producto es positivo (≈ 301.1): ese es el punto inicial que cumple los requisitos del método. Respuesta de la prueba: **3.9**."
    }
@@ -912,10 +1146,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e14",
+    "id": "1-p09-e18",
     "kind": "code",
-    "title": "Real · P3 b): la cota m",
-    "prompt": "La función `f` del apartado anterior ya está definida.\n\nHalla el **mayor número entero que es cota inferior de `|f'(x)|`** en el intervalo `[2.4, 5.0]` y guárdalo en `m`. Dibuja antes `Abs[f'[x]]` en el cuaderno para ver dónde está el mínimo.",
+    "title": "Real P3 (3/4) · La cota m",
+    "prompt": "`f` ya existe. Guarda en `m` el mayor entero que es cota inferior de `|f'|` en [2.4, 5]: el mínimo está en `x = 2.4`.",
     "difficulty": 3,
     "cmds": [
      "Floor",
@@ -925,7 +1159,7 @@
     "real": true,
     "source": "Práctica 9 · Pregunta 3, apartado b)",
     "setup": "f[x_] := 2 + (x/12)^3 + 0.5 x^2 - 2 Log[x] - 3 x^2 Sin[x]",
-    "solution": "Plot[Abs[f'[x]], {x, 2.4, 5}]\nm = Floor[Abs[f'[2.4]]]",
+    "solution": "m = Floor[Abs[f'[2.4]]]",
     "check": {
      "type": "value",
      "expr": "m",
@@ -933,19 +1167,19 @@
      "compare": "equal"
     },
     "hints": [
-     "`Plot[Abs[f'[x]], {x, 2.4, 5}]` muestra que el mínimo está en el extremo izquierdo, `x = 2.4`.",
-     "`f'[2.4]` vale 4.59…; su parte entera es la cota: `m = Floor[Abs[f'[2.4]]]`."
+     "Parte entera del valor de `|f'|` en 2.4.",
+     "`m = Floor[Abs[f'[2.4]]]`"
     ],
-    "explain": "`|f'|` es creciente en el intervalo y su mínimo es `f'(2.4) ≈ 4.59`, así que el mayor entero por debajo es **m = 4**."
+    "explain": "Dibujando `Plot[Abs[f'[x]], {x, 2.4, 5}]` se ve que `|f'|` es creciente; su mínimo es `f'(2.4) ≈ 4.59`, así que el mayor entero por debajo es **m = 4**."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e15",
+    "id": "1-p09-e19",
     "kind": "code",
-    "title": "Real · P3 c): Newton con error menor que 10^-12",
-    "prompt": "Ya están definidas la función `f` y la cota `m = 4`.\n\nAplica Newton-Raphson desde `x0 = 3.9` de modo que el error sea menor que `10^-12`. Guarda la lista de iteraciones en `lista` y devuelve `{k, x(k-1), x(k)}`: el número de elementos de la lista y sus dos últimos valores.\n\n(En la prueba se pedían 20 cifras: se ven con `SetPrecision[lista, 20]`.)",
+    "title": "Real P3 (4/4) · Newton",
+    "prompt": "Con `f` y `m = 4`: `lista` = Newton desde `3.9` mientras `Abs[f[#]]/m >= 10^-12`. Devuelve `{Length[lista], lista[[-2]], lista[[-1]]}`.",
     "difficulty": 4,
     "cmds": [
      "NestWhileList",
@@ -971,19 +1205,19 @@
     ],
     "hints": [
      "`lista = NestWhileList[# - f[#]/f'[#] &, 3.9, Abs[f[#]]/m >= 10^-12 &];`",
-     "Después: `{Length[lista], lista[[-2]], lista[[-1]]}`."
+     "Segunda línea: `{Length[lista], lista[[-2]], lista[[-1]]}`."
     ],
-    "explain": "`k = 6`, `x(k-1) = 2.98056869127…` y `x(k) = 2.98056859681…`. Para el apartado d), `f[lista[[-1]]]` da un número del orden de 10^-13: prácticamente cero."
+    "explain": "`k = 6`, `x(k-1) = 2.98056869127…` y `x(k) = 2.98056859681…`. En la prueba se pedían 20 cifras: `SetPrecision[lista, 20]`. Y para el apartado d), `f[lista[[-1]]]` da un número del orden de 10^-13."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica real · Pregunta 4: interpolación",
+   "section": "Práctica real · Pregunta 4",
    "ex": {
-    "id": "1-p09-e16",
+    "id": "1-p09-e20",
     "kind": "code",
-    "title": "Real · P4 a): cuatro puntos sobre una parábola",
-    "prompt": "La lista `puntos = {{45, 31133}, {85, -294483}, {95, -409227}, {125, -833475}}` ya está definida.\n\nComprueba que esos cuatro puntos están sobre una parábola calculando su polinomio interpolador, desarrollado y con coeficientes decimales.",
+    "title": "Real P4 a) · Una parábola",
+    "prompt": "`puntos` ya tiene los cuatro puntos del enunciado. Calcula su polinomio interpolador, desarrollado y en decimales.",
     "difficulty": 3,
     "cmds": [
      "InterpolatingPolynomial",
@@ -1003,19 +1237,19 @@
      "InterpolatingPolynomial"
     ],
     "hints": [
-     "`InterpolatingPolynomial[puntos, x]` y después `// Expand`.",
-     "Para los decimales, envuélvelo en `N[...]` o añade `// N`."
+     "`InterpolatingPolynomial[puntos, x] // Expand`, envuelto en `N[...]`.",
+     "`N[InterpolatingPolynomial[puntos, x] // Expand]`"
     ],
-    "explain": "Sale `142400 + 528 x - 66.68 x^2`. Por cuatro puntos esperarías grado 3, pero el coeficiente de `x^3` es cero: los cuatro están alineados sobre una parábola. Respuestas de la prueba: −66.68, 528 y 142400."
+    "explain": "Los puntos son (45, 31133), (85, −294483), (95, −409227) y (125, −833475). Sale `142400 + 528 x - 66.68 x^2`: por cuatro puntos esperarías grado 3, pero el coeficiente de `x^3` es cero. Están sobre una parábola."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e17",
+    "id": "1-p09-e21",
     "kind": "code",
-    "title": "Real · P4 b): el polinomio y los puntos",
-    "prompt": "Con `puntos` ya definida, representa el polinomio `142400 + 528 x - 66.68 x^2` para `x` entre 30 y 140 **junto con los puntos**, dibujados en rojo y con tamaño grande. Usa el comando que da el enunciado:\n\n`Show[Plot[polinomio, {x, 30, 140}], ListPlot[puntos, PlotStyle -> {Red, PointSize[Large]}]]`",
+    "title": "Real P4 b) · Curva y puntos",
+    "prompt": "Dibuja `142400 + 528 x - 66.68 x^2` para `x` de 30 a 140 junto con `puntos` en rojo y grandes (`Show`, `ListPlot`).",
     "difficulty": 2,
     "cmds": [
      "Show",
@@ -1038,19 +1272,19 @@
      "ListPlot"
     ],
     "hints": [
-     "Sustituye `polinomio` por `142400 + 528 x - 66.68 x^2`.",
-     "Ojo con las llaves: `{x, 30, 140}` y `{Red, PointSize[Large]}` (en el PDF del enunciado salían como paréntesis)."
+     "`Show[Plot[polinomio, {x, 30, 140}], ListPlot[puntos, PlotStyle -> {Red, PointSize[Large]}]]`",
+     "`Show[Plot[142400 + 528 x - 66.68 x^2, {x, 30, 140}], ListPlot[puntos, PlotStyle -> {Red, PointSize[Large]}]]`"
     ],
-    "explain": "La parábola pasa por los cuatro puntos rojos, aunque solo es de segundo grado."
+    "explain": "Es el comando que daba el enunciado (en el PDF las llaves salían como paréntesis). La parábola pasa por los cuatro puntos rojos, aunque solo es de segundo grado."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p09-e18",
+    "id": "1-p09-e22",
     "kind": "code",
-    "title": "Real · P4 c): un dato cambia y todo cambia",
-    "prompt": "Repite el proceso cambiando la `y` del segundo punto a `-350000`:\n\n`puntos2 = {{45, 31133}, {85, -350000}, {95, -409227}, {125, -833475}}`\n\nDefine `puntos2` y calcula su polinomio interpolador, desarrollado y con coeficientes decimales.",
+    "title": "Real P4 c) · Cambia un dato",
+    "prompt": "`puntos2` es `puntos` con la `y` del segundo punto cambiada a −350000. Calcula su polinomio, desarrollado y en decimales.",
     "difficulty": 3,
     "cmds": [
      "InterpolatingPolynomial",
@@ -1059,7 +1293,8 @@
     ],
     "real": true,
     "source": "Práctica 9 · Pregunta 4, apartado c)",
-    "solution": "puntos2 = {{45, 31133}, {85, -350000}, {95, -409227}, {125, -833475}};\nN[InterpolatingPolynomial[puntos2, x] // Expand]",
+    "setup": "puntos2 = {{45, 31133}, {85, -350000}, {95, -409227}, {125, -833475}};",
+    "solution": "N[InterpolatingPolynomial[puntos2, x] // Expand]",
     "check": {
      "type": "expr",
      "expected": "1.9965810546875*^6 - 75027.1671875 x + 852.8203125 x^2 - 3.4698125 x^3",
@@ -1069,7 +1304,7 @@
      "InterpolatingPolynomial"
     ],
     "hints": [
-     "Primero define `puntos2` (termina la línea con `;`).",
+     "Lo mismo que antes, con `puntos2`.",
      "`N[InterpolatingPolynomial[puntos2, x] // Expand]`"
     ],
     "explain": "Ahora hace falta grado 3: `-3.46981 x^3 + 852.82 x^2 - 75027.2 x + 1.99658·10^6`. Cambiar un solo dato ha cambiado todos los coeficientes: la interpolación es muy sensible a los datos."
@@ -1079,10 +1314,43 @@
    "type": "exercise",
    "section": "Examen: Newton-Raphson",
    "ex": {
-    "id": "1-p09-e19",
+    "id": "1-p09-e23",
     "kind": "code",
-    "title": "Real · Examen: Newton-Raphson con 15 dígitos",
-    "prompt": "Pregunta del examen de Mathematica de enero (PL1). Se busca la solución en `[0.25, 3.5]` de `f(x) = 0` con\n\n`f(x) = 15 Exp[6 - x] Sin[x - 6] - 30`.\n\nLa función `f` ya está definida. De los candidatos `0.25`, `1.5` y `3.5`, el que cumple `f·f'' > 0` es `x0 = 1.5`, y el mayor entero que es cota inferior de `|f'|` en `]1.5, 3.5[` es `m = 11`.\n\nAplica Newton-Raphson hasta que el error sea menor que `10^-10` guardando las iteraciones en `lista`, y devuelve `{x(n-1), x(n)}`, las dos últimas.",
+    "title": "Examen (1/2) · Punto inicial",
+    "prompt": "`f[x_] := 15 Exp[6 - x] Sin[x - 6] - 30` ya existe. Tabula `{c, f[c]*f''[c]}` para `c` en `{0.25, 1.5, 3.5}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Table",
+     "Derivative"
+    ],
+    "real": true,
+    "source": "Examen PL1 2014/15 · Pregunta 5, apartado a)",
+    "setup": "f[x_] := 15 Exp[6 - x] Sin[x - 6] - 30",
+    "solution": "Table[{c, f[c]*f''[c]}, {c, {0.25, 1.5, 3.5}}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{0.25, -1.92011899389055*^7}, {1.5, 734294.1918148545}, {3.5, -40805.25524440421}}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Table",
+     "Derivative"
+    ],
+    "hints": [
+     "`Table[{c, f[c]*f''[c]}, {c, {lista de candidatos}}]`",
+     "`Table[{c, f[c]*f''[c]}, {c, {0.25, 1.5, 3.5}}]`"
+    ],
+    "explain": "Pregunta del examen de enero: solución de `f(x) = 0` en [0.25, 3.5]. Solo en `1.5` el producto es positivo: ese es el punto inicial."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p09-e24",
+    "kind": "code",
+    "title": "Examen (2/2) · Iterar",
+    "prompt": "Con esa `f` y `m = 11`: `lista` = Newton desde `1.5` mientras `Abs[f[#]]/11 >= 10^-10`. Devuelve `{lista[[-2]], lista[[-1]]}`.",
     "difficulty": 4,
     "cmds": [
      "NestWhileList",
@@ -1091,7 +1359,7 @@
      "Part"
     ],
     "real": true,
-    "source": "Examen PL1 2014/15 · Pregunta 5",
+    "source": "Examen PL1 2014/15 · Pregunta 5, apartado c)",
     "setup": "f[x_] := 15 Exp[6 - x] Sin[x - 6] - 30",
     "solution": "lista = NestWhileList[# - f[#]/f'[#] &, 1.5, Abs[f[#]]/11 >= 10^-10 &];\n{lista[[-2]], lista[[-1]]}",
     "check": {
@@ -1107,9 +1375,9 @@
     ],
     "hints": [
      "`lista = NestWhileList[# - f[#]/f'[#] &, 1.5, Abs[f[#]]/11 >= 10^-10 &];`",
-     "Las dos últimas: `{lista[[-2]], lista[[-1]]}`."
+     "Segunda línea: `{lista[[-2]], lista[[-1]]}`."
     ],
-    "explain": "`x(n) = 2.7785297186…` y `x(n-1) = 2.7785296959…`, justo los dígitos que había que completar en las casillas del examen. Siempre el mismo patrón: producto `f·f''` para elegir `x0`, `Floor` del mínimo de `|f'|` para `m` y `NestWhileList` con `Abs[f[#]]/m >= error`."
+    "explain": "`x(n) = 2.7785297186…` y `x(n-1) = 2.7785296959…`, los dígitos que había que completar en el examen. `m = 11` es el mayor entero por debajo de `|f'|` en ]1.5, 3.5[. Siempre el mismo patrón: producto `f·f''`, `Floor` del mínimo de `|f'|` y `NestWhileList`."
    }
   }
  ]

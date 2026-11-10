@@ -4,14 +4,14 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794351414';
-import * as data from '../data.js?v=1794351414';
-import { kernel } from '../kernel-client.js?v=1794351414';
-import * as fx from '../fx.js?v=1794351414';
+import { store } from '../store.js?v=1794351634';
+import * as data from '../data.js?v=1794351634';
+import { kernel } from '../kernel-client.js?v=1794351634';
+import * as fx from '../fx.js?v=1794351634';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
   safe, play, exStatus, startKernel, kernelPill, newSeed,
-} from '../exercise.js?v=1794351414';
+} from '../exercise.js?v=1794351634';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson
@@ -366,11 +366,17 @@ function sessionFor(S, i, k, codes, setup) {
     S.kses.upTo = Math.max(S.kses.upTo, k);
   };
 }
-/** The one visible line of a screen (SPEC §14) — returns what did not fit, for «Más detalle». */
-function lineOf(wrap, text, limit = 90) {
+/** The statement — the one visible line and headline of a screen (SPEC §14). Returns what did not fit, for «Más detalle». */
+function lineOf(wrap, text, limit = 90, fallback = '') {
   const sp = splitText(text, limit);
-  if (sp.line) wrap.appendChild(h('p', { class: 'ls-line lx-md', html: mdInline(sp.line) }));
+  const line = sp.line || fallback;
+  if (line) wrap.appendChild(h('p', { class: 'lx-statement lx-md', html: mdInline(line) }));
   return sp.rest;
+}
+/** Small gray label above the statement (the step title, when it says something). */
+function labelOf(wrap, ...bits) {
+  const txt = bits.filter((x) => x && String(x).trim()).join(' · ');
+  if (txt) wrap.appendChild(h('div', { class: 'ls-label' }, txt));
 }
 const joinMd = (...xs) => xs.filter((x) => x && String(x).trim()).join('\n\n');
 function ghostScreen(S, wrap, code, { run, before, onDone, hint, more }) {
@@ -393,8 +399,8 @@ function ghostScreen(S, wrap, code, { run, before, onDone, hint, more }) {
 
 /* ---------- text only ---------- */
 function screenText(S, wrap, step, scr, done) {
-  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, scr.i)));
-  const rest = lineOf(wrap, step.md);
+  if (step.md) labelOf(wrap, stepTitle(step, scr.i));
+  const rest = lineOf(wrap, step.md, 90, stepTitle(step, scr.i));
   const mb = moreBox({ hint: step.hint, more: joinMd(rest, step.more) });
   if (mb) wrap.appendChild(mb);
   markTyped(S, scr.i);
@@ -405,11 +411,11 @@ function screenText(S, wrap, step, scr, done) {
 function screenCell(S, wrap, step, scr, done) {
   const cells = cellsOf(step);
   const c = cells[scr.k];
-  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, scr.i)));
-  // one line: the first cell carries the idea of the step; the others, their own note
+  labelOf(wrap, stepTitle(step, scr.i));
+  // one statement: the first cell carries the idea of the step; the others, their own note
   let more;
-  if (scr.k === 0) more = joinMd(lineOf(wrap, step.md || c.note), step.md ? c.note : '', step.more, c.more);
-  else more = joinMd(lineOf(wrap, c.note || ''), c.more);
+  if (scr.k === 0) more = joinMd(lineOf(wrap, step.md || c.note, 90, 'Teclea esta línea y evalúala.'), step.md ? c.note : '', step.more, c.more);
+  else more = joinMd(lineOf(wrap, c.note || '', 90, 'Ahora esta.'), c.more);
   markSeen(S, scr.i, c.code);
   const finish = (focus) => { if (scr.last) markTyped(S, scr.i); done(focus); };
   if (c.run === false) {
@@ -449,9 +455,9 @@ function assembly(step, upTo, current) {
 function screenPart(S, wrap, step, scr, done) {
   const parts = partsOf(step);
   const p = parts[scr.k];
+  labelOf(wrap, stepTitle(step, scr.i));
   wrap.appendChild(assembly(step, scr.k, scr.k));
-  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, scr.i)));
-  const rest = lineOf(wrap, p.md);
+  const rest = lineOf(wrap, p.md, 90, scr.k === partsOf(step).length - 1 ? 'Ahora todo junto.' : 'Teclea esta pieza.');
   markSeen(S, scr.i, p.code);
   const run = p.run === true;
   const codes = parts.map((x) => (x.run === true ? x.code : null));
@@ -462,8 +468,7 @@ function screenPart(S, wrap, step, scr, done) {
 }
 function screenRecall(S, wrap, step, scr, done) {
   S.kses = { step: null, upTo: -1 };
-  wrap.appendChild(h('div', { class: 'ls-kicker' }, 'De memoria'));
-  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, scr.i)));
+  labelOf(wrap, 'De memoria', stepTitle(step, scr.i));
   const host = h('div', { class: 'ls-ex' });
   wrap.appendChild(host);
   const ex = recallExercise(S.lesson, scr.i);
@@ -488,8 +493,8 @@ function screenExercise(S, wrap, step, scr, done) {
   const ex = step.ex || {};
   const exs = S.lesson.steps.filter((s) => s.type === 'exercise' && stepKind(s) === 'exercise');
   const no = exs.indexOf(step) + 1;
-  wrap.appendChild(h('div', { class: 'ls-kicker' }, scr.kind === 'exercise' ? `Ejercicio ${no} de ${exs.length}` : scr.kind === 'note' ? 'Nota' : 'Teclea y observa'));
-  wrap.appendChild(h('h1', { class: 'lp-title' }, stepTitle(step, scr.i)));
+  const t = stepTitle(step, scr.i);
+  labelOf(wrap, scr.kind === 'exercise' ? `Ejercicio ${no} de ${exs.length}` : scr.kind === 'note' ? 'Nota' : '', /^(ejercicio|nota|teclea y observa)$/i.test(t) ? '' : t);
   const host = h('div', { class: 'ls-ex' });
   wrap.appendChild(host);
   if (!S.seeds.has(scr.i)) S.seeds.set(scr.i, newSeed());
@@ -508,8 +513,7 @@ function screenExercise(S, wrap, step, scr, done) {
 function screenReview(S, wrap, scr, done) {
   S.kses = { step: null, upTo: -1 };
   const { r, l, ex } = scr.item;
-  wrap.appendChild(h('div', { class: 'ls-kicker' }, `¿Recuerdas? · ${scr.k + 1} de ${scr.of}`));
-  wrap.appendChild(h('h1', { class: 'lp-title' }, ex.title));
+  labelOf(wrap, `¿Recuerdas? · ${scr.k + 1} de ${scr.of}`, ex.title);
   const host = h('div', { class: 'ls-ex' });
   wrap.appendChild(host);
   S.widget = mountExercise(host, ex, {
@@ -537,8 +541,8 @@ function screenSummary(S, wrap, done) {
   for (const x of steps) { for (const c of (x.s.cmds || (x.s.ex && x.s.ex.cmds) || [])) cmds.add(c); if (x.s.type === 'explain') for (const c of cellsOf(x.s)) for (const n of cmdsIn(S, c.code)) if ((lesson.commands || []).includes(n)) cmds.add(n); }
   const complete = !pending.length;
   safe(() => store.setLessonStep(lesson.id, tramo.steps[tramo.steps.length - 1], S.n));
-  wrap.appendChild(h('div', { class: 'ls-kicker' }, complete ? 'Tramo terminado' : 'Fin del tramo'));
-  wrap.appendChild(h('h1', { class: 'lp-title' }, tramo.title));
+  labelOf(wrap, complete ? 'Tramo terminado' : 'Fin del tramo');
+  wrap.appendChild(h('h1', { class: 'lx-statement' }, tramo.title));
   const lines = h('ul', { class: 'ls-sum' });
   if (built.length) lines.appendChild(h('li', null, h('span', { class: 'ls-sum-l' }, 'Has construido'), h('span', { class: 'ls-sum-v' }, built.map((x) => h('code', null, x.s.target)))));
   else { const typed = steps.filter((x) => x.s.type === 'explain' && cellsOf(x.s).length); if (typed.length) lines.appendChild(h('li', null, h('span', { class: 'ls-sum-l' }, 'Has tecleado'), h('span', { class: 'ls-sum-v' }, typed.map((x) => stepTitle(x.s, x.i)).join(' · ')))); }

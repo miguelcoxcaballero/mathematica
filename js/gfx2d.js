@@ -1,6 +1,6 @@
 // WolframLab Aero — renderer 2D (SVG + raster para campos) con aspecto Mathematica.
 // API (SPEC §4): renderGraphics(el, g) -> {destroy(), update(g)} ; g.dim === 3 se delega en gfx3d.js
-import { renderGraphics3D } from './gfx3d.js?v=1794351414';
+import { renderGraphics3D } from './gfx3d.js?v=1794351634';
 
 const NS = 'http://www.w3.org/2000/svg';
 export const PALETTE = ['#5E81B5', '#E19C24', '#8FB032', '#EB6235', '#8778B3', '#C56E1A', '#5D9EC7', '#FFBF00',

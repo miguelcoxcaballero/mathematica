@@ -179,8 +179,10 @@ def _stash_map(name, key, fn):
     def evg(self, evaluation):
         "WLX`%(name)s[]"
         return _RESULT.pop(key, None)
-    q = type(name + "Q", (XB,), {"eval": evq, "context": "WLX`", "__module__": __name__})
-    g = type(name + "Get", (XB,), {"eval": evg, "context": "WLX`", "__module__": __name__})
+    evq.__doc__ = "WLX`%sQ[e_]" % name
+    evg.__doc__ = "WLX`%sGet[]" % name
+    q = type(name + "Q", (XB,), {"eval": evq, "context": "WLX`", "name": name + "Q", "__module__": __name__})
+    g = type(name + "Get", (XB,), {"eval": evg, "context": "WLX`", "name": name + "Get", "__module__": __name__})
     return [q, g]
 
 
@@ -254,6 +256,8 @@ class XSumQ(XB):
             c = Conv(integer=[i.get_name()])
             fs = c.to(f)
             if fs.atoms(sp.core.function.AppliedUndef):
+                # unknown sequence a[k]: nothing to sum in closed form (and Mathics' attempt is slow and ugly)
+                ext.SKIP_ONCE["System`Sum"] = E("Sum", f, L(i, a, b))
                 return SymbolFalse
             isym = c.sym(i.get_name())
             av, bv = c.to(a), c.to(b)

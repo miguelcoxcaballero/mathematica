@@ -1209,11 +1209,6 @@
      "run": true
     },
     {
-     "code": "zt[t_] = 3/2 Exp[I t];\nNIntegrate[(zt[t] + 5)/(zt[t]^2 + zt[t] - 2) zt'[t], {t, 0, 2 Pi}]",
-     "md": "Compruébalo parametrizando |z| = 3/2.",
-     "run": true
-    },
-    {
      "code": "g[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
      "md": "Otra vez la fórmula, en dos líneas.",
      "run": true
@@ -1233,7 +1228,7 @@
    "cmds": [
     "Factor"
    ],
-   "more": "Si el polo queda fuera de la curva, la integral vale 0. En sentido horario cambia el signo."
+   "more": "Si el polo queda fuera de la curva, la integral vale 0. En sentido horario cambia el signo. Parametrizando con `zt[t_] = 3/2 Exp[I t]` y `NIntegrate` sale lo mismo: 12.566 i."
   },
   {
    "type": "build",

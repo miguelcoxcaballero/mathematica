@@ -2096,7 +2096,7 @@ class IntQ(XB):
             with budget(10.0):
                 r = self._go(f, spec, assum, evaluation)
         except SympyTimeout:
-            SKIP_ONCE["System`Integrate"] = True
+            SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             r = None
         except Exception:
             _dbg()

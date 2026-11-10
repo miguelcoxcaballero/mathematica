@@ -6,7 +6,7 @@
  "order": 12,
  "title": "Ecuaciones diferenciales y problemas de valor inicial",
  "summary": "Resuelves ecuaciones diferenciales con DSolve, entiendes qué son C[1] y C[2], sacas la solución de entre las llaves con /. para evaluarla, calculas las constantes con condiciones iniciales y resuelves problemas de valor inicial y sistemas.",
- "minutes": 55,
+ "minutes": 60,
  "commands": [
   "DSolve",
   "C"
@@ -17,8 +17,6 @@
   "ReplaceAll",
   "Rule",
   "Part",
-  "First",
-  "Flatten",
   "Derivative",
   "Simplify",
   "Set",
@@ -27,18 +25,77 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "Una ecuación cuya incógnita es una función",
-   "md": "La velocidad de un cuerpo que cae con rozamiento, la corriente de un circuito, la vibración de un ala: en todos esos problemas conoces una relación entre una función y sus **derivadas**, y quieres la función. Eso es una **ecuación diferencial** (EDO). Mathematica las resuelve con `DSolve`. Al terminar sabrás resolverlas, entender lo que devuelve y usar el resultado para sacar números, que es lo que pide el examen.\n\n`DSolve[ecuación, y[x], x]` lleva tres argumentos:\n\n- **ecuación**: con doble igual `==`. La función se escribe siempre con su argumento, `y[x]`, y su derivada con un apóstrofo, `y'[x]`.\n- **y[x]**: la función que buscas.\n- **x**: la variable de la que depende.\n\nEl resultado es una regla `y[x] -> …` dentro de dos llaves. `C[1]` es una **constante arbitraria**: hay infinitas soluciones, una por cada valor de `C[1]`.",
-   "cells": [
+   "type": "build",
+   "section": "Tu primera ecuación diferencial",
+   "title": "La función cuya derivada es su doble",
+   "md": "Busca la función `y[x]` cuya derivada es el doble de ella misma.",
+   "target": "DSolve[y'[x] == 2 y[x], y[x], x]",
+   "more": "Una ecuación diferencial (EDO) relaciona una función con sus derivadas: la incógnita es la función. Así se modelan la caída con rozamiento, un circuito o la vibración de un ala.",
+   "parts": [
+    {
+     "code": "y'[x] == 2 y[x]",
+     "md": "La ecuación: `y[x]` con su argumento, derivada con apóstrofo y `==`."
+    },
     {
      "code": "DSolve[y'[x] == 2 y[x], y[x], x]",
-     "note": "la función cuya derivada es el doble de ella misma"
+     "md": "Dentro de `DSolve`: ecuación, función incógnita, variable.",
+     "run": true,
+     "hint": "`C[1]` es una constante arbitraria: hay infinitas soluciones."
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve con `DSolve` la ecuación y′ = 2y (función `y[x]`, variable `x`).",
+    "hints": [
+     "La ecuación se escribe `y'[x] == 2 y[x]`.",
+     "Después van la función `y[x]` y la variable `x`.",
+     "`DSolve[ == , y[x], x]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == 2 y[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    }
+   },
+   "cmds": [
+    "DSolve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Integrar también es una EDO",
+   "md": "Contraste: la misma cuenta como integral y como ecuación diferencial.",
+   "target": "DSolve[y'[x] == 2 x, y[x], x]",
+   "parts": [
+    {
+     "code": "Integrate[2 x, x]",
+     "md": "Una integral de siempre: no pone la constante.",
+     "run": true
     },
     {
      "code": "DSolve[y'[x] == 2 x, y[x], x]",
-     "note": "integrar también es resolver una EDO"
+     "md": "Como EDO («la derivada de y es 2x»): aparece `C[1]`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve con `DSolve` la ecuación y′ = 2x.",
+    "hints": [
+     "La ecuación es `y'[x] == 2 x`.",
+     "`DSolve[y'[x] == , y[x], x]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == 2 x",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    }
+   },
+   "cmds": [
+    "DSolve",
+    "Integrate"
    ]
   },
   {
@@ -47,7 +104,7 @@
     "id": "1-p12-e01",
     "kind": "code",
     "title": "Los tres argumentos",
-    "prompt": "Halla la solución general de la ecuación y′ + y = x (la función es y, la variable es x).",
+    "prompt": "Halla la solución general de y′ + y = x (función `y[x]`, variable `x`).",
     "difficulty": 1,
     "cmds": [
      "DSolve"
@@ -66,10 +123,10 @@
      "DSolve"
     ],
     "hints": [
-     "Orden: ecuación, función incógnita, variable. La ecuación es `y'[x] + y[x] == x`.",
+     "Orden: ecuación, función incógnita, variable.",
      "`DSolve[y'[x] + y[x] == x, y[x], x]`"
     ],
-    "explain": "Ecuación, función, variable. La solución lleva un `C[1]` porque es de primer orden."
+    "explain": "La solución lleva un `C[1]` porque la ecuación es de primer orden."
    }
   },
   {
@@ -77,8 +134,8 @@
    "ex": {
     "id": "1-p12-e02",
     "kind": "code",
-    "title": "Tu primera EDO",
-    "prompt": "Halla la solución general de la ecuación y′ = −3y + 6, donde y depende de x.",
+    "title": "Otra de primer orden",
+    "prompt": "Halla la solución general de y′ = −3y + 6, donde y depende de x.",
     "difficulty": 1,
     "cmds": [
      "DSolve"
@@ -97,10 +154,10 @@
      "DSolve"
     ],
     "hints": [
-     "Escribe la ecuación con `y'[x]`, `y[x]` y `==`.",
+     "Cada `y` de la ecuación lleva su `[x]`.",
      "`DSolve[y'[x] == -3 y[x] + 6, y[x], x]`"
     ],
-    "explain": "Cada `y` de la ecuación lleva su `[x]`. Si escribes `y` a secas, Mathematica cree que es otra cosa distinta de la función."
+    "explain": "Si escribes `y` a secas, Mathematica cree que es otra cosa distinta de la función `y[x]`."
    }
   },
   {
@@ -109,7 +166,7 @@
     "id": "1-p12-e03",
     "kind": "fix",
     "title": "Tres errores típicos",
-    "prompt": "Esta celda debería dar la solución general de y′ + 2y = 0, pero tiene tres errores. Corrígela.",
+    "prompt": "Debería dar la solución general de y′ + 2y = 0, pero tiene tres errores. Escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "DSolve"
@@ -130,24 +187,58 @@
     ],
     "hints": [
      "`DSolve` tiene dos mayúsculas: la D y la S.",
-     "En la ecuación: `y[x]` siempre con su argumento, y `==` en vez de `=`."
+     "En la ecuación: `y[x]` con su argumento, y `==` en vez de `=`."
     ],
-    "explain": "Mayúsculas (`DSolve`), función con argumento (`2 y[x]`) y doble igual. El `=` simple es una asignación: intenta guardar un valor en vez de plantear una ecuación."
+    "explain": "Mayúsculas, función con argumento y doble igual. El `=` simple es una asignación, no una ecuación."
    }
   },
   {
-   "type": "explain",
-   "title": "Segundo orden: dos constantes",
-   "md": "Las ecuaciones de la práctica y del examen son de **segundo orden**: aparece la derivada segunda, que se escribe con **dos apóstrofos**: `y''[x]` (dos apóstrofos sueltos, no unas comillas dobles).\n\nTodo lo demás es igual. La solución general tiene ahora **dos** constantes, `C[1]` y `C[2]`.\n\nSi la solución sale muy larga, añade `// Simplify` al final para que la compacte.",
-   "cells": [
+   "type": "build",
+   "section": "Segundo orden: dos constantes",
+   "title": "De primer a segundo orden",
+   "md": "Haz crecer una ecuación: derivada segunda, término independiente y `Simplify`.",
+   "target": "DSolve[y''[x] + 4 y[x] == Exp[x], y[x], x] // Simplify",
+   "parts": [
     {
-     "code": "DSolve[y''[x] + 4 y[x] == 0, y[x], x]",
-     "note": "oscilador: senos y cosenos"
+     "code": "DSolve[y'[x] + 4 y[x] == 0, y[x], x]",
+     "md": "Primer orden: una constante.",
+     "run": true
     },
     {
-     "code": "DSolve[y''[x] - 3 y'[x] + 2 y[x] == Exp[3 x], y[x], x] // Simplify",
-     "note": "con término independiente"
+     "code": "DSolve[y''[x] + 4 y[x] == 0, y[x], x]",
+     "md": "Derivada segunda (dos apóstrofos): dos constantes.",
+     "run": true,
+     "hint": "Son dos apóstrofos sueltos, no unas comillas dobles."
+    },
+    {
+     "code": "DSolve[y''[x] + 4 y[x] == Exp[x], y[x], x]",
+     "md": "Pon un término independiente a la derecha.",
+     "run": true
+    },
+    {
+     "code": "DSolve[y''[x] + 4 y[x] == Exp[x], y[x], x] // Simplify",
+     "md": "Añade `// Simplify` para compactar la solución.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve y″ + 4y = e^x (función `y[x]`) y simplifica el resultado.",
+    "hints": [
+     "La derivada segunda es `y''[x]`; e^x es `Exp[x]`.",
+     "Termina con `// Simplify`.",
+     "`DSolve[ + == , y[x], x] // Simplify`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] + 4 y[x] == Exp[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 2
+    }
+   },
+   "cmds": [
+    "DSolve",
+    "Simplify"
    ]
   },
   {
@@ -182,35 +273,135 @@
    }
   },
   {
-   "type": "explain",
-   "title": "Sacar la solución de entre las llaves",
-   "md": "`DSolve` no devuelve una fórmula suelta sino `{{y[x] -> fórmula}}`: una lista de soluciones, y cada solución es una lista de **reglas**. Para trabajar con la fórmula hay que sacarla. Es el paso que más se atasca; hazlo siempre igual:\n\n- Guarda la salida: `sol = DSolve[...]`.\n- `y[x] /. sol[[1]]` se lee «y[x], sustituyendo según la primera solución». Devuelve la fórmula limpia. (`First[sol]` o `Flatten[sol]` hacen el mismo papel que `sol[[1]]`.)\n- Si olvidas el `[[1]]` y escribes `y[x] /. sol`, la fórmula sale metida en unas llaves `{…}` que luego molestan: al evaluar obtendrías `{0.36}` en vez de `0.36`.\n- Para tener una **función** que puedas evaluar y derivar: `y1[x_] = y[x] /. sol[[1]]`.\n\nDos detalles de esa última línea: se usa `=` y no `:=`, para que la sustitución se haga en ese momento y `y1` guarde ya la fórmula; y se le da un nombre **distinto de** `y`, para no estropear la incógnita si vuelves a usar `DSolve`.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e05",
+    "kind": "code",
+    "title": "La ecuación de la prueba",
+    "prompt": "Halla la solución general de y″ + 3y′ + 2y = e^(−2x)·sen(4x) y simplifícala.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Práctica 12 · P2 (solución general)",
+    "solution": "DSolve[y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x], y[x], x] // Simplify",
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x]",
+     "func": "y",
+     "var": "x",
+     "constants": 2
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "El término independiente es `Exp[-2 x] Sin[4 x]`.",
+     "`DSolve[y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x], y[x], x] // Simplify`"
+    ],
+    "explain": "En Mathematica sale e^(−2x)·(C[1] + e^x·C[2]) + una parte con seno y coseno de 4x."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Sacar la solución de entre las llaves",
+   "title": "De la regla a la fórmula",
+   "md": "`DSolve` devuelve `{{y[x] -> …}}`. Saca la fórmula de ahí dentro.",
+   "target": "y[x] /. sol[[1]]",
+   "setup": "sol = DSolve[y'[x] == -2 y[x], y[x], x];",
+   "parts": [
     {
      "code": "sol = DSolve[y'[x] == -2 y[x], y[x], x]",
-     "note": "guardada en sol"
+     "md": "Guarda la salida en `sol`.",
+     "run": true
+    },
+    {
+     "code": "sol[[1]]",
+     "md": "Quita unas llaves con `[[1]]`: queda la regla.",
+     "run": true
+    },
+    {
+     "code": "y[x] /. sol",
+     "md": "Aplica `sol` a `y[x]` con `/.`: sale la fórmula, pero entre llaves.",
+     "run": true
     },
     {
      "code": "y[x] /. sol[[1]]",
-     "note": "la fórmula, sin llaves ni flecha"
-    },
+     "md": "Ahora con `sol[[1]]`: la fórmula limpia.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`sol` ya está guardada. Saca de ella la fórmula de la solución, sin llaves.",
+    "hints": [
+     "`/.` aplica reglas: a la izquierda `y[x]`, a la derecha las reglas.",
+     "Usa `sol[[1]]` para quitar un nivel de llaves.",
+     "`y[x] /. sol[[ ]]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == -2 y[x]",
+     "func": "y",
+     "var": "x",
+     "constants": 1
+    }
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Part"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "De la fórmula a una función",
+   "md": "`sol` sigue guardada. Convierte la solución en una función `y1` que puedas usar.",
+   "target": "{y1[0], y1'[0]}",
+   "setup": "sol = DSolve[y'[x] == -2 y[x], y[x], x];\ny1[x_] = y[x] /. sol[[1]];",
+   "parts": [
     {
      "code": "y1[x_] = y[x] /. sol[[1]]",
-     "note": "convertida en función"
+     "md": "Pon `y1[x_] =` delante de la fórmula.",
+     "run": true,
+     "hint": "Con `=` (no `:=`) y un nombre distinto de `y`.",
+     "more": "Con `=` la sustitución se hace en ese momento y `y1` guarda ya la fórmula. El nombre debe ser distinto de `y` para no estropear la incógnita en el siguiente `DSolve`."
     },
     {
-     "code": "{y1[0], y1'[x]}",
-     "note": "ya se puede evaluar y derivar"
+     "code": "y1[0]",
+     "md": "Evalúala en 0.",
+     "run": true
+    },
+    {
+     "code": "y1'[x]",
+     "md": "Derívala.",
+     "run": true
+    },
+    {
+     "code": "{y1[0], y1'[0]}",
+     "md": "Valor y derivada en 0, en una lista.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "`y1` ya está definida. Devuelve una lista con su valor y el de su derivada en x = 0.",
+    "hints": [
+     "El valor es `y1[0]` y la derivada `y1'[0]`.",
+     "`{y1[ ], y1'[ ]}`"
+    ]
+   },
+   "cmds": [
+    "Set",
+    "Derivative"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e05",
+    "id": "1-p12-e06",
     "kind": "code",
     "title": "La fórmula, sin flecha",
-    "prompt": "Ya está guardada en `sol` la salida de `DSolve[y'[x] == 3 y[x] + 1, y[x], x]`.\n\nSaca de `sol` la fórmula de la solución (sin la flecha `->`).",
+    "prompt": "`sol` guarda la salida de `DSolve[y'[x] == 3 y[x] + 1, y[x], x]`. Saca de ella la fórmula de la solución.",
     "difficulty": 1,
     "cmds": [
      "ReplaceAll",
@@ -235,19 +426,19 @@
      "DSolve"
     ],
     "hints": [
-     "`/.` aplica reglas: a la izquierda lo que quieres transformar (`y[x]`), a la derecha las reglas.",
+     "A la izquierda de `/.` lo que quieres transformar: `y[x]`.",
      "`y[x] /. sol[[1]]`"
     ],
-    "explain": "`y[x] /. sol[[1]]` cambia `y[x]` por lo que dice la regla. Escribir solo `sol[[1]]` devuelve la regla entera, con su flecha, y con eso no se puede calcular."
+    "explain": "Escribir solo `sol[[1]]` devuelve la regla entera, con su flecha, y con eso no se puede calcular."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e06",
+    "id": "1-p12-e07",
     "kind": "code",
-    "title": "De la salida de DSolve a una función",
-    "prompt": "Resuelve la ecuación y′ = x − y (solución general), guarda la salida en `sol` y define con ella la función `y1[x_]`. Termina mostrando `y1[0]`.",
+    "title": "De DSolve a una función",
+    "prompt": "Resuelve y′ = x − y, guarda la salida en `sol` y define con ella la función `y1[x_]`. Termina mostrando `y1[0]`.",
     "difficulty": 2,
     "cmds": [
      "DSolve",
@@ -262,11 +453,11 @@
      "checks": [
       {
        "type": "ode",
-       "expr": "y1[x]",
        "eq": "y'[x] == x - y[x]",
        "func": "y",
        "var": "x",
        "constants": 1,
+       "expr": "y1[x]",
        "msg": "`y1[x]` no es la solución general de la ecuación. Define `y1[x_] = y[x] /. sol[[1]]`."
       },
       {
@@ -283,44 +474,68 @@
      "Tres líneas: `sol = DSolve[...]`, luego `y1[x_] = y[x] /. sol[[1]]`, luego `y1[0]`.",
      "`sol = DSolve[y'[x] == x - y[x], y[x], x];` y después `y1[x_] = y[x] /. sol[[1]];`"
     ],
-    "explain": "`y1[0]` devuelve algo como `-1 + C[1]`: la constante sigue ahí porque todavía no has puesto ninguna condición."
+    "explain": "`y1[0]` devuelve algo como `-1 + C[1]`: la constante sigue ahí porque todavía no hay ninguna condición."
    }
   },
   {
-   "type": "explain",
-   "title": "Dar valor a las constantes",
-   "md": "Las constantes `C[1]`, `C[2]` se sustituyen con reglas, igual que cualquier símbolo:\n\n`expresión /. {C[1] -> 2, C[2] -> -1}`\n\nCada regla `a -> b` significa «cambia a por b». Varias reglas van en una lista. Se pueden encadenar sustituciones: primero las constantes y luego `/. x -> 0.5`, o evaluar directamente la función: `y1[0.5] /. {…}`.\n\nAntes de sustituir, **mira la solución general** para ver a qué término acompaña cada constante: la numeración la decide el programa.",
-   "cells": [
+   "type": "build",
+   "section": "Dar valor a las constantes",
+   "title": "Sustituir C[1] y C[2]",
+   "md": "`y1` es la solución general de y″ + y = 0, ya definida. Dale valores a sus constantes.",
+   "target": "y1[0.5] /. {C[1] -> 2, C[2] -> -1}",
+   "setup": "sol = DSolve[y''[x] + y[x] == 0, y[x], x];\ny1[x_] = y[x] /. sol[[1]];",
+   "parts": [
     {
-     "code": "sol = DSolve[y''[x] + y[x] == 0, y[x], x];\ny1[x_] = y[x] /. sol[[1]]",
-     "note": "solución general"
+     "code": "y1[x]",
+     "md": "Mira la solución general: lleva `C[1]` y `C[2]`.",
+     "run": true
+    },
+    {
+     "code": "y1[x] /. C[1] -> 2",
+     "md": "Sustituye una constante con una regla `->`.",
+     "run": true
     },
     {
      "code": "y1[x] /. {C[1] -> 2, C[2] -> -1}",
-     "note": "una solución concreta"
+     "md": "Las dos a la vez: una lista de reglas.",
+     "run": true
     },
     {
      "code": "y1[0.5] /. {C[1] -> 2, C[2] -> -1}",
-     "note": "y su valor en x = 0.5"
+     "md": "Y evalúa en un punto: cambia `x` por 0.5.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Calcula `y1` en x = 0.5 cuando `C[1]` vale 2 y `C[2]` vale −1.",
+    "hints": [
+     "Las reglas son `C[1] -> 2` y `C[2] -> -1`, en una lista.",
+     "Se aplican con `/.` a `y1[0.5]`.",
+     "`y1[0.5] /. { -> , -> }`"
+    ]
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Rule",
+    "C"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e07",
+    "id": "1-p12-e08",
     "kind": "code",
-    "title": "Solución general y valor en un punto",
-    "prompt": "Usa solo números decimales. Resuelve la ecuación diferencial\n\ny″ + 3y′ + 2y = e^(−2x)·sen(4x)\n\nSi las constantes valen `C[1] = 3.2` y `C[2] = 5.75`, calcula y(2.8).",
+    "title": "y(2.8) con constantes dadas",
+    "prompt": "`yg` es la solución general de y″ + 3y′ + 2y = e^(−2x)sen(4x), ya definida. Con `C[1]` = 3.2 y `C[2]` = 5.75, calcula y(2.8).",
     "difficulty": 3,
     "cmds": [
-     "DSolve",
      "ReplaceAll",
      "C"
     ],
     "real": true,
     "source": "Práctica 12 · P2",
-    "solution": "sol = DSolve[y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x], y[x], x];\ny1[x_] = y[x] /. sol[[1]];\ny1[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}",
+    "setup": "yg[x_] = y[x] /. First[DSolve[y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x], y[x], x]];",
+    "solution": "yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}",
     "check": {
      "type": "any",
      "checks": [
@@ -335,111 +550,96 @@
        "expected": "0.2160789484",
        "compare": "numeric",
        "tol": 4e-06,
-       "msg": "El valor no coincide. Pasos: solución general con `DSolve`, definir `y1[x_]`, y evaluar `y1[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`."
+       "msg": "El valor no coincide. Evalúa `yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`."
       }
      ]
     },
     "requires": [
-     "DSolve",
      "ReplaceAll"
     ],
     "hints": [
-     "`sol = DSolve[..., y[x], x];` y luego `y1[x_] = y[x] /. sol[[1]];`",
-     "`y1[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`"
+     "Mismo patrón que antes: reglas para las dos constantes aplicadas a `yg[2.8]`.",
+     "`yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`"
     ],
-    "explain": "La respuesta oficial es y(2.8) = 0.361715: en Mathematica la solución sale como e^(−2x)·(C[1] + e^x·C[2]) + …, con C[1] junto a e^(−2x) y C[2] junto a e^(−x). Si en tu solución general las constantes aparecen al revés, el mismo método da 0.216079: por eso conviene mirar siempre a qué término acompaña cada una."
+    "explain": "La respuesta oficial es 0.361715: en Mathematica C[1] acompaña a e^(−2x) y C[2] a e^(−x). Si en tu `yg[x]` aparecen al revés, el mismo método da 0.216079: mira siempre a qué término acompaña cada constante."
    }
   },
   {
-   "type": "explain",
-   "title": "Las constantes salen de las condiciones",
-   "md": "En un problema real no te dan las constantes: te dan **condiciones**, por ejemplo cuánto valen la función y su derivada en x = 0. Con dos condiciones se calculan las dos constantes. Es un sistema de ecuaciones, y eso es trabajo de `Solve`:\n\n- Solución general convertida en función: `y1[x_] = y[x] /. sol[[1]]`.\n- Condiciones como ecuaciones, e incógnitas las constantes: `Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]`.\n- La salida de `Solve` son reglas `C[1] -> …`: se aplican con `/.` a `y1[x]`.\n\nEste es el apartado a) de la pregunta de ecuaciones diferenciales del examen.",
-   "cells": [
+   "type": "build",
+   "section": "Constantes a partir de condiciones",
+   "title": "Las condiciones son ecuaciones",
+   "md": "Misma `y1`. Halla las constantes que cumplen y(0) = 1 e y′(0) = 2.",
+   "target": "Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]",
+   "setup": "sol = DSolve[y''[x] + y[x] == 0, y[x], x];\ny1[x_] = y[x] /. sol[[1]];",
+   "parts": [
     {
-     "code": "sol = DSolve[y''[x] + y[x] == 0, y[x], x];\ny1[x_] = y[x] /. sol[[1]];\nsolC = Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]",
-     "note": "las constantes que cumplen las condiciones"
+     "code": "y1[0] == 1",
+     "md": "Una condición es una ecuación para las constantes.",
+     "run": true
     },
     {
-     "code": "y1[x] /. solC[[1]]",
-     "note": "la solución que las cumple"
+     "code": "y1'[0] == 2",
+     "md": "La otra, sobre la derivada.",
+     "run": true
     },
     {
-     "code": "y1[1.5] /. solC[[1]]",
-     "note": "y su valor en un punto"
+     "code": "Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]",
+     "md": "Resuélvelas con `Solve`: las incógnitas son las constantes.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Halla con `Solve` las constantes `C[1]` y `C[2]` para que y1(0) = 1 e y1′(0) = 2.",
+    "hints": [
+     "Las ecuaciones: `y1[0] == 1` y `y1'[0] == 2`, en una lista.",
+     "Las incógnitas: `{C[1], C[2]}`.",
+     "`Solve[{ == , == }, {C[1], C[2]}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{C[1] -> 2, C[2] -> 1}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "Solve",
+    "C",
+    "Derivative"
    ]
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p12-e08",
-    "kind": "code",
-    "title": "Constantes con Solve y valor en 2.8",
-    "prompt": "Usa solo números decimales. Integra la ecuación diferencial\n\ny″ + 2y′ + 5y = e^(−x)·cos(2x)\n\na) Halla las constantes `C[1]` y `C[2]` para que y(0) = 2.3825 e y′(0) = 0.7575.\n\nb) Calcula y(2.8) con esas constantes.\n\nNombres obligatorios: llama `yg` a la función con la solución general (`yg[x_] = …`) y `ctes` a la salida de `Solve`. La última línea debe devolver y(2.8). No añadas `// N`: los datos ya son decimales.",
-    "difficulty": 4,
-    "cmds": [
-     "DSolve",
-     "Solve",
-     "ReplaceAll",
-     "C",
-     "Derivative"
-    ],
-    "real": true,
-    "source": "Práctica 12 · P3 a) y b)",
-    "solution": "sol = DSolve[y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[x], x];\nyg[x_] = y[x] /. sol[[1]];\nctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}]\nyg[2.8] /. ctes[[1]]",
-    "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "ode",
-       "expr": "yg[x]",
-       "eq": "y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x]",
-       "func": "y",
-       "var": "x",
-       "constants": 2,
-       "msg": "`yg[x]` debe ser la solución general (con C[1] y C[2]): `yg[x_] = y[x] /. sol[[1]]`."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{c = Flatten[ctes] /. C[k_] :> C[Round[k]]}, Abs[(yg[0] /. c) - 2.3825] < 10^-6 && Abs[(yg'[0] /. c) - 0.7575] < 10^-6]",
-       "msg": "Las constantes de `ctes` no cumplen y(0) = 2.3825 e y′(0) = 0.7575. Revisa el `Solve`."
-      },
-      {
-       "type": "expr",
-       "expected": "0.02522464869",
-       "compare": "numeric",
-       "tol": 1e-06
-      }
-     ]
-    },
-    "requires": [
-     "DSolve",
-     "Solve"
-    ],
-    "hints": [
-     "`sol = DSolve[..., y[x], x];` y `yg[x_] = y[x] /. sol[[1]];`",
-     "`ctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}]` y al final `yg[2.8] /. ctes[[1]]`."
-    ],
-    "explain": "y(2.8) = 0.0252246. Los valores de las constantes dependen de cómo escriba el programa la solución general: en Mathematica salen C[1] = 1.57 y C[2] = 2.32 (las casillas oficiales). El valor de y(2.8) no depende de eso: es único."
-   }
-  },
-  {
-   "type": "explain",
-   "title": "El atajo: problema de valor inicial",
-   "md": "Si lo que quieres es la solución que cumple las condiciones (y no las constantes), hay un camino directo: meter las condiciones **dentro** de `DSolve`, en una lista junto a la ecuación.\n\n`DSolve[{ecuación, y[0] == a, y'[0] == b}, y[x], x]`\n\n- El primer argumento pasa a ser una **lista** entre llaves: ecuación y condiciones, todas con `==`.\n- Las condiciones llevan corchetes: `y[0]`, `y'[0]`.\n- En el resultado ya no hay `C[1]`: la solución es única.\n\nPara evaluar no hace falta definir una función: `y[x] /. sol[[1]] /. x -> valor`.",
-   "cells": [
+   "type": "build",
+   "title": "Aplicar las constantes",
+   "md": "`y1` y la salida del `Solve` anterior, guardada en `solC`, ya están definidas.",
+   "target": "y1[1.5] /. solC[[1]]",
+   "setup": "sol = DSolve[y''[x] + y[x] == 0, y[x], x];\ny1[x_] = y[x] /. sol[[1]];\nsolC = Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}];",
+   "parts": [
     {
-     "code": "sol = DSolve[{y'[x] == -2 y[x], y[0] == 5}, y[x], x]",
-     "note": "sin constantes"
+     "code": "solC",
+     "md": "Mira lo que hay en `solC`: reglas, con dobles llaves.",
+     "run": true
     },
     {
-     "code": "y[x] /. sol[[1]] /. x -> 1.",
-     "note": "valor en x = 1"
+     "code": "y1[x] /. solC[[1]]",
+     "md": "Aplícalas a `y1[x]` con `/.` y `[[1]]`.",
+     "run": true
     },
     {
-     "code": "Plot[y[x] /. sol[[1]], {x, 0, 3}]",
-     "note": "y su gráfica"
+     "code": "y1[1.5] /. solC[[1]]",
+     "md": "Y evalúa en un punto.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Calcula `y1` en x = 1.5 con las constantes guardadas en `solC`.",
+    "hints": [
+     "Las reglas están en `solC[[1]]`.",
+     "`y1[1.5] /. solC[[ ]]`"
+    ]
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Part"
    ]
   },
   {
@@ -447,8 +647,185 @@
    "ex": {
     "id": "1-p12-e09",
     "kind": "code",
+    "title": "La solución general como función",
+    "prompt": "Resuelve y″ + 2y′ + 5y = e^(−x)·cos(2x) y guarda la solución general como función `yg[x_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 12 · P3 (solución general)",
+    "solution": "sol = DSolve[y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[x], x];\nyg[x_] = y[x] /. sol[[1]]",
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x]",
+     "func": "y",
+     "var": "x",
+     "constants": 2,
+     "expr": "yg[x]",
+     "msg": "`yg[x]` debe ser la solución general (con C[1] y C[2]): `yg[x_] = y[x] /. sol[[1]]`."
+    },
+    "requires": [
+     "DSolve"
+    ],
+    "hints": [
+     "`sol = DSolve[y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[x], x];`",
+     "`yg[x_] = y[x] /. sol[[1]]`"
+    ],
+    "explain": "Dos líneas que repetirás siempre: guardar la salida y convertirla en función."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e10",
+    "kind": "code",
+    "title": "Las constantes con Solve",
+    "prompt": "`yg` (la solución general anterior) ya está definida. Guarda en `ctes` el `Solve` para y(0) = 2.3825 e y′(0) = 0.7575.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "C",
+     "Derivative"
+    ],
+    "real": true,
+    "source": "Práctica 12 · P3 a)",
+    "setup": "yg[x_] = y[x] /. First[DSolve[y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[x], x]];",
+    "solution": "ctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}]",
+    "check": {
+     "type": "satisfies",
+     "test": "With[{c = Flatten[ctes] /. C[k_] :> C[Round[k]]}, Abs[(yg[0] /. c) - 2.3825] < 10^-6 && Abs[(yg'[0] /. c) - 0.7575] < 10^-6]",
+     "msg": "Las constantes de `ctes` no cumplen y(0) = 2.3825 e y′(0) = 0.7575. Revisa el `Solve`."
+    },
+    "hints": [
+     "Ecuaciones: `yg[0] == 2.3825` y `yg'[0] == 0.7575`. Incógnitas: `{C[1], C[2]}`.",
+     "`ctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}]`"
+    ],
+    "explain": "Los valores dependen de cómo escriba el programa la solución general: en Mathematica salen C[1] = 1.57 y C[2] = 2.32, las casillas oficiales."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e11",
+    "kind": "code",
+    "title": "y(2.8) con esas constantes",
+    "prompt": "`yg` y `ctes` ya están definidos. Calcula y(2.8) con esas constantes.",
+    "difficulty": 2,
+    "cmds": [
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 12 · P3 b)",
+    "setup": "yg[x_] = y[x] /. First[DSolve[y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[x], x]];\nctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}];",
+    "solution": "yg[2.8] /. ctes[[1]]",
+    "check": {
+     "type": "expr",
+     "expected": "0.02522464869",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "ReplaceAll"
+    ],
+    "hints": [
+     "Aplica las reglas de `ctes[[1]]` a `yg[2.8]`.",
+     "`yg[2.8] /. ctes[[1]]`"
+    ],
+    "explain": "y(2.8) = 0.0252246. Este valor no depende de cómo se numeren las constantes: es único."
+   }
+  },
+  {
+   "type": "build",
+   "section": "El atajo: problema de valor inicial",
+   "title": "Condiciones dentro de DSolve",
+   "md": "Contraste: la misma ecuación sin condición y con ella.",
+   "target": "DSolve[{y'[x] == -2 y[x], y[0] == 5}, y[x], x]",
+   "parts": [
+    {
+     "code": "DSolve[y'[x] == -2 y[x], y[x], x]",
+     "md": "Sin condiciones: sale `C[1]`.",
+     "run": true
+    },
+    {
+     "code": "DSolve[{y'[x] == -2 y[x], y[0] == 5}, y[x], x]",
+     "md": "Añade `y[0] == 5` en una lista con la ecuación: `C[1]` desaparece.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve y′ = −2y con la condición y(0) = 5.",
+    "hints": [
+     "Ecuación y condición van juntas entre llaves.",
+     "La condición lleva corchetes y doble igual: `y[0] == 5`.",
+     "`DSolve[{ == , == }, y[x], x]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[x] == -2 y[x]",
+     "func": "y",
+     "var": "x",
+     "ics": [
+      "y[0] == 5"
+     ],
+     "constants": 0
+    }
+   },
+   "cmds": [
+    "DSolve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Evaluar la solución del PVI",
+   "md": "`sol` guarda la solución de y′ = −2y con y(0) = 5. Dibújala y evalúala.",
+   "target": "y[x] /. sol[[1]] /. x -> 1.",
+   "setup": "sol = DSolve[{y'[x] == -2 y[x], y[0] == 5}, y[x], x];",
+   "parts": [
+    {
+     "code": "y[x] /. sol[[1]]",
+     "md": "Saca la fórmula, como siempre.",
+     "run": true
+    },
+    {
+     "code": "Plot[y[x] /. sol[[1]], {x, 0, 3}]",
+     "md": "Dibújala entre 0 y 3.",
+     "run": true
+    },
+    {
+     "code": "y[x] /. sol[[1]] /. x -> 1.",
+     "md": "Evalúala en x = 1 encadenando otra regla.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`sol` ya está guardada. Evalúa la solución en x = 1 (en decimal).",
+    "hints": [
+     "Primero la fórmula: `y[x] /. sol[[1]]`.",
+     "Después otra regla: `/. x -> 1.`",
+     "`y[x] /. sol[[ ]] /. x -> `"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "5 Exp[-2.]",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Plot"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e12",
+    "kind": "code",
     "title": "Un problema de valor inicial",
-    "prompt": "Resuelve el problema de valor inicial y″ + 4y = 0, con y(0) = 1 e y′(0) = 2.",
+    "prompt": "Resuelve y″ + 4y = 0 con y(0) = 1 e y′(0) = 2.",
     "difficulty": 2,
     "cmds": [
      "DSolve"
@@ -471,7 +848,7 @@
      "DSolve"
     ],
     "hints": [
-     "Ecuación y condiciones van juntas en una lista: `{ecuación, y[0] == 1, y'[0] == 2}`.",
+     "Ecuación y condiciones en una lista: `{ecuación, y[0] == 1, y'[0] == 2}`.",
      "`DSolve[{y''[x] + 4 y[x] == 0, y[0] == 1, y'[0] == 2}, y[x], x]`"
     ],
     "explain": "Dos condiciones para una ecuación de orden 2: desaparecen las dos constantes."
@@ -480,10 +857,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e10",
+    "id": "1-p12-e13",
     "kind": "fix",
     "title": "Condiciones mal escritas",
-    "prompt": "Se quiere resolver y″ + 9y = 0 con y(0) = 2 e y′(0) = 3. La celda tiene dos tipos de error. Corrígela.",
+    "prompt": "Debería resolver y″ + 9y = 0 con y(0) = 2 e y′(0) = 3. Tiene dos tipos de error: escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "DSolve"
@@ -507,19 +884,19 @@
      "DSolve"
     ],
     "hints": [
-     "`y(0)` con paréntesis es «y por 0». Evaluar una función va con corchetes: `y[0]`.",
-     "La ecuación y las condiciones deben ir agrupadas entre llaves como primer argumento."
+     "`y(0)` con paréntesis es «y por 0»: se evalúa con corchetes, `y[0]`.",
+     "Ecuación y condiciones van agrupadas entre llaves."
     ],
-    "explain": "Corchetes para evaluar (`y[0]`, `y'[0]`) y llaves para agrupar ecuación y condiciones. Sin las llaves, `DSolve` recibe cinco argumentos y no sabe qué es cada uno."
+    "explain": "Corchetes para evaluar y llaves para agrupar. Sin las llaves, `DSolve` recibe cinco argumentos y no sabe qué es cada uno."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e11",
+    "id": "1-p12-e14",
     "kind": "code",
-    "title": "Comprobación con el PVI directo",
-    "prompt": "Comprueba el resultado del ejercicio de las constantes resolviendo directamente el problema de valor inicial\n\ny″ + 2y′ + 5y = e^(−x)·cos(2x), y(0) = 2.3825, y′(0) = 0.7575\n\ny evaluando la solución en x = 2.8.",
+    "title": "Comprobación con el PVI",
+    "prompt": "Resuelve directamente y″ + 2y′ + 5y = e^(−x)cos(2x) con y(0) = 2.3825, y′(0) = 0.7575, y evalúa la solución en x = 2.8.",
     "difficulty": 3,
     "cmds": [
      "DSolve",
@@ -529,85 +906,237 @@
     "source": "Práctica 12 · P3 (comprobación)",
     "solution": "sol = DSolve[{y''[x] + 2 y'[x] + 5 y[x] == Exp[-x] Cos[2 x], y[0] == 2.3825, y'[0] == 0.7575}, y[x], x];\ny[x] /. sol[[1]] /. x -> 2.8",
     "check": {
-     "type": "expr",
-     "expected": "0.02522464869",
-     "compare": "numeric",
-     "tol": 1e-06
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "0.02522464869",
+       "compare": "numeric",
+       "tol": 1e-06
+      },
+      {
+       "type": "expr",
+       "expected": "{y[2.8] -> 0.02522464869}",
+       "compare": "set",
+       "tol": 1e-06
+      }
+     ]
     },
     "requires": [
      "DSolve"
     ],
     "hints": [
-     "Las condiciones van dentro del `DSolve`, en la misma lista que la ecuación.",
+     "Las condiciones van dentro del `DSolve`; guarda la salida en `sol`.",
      "Después: `y[x] /. sol[[1]] /. x -> 2.8`."
     ],
-    "explain": "Sale 0.0252246, igual que por el camino de las constantes. En el examen: si piden C[1] y C[2], camino largo; si solo piden el valor de y en un punto, este atajo."
+    "explain": "Sale 0.0252246, igual que por el camino de las constantes. Si piden C[1] y C[2], camino largo; si solo piden un valor de y, este atajo."
    }
   },
   {
-   "type": "explain",
-   "title": "La incógnita no siempre se llama y",
-   "md": "En la práctica aparece la ecuación 3y·dx/dy + 6x = cos(y). Aquí la función es **x** y depende de **y**: los papeles de siempre están cambiados.\n\nA `DSolve` le dan igual las letras. Tú decides quién es quién con el segundo y el tercer argumento:\n\n- la función incógnita es `x[y]` (y su derivada, `x'[y]`),\n- la variable es `y`.\n\nAbajo, un ejemplo con otras letras: la velocidad `v` en función del tiempo `t`.",
-   "cells": [
+   "type": "build",
+   "section": "Otras letras y sistemas",
+   "title": "La incógnita no siempre es y",
+   "md": "La misma ecuación con otras letras: tú decides quién es función y quién variable.",
+   "target": "DSolve[{y x'[y] + x[y] == y^2, x[1] == 2}, x[y], y]",
+   "parts": [
     {
      "code": "DSolve[{t v'[t] + v[t] == t^2, v[1] == 2}, v[t], t]",
-     "note": "función v, variable t"
+     "md": "Función `v`, variable `t`.",
+     "run": true
+    },
+    {
+     "code": "DSolve[{y x'[y] + x[y] == y^2, x[1] == 2}, x[y], y]",
+     "md": "Ahora la función es `x` y la variable es `y`.",
+     "run": true,
+     "hint": "La `y` suelta es la variable; `x[y]` es la función."
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve y·x′ + x = y², con x(1) = 2, donde x es función de y.",
+    "hints": [
+     "La función es `x[y]` y su derivada `x'[y]`.",
+     "Los dos últimos argumentos: `x[y]` e `y`.",
+     "`DSolve[{ == , x[1] == 2}, x[y], y]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y x'[y] + x[y] == y^2",
+     "func": "x",
+     "var": "y",
+     "ics": [
+      "x[1] == 2"
+     ],
+     "constants": 0
+    }
+   },
+   "cmds": [
+    "DSolve"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e12",
+    "id": "1-p12-e15",
     "kind": "code",
     "title": "PVI con los papeles cambiados",
-    "prompt": "Usa decimales con 6 cifras significativas. Resuelve el problema de valor inicial\n\n3y·dx/dy + 6x = cos(y), x(π/3) = 1\n\n(la función es x, que depende de y) y evalúa la solución en y = 0.75.",
+    "prompt": "Resuelve 3y·dx/dy + 6x = cos(y) con x(π/3) = 1 (x es función de y). Guarda la salida de `DSolve` en `sol`.",
     "difficulty": 3,
     "cmds": [
-     "DSolve",
-     "ReplaceAll"
+     "DSolve"
     ],
     "real": true,
-    "source": "Práctica 12 · P4",
-    "solution": "sol = DSolve[{3 y x'[y] + 6 x[y] == Cos[y], x[Pi/3] == 1}, x[y], y];\nx[y] /. sol[[1]] /. y -> 0.75",
+    "source": "Práctica 12 · P4 (resolver)",
+    "solution": "sol = DSolve[{3 y x'[y] + 6 x[y] == Cos[y], x[Pi/3] == 1}, x[y], y]",
     "check": {
-     "type": "expr",
-     "expected": "1.852377120",
-     "compare": "numeric",
-     "tol": 2e-06
+     "type": "ode",
+     "eq": "3 y x'[y] + 6 x[y] == Cos[y]",
+     "func": "x",
+     "var": "y",
+     "ics": [
+      "x[Pi/3] == 1"
+     ],
+     "constants": 0,
+     "expr": "sol"
     },
     "requires": [
      "DSolve"
     ],
     "hints": [
-     "La función es `x[y]`: escribe `x'[y]` y `x[y]` en la ecuación, y la condición `x[Pi/3] == 1`.",
-     "`DSolve[{3 y x'[y] + 6 x[y] == Cos[y], x[Pi/3] == 1}, x[y], y]` y luego `x[y] /. sol[[1]] /. y -> 0.75`."
+     "La ecuación: `3 y x'[y] + 6 x[y] == Cos[y]`; la condición: `x[Pi/3] == 1`.",
+     "`sol = DSolve[{3 y x'[y] + 6 x[y] == Cos[y], x[Pi/3] == 1}, x[y], y]`"
     ],
-    "explain": "x(0.75) = 1.85238. La `y` suelta que multiplica a `x'[y]` es la variable (sin corchetes); `x[y]` es la función. En la versión de clase era 2y·dx/dy + 4x = cos(y) con x(π/4) = 1: mismo método."
+    "explain": "La `y` que multiplica a `x'[y]` es la variable (sin corchetes). En la versión de clase era 2y·dx/dy + 4x = cos(y) con x(π/4) = 1."
    }
   },
   {
-   "type": "explain",
-   "title": "Sistemas de ecuaciones diferenciales",
-   "md": "Cuando hay **varias funciones incógnita** enlazadas (dos corrientes de un circuito, dos coordenadas de un movimiento) se resuelven a la vez:\n\n`DSolve[{ecuaciones y condiciones}, {x[t], y[t]}, t]`\n\n- Primer argumento: la lista con todas las ecuaciones y todas las condiciones.\n- Segundo argumento: la **lista** de funciones incógnita.\n- Tercero: la variable común.\n\nLa salida trae una regla por función. No hace falta leer las fórmulas (a veces son enormes): se aplican con `/.` y se pide el número.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e16",
+    "kind": "code",
+    "title": "Evalúa en y = 0.75",
+    "prompt": "`sol` (la solución del ejercicio anterior, función `x[y]`) ya está guardada. Evalúala en y = 0.75.",
+    "difficulty": 2,
+    "cmds": [
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 12 · P4 (evaluar)",
+    "setup": "sol = DSolve[{3 y x'[y] + 6 x[y] == Cos[y], x[Pi/3] == 1}, x[y], y];",
+    "solution": "x[y] /. sol[[1]] /. y -> 0.75",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "1.852377120",
+       "compare": "numeric",
+       "tol": 2e-06
+      },
+      {
+       "type": "expr",
+       "expected": "{x[0.75] -> 1.852377120}",
+       "compare": "set",
+       "tol": 2e-06
+      }
+     ]
+    },
+    "requires": [
+     "ReplaceAll"
+    ],
+    "hints": [
+     "Igual que siempre, con las letras cambiadas: la fórmula es `x[y] /. sol[[1]]`.",
+     "`x[y] /. sol[[1]] /. y -> 0.75`"
+    ],
+    "explain": "x(0.75) = 1.85238."
+   }
+  },
+  {
+   "type": "build",
+   "title": "Dos funciones a la vez",
+   "md": "Un sistema: x′ = y, y′ = −x, con x(0) = 1, y(0) = 0. Las dos funciones dependen de `t`.",
+   "target": "DSolve[{x'[t] == y[t], y'[t] == -x[t], x[0] == 1, y[0] == 0}, {x[t], y[t]}, t]",
+   "parts": [
     {
-     "code": "sol = DSolve[{x'[t] == y[t], y'[t] == -x[t], x[0] == 1, y[0] == 0}, {x[t], y[t]}, t]",
-     "note": "dos funciones a la vez"
+     "code": "{x'[t] == y[t], y'[t] == -x[t]}",
+     "md": "Las dos ecuaciones, en una lista."
+    },
+    {
+     "code": "{x'[t] == y[t], y'[t] == -x[t], x[0] == 1, y[0] == 0}",
+     "md": "Añade las dos condiciones iniciales a la lista."
+    },
+    {
+     "code": "DSolve[{x'[t] == y[t], y'[t] == -x[t], x[0] == 1, y[0] == 0}, {x[t], y[t]}, t]",
+     "md": "En `DSolve`, con la lista de funciones incógnita y la variable.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve el sistema x′ = y, y′ = −x con x(0) = 1, y(0) = 0 (funciones de `t`).",
+    "hints": [
+     "Primer argumento: la lista con las 2 ecuaciones y las 2 condiciones.",
+     "Segundo: `{x[t], y[t]}`. Tercero: `t`.",
+     "`DSolve[{ , , , }, {x[t], y[t]}, t]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{x[t] -> Cos[t], y[t] -> -Sin[t]}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "DSolve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Sacar números de un sistema",
+   "md": "`sol` guarda la solución del sistema anterior. Evalúa las dos funciones en t = 2.",
+   "target": "{x[t], y[t]} /. sol[[1]] /. t -> 2.",
+   "setup": "sol = DSolve[{x'[t] == y[t], y'[t] == -x[t], x[0] == 1, y[0] == 0}, {x[t], y[t]}, t];",
+   "parts": [
+    {
+     "code": "sol",
+     "md": "Mira `sol`: una regla por función.",
+     "run": true
+    },
+    {
+     "code": "{x[t], y[t]} /. sol[[1]]",
+     "md": "Aplica las reglas a la lista `{x[t], y[t]}`.",
+     "run": true
     },
     {
      "code": "{x[t], y[t]} /. sol[[1]] /. t -> 2.",
-     "note": "las dos evaluadas en t = 2"
+     "md": "Y sustituye `t` por 2.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "`sol` ya está guardada. Devuelve `{x(2), y(2)}` en decimal.",
+    "hints": [
+     "Aplica `sol[[1]]` a la lista `{x[t], y[t]}`.",
+     "Después, `/. t -> 2.`",
+     "`{x[t], y[t]} /. sol[[ ]] /. t -> `"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{Cos[2.], -Sin[2.]}",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Part"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e13",
+    "id": "1-p12-e17",
     "kind": "code",
     "title": "Un sistema de primer orden",
-    "prompt": "Resuelve el sistema\n\nx′ = x + 2y, y′ = 3x + 2y, con x(0) = 1, y(0) = 0\n\n(x e y dependen de t) y devuelve la lista `{x(0.5), y(0.5)}`.",
+    "prompt": "Resuelve x′ = x + 2y, y′ = 3x + 2y con x(0) = 1, y(0) = 0 (funciones de `t`) y devuelve `{x(0.5), y(0.5)}`.",
     "difficulty": 3,
     "cmds": [
      "DSolve",
@@ -626,19 +1155,19 @@
      "DSolve"
     ],
     "hints": [
-     "Todas las funciones con su argumento: `x[t]`, `y[t]`, `x'[t]`, `y'[t]`. Incógnitas: `{x[t], y[t]}`.",
+     "Todas las funciones con su argumento: `x[t]`, `y[t]`, `x'[t]`, `y'[t]`. Guarda la salida en `sol`.",
      "Al final: `{x[t], y[t]} /. sol[[1]] /. t -> 0.5`."
     ],
-    "explain": "x(0.5) = 3.31954 e y(0.5) = 4.06952. El patrón `{x[t], y[t]} /. sol[[1]] /. t -> valor` sirve para cualquier sistema."
+    "explain": "x(0.5) = 3.31954 e y(0.5) = 4.06952."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e14",
+    "id": "1-p12-e18",
     "kind": "code",
     "title": "Sistema de segundo orden",
-    "prompt": "Usa 6 cifras significativas. Resuelve el problema de valor inicial\n\nx″ − 2x − 3y = −5\n\ny″ + x + 2y = −2\n\ncon x(0) = y(0) = x′(0) = y′(0) = 0, y calcula las dos funciones en t = 1.75. Devuelve `{x(1.75), y(1.75)}`.",
+    "prompt": "Resuelve x″ − 2x − 3y = −5, y″ + x + 2y = −2 con x(0) = y(0) = x′(0) = y′(0) = 0. Devuelve `{x(1.75), y(1.75)}`.",
     "difficulty": 4,
     "cmds": [
      "DSolve",
@@ -657,19 +1186,19 @@
      "DSolve"
     ],
     "hints": [
-     "Son seis igualdades en la lista: dos ecuaciones y cuatro condiciones (`x[0] == 0`, `y[0] == 0`, `x'[0] == 0`, `y'[0] == 0`).",
+     "Seis igualdades en la lista: dos ecuaciones y cuatro condiciones (`x[0] == 0`, `y[0] == 0`, `x'[0] == 0`, `y'[0] == 0`).",
      "`{x[t], y[t]} /. sol[[1]] /. t -> 1.75`"
     ],
-    "explain": "x(1.75) = −14.1436 e y(1.75) = 0.394306. En la prueba original la segunda ecuación era y″ + 2x + 2y = −2: Mathematica devuelve una fórmula enorme (con `RootSum`) y las casillas eran −13.4417 y 2.50652. El método es idéntico: no se lee la fórmula, se aplica como regla y se sustituye t."
+    "explain": "Sale −14.1436 y 0.394306. En la prueba original la segunda ecuación era y″ + 2x + 2y = −2 (casillas −13.4417 y 2.50652; Mathematica da una fórmula enorme con `RootSum`). El método es idéntico: no se lee la fórmula, se aplica como regla."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e15",
+    "id": "1-p12-e19",
     "kind": "code",
     "title": "Dos corrientes en un circuito",
-    "prompt": "Versión de clase del último ejercicio. Las intensidades `i1[t]` e `i2[t]` de un circuito parten de cero (i1(0) = 0, i2(0) = 0) y cumplen dos ecuaciones que ya tienes guardadas en `eq1` y `eq2`:\n\n- `eq1 = i1[t]*R1 + L*i1'[t] + (i1[t] - i2[t])*R3 == 220`\n- `eq2 = i2'[t]*R2 + i2[t] - (i1'[t] - i2'[t])*R3 == 0`\n\ncon R1 = 11, R2 = 9, R3 = 10 y L = 1000 (también definidos).\n\nResuelve el sistema y devuelve `{i1(5), i2(5)}` en decimales.",
+    "prompt": "`eq1` y `eq2` (ecuaciones del circuito para `i1[t]` e `i2[t]`) ya están definidas. Con i1(0) = i2(0) = 0, devuelve `{i1(5), i2(5)}`.",
     "difficulty": 4,
     "cmds": [
      "DSolve",
@@ -689,65 +1218,82 @@
      "DSolve"
     ],
     "hints": [
-     "Las ecuaciones ya tienen nombre: la lista es `{eq1, eq2, i1[0] == 0, i2[0] == 0}` y las incógnitas `{i1[t], i2[t]}`.",
+     "La lista es `{eq1, eq2, i1[0] == 0, i2[0] == 0}` y las incógnitas `{i1[t], i2[t]}`.",
      "`sol = DSolve[{eq1, eq2, i1[0] == 0, i2[0] == 0}, {i1[t], i2[t]}, t];` y luego `{i1[t], i2[t]} /. sol[[1]] /. t -> 5.`"
     ],
-    "explain": "i1(5) = 1.05669 e i2(5) = 0.488117. Guardar las ecuaciones en variables (`eq1`, `eq2`) deja el `DSolve` corto y legible. El punto de `5.` fuerza el resultado decimal."
+    "explain": "i1(5) = 1.05669 e i2(5) = 0.488117. Las ecuaciones eran `i1[t]*R1 + L*i1'[t] + (i1[t] - i2[t])*R3 == 220` e `i2'[t]*R2 + i2[t] - (i1'[t] - i2'[t])*R3 == 0`, con R1 = 11, R2 = 9, R3 = 10, L = 1000."
    }
   },
   {
    "type": "exercise",
+   "section": "La pregunta del examen",
    "ex": {
-    "id": "1-p12-e16",
+    "id": "1-p12-e20",
     "kind": "code",
-    "title": "Examen: las constantes",
-    "prompt": "Usa números decimales con 6 cifras. Integra la ecuación diferencial\n\n3y″/4 − 3y′/2 + 2y = 5·cos(t/3)\n\ny halla el valor de las constantes `C[1]` y `C[2]` para que y(2) = −3 e y(−π) = e.\n\nNombres obligatorios: `yg[t_]` para la solución general y `ctes` para las constantes. Como los datos no son redondos, calcula las constantes con `NSolve` en vez de `Solve`.",
-    "difficulty": 4,
+    "title": "Examen: la solución general",
+    "prompt": "Resuelve 3y″/4 − 3y′/2 + 2y = 5·cos(t/3) (y depende de `t`) y guarda la solución general como función `yg[t_]`.",
+    "difficulty": 3,
     "cmds": [
      "DSolve",
-     "NSolve",
-     "C",
      "ReplaceAll"
     ],
     "real": true,
-    "source": "Examen PL1 2014/15 · P3 a)",
-    "solution": "sol = DSolve[3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[t], t];\nyg[t_] = y[t] /. sol[[1]];\nctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]",
+    "source": "Examen PL1 2014/15 · P3 (solución general)",
+    "solution": "sol = DSolve[3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[t], t];\nyg[t_] = y[t] /. sol[[1]]",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "ode",
-       "expr": "yg[t]",
-       "eq": "3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3]",
-       "func": "y",
-       "var": "t",
-       "constants": 2,
-       "msg": "`yg[t]` debe ser la solución general (con C[1] y C[2]): `yg[t_] = y[t] /. sol[[1]]`."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{c = N[Flatten[ctes]] /. C[k_] :> C[Round[k]]}, Abs[(yg[2] /. c) + 3] < 10^-6 && Abs[(yg[-Pi] /. c) - E] < 10^-6]",
-       "msg": "Las constantes de `ctes` no cumplen y(2) = −3 e y(−π) = e. Revisa las dos condiciones del `NSolve`."
-      }
-     ]
+     "type": "ode",
+     "eq": "3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3]",
+     "func": "y",
+     "var": "t",
+     "constants": 2,
+     "expr": "yg[t]",
+     "msg": "`yg[t]` debe ser la solución general (con C[1] y C[2]): `yg[t_] = y[t] /. sol[[1]]`."
     },
     "requires": [
      "DSolve"
     ],
     "hints": [
-     "Ahora la variable es `t`: `DSolve[..., y[t], t]` y `yg[t_] = y[t] /. sol[[1]]`.",
-     "`ctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]` (el número e se escribe `E`)."
+     "Ahora la variable es `t`: `DSolve[3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[t], t]`.",
+     "`yg[t_] = y[t] /. sol[[1]]`"
     ],
-    "explain": "En Mathematica salen C[1] = 54.4671 y C[2] = 34.8407, las casillas del examen. Las condiciones no tienen por qué ser en t = 0 ni llevar derivada: valen dos datos cualesquiera de la función."
+    "explain": "Mismas dos líneas de siempre, con `t` en lugar de `x`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p12-e17",
+    "id": "1-p12-e21",
     "kind": "code",
-    "title": "Examen: el problema de valor inicial",
-    "prompt": "Misma ecuación: 3y″/4 − 3y′/2 + 2y = 5·cos(t/3). Resuélvela ahora con las condiciones y(0) = −2 e y′(0) = 3, y calcula y(2.18).",
+    "title": "Examen: las constantes",
+    "prompt": "`yg[t]` ya está definida. Guarda en `ctes` las constantes para que y(2) = −3 e y(−π) = e. Usa `NSolve` (el número e es `E`).",
+    "difficulty": 4,
+    "cmds": [
+     "NSolve",
+     "C"
+    ],
+    "real": true,
+    "source": "Examen PL1 2014/15 · P3 a)",
+    "setup": "yg[t_] = y[t] /. First[DSolve[3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[t], t]];",
+    "solution": "ctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]",
+    "check": {
+     "type": "satisfies",
+     "test": "With[{c = N[Flatten[ctes]] /. C[k_] :> C[Round[k]]}, Abs[(yg[2] /. c) + 3] < 10^-6 && Abs[(yg[-Pi] /. c) - E] < 10^-6]",
+     "msg": "Las constantes de `ctes` no cumplen y(2) = −3 e y(−π) = e. Revisa las dos condiciones del `NSolve`."
+    },
+    "hints": [
+     "Condiciones: `yg[2] == -3` y `yg[-Pi] == E`. Incógnitas: `{C[1], C[2]}`.",
+     "`ctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]`"
+    ],
+    "explain": "En Mathematica salen C[1] = 54.4671 y C[2] = 34.8407, las casillas del examen. Las condiciones no tienen por qué ser en t = 0 ni llevar derivada."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p12-e22",
+    "kind": "code",
+    "title": "Examen: el valor inicial",
+    "prompt": "Misma ecuación, 3y″/4 − 3y′/2 + 2y = 5·cos(t/3), ahora con y(0) = −2 e y′(0) = 3. Calcula y(2.18).",
     "difficulty": 3,
     "cmds": [
      "DSolve",
@@ -757,10 +1303,21 @@
     "source": "Examen PL1 2014/15 · P3 b)",
     "solution": "sol = DSolve[{3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[0] == -2, y'[0] == 3}, y[t], t];\ny[t] /. sol[[1]] /. t -> 2.18",
     "check": {
-     "type": "expr",
-     "expected": "55.47581650",
-     "compare": "numeric",
-     "tol": 2e-06
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "55.47581650",
+       "compare": "numeric",
+       "tol": 2e-06
+      },
+      {
+       "type": "expr",
+       "expected": "{y[2.18] -> 55.47581650}",
+       "compare": "set",
+       "tol": 2e-06
+      }
+     ]
     },
     "requires": [
      "DSolve"
@@ -769,7 +1326,7 @@
      "Condiciones dentro del `DSolve`: `{ecuación, y[0] == -2, y'[0] == 3}`.",
      "`y[t] /. sol[[1]] /. t -> 2.18`"
     ],
-    "explain": "y(2.18) = 55.4758. Esta pregunta (constantes en a), valor inicial en b)) se repite cada año con otros números: es puntuación segura si dominas los dos caminos."
+    "explain": "y(2.18) = 55.4758. Esta pregunta (constantes en a), valor inicial en b)) se repite cada año con otros números."
    }
   }
  ]

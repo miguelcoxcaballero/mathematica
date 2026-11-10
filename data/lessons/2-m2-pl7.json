@@ -4,8 +4,8 @@
  "subject": "Matemáticas II",
  "block": "Series y funciones especiales",
  "order": 7,
- "title": "Solución de EDOs por series y funciones especiales",
- "summary": "Resolver EDOs de coeficientes variables proponiendo una serie de potencias (punto ordinario y Frobenius), construyendo el método del guion línea a línea, y reconocer los polinomios de Legendre, Hermite y Laguerre y las funciones de Bessel.",
+ "title": "EDOs por series y funciones especiales",
+ "summary": "Resolver EDOs de coeficientes variables con una serie de potencias (punto ordinario y Frobenius), línea a línea, y reconocer Legendre, Hermite, Laguerre y Bessel.",
  "minutes": 90,
  "commands": [
   "Series",
@@ -26,56 +26,51 @@
   "Integrate",
   "Plot",
   "Simplify",
-  "Factor",
   "FindRoot",
   "Exp"
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Series de potencias",
-   "title": "Cuando no hay fórmula: buscar la solución como serie",
-   "md": "Muchas EDOs lineales con **coeficientes variables** (Legendre, Hermite, Bessel…) no tienen solución con funciones elementales. Y son justo las que salen al resolver EDPs: la vibración de una membrana circular o el calor en una esfera.\n\nLa idea de esta práctica: buscar la solución como un polinomio largo `a0 + a1 x + a2 x^2 + ...` y calcular los coeficientes. Mathematica hace de **calculadora guiada**: tú propones la serie y ella deriva, agrupa y resuelve.\n\nPrimero, qué es una serie de potencias: el desarrollo de Taylor de una función.",
-   "cells": [
-    {
-     "code": "Series[Exp[x], {x, 0, 4}]",
-     "note": "Taylor de E^x alrededor de 0 hasta orden 4; acaba en un término O[x]^5"
-    }
-   ]
-  },
-  {
    "type": "build",
-   "title": "Un polinomio de Taylor",
-   "md": "`Series` da el desarrollo con una cola `O[x]^n`. `Normal` quita esa cola y deja un polinomio normal, que ya se puede evaluar o dibujar.",
+   "section": "Series de Taylor",
+   "title": "Polinomio de Taylor",
+   "md": "Una serie de potencias es un polinomio largo. Mira cómo crece.",
    "target": "Normal[Series[Cos[2 x], {x, 0, 4}]]",
    "parts": [
     {
-     "code": "{x, 0, 4}",
-     "md": "Entre llaves: variable, punto alrededor del que desarrollas, orden."
+     "code": "Series[Exp[x], {x, 0, 2}]",
+     "md": "Desarrolla `Exp[x]` alrededor de 0 hasta orden 2.",
+     "run": true,
+     "hint": "`{x, 0, 2}` = variable, punto, orden."
     },
     {
-     "code": "Series[Cos[2 x], {x, 0, 4}]",
-     "md": "La función y la lista anterior. El resultado lleva el término `O[x]^5`.",
+     "code": "Series[Exp[x], {x, 0, 4}]",
+     "md": "Sube el orden a 4.",
+     "run": true
+    },
+    {
+     "code": "Normal[Series[Exp[x], {x, 0, 4}]]",
+     "md": "Quita la cola `O[x]^5` con `Normal`.",
      "run": true
     },
     {
      "code": "Normal[Series[Cos[2 x], {x, 0, 4}]]",
-     "md": "Con `Normal` por fuera: `1 - 2 x^2 + 2 x^4/3`.",
+     "md": "Ahora con `Cos[2 x]`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: polinomio de Taylor de `Cos[2 x]` en 0 hasta orden 4, sin el término `O[x]`.",
+    "prompt": "Polinomio de Taylor de `Cos[2 x]` en 0 hasta orden 4, sin el término `O[x]`.",
     "hints": [
-     "Por dentro: `Series[función, {x, 0, 4}]`",
-     "Por fuera: `Normal[...]`",
+     "Por dentro `Series[función, {x, 0, 4}]`, por fuera `Normal`",
      "`Normal[Series[Cos[2 x], {x, 0, 4}]]`"
     ]
    },
    "cmds": [
     "Series",
     "Normal"
-   ]
+   ],
+   "more": "Muchas EDOs de coeficientes variables (Legendre, Hermite, Bessel) no tienen solución elemental: se busca como serie `a0 + a1 x + a2 x^2 + ...`."
   },
   {
    "type": "exercise",
@@ -83,7 +78,7 @@
     "id": "2-m2-pl7-e01",
     "kind": "code",
     "title": "Otro desarrollo",
-    "prompt": "Obtén el polinomio de Taylor de `Exp[-x^2]` alrededor de 0 hasta orden 6, sin el término `O[x]`.",
+    "prompt": "Polinomio de Taylor de `Exp[-x^2]` en 0 hasta orden 6, sin el término `O[x]`.",
     "difficulty": 1,
     "cmds": [
      "Series",
@@ -96,57 +91,63 @@
      "type": "expr",
      "expected": "1 - x^2 + x^4/2 - x^6/6"
     },
-    "requires": [
-     "Series",
-     "Normal"
-    ],
     "hints": [
      "Cambia la función y el orden: `{x, 0, 6}`.",
      "`Normal[Series[Exp[-x^2], {x, 0, 6}]]`"
     ],
-    "explain": "`1 - x^2 + x^4/2 - x^6/6`: solo potencias pares, porque la función es par."
+    "explain": "Solo potencias pares: la función es par.",
+    "requires": [
+     "Series",
+     "Normal"
+    ]
    }
   },
   {
    "type": "build",
-   "section": "Método del guion (1): proponer la serie y sustituir",
-   "title": "Sustituir una serie en la ecuación",
-   "md": "Ejemplo 7.1.1 del guion: `y'' - 2 x y' - 2 y = 0`. Se propone un polinomio hasta `x^5` con coeficientes desconocidos y se sustituye en la ecuación.",
+   "section": "Proponer la serie y sustituir",
+   "title": "Sustituir en la ecuación",
+   "md": "Ejemplo 7.1.1: `y'' - 2 x y' - 2 y = 0`. Una línea por pantalla.",
    "target": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];\nExpand[ddy[x] - 2x*dy[x] - 2y[x], x]",
    "parts": [
     {
      "code": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;",
-     "md": "La serie. `x_` significa 'cualquier argumento'; los `a0…a5` son símbolos sin valor: las incógnitas.",
-     "run": true
+     "md": "Propón un polinomio hasta `x^5` con coeficientes desconocidos.",
+     "run": true,
+     "hint": "`a0…a5` no tienen valor: son las incógnitas."
     },
     {
      "code": "dy[x_] = D[y[x], x];",
-     "md": "Su derivada primera, guardada como función `dy`.",
+     "md": "Su derivada primera.",
      "run": true
     },
     {
      "code": "ddy[x_] = D[y[x], {x, 2}];",
-     "md": "La derivada segunda: `{x, 2}` = respecto de `x`, dos veces.",
+     "md": "Su derivada segunda.",
      "run": true
     },
     {
      "code": "Expand[ddy[x] - 2x*dy[x] - 2y[x], x]",
-     "md": "El lado izquierdo de la ecuación con la serie dentro, desarrollado en potencias de `x`.",
-     "run": true
+     "md": "Sustituye en la ecuación y desarrolla.",
+     "run": true,
+     "hint": "Cada potencia de `x` debe quedar con coeficiente 0."
     },
     {
      "code": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];\nExpand[ddy[x] - 2x*dy[x] - 2y[x], x]",
-     "md": "Las cuatro líneas. Para que sea solución, el coeficiente de cada potencia de `x` debe ser 0.",
+     "md": "Las cuatro líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define la serie hasta `x^5` (coeficientes `a0…a5`), sus derivadas `dy` y `ddy`, y desarrolla `y'' - 2 x y' - 2 y`.",
+    "prompt": "Define la serie hasta `x^5` (`a0…a5`), `dy`, `ddy`, y desarrolla `y'' - 2 x y' - 2 y`.",
     "hints": [
-     "Línea 1: `y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;`",
-     "Líneas 2 y 3: `dy[x_] = D[y[x], x];` y `ddy[x_] = D[y[x], {x, 2}];`",
-     "Línea 4: `Expand[ddy[x] - 2x*dy[x] - 2y[x], x]`"
-    ]
+     "`y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;`",
+     "`dy[x_] = D[y[x], x];` y `ddy[x_] = D[y[x], {x, 2}];`",
+     "`Expand[ddy[x] - 2x*dy[x] - 2y[x], x]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-2 a0 + 2 a2 + (6 a3 - 4 a1) x + (12 a4 - 6 a2) x^2 + (20 a5 - 8 a3) x^3 - 10 a4 x^4 - 12 a5 x^5"
+    }
    },
    "cmds": [
     "D",
@@ -156,24 +157,25 @@
   {
    "type": "build",
    "title": "Leer los coeficientes",
-   "md": "`CoefficientList` devuelve la lista de coeficientes de un polinomio, de `x^0` en adelante. Evita leerlos a ojo.",
-   "target": "CoefficientList[(-2 a0 + 2 a2) + (6 a3 - 4 a1) x, x]",
+   "md": "`CoefficientList` da los coeficientes de `x^0`, `x^1`, …",
+   "target": "CoefficientList[(2 a2 - 2 a0) + (6 a3 - 4 a1) x, x]",
    "parts": [
     {
-     "code": "(-2 a0 + 2 a2) + (6 a3 - 4 a1) x",
-     "md": "Un polinomio en `x`: son los dos primeros términos del resultado anterior."
+     "code": "CoefficientList[3 + 5 x + 7 x^2, x]",
+     "md": "Lista de coeficientes de un polinomio con números.",
+     "run": true
     },
     {
-     "code": "CoefficientList[(-2 a0 + 2 a2) + (6 a3 - 4 a1) x, x]",
-     "md": "Polinomio y variable: sale `{-2 a0 + 2 a2, -4 a1 + 6 a3}`.",
+     "code": "CoefficientList[(2 a2 - 2 a0) + (6 a3 - 4 a1) x, x]",
+     "md": "Ahora con coeficientes simbólicos.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: lista de coeficientes de `(-2 a0 + 2 a2) + (6 a3 - 4 a1) x` respecto de `x`.",
+    "prompt": "Lista de coeficientes de `(2 a2 - 2 a0) + (6 a3 - 4 a1) x` respecto de `x`.",
     "hints": [
      "`CoefficientList[polinomio, x]`",
-     "`CoefficientList[(-2 a0 + 2 a2) + (6 a3 - 4 a1) x, x]`"
+     "`CoefficientList[(2 a2 - 2 a0) + (6 a3 - 4 a1) x, x]`"
     ]
    },
    "cmds": [
@@ -186,59 +188,58 @@
     "id": "2-m2-pl7-e02",
     "kind": "code",
     "title": "Coeficientes de otra ecuación",
-    "prompt": "Ya están definidos `y[x]` (la serie hasta `x^5`), `dy[x]` y `ddy[x]`. Para la ecuación `y'' + y = 0`, obtén la lista de coeficientes de `ddy[x] + y[x]` respecto de `x`.",
+    "prompt": "Con `y`, `dy`, `ddy` ya definidos (serie hasta `x^5`): lista de coeficientes de `ddy[x] + y[x]`.",
     "difficulty": 2,
     "cmds": [
      "CoefficientList"
     ],
     "real": false,
     "source": null,
-    "setup": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];",
     "solution": "CoefficientList[ddy[x] + y[x], x]",
     "check": {
      "type": "expr",
      "expected": "{a0 + 2 a2, a1 + 6 a3, a2 + 12 a4, a3 + 20 a5, a4, a5}"
     },
-    "requires": [
-     "CoefficientList"
-    ],
     "hints": [
      "El polinomio es `ddy[x] + y[x]`.",
      "`CoefficientList[ddy[x] + y[x], x]`"
     ],
-    "explain": "Seis coeficientes, de `x^0` a `x^5`. Los cuatro primeros darán las ecuaciones; los dos últimos están incompletos (faltan `a6` y `a7`, que hemos cortado) y no se usan."
+    "explain": "Seis coeficientes. Los cuatro primeros dan las ecuaciones; los dos últimos están incompletos (faltan `a6`, `a7`) y no se usan.",
+    "requires": [
+     "CoefficientList"
+    ],
+    "setup": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];"
    }
   },
   {
    "type": "build",
-   "section": "Método del guion (2): despejar y escribir la solución",
-   "title": "Despejar los coeficientes",
-   "md": "Con la serie hasta `x^5` hay 6 coeficientes. Una EDO de orden 2 deja 2 libres (`a0` y `a1`); se anulan los coeficientes de `x^0` a `x^3` y se despejan `a2, a3, a4, a5`.",
+   "section": "Despejar y escribir la solución",
+   "title": "Despejar coeficientes",
+   "md": "Cada coeficiente igualado a 0 es una ecuación. Crece de una a cuatro.",
    "target": "sol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}]",
    "parts": [
     {
-     "code": "-2 a0 + 2 a2 == 0",
-     "md": "Una ecuación: el coeficiente de `x^0`, igualado a 0 con `==`."
+     "code": "Solve[-2 a0 + 2 a2 == 0, a2]",
+     "md": "Despeja `a2` de la primera ecuación (coeficiente de `x^0`).",
+     "run": true
     },
     {
-     "code": "{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}",
-     "md": "Las cuatro ecuaciones (potencias 0, 1, 2 y 3) en una lista."
-    },
-    {
-     "code": "{a2, a3, a4, a5}",
-     "md": "Las incógnitas, también en una lista."
+     "code": "Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0}, {a2, a3}]",
+     "md": "Ahora dos ecuaciones y dos incógnitas, en listas.",
+     "run": true
     },
     {
      "code": "sol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}]",
-     "md": "`Solve[ecuaciones, incógnitas]`, guardado en `sol`. Devuelve reglas: `a2 -> a0`, `a3 -> 2 a1/3`…",
-     "run": true
+     "md": "Las cuatro (potencias 0 a 3), guardadas en `sol`.",
+     "run": true,
+     "hint": "Orden 2: `a0` y `a1` quedan libres; se despejan `a2…a5`."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: resuelve `-2 a0 + 2 a2 = 0`, `-4 a1 + 6 a3 = 0`, `-6 a2 + 12 a4 = 0`, `-8 a3 + 20 a5 = 0` para `a2, a3, a4, a5` y guarda el resultado en `sol`.",
+    "prompt": "Resuelve las cuatro ecuaciones del ejemplo para `a2, a3, a4, a5` y guárdalo en `sol`.",
     "hints": [
-     "`sol = Solve[{ecuaciones}, {incógnitas}]`",
-     "Cada ecuación con `==`; incógnitas `{a2, a3, a4, a5}`"
+     "`sol = Solve[{ecuaciones}, {a2, a3, a4, a5}]`",
+     "Ecuaciones: `-2 a0 + 2 a2 == 0`, `-4 a1 + 6 a3 == 0`, `-6 a2 + 12 a4 == 0`, `-8 a3 + 20 a5 == 0`"
     ]
    },
    "cmds": [
@@ -248,40 +249,50 @@
   {
    "type": "build",
    "title": "Escribir la solución",
-   "md": "Las reglas de `Solve` se aplican a la serie con `/.` ('sustituye').",
+   "md": "Las reglas de `Solve` se aplican a la serie con `/.`.",
    "target": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\nsol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}];\ny[x] /. First[sol]",
    "parts": [
     {
-     "code": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\nsol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}];",
-     "md": "Lo que ya tienes: la serie y las reglas.",
+     "code": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;",
+     "md": "Vuelve a definir la serie.",
+     "run": true
+    },
+    {
+     "code": "sol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}];",
+     "md": "Y las reglas de los coeficientes.",
      "run": true
     },
     {
      "code": "First[sol]",
-     "md": "`First` quita las llaves de fuera: queda una lista simple de reglas.",
+     "md": "Quita las llaves de fuera con `First`.",
      "run": true
     },
     {
      "code": "y[x] /. First[sol]",
-     "md": "La serie con `a2…a5` sustituidos: queda en función de `a0` y `a1`.",
+     "md": "Sustituye las reglas en la serie.",
      "run": true
     },
     {
      "code": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\nsol = Solve[{-2 a0 + 2 a2 == 0, -4 a1 + 6 a3 == 0, -6 a2 + 12 a4 == 0, -8 a3 + 20 a5 == 0}, {a2, a3, a4, a5}];\ny[x] /. First[sol]",
-     "md": "Solución general hasta `x^5`: `a0 (1 + x^2 + x^4/2) + a1 (x + 2 x^3/3 + 4 x^5/15)`. El guion la separa con `ysol[x_, a0_, a1_] = ...` y `a0*ysol[x, 1, 0] + a1*ysol[x, 0, 1]`.",
+     "md": "Las tres líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define la serie, resuelve los coeficientes (guárdalos en `sol`) y escribe la solución en serie.",
+    "prompt": "Define la serie, resuelve los coeficientes (en `sol`) y escribe la solución en serie.",
     "hints": [
-     "Las dos primeras líneas son la serie `y[x_] = ...;` y `sol = Solve[...];`",
-     "Última línea: `y[x] /. First[sol]`"
-    ]
+     "Serie, `sol = Solve[...];` y una línea más",
+     "`y[x] /. First[sol]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "a0 (1 + x^2 + x^4/2) + a1 (x + 2 x^3/3 + 4 x^5/15)"
+    }
    },
    "cmds": [
     "Solve"
-   ]
+   ],
+   "more": "Sale `a0 (1 + x^2 + x^4/2) + a1 (x + 2 x^3/3 + 4 x^5/15)`. El guion la separa con `ysol[x_, a0_, a1_] = ...` y `a0*ysol[x, 1, 0] + a1*ysol[x, 0, 1]`."
   },
   {
    "type": "exercise",
@@ -289,27 +300,28 @@
     "id": "2-m2-pl7-e03",
     "kind": "code",
     "title": "Tu primera EDO por series",
-    "prompt": "Ya están definidos `y[x]` (serie hasta `x^5`), `dy[x]` y `ddy[x]`. Para `y'' + y = 0` los coeficientes de `x^0` a `x^3` son `a0 + 2 a2`, `a1 + 6 a3`, `a2 + 12 a4` y `a3 + 20 a5`.\n\nDespeja `a2, a3, a4, a5` (guárdalo en `sol`) y escribe la solución en serie con `y[x] /. First[sol]`.",
+    "prompt": "Con `y`, `dy`, `ddy` definidos: resuelve `y'' + y = 0` hasta `x^5`. Última salida: `y[x] /. First[sol]`.",
     "difficulty": 2,
     "cmds": [
      "Solve"
     ],
     "real": false,
     "source": null,
-    "setup": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];",
-    "solution": "sol = Solve[{a0 + 2 a2 == 0, a1 + 6 a3 == 0, a2 + 12 a4 == 0, a3 + 20 a5 == 0}, {a2, a3, a4, a5}];\ny[x] /. First[sol]",
+    "solution": "CoefficientList[ddy[x] + y[x], x]\nsol = Solve[{a0 + 2 a2 == 0, a1 + 6 a3 == 0, a2 + 12 a4 == 0, a3 + 20 a5 == 0}, {a2, a3, a4, a5}];\ny[x] /. First[sol]",
     "check": {
      "type": "expr",
      "expected": "a0 (1 - x^2/2 + x^4/24) + a1 (x - x^3/6 + x^5/120)"
     },
+    "hints": [
+     "Coeficientes de `x^0` a `x^3`: `a0 + 2 a2`, `a1 + 6 a3`, `a2 + 12 a4`, `a3 + 20 a5`.",
+     "`sol = Solve[{a0 + 2 a2 == 0, a1 + 6 a3 == 0, a2 + 12 a4 == 0, a3 + 20 a5 == 0}, {a2, a3, a4, a5}];`",
+     "`y[x] /. First[sol]`"
+    ],
+    "explain": "Son los desarrollos de `a0 Cos[x] + a1 Sin[x]`.",
     "requires": [
      "Solve"
     ],
-    "hints": [
-     "`sol = Solve[{a0 + 2 a2 == 0, a1 + 6 a3 == 0, a2 + 12 a4 == 0, a3 + 20 a5 == 0}, {a2, a3, a4, a5}];`",
-     "Segunda línea: `y[x] /. First[sol]`"
-    ],
-    "explain": "Sale `a0 (1 - x^2/2 + x^4/24) + a1 (x - x^3/6 + x^5/120)`: los desarrollos de `a0 Cos[x] + a1 Sin[x]`, la solución que ya conocías."
+    "setup": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5;\ndy[x_] = D[y[x], x];\nddy[x_] = D[y[x], {x, 2}];"
    }
   },
   {
@@ -317,8 +329,8 @@
    "ex": {
     "id": "2-m2-pl7-e04",
     "kind": "code",
-    "title": "Guion 2: Legendre hasta x^5",
-    "prompt": "Halla la solución en serie de potencias de `x`, hasta `x^5`, de\n\n`(1 - x^2) y'' - 2 x y' + 6 y = 0`.\n\nEscribe el método entero: la serie con `a0…a5`, `dy`, `ddy`, el `Expand`, el `Solve` (guardado en `sol`) y, como última salida, `y[x] /. First[sol]`.",
+    "title": "Guion 2: Legendre",
+    "prompt": "Serie hasta `x^5` de `(1 - x^2) y'' - 2 x y' + 6 y = 0`. Método entero; última salida: `y[x] /. First[sol]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -341,15 +353,15 @@
       }
      ]
     },
+    "hints": [
+     "Tres líneas fijas y `Expand[(1 - x^2)*ddy[x] - 2 x*dy[x] + 6 y[x], x]`.",
+     "Coeficientes: `6 a0 + 2 a2`, `4 a1 + 6 a3`, `12 a4`, `-6 a3 + 20 a5`.",
+     "`sol = Solve[{... == 0, ...}, {a2, a3, a4, a5}];` y `y[x] /. First[sol]`"
+    ],
+    "explain": "Sale `a0 (1 - 3 x^2) + a1 (x - 2 x^3/3 - x^5/5)`. La parte de `a0` se corta: es un polinomio (Legendre de orden 2, `6 = 2*3`).",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "Las tres primeras líneas no cambian nunca. La cuarta: `Expand[(1 - x^2)*ddy[x] - 2 x*dy[x] + 6 y[x], x]`.",
-     "Ejecuta hasta ahí y lee los coeficientes: `6 a0 + 2 a2`, `4 a1 + 6 a3`, `12 a4`, `-6 a3 + 20 a5`.",
-     "`sol = Solve[{6 a0 + 2 a2 == 0, 4 a1 + 6 a3 == 0, 12 a4 == 0, -6 a3 + 20 a5 == 0}, {a2, a3, a4, a5}];` y `y[x] /. First[sol]`"
-    ],
-    "explain": "Solución: `a0 (1 - 3 x^2) + a1 (x - 2 x^3/3 - x^5/5)`. La parte de `a0` se corta sola: es un polinomio. Como `6 = 2*3`, es la ecuación de Legendre de orden 2."
+    ]
    }
   },
   {
@@ -357,30 +369,30 @@
    "ex": {
     "id": "2-m2-pl7-e05",
     "kind": "code",
-    "title": "Prueba de clase: un valor de la serie",
-    "prompt": "Para `(1 - x^2) y'' - 2 x y' + 12 y = 0` obtén la serie hasta `x^4` (coeficientes `a0…a4`; ahora solo puedes anular las potencias 0, 1 y 2, que dan `12 a0 + 2 a2`, `10 a1 + 6 a3` y `6 a2 + 12 a4`).\n\nDespués calcula el valor de la serie con `a0 = 1`, `a1 = 2` en `x = 0.5`. La última salida debe ser ese número.",
+    "title": "Prueba: un valor de la serie",
+    "prompt": "`(1 - x^2) y'' - 2 x y' + 12 y = 0`, serie hasta `x^4`. Valor con `a0 = 1`, `a1 = 2` en `x = 0.5`.",
     "difficulty": 3,
     "cmds": [
      "Solve"
     ],
     "real": true,
     "source": "Prueba de clase PL7 (2020-21) · pregunta 3a",
-    "solution": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4;\nsol = Solve[{12 a0 + 2 a2 == 0, 10 a1 + 6 a3 == 0, 6 a2 + 12 a4 == 0}, {a2, a3, a4}];\ny[x] /. First[sol] /. {a0 -> 1, a1 -> 2, x -> 0.5}",
+    "solution": "y[x_] = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4;\nExpand[(1 - x^2)*D[y[x], {x, 2}] - 2 x*D[y[x], x] + 12 y[x], x]\nsol = Solve[{12 a0 + 2 a2 == 0, 10 a1 + 6 a3 == 0, 6 a2 + 12 a4 == 0}, {a2, a3, a4}];\ny[x] /. First[sol] /. {a0 -> 1, a1 -> 2, x -> 0.5}",
     "check": {
      "type": "expr",
      "expected": "0.2708333333",
      "compare": "numeric",
      "tol": 1e-05
     },
+    "hints": [
+     "Hasta `x^4` solo hay 3 ecuaciones: `12 a0 + 2 a2`, `10 a1 + 6 a3`, `6 a2 + 12 a4`.",
+     "`sol = Solve[{...}, {a2, a3, a4}];`",
+     "`y[x] /. First[sol] /. {a0 -> 1, a1 -> 2, x -> 0.5}`"
+    ],
+    "explain": "Da 0.270833. Las reglas con `/.` se aplican de izquierda a derecha.",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "La serie ahora acaba en `a4*x^4` y hay 3 ecuaciones para `{a2, a3, a4}`.",
-     "`sol = Solve[{12 a0 + 2 a2 == 0, 10 a1 + 6 a3 == 0, 6 a2 + 12 a4 == 0}, {a2, a3, a4}];`",
-     "Para evaluar: `y[x] /. First[sol] /. {a0 -> 1, a1 -> 2, x -> 0.5}`"
-    ],
-    "explain": "Da 0.270833. Varias reglas seguidas con `/.` se aplican de izquierda a derecha: primero los coeficientes, luego los números."
+    ]
    }
   },
   {
@@ -388,8 +400,8 @@
    "ex": {
     "id": "2-m2-pl7-e06",
     "kind": "fix",
-    "title": "Prueba de clase: imponer y(0) e y'(0)",
-    "prompt": "La serie hasta `x^3` de `(1 - x^2) y'' - 2 x y' + 6 y = 0` es `a0 + a1 x - 3 a0 x^2 - 2 a1 x^3/3`. Se quieren hallar `a0` y `a1` para que `y(0) = -1/2` e `y'(0) = 0`, pero la celda tiene tres errores típicos. Escribe la celda corregida.",
+    "title": "Prueba: imponer y(0), y'(0)",
+    "prompt": "Corrige los tres errores para hallar `a0`, `a1` con `y(0) = -1/2`, `y'(0) = 0`.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -397,77 +409,89 @@
     ],
     "real": true,
     "source": "Prueba de clase PL7 (2020-21) · pregunta 2",
-    "broken": "y[x] = a0 + a1*x - 3 a0*x^2 - 2 a1*x^3/3;\ndy[x] = D[y[x], x];\nSolve[{y[0] = -1/2, dy[0] == 0}, {a0, a1}]",
     "solution": "y[x_] = a0 + a1*x - 3 a0*x^2 - 2 a1*x^3/3;\ndy[x_] = D[y[x], x];\nSolve[{y[0] == -1/2, dy[0] == 0}, {a0, a1}]",
     "check": {
      "type": "expr",
      "expected": "{{a0 -> -1/2, a1 -> 0}}",
      "compare": "set"
     },
+    "hints": [
+     "Las definiciones llevan guion bajo: `y[x_]`, `dy[x_]`.",
+     "Dentro de `Solve`, las ecuaciones van con `==`."
+    ],
+    "explain": "Faltaban dos `_` y un `==`. En una serie alrededor de 0, `a0 = y(0)` y `a1 = y'(0)`.",
+    "broken": "y[x] = a0 + a1*x - 3 a0*x^2 - 2 a1*x^3/3;\ndy[x] = D[y[x], x];\nSolve[{y[0] = -1/2, dy[0] == 0}, {a0, a1}]",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "Sin el guion bajo (`y[x_]`, `dy[x_]`) la definición solo vale para la letra `x`: `y[0]` no se evalúa.",
-     "Dentro de `Solve` las ecuaciones van con `==`. Un solo `=` intenta asignar."
-    ],
-    "explain": "Faltaban los dos `_` y un `==`. Sale `a0 = -1/2`, `a1 = 0`: en una serie alrededor de 0, `a0` es `y(0)` y `a1` es `y'(0)`."
+    ]
    }
   },
   {
    "type": "build",
-   "section": "Versión compacta: Sum, a[k] y derivadas en 0",
-   "title": "El mismo método sin leer a ojo",
-   "md": "Segunda forma del guion. El coeficiente de `x^k` de un polinomio `g(x)` es `g^(k)(0)/k!`: anular el coeficiente `k` equivale a que la derivada k-ésima en 0 valga 0.",
+   "section": "Versión compacta",
+   "title": "Sin leer a ojo",
+   "md": "Segunda forma del guion: coeficientes `a[k]` y derivadas en 0.",
    "target": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
    "parts": [
     {
-     "code": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];",
-     "md": "La serie con coeficientes indexados `a[0]`, `a[1]`… `{k, 0, 5}` = índice, desde, hasta.",
+     "code": "D[7 + 4 x + 5 x^2, {x, 2}] /. x -> 0",
+     "md": "Deriva dos veces y evalúa en 0: sale 2 por el coeficiente de `x^2`.",
+     "run": true,
+     "hint": "Anular el coeficiente `k` = anular la derivada k-ésima en 0."
+    },
+    {
+     "code": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}]",
+     "md": "La serie con coeficientes indexados `a[k]`.",
      "run": true
     },
     {
      "code": "ecuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];",
-     "md": "El lado izquierdo de la ecuación con la serie dentro. Es la única línea que cambia de un problema a otro.",
+     "md": "La ecuación con la serie dentro.",
      "run": true
     },
     {
      "code": "de[k_] := D[ecuacion[x], {x, k}] /. x -> 0",
-     "md": "Derivada k-ésima en `x = 0`. Va con `:=` porque se recalcula para cada `k`.",
+     "md": "Su derivada k-ésima en 0, con `:=`.",
      "run": true
     },
     {
      "code": "Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
-     "md": "Las ecuaciones `de[0] == 0` … `de[3] == 0` y las incógnitas `a[2]…a[5]`.",
+     "md": "Las cuatro ecuaciones y las incógnitas `a[2]…a[5]`.",
      "run": true
     },
     {
      "code": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
-     "md": "Mismas reglas que antes: `a[2] -> a[0]`, `a[3] -> 2 a[1]/3`… En el guion la serie lleva el orden como argumento, `y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}]`, y se usa `y[x, 5]`: es lo mismo.",
+     "md": "Las cuatro líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: resuelve `y'' - 2 x y' - 2 y = 0` hasta `x^5` con la versión compacta (`Sum`, `ecuacion`, `de[k]`, `Solve`).",
+    "prompt": "Resuelve `y'' - 2 x y' - 2 y = 0` hasta `x^5` con la versión compacta (`Sum`, `ecuacion`, `de[k]`).",
     "hints": [
-     "`y[x_] = Sum[a[k]*x^k, {k, 0, 5}];`",
-     "`ecuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];` y `de[k_] := D[ecuacion[x], {x, k}] /. x -> 0`",
+     "`y[x_] = Sum[a[k]*x^k, {k, 0, 5}];` y `ecuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];`",
+     "`de[k_] := D[ecuacion[x], {x, k}] /. x -> 0`",
      "`Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]`"
-    ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{a[2] -> a[0], a[3] -> 2 a[1]/3, a[4] -> a[0]/2, a[5] -> 4 a[1]/15}}",
+     "compare": "set"
+    }
    },
    "cmds": [
     "Sum",
     "D",
     "Solve"
-   ]
+   ],
+   "more": "En el guion la serie lleva el orden como argumento: `y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}]` y se usa `y[x, 5]`. Es lo mismo."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl7-e07",
     "kind": "code",
-    "title": "Compacto con otra ecuación",
-    "prompt": "Resuelve con la versión compacta la ecuación `y'' - x y = 0` hasta `x^5`. Guarda el resultado de `Solve` en `sol` y termina con `y[x] /. First[sol]`.",
+    "title": "Compacto, otra ecuación",
+    "prompt": "Resuelve `y'' - x y = 0` hasta `x^5` con la versión compacta. Última salida: `y[x] /. First[sol]`.",
     "difficulty": 3,
     "cmds": [
      "Sum",
@@ -490,77 +514,83 @@
       }
      ]
     },
-    "requires": [
-     "Sum",
-     "Solve"
-    ],
     "hints": [
      "Solo cambia una línea: `ecuacion[x_] = D[y[x], {x, 2}] - x*y[x];`",
      "`sol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}];`",
-     "Última línea: `y[x] /. First[sol]`"
+     "`y[x] /. First[sol]`"
     ],
-    "explain": "`a[0] (1 + x^3/6) + a[1] (x + x^4/12)`: es la ecuación de Airy. Con la versión compacta, cambiar de ecuación es cambiar una línea."
+    "explain": "`a[0] (1 + x^3/6) + a[1] (x + x^4/12)`: la ecuación de Airy.",
+    "requires": [
+     "Sum",
+     "Solve"
+    ]
    }
   },
   {
    "type": "build",
-   "section": "Punto singular: método de Frobenius",
+   "section": "Frobenius",
    "title": "La ecuación indicial",
-   "md": "En `x^2 y'' + 4 x y' + (x^2 + 2) y = 0` el coeficiente de `y''` se anula en `x = 0`: punto **singular**. Frobenius prueba una serie multiplicada por `x^m`, con el exponente `m` como incógnita extra (Ejemplo 7.1.2).",
+   "md": "Punto singular: la serie lleva un `x^m` delante. Ejemplo 7.1.2.",
    "target": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0\nSolve[ecu[0] == 0, m]",
    "parts": [
     {
      "code": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];",
-     "md": "La serie de Frobenius: cada potencia lleva `k + m`.",
+     "md": "La serie de Frobenius: potencias `k + m`.",
      "run": true
     },
     {
      "code": "ecuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];",
-     "md": "La ecuación con la serie dentro.",
+     "md": "La ecuación `x^2 y'' + 4 x y' + (x^2 + 2) y` con la serie dentro.",
      "run": true
     },
     {
-     "code": "g[x_] = ExpandAll[ecuacion[x]/x^m];",
-     "md": "Se divide por `x^m` y `ExpandAll` desarrolla: queda un polinomio en `x`.",
+     "code": "g[x_] = ExpandAll[ecuacion[x]/x^m]",
+     "md": "Divide por `x^m` y desarrolla: queda un polinomio.",
      "run": true
     },
     {
      "code": "ecu[k_] := D[g[x], {x, k}] /. x -> 0",
-     "md": "Derivada k-ésima en 0, como en la versión compacta.",
+     "md": "Derivada k-ésima en 0, como antes.",
      "run": true
     },
     {
      "code": "Solve[ecu[0] == 0, m]",
-     "md": "La primera ecuación, con `a[0]` distinto de 0, da los valores de `m`: es la ecuación indicial.",
+     "md": "La primera ecuación da los valores de `m`.",
      "run": true
     },
     {
      "code": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0\nSolve[ecu[0] == 0, m]",
-     "md": "Sale `m = -1` y `m = -2`. El guion escribe `de[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify` y `ecu[k_] := de[k] /. x -> 0`: son las mismas ecuaciones.",
+     "md": "Las cinco líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: plantea Frobenius para `x^2 y'' + 4 x y' + (x^2 + 2) y = 0` y halla los valores de `m`.",
+    "prompt": "Plantea Frobenius para `x^2 y'' + 4 x y' + (x^2 + 2) y = 0` y halla los valores de `m`.",
     "hints": [
      "`y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];` y `ecuacion[x_] = ...;`",
      "`g[x_] = ExpandAll[ecuacion[x]/x^m];` y `ecu[k_] := D[g[x], {x, k}] /. x -> 0`",
      "`Solve[ecu[0] == 0, m]`"
-    ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{m -> -1}, {m -> -2}}",
+     "compare": "set"
+    }
    },
    "cmds": [
     "Sum",
     "ExpandAll",
     "Solve"
-   ]
+   ],
+   "more": "Sale `m = -1` y `m = -2`. El guion escribe `de[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify` y `ecu[k_] := de[k] /. x -> 0`: mismas ecuaciones."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl7-e08",
     "kind": "code",
-    "title": "Frobenius: terminar con m = -1",
-    "prompt": "Ya está hecho el planteamiento del paso anterior (`y`, `ecuacion`, `g` y `ecu[k]` definidos). Con `m = -1`, la ecuación `ecu[1] == 0` obliga a que `a[1] = 0`.\n\nAsigna `m = -1; a[1] = 0;`, despeja `a[2], a[3], a[4], a[5]` con `ecu[2] == 0` … `ecu[5] == 0` (guárdalo en `sol`) y termina con `y[x] /. First[sol] // Simplify`.",
+    "title": "Terminar con m = -1",
+    "prompt": "Con el planteamiento ya definido: pon `m = -1; a[1] = 0;`, despeja `a[2]…a[5]` y da la solución simplificada.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -568,21 +598,21 @@
     ],
     "real": true,
     "source": "PL7 · ejemplo 7.1.2",
-    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0",
     "solution": "m = -1; a[1] = 0;\nsol = Solve[{ecu[2] == 0, ecu[3] == 0, ecu[4] == 0, ecu[5] == 0}, {a[2], a[3], a[4], a[5]}];\ny[x] /. First[sol] // Simplify",
     "check": {
      "type": "expr",
      "expected": "a[0] (120 - 20 x^2 + x^4)/(120 x)"
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
-     "Primera línea: `m = -1; a[1] = 0;`",
+     "`m = -1; a[1] = 0;`",
      "`sol = Solve[{ecu[2] == 0, ecu[3] == 0, ecu[4] == 0, ecu[5] == 0}, {a[2], a[3], a[4], a[5]}];`",
      "`y[x] /. First[sol] // Simplify`"
     ],
-    "explain": "Sale `a[0] (120 - 20 x^2 + x^4)/(120 x)`: los primeros términos de `a[0] Sin[x]/x^2`, la solución exacta. Compruébalo con `Normal[Series[Sin[x]/x^2, {x, 0, 3}]]`."
+    "explain": "Son los primeros términos de `a[0] Sin[x]/x^2`. Con `m = -1`, `ecu[1] == 0` obliga a `a[1] = 0`.",
+    "requires": [
+     "Solve"
+    ],
+    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0"
    }
   },
   {
@@ -590,83 +620,124 @@
    "ex": {
     "id": "2-m2-pl7-e09",
     "kind": "code",
-    "title": "La ecuación indicial de Bessel",
-    "prompt": "Para la ecuación de Bessel de orden 1/2, `x^2 y'' + x y' + (x^2 - 1/4) y = 0`, ya están definidos `y[x]` (serie de Frobenius), `g[x]` y `ecu[k]`. Halla los valores posibles de `m`.",
+    "title": "Indicial de Bessel",
+    "prompt": "Bessel de orden 1/2 (`y`, `g`, `ecu[k]` ya definidos): halla los valores de `m`.",
     "difficulty": 2,
     "cmds": [
      "Solve"
     ],
     "real": false,
     "source": null,
-    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + x*D[y[x], x] + (x^2 - 1/4) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0",
     "solution": "Solve[ecu[0] == 0, m]",
     "check": {
      "type": "expr",
      "expected": "{{m -> -1/2}, {m -> 1/2}}",
      "compare": "set"
     },
+    "hints": [
+     "Es la última línea del planteamiento.",
+     "`Solve[ecu[0] == 0, m]`"
+    ],
+    "explain": "`m = 1/2` y `m = -1/2`. En Bessel de orden `k` siempre sale `m = k` y `m = -k`.",
     "requires": [
      "Solve"
     ],
-    "hints": [
-     "Es la última línea del paso de Frobenius.",
-     "`Solve[ecu[0] == 0, m]`"
-    ],
-    "explain": "`m = 1/2` y `m = -1/2`. En la ecuación de Bessel de orden `k` siempre sale `m = k` y `m = -k`."
+    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + x*D[y[x], x] + (x^2 - 1/4) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0"
    }
   },
   {
    "type": "build",
    "section": "Funciones especiales",
-   "title": "Polinomios con nombre propio",
-   "md": "Cuatro ecuaciones aparecen tanto que sus soluciones tienen comando: `LegendreP[k, x]`, `HermiteH[k, x]`, `LaguerreL[k, x]` y `BesselJ[k, x]`. En las tres primeras, una de las series se corta y queda un polinomio de grado `k`.",
+   "title": "Polinomios con nombre",
+   "md": "Tres familias de polinomios: mira el de orden 2 de cada una.",
    "target": "Table[LegendreP[k, x], {k, 0, 4}]",
    "parts": [
     {
      "code": "LegendreP[2, x]",
-     "md": "El polinomio de Legendre de orden 2: `(3 x^2 - 1)/2`, proporcional al `1 - 3 x^2` del ejercicio 2 del guion.",
+     "md": "Legendre de orden 2.",
+     "run": true,
+     "hint": "Proporcional al `1 - 3 x^2` del ejercicio 2 del guion."
+    },
+    {
+     "code": "HermiteH[2, x]",
+     "md": "Hermite de orden 2.",
      "run": true
     },
     {
-     "code": "{k, 0, 4}",
-     "md": "Para `Table`: índice `k` desde 0 hasta 4."
+     "code": "LaguerreL[2, x]",
+     "md": "Laguerre de orden 2.",
+     "run": true
     },
     {
      "code": "Table[LegendreP[k, x], {k, 0, 4}]",
-     "md": "`Table` genera la lista `P0…P4`. El guion la muestra en columna con `TableForm[...]`.",
+     "md": "La lista de Legendre de orden 0 a 4 con `Table`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: lista de los polinomios de Legendre de orden 0 a 4.",
+    "prompt": "Lista de los polinomios de Legendre de orden 0 a 4.",
     "hints": [
      "`Table[expresión, {k, 0, 4}]`",
-     "La expresión es `LegendreP[k, x]`"
+     "`Table[LegendreP[k, x], {k, 0, 4}]`"
     ]
    },
    "cmds": [
     "LegendreP",
+    "HermiteH",
+    "LaguerreL",
     "Table"
-   ]
+   ],
+   "more": "Legendre: `(1 - x^2) y'' - 2 x y' + k (k + 1) y = 0`. Hermite: `y'' - 2 x y' + 2 k y = 0`. Laguerre: `x y'' + (1 - x) y' + k y = 0`. El guion muestra las listas con `TableForm`."
   },
   {
-   "type": "explain",
-   "title": "Cómo reconocer la ecuación",
-   "md": "Compara el número que multiplica a `y` (`k` = 0, 1, 2…):\n\n- **Legendre**: `(1 - x^2) y'' - 2 x y' + k (k + 1) y = 0` → `LegendreP[k, x]`\n- **Hermite**: `y'' - 2 x y' + 2 k y = 0` → `HermiteH[k, x]`\n- **Laguerre**: `x y'' + (1 - x) y' + k y = 0` → `LaguerreL[k, x]`\n- **Bessel**: `x^2 y'' + x y' + (x^2 - k^2) y = 0` → `BesselJ[k, x]`\n\n`BesselJ` no es un polinomio: es una onda que se amortigua. Sus ceros dan las frecuencias de una membrana circular.",
-   "cells": [
+   "type": "build",
+   "title": "Bessel",
+   "md": "`BesselJ` no es un polinomio: es una onda que se amortigua.",
+   "target": "FindRoot[BesselJ[0, x] == 0, {x, 2}]",
+   "parts": [
+    {
+     "code": "BesselJ[0, 1.5]",
+     "md": "Evalúa `J0` en un número.",
+     "run": true
+    },
     {
      "code": "Plot[{BesselJ[0, x], BesselJ[1, x]}, {x, 0, 20}]",
-     "note": "las funciones de Bessel J0 y J1"
+     "md": "Dibuja `J0` y `J1`.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[BesselJ[0, x] == 0, {x, 2}]",
+     "md": "Busca el primer cero de `J0`, empezando en `x = 2`.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "Primer cero positivo de `BesselJ[0, x]`, con `FindRoot` desde `x = 2`.",
+    "hints": [
+     "`FindRoot[ecuación, {x, 2}]`, ecuación con `==`",
+     "`FindRoot[BesselJ[0, x] == 0, {x, 2}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{x -> 2.404825557695773}",
+     "compare": "set",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "BesselJ",
+    "FindRoot",
+    "Plot"
+   ],
+   "more": "Ecuación de Bessel: `x^2 y'' + x y' + (x^2 - k^2) y = 0`. Los ceros de `J0` dan las frecuencias de una membrana circular."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl7-e10",
     "kind": "code",
-    "title": "Comprueba una ecuación de Hermite",
-    "prompt": "Comprueba que `HermiteH[3, x]` es solución de la ecuación de Hermite con `k = 3`, `y'' - 2 x y' + 6 y = 0`: guárdalo en `h[x_]`, sustituye en el lado izquierdo y simplifica. Debe salir 0.",
+    "title": "Comprobar Hermite",
+    "prompt": "Comprueba que `h[x_] = HermiteH[3, x]` cumple `y'' - 2 x y' + 6 y = 0`: sustituye y simplifica.",
     "difficulty": 2,
     "cmds": [
      "HermiteH",
@@ -680,56 +751,54 @@
      "type": "expr",
      "expected": "0"
     },
-    "requires": [
-     "HermiteH",
-     "D"
-    ],
     "hints": [
      "`h[x_] = HermiteH[3, x];`",
      "`Simplify[D[h[x], {x, 2}] - 2 x*D[h[x], x] + 6 h[x]]`"
     ],
-    "explain": "Sustituir y simplificar es la forma de comprobar cualquier solución. Si no sale 0, hay un error."
+    "explain": "Sale 0. Sustituir y simplificar comprueba cualquier solución.",
+    "requires": [
+     "HermiteH",
+     "D"
+    ]
    }
+  },
+  {
+   "type": "build",
+   "section": "El ejercicio 3 del guion",
+   "title": "Identificar un polinomio",
+   "md": "¿Qué factor hay entre tu serie y el polinomio con nombre?",
+   "target": "Solve[LegendreP[2, x] == c (1 - 3 x^2), c]",
+   "parts": [
+    {
+     "code": "LegendreP[2, x]",
+     "md": "Recuerda `P2`.",
+     "run": true
+    },
+    {
+     "code": "Solve[LegendreP[2, x] == c (1 - 3 x^2), c]",
+     "md": "Halla `c` para que `P2` sea `c` por el polinomio del ejercicio 2.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Halla `c` tal que `LegendreP[2, x] == c (1 - 3 x^2)`.",
+    "hints": [
+     "`Solve[ecuación, c]`",
+     "`Solve[LegendreP[2, x] == c (1 - 3 x^2), c]`"
+    ]
+   },
+   "cmds": [
+    "LegendreP",
+    "Solve"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl7-e11",
     "kind": "code",
-    "title": "El primer cero de J0",
-    "prompt": "Halla el primer cero positivo de `BesselJ[0, x]` con `FindRoot`, empezando en `x = 2`.",
-    "difficulty": 2,
-    "cmds": [
-     "BesselJ",
-     "FindRoot"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "FindRoot[BesselJ[0, x] == 0, {x, 2}]",
-    "check": {
-     "type": "expr",
-     "expected": "{x -> 2.404825557695773}",
-     "compare": "set",
-     "tol": 1e-05
-    },
-    "requires": [
-     "BesselJ",
-     "FindRoot"
-    ],
-    "hints": [
-     "`FindRoot[ecuación, {x, valor inicial}]`, con la ecuación escrita con `==`.",
-     "`FindRoot[BesselJ[0, x] == 0, {x, 2}]`"
-    ],
-    "explain": "`x` = 2.40483. `FindRoot` busca una raíz numérica cerca del valor inicial; mira antes la gráfica para elegirlo."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl7-e12",
-    "kind": "code",
     "title": "Guion 3a: la serie",
-    "prompt": "Halla la solución en serie de potencias de `x`, hasta `x^5`, de\n\n`(1 - x^2) y'' - 2 x y' + 12 y = 0`, `-1 < x < 1`.\n\nUsa el método que prefieras (con `a0…a5` o el compacto). La última salida debe ser la serie con los coeficientes sustituidos.",
+    "prompt": "Serie hasta `x^5` de `(1 - x^2) y'' - 2 x y' + 12 y = 0`. Última salida: `y[x] /. First[sol]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -751,24 +820,24 @@
       }
      ]
     },
+    "hints": [
+     "Como el ejercicio 2 con 12 en vez de 6.",
+     "Coeficientes: `12 a0 + 2 a2`, `10 a1 + 6 a3`, `6 a2 + 12 a4`, `20 a5`.",
+     "`y[x] /. First[sol]`"
+    ],
+    "explain": "`a5 = 0`: la serie impar se corta en `x^3`. Ese es el polinomio.",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "Igual que el ejercicio 2 cambiando el 6 por 12: `Expand[(1 - x^2)*ddy[x] - 2 x*dy[x] + 12 y[x], x]`.",
-     "Ecuaciones: `12 a0 + 2 a2 == 0`, `10 a1 + 6 a3 == 0`, `6 a2 + 12 a4 == 0`, `20 a5 == 0`.",
-     "Termina con `y[x] /. First[sol]`."
-    ],
-    "explain": "Solución: `a0 (1 - 6 x^2 + 3 x^4) + a1 (x - 5 x^3/3)`. Fíjate en `a5 = 0`: la serie **impar** se corta en `x^3`. Ese es el polinomio."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e13",
+    "id": "2-m2-pl7-e12",
     "kind": "code",
-    "title": "Guion 3a: identificar el polinomio",
-    "prompt": "La solución polinómica del ejercicio anterior es `x - 5 x^3/3`. Como `12 = 3*4 = k (k + 1)`, la ecuación es la de Legendre de orden 3.\n\nHalla la constante `c` que cumple `LegendreP[3, x] == c (x - 5 x^3/3)`. Usa `Solve`.",
+    "title": "Guion 3a: identificar",
+    "prompt": "Halla `c` tal que `LegendreP[3, x] == c (x - 5 x^3/3)`.",
     "difficulty": 2,
     "cmds": [
      "LegendreP",
@@ -782,24 +851,24 @@
      "expected": "{{c -> -3/2}}",
      "compare": "set"
     },
+    "hints": [
+     "Igual que en el paso de `P2`.",
+     "`Solve[LegendreP[3, x] == c (x - 5 x^3/3), c]`"
+    ],
+    "explain": "`c = -3/2`. El guion dice 'P4', pero `12 = 3*4`: es Legendre de orden 3 (para `P4` haría falta `20 y`). Hermite y Laguerre sí son de orden 4.",
     "requires": [
      "LegendreP",
      "Solve"
-    ],
-    "hints": [
-     "`Solve[ecuación, c]` con la ecuación tal cual está en el enunciado.",
-     "`Solve[LegendreP[3, x] == c (x - 5 x^3/3), c]`"
-    ],
-    "explain": "`c = -3/2`: el polinomio es `P3(x)` salvo ese factor. El enunciado del guion dice 'identifícalos con P4, H4, L4', pero con el 12 la ecuación de Legendre es de orden 3; para `P4` haría falta `20 y`. En Hermite y Laguerre sí es orden 4."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e14",
+    "id": "2-m2-pl7-e13",
     "kind": "code",
     "title": "Guion 3b: Hermite",
-    "prompt": "Halla la solución en serie de potencias de `x`, hasta `x^5`, de `y'' - 2 x y' + 8 y = 0`. La última salida debe ser la serie con los coeficientes sustituidos.",
+    "prompt": "Serie hasta `x^5` de `y'' - 2 x y' + 8 y = 0`. Última salida: `y[x] /. First[sol]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -821,24 +890,24 @@
       }
      ]
     },
+    "hints": [
+     "`Expand[ddy[x] - 2 x*dy[x] + 8 y[x], x]`",
+     "Coeficientes: `8 a0 + 2 a2`, `6 a1 + 6 a3`, `4 a2 + 12 a4`, `2 a3 + 20 a5`.",
+     "`y[x] /. First[sol]`"
+    ],
+    "explain": "Ahora se corta la serie par (grado 4): `8 = 2 k` con `k = 4`.",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "`Expand[ddy[x] - 2 x*dy[x] + 8 y[x], x]` y lee los coeficientes de `x^0` a `x^3`.",
-     "Ecuaciones: `8 a0 + 2 a2 == 0`, `6 a1 + 6 a3 == 0`, `4 a2 + 12 a4 == 0`, `2 a3 + 20 a5 == 0`.",
-     "Termina con `y[x] /. First[sol]`."
-    ],
-    "explain": "Solución: `a0 (1 - 4 x^2 + 4 x^4/3) + a1 (x - x^3 + x^5/10)`. Ahora la que se corta es la serie **par** (grado 4): `8 = 2 k` con `k = 4`."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e15",
+    "id": "2-m2-pl7-e14",
     "kind": "code",
-    "title": "Guion 3b: identificar con H4",
-    "prompt": "El polinomio del ejercicio anterior es `a0 (1 - 4 x^2 + 4 x^4/3)`. Halla el valor de `a0` para el que coincide con `HermiteH[4, x]`.",
+    "title": "Guion 3b: identificar",
+    "prompt": "Halla `a0` para que `a0 (1 - 4 x^2 + 4 x^4/3)` coincida con `HermiteH[4, x]`.",
     "difficulty": 2,
     "cmds": [
      "HermiteH",
@@ -852,24 +921,24 @@
      "expected": "{{a0 -> 12}}",
      "compare": "set"
     },
+    "hints": [
+     "Una ecuación con `==` y la incógnita `a0`.",
+     "`Solve[HermiteH[4, x] == a0 (1 - 4 x^2 + 4 x^4/3), a0]`"
+    ],
+    "explain": "`a0 = 12`: `H4 = 12 - 48 x^2 + 16 x^4`.",
     "requires": [
      "HermiteH",
      "Solve"
-    ],
-    "hints": [
-     "Como en 3a: una ecuación con `==` y la incógnita `a0`.",
-     "`Solve[HermiteH[4, x] == a0 (1 - 4 x^2 + 4 x^4/3), a0]`"
-    ],
-    "explain": "`a0 = 12`: `H4(x) = 12 - 48 x^2 + 16 x^4`."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e16",
+    "id": "2-m2-pl7-e15",
     "kind": "code",
     "title": "Guion 3c: Laguerre",
-    "prompt": "Halla la solución en serie de potencias de `x`, hasta `x^5`, de `x y'' + (1 - x) y' + 4 y = 0`.\n\nAquí `x = 0` es singular y solo hay **una** solución en serie de Taylor: se despejan `a1…a5` en función de `a0` (5 ecuaciones, potencias 0 a 4). La última salida debe ser la serie con `a0 = 1`.",
+    "prompt": "Serie hasta `x^5` de `x y'' + (1 - x) y' + 4 y = 0`: despeja `a1…a5` (5 ecuaciones). Última salida: la serie con `a0 = 1`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -882,22 +951,22 @@
      "type": "expr",
      "expected": "LaguerreL[4, x]"
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
-     "`Expand[x*ddy[x] + (1 - x)*dy[x] + 4 y[x], x]` da coeficientes `4 a0 + a1`, `3 a1 + 4 a2`, `2 a2 + 9 a3`, `a3 + 16 a4`, `25 a5`.",
-     "`sol = Solve[{...las 5 ecuaciones...}, {a1, a2, a3, a4, a5}];`",
+     "Coeficientes: `4 a0 + a1`, `3 a1 + 4 a2`, `2 a2 + 9 a3`, `a3 + 16 a4`, `25 a5`.",
+     "`sol = Solve[{...}, {a1, a2, a3, a4, a5}];`",
      "`y[x] /. First[sol] /. a0 -> 1`"
     ],
-    "explain": "Con `a0 = 1` sale exactamente `LaguerreL[4, x] = (24 - 96 x + 72 x^2 - 16 x^3 + x^4)/24`."
+    "explain": "Sale exactamente `LaguerreL[4, x]`. Aquí `x = 0` es singular: solo hay una solución en serie de Taylor.",
+    "requires": [
+     "Solve"
+    ]
    }
   },
   {
    "type": "build",
    "section": "Reducción de orden",
-   "title": "De una solución sacar la otra",
-   "md": "Si conoces una solución `y0` de `p y'' + q y' + r y = 0`, la segunda es `y1 = z y0`, con `P = (1/y0) (2 y0' + (q/p) y0)` y `z` = integral de `E^(-integral de P)`. Ejemplo: `x^2 y'' - 3 x y' + 4 y = 0` con `y0 = x^2` (`p = x^2`, `q = -3 x`).",
+   "title": "De una solución, la otra",
+   "md": "`x^2 y'' - 3 x y' + 4 y = 0` tiene la solución `y0 = x^2`. Saca la segunda.",
    "target": "y0[x_] = x^2;\nP[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x]);\nz[x_] = Integrate[Exp[Integrate[-P[x], x]], x];\ny1[x_] = z[x]*y0[x]",
    "parts": [
     {
@@ -906,47 +975,54 @@
      "run": true
     },
     {
-     "code": "P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x]);",
-     "md": "La fórmula de `P`: `(-3 x)/x^2` es `q/p`.",
-     "run": true
+     "code": "P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x])",
+     "md": "La fórmula de `P`; `(-3 x)/x^2` es `q/p`.",
+     "run": true,
+     "hint": "`P = (1/y0) (2 y0' + (q/p) y0)` para `p y'' + q y' + r y = 0`."
     },
     {
-     "code": "z[x_] = Integrate[Exp[Integrate[-P[x], x]], x];",
-     "md": "Dos integrales anidadas: la de dentro es la primitiva de `-P`; la de fuera, la de su exponencial.",
+     "code": "z[x_] = Integrate[Exp[Integrate[-P[x], x]], x]",
+     "md": "`z`: integral de la exponencial de la integral de `-P`.",
      "run": true
     },
     {
      "code": "y1[x_] = z[x]*y0[x]",
-     "md": "La segunda solución.",
+     "md": "La segunda solución: `z` por `y0`.",
      "run": true
     },
     {
      "code": "y0[x_] = x^2;\nP[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x]);\nz[x_] = Integrate[Exp[Integrate[-P[x], x]], x];\ny1[x_] = z[x]*y0[x]",
-     "md": "Sale `y1 = x^2 Log[x]`. La solución general es `C1 y1 + C2 y0`.",
+     "md": "Las cuatro líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: para `x^2 y'' - 3 x y' + 4 y = 0` con `y0 = x^2`, define `P`, `z` e `y1` por reducción de orden.",
+    "prompt": "Para `x^2 y'' - 3 x y' + 4 y = 0` con `y0 = x^2`: define `P`, `z` e `y1`.",
     "hints": [
-     "`y0[x_] = x^2;` y `P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x]);`",
+     "`P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-3 x)/x^2*y0[x]);`",
      "`z[x_] = Integrate[Exp[Integrate[-P[x], x]], x];`",
      "`y1[x_] = z[x]*y0[x]`"
-    ]
+    ],
+    "check": {
+     "type": "value",
+     "expr": "y1[x]",
+     "expected": "x^2 Log[x]"
+    }
    },
    "cmds": [
     "Integrate",
     "Exp",
     "D"
-   ]
+   ],
+   "more": "Sale `y1 = x^2 Log[x]`. La solución general es `C1 y1 + C2 y0`."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e17",
+    "id": "2-m2-pl7-e16",
     "kind": "code",
     "title": "Guion 1: comprobar y0",
-    "prompt": "Define `y0[x_] = 2 x` y comprueba que es solución de `y'' - 2 x y' + 2 y = 0`: sustituye en el lado izquierdo. La última salida debe ser el resultado de esa sustitución.",
+    "prompt": "Define `y0[x_] = 2 x` y sustitúyela en `y'' - 2 x y' + 2 y`. Debe salir 0.",
     "difficulty": 2,
     "cmds": [
      "D"
@@ -969,23 +1045,23 @@
       }
      ]
     },
-    "requires": [
-     "D"
-    ],
     "hints": [
-     "`D[y0[x], {x, 2}]` es la derivada segunda y `D[y0[x], x]` la primera.",
+     "`y0[x_] = 2 x;`",
      "`D[y0[x], {x, 2}] - 2 x*D[y0[x], x] + 2 y0[x]`"
     ],
-    "explain": "Sale 0: `2 x` es solución. Es la ecuación de Hermite con `k = 1`, y `2 x` es `HermiteH[1, x]`."
+    "explain": "Sale 0: `2 x` es solución (es `HermiteH[1, x]`).",
+    "requires": [
+     "D"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl7-e18",
+    "id": "2-m2-pl7-e17",
     "kind": "code",
-    "title": "Guion 1: la segunda solución",
-    "prompt": "Con `y0 = 2 x` (ya definida) y la ecuación `y'' - 2 x y' + 2 y = 0` (`p = 1`, `q = -2 x`), aplica la reducción de orden. Define `P[x_]`, `z[x_]` e `y1[x_] = z[x]*y0[x]`.",
+    "title": "Guion 1: segunda solución",
+    "prompt": "Con `y0 = 2 x` definida y `y'' - 2 x y' + 2 y = 0` (`q/p = -2 x`): define `P`, `z` e `y1`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -994,7 +1070,6 @@
     ],
     "real": true,
     "source": "PL7 · ejercicio 1",
-    "setup": "y0[x_] = 2 x;",
     "solution": "P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-2 x)/1*y0[x]);\nz[x_] = Integrate[Exp[Integrate[-P[x], x]], x];\ny1[x_] = z[x]*y0[x]",
     "check": {
      "type": "all",
@@ -1008,19 +1083,20 @@
       {
        "type": "satisfies",
        "test": "Simplify[y1[x] - y0[x]*Integrate[Exp[Integrate[-P[x], x]], x]] === 0 && !FreeQ[y1[x], x]",
-       "msg": "`y1[x]` no coincide: debe ser `z[x]*y0[x]` con `z[x] = Integrate[Exp[Integrate[-P[x], x]], x]`."
+       "msg": "`y1[x]` debe ser `z[x]*y0[x]` con `z[x] = Integrate[Exp[Integrate[-P[x], x]], x]`."
       }
      ]
     },
-    "requires": [
-     "Integrate"
-    ],
     "hints": [
      "Cambia `q/p`: `P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-2 x)/1*y0[x]);`",
      "`z[x_] = Integrate[Exp[Integrate[-P[x], x]], x];`",
      "`y1[x_] = z[x]*y0[x]`"
     ],
-    "explain": "Sale `y1 = 2 x (-E^(x^2)/x + Sqrt[Pi] Erfi[x])`. `Erfi` es la 'función error imaginaria', otra función especial. La solución general es `C1 y1[x] + C2 y0[x]`. En la prueba de clase pedían `y1[1.1]`, que vale 1.05739."
+    "explain": "`y1 = 2 x (-E^(x^2)/x + Sqrt[Pi] Erfi[x])`. `Erfi` es otra función especial. En la prueba pedían `y1[1.1]` = 1.05739.",
+    "requires": [
+     "Integrate"
+    ],
+    "setup": "y0[x_] = 2 x;"
    }
   }
  ]

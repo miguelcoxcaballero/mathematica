@@ -96,9 +96,9 @@ Convolve[f_, g_, x_, y_] := Integrate[(f /. x -> WLX`u) (g /. x -> y - WLX`u), {
 (* ---- algebra / misc builtins missing or weak in Mathics ---- *)
 Unprotect[Expand, PowerExpand, Collect, Sum, Join, LinearSolve, Needs, Subscript, Mod, Factorial2, D, Transpose];
 Transpose[{v_List}] := List /@ v /; VectorQ[v, !ListQ[#] &];
-Expand[e_, Trig -> True] /; WLX`ExpandTrigQ[e] := WLX`ExpandTrigGet[];
-Expand[e_] /; (!FreeQ[e, Power[_, _?(!IntegerQ[#] &)]] || !FreeQ[e, _Sin | _Cos | _Log | _Tan | _Sinh | _Cosh]) && WLX`ExpandQ[e] := WLX`ExpandGet[];
-PowerExpand[e_] /; WLX`PowerExpandQ[e] := WLX`PowerExpandGet[];
+HoldPattern[Expand[e_, Trig -> True]] /; WLX`ExpandTrigQ[e] := WLX`ExpandTrigGet[];
+HoldPattern[Expand[e_]] /; (!FreeQ[e, Power[_, _?(!IntegerQ[#] &)]] || !FreeQ[e, _Sin | _Cos | _Log | _Tan | _Sinh | _Cosh]) && WLX`ExpandQ[e] := WLX`ExpandGet[];
+HoldPattern[PowerExpand[e_]] /; WLX`PowerExpandQ[e] := WLX`PowerExpandGet[];
 Collect[a_ == b_, x__] := Collect[a, x] == Collect[b, x];
 Sum[f_, {i_Symbol, a_, b_}] /; (b === Infinity || !NumericQ[b] || !NumericQ[a]) && FreeQ[{a, b}, i] && WLX`SumQ[f, {i, a, b}] := WLX`SumGet[];
 Join[a_List, b_List, 2] := MapThread[Join, {a, b}];
@@ -133,15 +133,16 @@ WLX`first[r : {_List, ___}, y_] := y /. First[r];
 DSolveValue[eq_, y_, x_] := WLX`first[DSolve[eq, y, x], y];
 NDSolveValue[eq_, y_, x_] := WLX`first[NDSolve[eq, y, x], y];
 SolveAlways[a_ == b_, x_] := Solve[Thread[CoefficientList[Expand[a - b], x] == 0]];
-AsymptoticDSolveValue[eqs_, y_[x_], {x_, x0_, n_Integer}] := Module[{eq, ics, ser, res, ord, ceqs, vars, sol},
+AsymptoticDSolveValue[eqs_, y_[x_], {x_, x0_, n_Integer}] := Module[{eq, ics, ser, res, ord, ceqs, vars, sol, fn},
    eq = Select[Flatten[{eqs}], !FreeQ[#, x] &]; ics = Select[Flatten[{eqs}], FreeQ[#, x] &];
    ser = Sum[WLX`a[k] (x - x0)^k, {k, 0, n}];
-   res = (eq[[1, 1]] - eq[[1, 2]]) /. y -> Function[x, Evaluate[ser]];
+   fn = Function @@ {x, ser};
+   res = (eq[[1, 1]] - eq[[1, 2]]) /. y -> fn;
    ord = Max[Cases[eq, Derivative[m_][y][_] :> m, Infinity], 1];
    ceqs = CoefficientList[Expand[res /. x -> x + x0], x];
    ceqs = Thread[Take[ceqs, Min[Length[ceqs], n + 1 - ord]] == 0];
    If[ics === {}, ics = Table[(D[y[x], {x, k}] /. x -> x0) == C[k + 1], {k, 0, ord - 1}]];
-   ceqs = Join[ceqs, ics /. y -> Function[x, Evaluate[ser]]];
+   ceqs = Join[ceqs, ics /. y -> fn];
    vars = Table[WLX`a[k], {k, 0, n}];
    sol = Solve[ceqs, vars];
    If[ListQ[sol] && sol =!= {}, Expand[ser /. First[sol]], $Failed]];
@@ -154,8 +155,8 @@ SetAttributes[C, NHoldAll];
 Unprotect[D];
 D[a_ == b_, x__] := D[a, x] == D[b, x];
 D[f_List, {v_List}] := Table[D[fi, vj], {fi, f}, {vj, v}] /; VectorQ[f, !ListQ[#] &];
-D[HoldPattern[Sum[f_, it__List]], x_Symbol] := Sum[D[f, x], it] /; FreeQ[{it}, x];
-D[HoldPattern[Sum[f_, it__List]], {x_Symbol, n_Integer}] := Sum[D[f, {x, n}], it] /; FreeQ[{it}, x];
+D[HoldPattern[Sum[f_, it__List]], x_Symbol] := Sum[Evaluate[D[f, x]], it] /; FreeQ[{it}, x];
+D[HoldPattern[Sum[f_, it__List]], {x_Symbol, n_Integer}] := Sum[Evaluate[D[f, {x, n}]], it] /; FreeQ[{it}, x];
 D[HoldPattern[Integrate[f_, {t_, a_, b_}]], x_Symbol] := (f /. t -> b) D[b, x] - (f /. t -> a) D[a, x] + Integrate[D[f, x], {t, a, b}] /; t =!= x;
 Derivative[1][Erfi] = (2 E^(#^2)/Sqrt[Pi]) &;
 Protect[D];

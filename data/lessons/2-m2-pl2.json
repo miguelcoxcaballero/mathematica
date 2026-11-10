@@ -5,8 +5,8 @@
  "block": "Ecuaciones diferenciales",
  "order": 2,
  "title": "EDOs de primer orden (II): lineales, Bernoulli, Riccati, tanques, envolventes y trayectorias",
- "summary": "Programas una vez la fórmula de la ecuación lineal y la reutilizas para Bernoulli, Riccati y los problemas de mezclas (pregunta fija de examen). Además calculas envolventes y trayectorias ortogonales y las dibujas.",
- "minutes": 120,
+ "summary": "Programas la fórmula de la ecuación lineal y la reutilizas para Bernoulli, Riccati y los problemas de mezclas (pregunta fija de examen). Además calculas envolventes y trayectorias ortogonales y las dibujas.",
+ "minutes": 130,
  "commands": [
   "FindRoot",
   "AspectRatio",
@@ -33,55 +33,45 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "La ecuación lineal y su fórmula",
-   "title": "Lineales: una fórmula para todas",
-   "md": "En PL1 resolviste homogéneas y exactas. Hoy toca la familia más útil: las **lineales**, sus dos disfraces (Bernoulli y Riccati) y tres aplicaciones: tanques de mezclas (cayó en el examen de 2021), envolventes y trayectorias ortogonales.\n\nUna EDO es **lineal** si se puede escribir `y' + P(x) y = Q(x)`, con `y'` sola (coeficiente 1). Su solución general tiene fórmula:\n\n`y = e^(-∫P dx) (C + ∫ e^(∫P dx) Q dx)`\n\nEn Mathematica se escribe una vez y vale para todas. Tu único trabajo será identificar `P` y `Q` con su signo. Vamos a construirla por piezas hasta que te la sepas.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "La fórmula de la lineal",
-   "md": "La montamos con el ejemplo 2.1.1 del guion: `y' - 2xy = x`. Aquí `P = -2x` (lo que multiplica a `y`, con su signo) y `Q = x` (el lado derecho).",
-   "target": "P[x_] = -2 x; Q[x_] = x;\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
+   "section": "La fórmula de la lineal",
+   "title": "Las piezas de la fórmula",
+   "md": "Ejemplo 2.1.1: `y' − 2xy = x`. Es lineal: `y' + P y = Q`.",
+   "target": "y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
    "parts": [
     {
      "code": "P[x_] = -2 x; Q[x_] = x;",
-     "md": "P y Q como funciones. Es lo único que cambia de un problema a otro.",
+     "md": "`P` multiplica a `y` (con su signo); `Q` es el lado derecho.",
      "run": true
     },
     {
      "code": "Exp[Integrate[-P[x], x]]",
-     "md": "El factor de fuera: la exponencial de la integral de MENOS P.",
+     "md": "Factor de fuera: exponencial de la integral de MENOS `P`.",
      "run": true
     },
     {
      "code": "Exp[Integrate[P[x], x]] Q[x]",
-     "md": "Lo que se integra dentro: la exponencial de la integral de P (sin menos), multiplicada por Q. Ojo: `Q[x]` va fuera del corchete de `Exp`.",
-     "run": true
+     "md": "Integrando: exponencial de la integral de `P`, por `Q`.",
+     "run": true,
+     "hint": "`Q[x]` va fuera del corchete de `Exp`: multiplica, no está dentro."
     },
     {
      "code": "C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]",
-     "md": "El paréntesis: la constante `C1` más la integral de la pieza anterior.",
+     "md": "El paréntesis: `C1` más la integral de la pieza anterior.",
      "run": true
     },
     {
      "code": "y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
-     "md": "Factor de fuera por paréntesis, guardado como función de `x` y de la constante. `// Simplify` lo deja limpio.",
-     "run": true
-    },
-    {
-     "code": "P[x_] = -2 x; Q[x_] = x;\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
-     "md": "Las dos líneas: datos y fórmula.",
+     "md": "Factor por paréntesis: la fórmula entera, como `y[x_, C1_]`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: resuelve `y' - 2xy = x` con la fórmula de la lineal. Define `P`, `Q` y la fórmula `y[x_, C1_]`.",
+    "prompt": "Resuelve `y' − 2xy = x` con la fórmula: define `P`, `Q` y `y[x_, C1_]`.",
     "hints": [
      "Línea 1: `P[x_] = -2 x; Q[x_] = x;`",
-     "La fórmula es `Exp[Integrate[-P[x], x]] ( ... )`.",
-     "Dentro del paréntesis: `C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]`."
+     "La fórmula: `Exp[Integrate[-P[x], x]] ( ... )`.",
+     "Paréntesis: `C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]`."
     ],
     "check": {
      "type": "all",
@@ -92,47 +82,7 @@
        "func": "w",
        "var": "x",
        "expr": "y[x, C1]",
-       "msg": "`y[x, C1]` no cumple `y' - 2xy = x` (o no está definida). Revisa los signos de la fórmula."
-      },
-      {
-       "type": "satisfies",
-       "test": "!FreeQ[y[x, C1], C1]",
-       "msg": "La solución general debe contener la constante `C1`."
-      }
-     ]
-    }
-   },
-   "cmds": [
-    "Integrate",
-    "Exp",
-    "Simplify"
-   ]
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl2-e01",
-    "kind": "code",
-    "title": "Identifica P y Q",
-    "prompt": "Obtén la solución general de `y' + y/x = 3x` con la fórmula de la lineal: define `P[x_]`, `Q[x_]` y la fórmula `y[x_, C1_]`, simplificada.",
-    "difficulty": 2,
-    "cmds": [
-     "Integrate",
-     "Exp"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "P[x_] = 1/x; Q[x_] = 3 x;\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
-    "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "ode",
-       "eq": "w'[x] + w[x]/x == 3 x",
-       "func": "w",
-       "var": "x",
-       "expr": "y[x, C1]",
-       "msg": "La función `y[x, C1]` obtenida no cumple `y' + y/x = 3x` (o no está definida). Revisa P, Q y los signos de la fórmula."
+       "msg": "`y[x, C1]` no cumple `y' − 2xy = x`. Revisa los signos de la fórmula."
       },
       {
        "type": "satisfies",
@@ -141,35 +91,48 @@
       }
      ]
     },
-    "requires": [
-     "Integrate"
-    ],
-    "forbids": [
-     "DSolve"
-    ],
-    "hints": [
-     "P es lo que multiplica a `y`: `P[x_] = 1/x`. Q es el lado derecho: `Q[x_] = 3 x`.",
-     "La segunda línea es la fórmula, idéntica a la de antes.",
-     "`y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify`"
-    ],
-    "explain": "Sale `(C1 + x^3)/x`, es decir `y = x^2 + C1/x`."
-   }
+    "solution": "P[x_] = -2 x; Q[x_] = x;\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify"
+   },
+   "more": "Toda ecuación `y' + P(x) y = Q(x)` se resuelve con `y = e^(−∫P) (C + ∫ e^(∫P) Q dx)`. La fórmula se escribe igual siempre: solo cambian `P` y `Q`.",
+   "cmds": [
+    "Integrate",
+    "Exp",
+    "Simplify"
+   ]
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl2-e02",
-    "kind": "code",
-    "title": "Otra lineal",
-    "prompt": "Obtén con la fórmula la solución general de `y' + 2y = e^(-x)`: define `P`, `Q` y `y[x_, C1_]`.",
-    "difficulty": 2,
-    "cmds": [
-     "Integrate",
-     "Exp"
+   "type": "build",
+   "title": "Misma fórmula, otros datos",
+   "md": "Cambia solo `P` y `Q`: la segunda línea no se toca.",
+   "target": "y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
+   "parts": [
+    {
+     "code": "P[x_] = 1/x; Q[x_] = 3 x;",
+     "md": "Ahora `y' + y/x = 3x`.",
+     "run": true
+    },
+    {
+     "code": "y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
+     "md": "La fórmula, idéntica.",
+     "run": true
+    },
+    {
+     "code": "P[x_] = 2; Q[x_] = Exp[-x];",
+     "md": "Otra: `y' + 2y = e^(−x)`. `P` puede ser un número.",
+     "run": true
+    },
+    {
+     "code": "y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
+     "md": "Y la fórmula otra vez.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve `y' + 2y = e^(−x)` con la fórmula: `P`, `Q` y `y[x_, C1_]`.",
+    "hints": [
+     "`P[x_] = 2; Q[x_] = Exp[-x];`",
+     "`y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify`"
     ],
-    "real": false,
-    "source": null,
-    "solution": "P[x_] = 2; Q[x_] = Exp[-x];\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
     "check": {
      "type": "all",
      "checks": [
@@ -179,7 +142,7 @@
        "func": "w",
        "var": "x",
        "expr": "y[x, C1]",
-       "msg": "`y[x, C1]` no cumple `y' + 2y = e^(-x)` (o no está definida)."
+       "msg": "`y[x, C1]` no cumple `y' + 2y = e^(−x)`."
       },
       {
        "type": "satisfies",
@@ -188,26 +151,66 @@
       }
      ]
     },
+    "solution": "P[x_] = 2; Q[x_] = Exp[-x];\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify"
+   },
+   "cmds": [
+    "Integrate",
+    "Exp"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl2-e01",
+    "kind": "code",
+    "title": "Identifica P y Q",
+    "prompt": "Resuelve `y' + y cos x = cos x` con la fórmula: define `P`, `Q` y `y[x_, C1_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "P[x_] = Cos[x]; Q[x_] = Cos[x];\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w'[x] + w[x] Cos[x] == Cos[x]",
+       "func": "w",
+       "var": "x",
+       "expr": "y[x, C1]",
+       "msg": "`y[x, C1]` no cumple la ecuación (o no está definida)."
+      },
+      {
+       "type": "satisfies",
+       "test": "!FreeQ[y[x, C1], C1]",
+       "msg": "La solución general debe contener la constante `C1`."
+      }
+     ]
+    },
+    "hints": [
+     "`P[x_] = Cos[x]; Q[x_] = Cos[x];`",
+     "`y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify`"
+    ],
+    "explain": "Sale `1 + C1 E^(-Sin[x])`.",
     "requires": [
      "Integrate"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`P[x_] = 2; Q[x_] = Exp[-x];` (P puede ser una constante).",
-     "`y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify`"
-    ],
-    "explain": "`y = E^(-x) + C1 E^(-2x)`. La fórmula no cambia nunca: solo P y Q."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e03",
+    "id": "2-m2-pl2-e02",
     "kind": "fix",
-    "title": "La errata que costó puntos",
-    "prompt": "Esta celda quiere programar la fórmula de la lineal para `y' + y/50 = 1/5`, pero tiene dos erratas (la segunda la arrastró un alumno hasta su examen y le salieron 18 kg de soluto en un depósito de 500 l). Escríbela bien.",
+    "title": "La errata del examen",
+    "prompt": "Programa la fórmula para `y' + y/50 = 1/5`. Esta celda tiene dos erratas: escríbela bien.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -215,7 +218,6 @@
     ],
     "real": false,
     "source": null,
-    "broken": "P[t_] = 1/50; Q[t_] = 1/5;\ny[t_, C1_] = Exp[Integrate[P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t] Q[t]], t]) // Simplify",
     "solution": "P[t_] = 1/50; Q[t_] = 1/5;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
     "check": {
      "type": "all",
@@ -226,55 +228,61 @@
        "func": "w",
        "var": "t",
        "expr": "y[t, C1]",
-       "msg": "`y[t, C1]` todavía no cumple `y' + y/50 = 1/5`. Compara con la fórmula carácter a carácter."
+       "msg": "`y[t, C1]` aún no cumple `y' + y/50 = 1/5`. Compara con la fórmula."
       },
       {
        "type": "satisfies",
        "test": "!FreeQ[y[t, C1], C1]",
-       "msg": "Falta la constante `C1`."
+       "msg": "La solución general debe contener la constante `C1`."
       }
      ]
     },
     "hints": [
-     "El primer factor es `Exp[Integrate[-P[t], t]]`: lleva un signo menos.",
-     "`Q[t]` multiplica a la exponencial, no va dentro: `Exp[Integrate[P[t], t]] Q[t]`. Mira dónde se cierra el corchete de `Exp`."
+     "El primer factor lleva menos: `Exp[Integrate[-P[t], t]]`.",
+     "`Q[t]` multiplica a la exponencial: cierra antes el corchete de `Exp`."
     ],
-    "explain": "Un corchete mal cerrado mete `Q` dentro de la exponencial y todo lo demás sale absurdo sin dar error. Comprueba siempre con un dato: aquí `y` debe tender a 10."
+    "explain": "Con `Q` dentro de `Exp` no hay error visible, pero todo sale absurdo: un alumno la arrastró hasta su examen.",
+    "broken": "P[t_] = 1/50; Q[t_] = 1/5;\ny[t_, C1_] = Exp[Integrate[P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t] Q[t]], t]) // Simplify"
    }
   },
   {
    "type": "build",
    "section": "Lineal con condición inicial",
    "title": "Hallar la constante",
-   "md": "Con una condición como `y(0) = 1`, la constante sale de una ecuación. Ya está definida la solución general del ejemplo, `y[x, C1] = -1/2 + C1 E^(x^2)`.",
-   "target": "resC1 = Solve[y[0, C1] == 1, C1];\nysol[x_] = y[x, C1] /. Flatten[resC1]",
+   "md": "Ya definida la solución general del ejemplo, `y[x, C1]`. Impón `y(0) = 1`.",
+   "target": "ysol[x_] = y[x, C1] /. Flatten[resC1]",
    "setup": "y[x_, C1_] = -1/2 + C1 Exp[x^2];",
    "parts": [
     {
-     "code": "y[0, C1] == 1",
-     "md": "La condición escrita con la fórmula: x = 0 en el primer argumento. Es una ecuación para `C1`."
+     "code": "y[x, C1]",
+     "md": "Mira la solución general.",
+     "run": true
+    },
+    {
+     "code": "y[0, C1]",
+     "md": "En x = 0 solo queda la constante.",
+     "run": true
     },
     {
      "code": "resC1 = Solve[y[0, C1] == 1, C1]",
-     "md": "`Solve[ecuación, incógnita]` despeja `C1`. Devuelve una regla `C1 -> 3/2`, guardada en `resC1`.",
+     "md": "La condición es una ecuación para `C1`: resuélvela.",
      "run": true
     },
     {
      "code": "y[x, C1] /. Flatten[resC1]",
-     "md": "La regla se aplica con `/.` (y `Flatten` para quitar llaves), como hacías con `DSolve`.",
+     "md": "Aplica la regla con `/.`, como con `DSolve`.",
      "run": true
     },
     {
-     "code": "resC1 = Solve[y[0, C1] == 1, C1];\nysol[x_] = y[x, C1] /. Flatten[resC1]",
-     "md": "Las dos líneas, guardando la solución del problema como `ysol`.",
+     "code": "ysol[x_] = y[x, C1] /. Flatten[resC1]",
+     "md": "Guárdala como `ysol`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar (con `y[x, C1]` ya definida): impón `y(0) = 1`, guarda la regla de `C1` en `resC1` y define la solución como `ysol[x_]`.",
+    "prompt": "Con `y[x, C1]` definida: impón `y(0) = 1` (en `resC1`) y define `ysol[x_]`.",
     "hints": [
-     "Línea 1: `resC1 = Solve[ ... == 1, C1];`",
-     "La ecuación es `y[0, C1] == 1`.",
+     "Línea 1: `resC1 = Solve[y[0, C1] == 1, C1];`",
      "Línea 2: `ysol[x_] = y[x, C1] /. Flatten[resC1]`."
     ],
     "check": {
@@ -286,8 +294,9 @@
       "w[0]==1"
      ],
      "expr": "ysol[x]",
-     "msg": "`ysol[x]` no cumple la ecuación o la condición `y(0) = 1` (o no está definida)."
-    }
+     "msg": "`ysol[x]` no cumple la ecuación o `y(0) = 1`."
+    },
+    "solution": "resC1 = Solve[y[0, C1] == 1, C1];\nysol[x_] = y[x, C1] /. Flatten[resC1]"
    },
    "cmds": [
     "Solve",
@@ -298,10 +307,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e04",
+    "id": "2-m2-pl2-e03",
     "kind": "code",
     "title": "Lineal completa",
-    "prompt": "Resuelve con la fórmula (sin `DSolve`) el problema `y' + y cos x = cos x`, `y(0) = 3`. Define `P`, `Q` y la fórmula `y[x_, C1_]`; halla `C1` con `Solve` y guarda la solución del problema como `ysol[x_]`.",
+    "prompt": "Resuelve sin `DSolve`: `y' + y cos x = cos x`, `y(0) = 3`. Define `P`, `Q`, la fórmula, `resC1` y `ysol[x_]`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -310,7 +319,7 @@
     ],
     "real": false,
     "source": null,
-    "solution": "P[x_] = Cos[x]; Q[x_] = Cos[x];\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify\nresC1 = Solve[y[0, C1] == 3, C1];\nysol[x_] = y[x, C1] /. Flatten[resC1]",
+    "solution": "P[x_] = Cos[x]; Q[x_] = Cos[x];\ny[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify;\nresC1 = Solve[y[0, C1] == 3, C1];\nysol[x_] = y[x, C1] /. Flatten[resC1]",
     "check": {
      "type": "ode",
      "eq": "w'[x] + w[x] Cos[x] == Cos[x]",
@@ -320,30 +329,30 @@
       "w[0]==3"
      ],
      "expr": "ysol[x]",
-     "msg": "`ysol[x]` no cumple la ecuación o la condición `y(0) = 3` (o no está definida)."
+     "msg": "`ysol[x]` no cumple la ecuación o `y(0) = 3`."
     },
+    "hints": [
+     "Cuatro líneas: datos, fórmula, constante, sustitución.",
+     "`resC1 = Solve[y[0, C1] == 3, C1];`",
+     "`ysol[x_] = y[x, C1] /. Flatten[resC1]`"
+    ],
+    "explain": "C1 = 2: `y = 1 + 2 E^(-Sin[x])`. Las mismas cuatro líneas valdrán para los tanques.",
     "requires": [
      "Integrate",
      "Solve"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`P[x_] = Cos[x]; Q[x_] = Cos[x];` y la fórmula tal cual: `y[x_, C1_] = Exp[Integrate[-P[x], x]] (C1 + Integrate[Exp[Integrate[P[x], x]] Q[x], x]) // Simplify`",
-     "`resC1 = Solve[y[0, C1] == 3, C1];`",
-     "`ysol[x_] = y[x, C1] /. Flatten[resC1]`"
-    ],
-    "explain": "`y = 1 + C1 E^(-Sin[x])`; con y(0) = 3 sale C1 = 2. Las cuatro líneas (datos, fórmula, constante, sustitución) son las mismas que usarás en los tanques."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e05",
+    "id": "2-m2-pl2-e04",
     "kind": "code",
     "title": "Comprobación con DSolve",
-    "prompt": "Comprueba el ejemplo del guion resolviendo directamente con `DSolve`: `y' - 2xy = x`, `y(0) = 1`.",
+    "prompt": "Comprueba el ejemplo del guion con `DSolve`: `y' − 2xy = x`, `y(0) = 1`.",
     "difficulty": 1,
     "cmds": [
      "DSolve"
@@ -360,68 +369,59 @@
       "y[0]==1"
      ]
     },
-    "requires": [
-     "DSolve"
-    ],
     "hints": [
-     "Como en PL1: `DSolve[{ecuación, condición}, y[x], x]`.",
+     "`DSolve[{ecuación, condición}, y[x], x]`.",
      "`DSolve[{y'[x] - 2 x y[x] == x, y[0] == 1}, y[x], x]`"
     ],
-    "explain": "Da `-1/2 + 3 E^(x^2)/2`, lo mismo que la fórmula. Si antes definiste `y[x_, C1_]`, haz `Clear[y]` antes de llamar a `DSolve`."
+    "explain": "Da `-1/2 + 3 E^(x^2)/2`. Si antes definiste `y[x_, C1_]`, haz `Clear[y]` primero.",
+    "requires": [
+     "DSolve"
+    ]
    }
   },
   {
-   "type": "explain",
+   "type": "build",
    "section": "Bernoulli",
    "title": "Una lineal disfrazada",
-   "md": "Una ecuación de **Bernoulli** es `y' + P(x) y = Q(x) y^n` (n distinto de 0 y 1): una lineal con una potencia de `y` estorbando a la derecha.\n\nEl cambio `z = 1/y^(n-1)` la convierte en lineal para `z`: `z' + (1-n) P z = (1-n) Q`. Así que:\n- identificas `P`, `Q` y `n` (el exponente de `y` a la derecha; puede ser negativo: `1/y` es n = −1);\n- defines `P1 = (1-n) P` y `Q1 = (1-n) Q`;\n- aplicas la fórmula de la lineal a `z` con `P1`, `Q1` y deshaces el cambio con `/. z -> 1/y^(n-1)`.\n\nEl resultado es una relación implícita entre x e y.",
-   "cells": []
-  },
-  {
-   "type": "build",
-   "title": "Bernoulli paso a paso",
-   "md": "Ejemplo 2.1.2 del guion: `y' - x/(1 - x²) y = -x²/((1 + x) y)`. El `1/y` de la derecha es `y^(-1)`: n = −1.",
-   "target": "P[x_] = -x/(1 - x^2); Q[x_] = -x^2/(1 + x); n = -1;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
+   "md": "`y' + y/x = x y²`: lineal con un `y²` de más. Es de Bernoulli, n = 2.",
+   "target": "sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
    "parts": [
     {
-     "code": "P[x_] = -x/(1 - x^2); Q[x_] = -x^2/(1 + x); n = -1;",
-     "md": "P (lo que multiplica a `y`), Q (lo que multiplica a `y^n`) y el exponente n.",
+     "code": "P[x_] = 1/x; Q[x_] = x; n = 2;",
+     "md": "`P`, `Q` (lo que multiplica a `y^n`) y el exponente `n`.",
      "run": true
     },
     {
      "code": "P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];",
-     "md": "Los coeficientes de la lineal en `z`.",
+     "md": "Coeficientes de la lineal en `z`: se multiplican por `1 − n`.",
      "run": true
     },
     {
      "code": "z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x])",
-     "md": "La fórmula de la lineal con `P1`, `Q1`, escrita como igualdad `z == ...`.",
+     "md": "La fórmula de la lineal con `P1`, `Q1`, como igualdad para `z`.",
      "run": true
     },
     {
      "code": "sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
-     "md": "`/. z -> 1/y^(n - 1)` deshace el cambio; la relación queda en `sol`. Errata clásica: dejar `Q[x]` en lugar de `Q1[x]`.",
-     "run": true
-    },
-    {
-     "code": "P[x_] = -x/(1 - x^2); Q[x_] = -x^2/(1 + x); n = -1;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
-     "md": "La receta de Bernoulli: tres líneas.",
+     "md": "Deshaz el cambio `z -> 1/y^(n - 1)` y guarda en `sol`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: resuelve la Bernoulli `y' - x/(1 - x²) y = -x²/((1 + x) y)` (n = −1). Define `P`, `Q`, `n`, `P1`, `Q1` y guarda la relación final en `sol`.",
+    "prompt": "Resuelve la Bernoulli `y' + y/x = x y²`: `P`, `Q`, `n`; `P1`, `Q1`; relación en `sol`.",
     "hints": [
-     "Tres líneas: datos (`P`, `Q`, `n`), coeficientes (`P1`, `Q1`) y `sol = z == fórmula /. cambio`.",
-     "`P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];`",
-     "El cambio: `/. z -> 1/y^(n - 1)`."
+     "Línea 1: `P[x_] = 1/x; Q[x_] = x; n = 2;`",
+     "Línea 2: `P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];`",
+     "Línea 3: `sol = z == fórmula con P1, Q1 /. z -> 1/y^(n - 1) // Simplify`."
     ],
     "check": {
      "type": "satisfies",
-     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(x/(1 - x^2) y - x^2/((1 + x) y))) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(x/(1 - x^2) y - x^2/((1 + x) y))) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(-y/x + x y^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(-y/x + x y^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
-    }
+    },
+    "solution": "P[x_] = 1/x; Q[x_] = x; n = 2;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify"
    },
+   "more": "En `y' + P y = Q y^n`, el cambio `z = 1/y^(n−1)` da la lineal `z' + (1−n) P z = (1−n) Q`. Errata clásica: dejar `Q[x]` en vez de `Q1[x]` dentro de la integral.",
    "cmds": [
     "Integrate",
     "Exp",
@@ -431,10 +431,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e06",
+    "id": "2-m2-pl2-e05",
     "kind": "code",
-    "title": "Tu primera Bernoulli",
-    "prompt": "Resuelve `y' + y/x = x y^2` como ecuación de Bernoulli. Define `P`, `Q`, `n`, `P1`, `Q1` y guarda en `sol` la relación implícita (constante `C1`), con el cambio ya deshecho.",
+    "title": "El ejemplo del guion",
+    "prompt": "Ejemplo 2.1.2: `y' − x/(1−x²) y = −x²/((1+x) y)`, n = −1. Mismas tres líneas; relación en `sol`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -442,33 +442,33 @@
     ],
     "real": false,
     "source": null,
-    "solution": "P[x_] = 1/x; Q[x_] = x; n = 2;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
+    "solution": "P[x_] = -x/(1 - x^2); Q[x_] = -x^2/(1 + x); n = -1;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
     "check": {
      "type": "satisfies",
-     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(-y/x + x y^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(-y/x + x y^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(x/(1 - x^2) y - x^2/((1 + x) y))) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(x/(1 - x^2) y - x^2/((1 + x) y))) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
     },
+    "hints": [
+     "`P[x_] = -x/(1 - x^2); Q[x_] = -x^2/(1 + x); n = -1;`",
+     "`P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];`",
+     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify`"
+    ],
+    "explain": "El `1/y` de la derecha es `y^(-1)`: por eso n = −1 y el cambio es `z = y^2`.",
     "requires": [
      "Integrate"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`P[x_] = 1/x; Q[x_] = x; n = 2;`",
-     "`P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];`",
-     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify`"
-    ],
-    "explain": "Queda `1/y == x (C1 - x)`. Con n = 2 el cambio es `z = 1/y`."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e07",
+    "id": "2-m2-pl2-e06",
     "kind": "code",
-    "title": "Ejercicio 2: clasifica y resuelve",
-    "prompt": "**Guion PL2, ejercicio 2.** Clasifica la ecuación `x y' + y = y^2 x ln x` y resuélvela con el cambio de variable adecuado. Guarda en `sol` la relación implícita de la solución general (constante `C1`).",
+    "title": "Clasifica y resuelve",
+    "prompt": "**Ej. 2.** Clasifica `x y' + y = y² x ln x` y resuélvela con el cambio adecuado. Guarda la relación en `sol`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -483,71 +483,63 @@
      "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(-y/x + y^2 Log[x])) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(-y/x + y^2 Log[x])) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
     },
+    "hints": [
+     "Divide entre x: `y' + y/x = y² ln x`. Bernoulli con n = 2.",
+     "`P[x_] = 1/x; Q[x_] = Log[x]; n = 2;`",
+     "Las otras dos líneas son las de siempre: `P1`, `Q1` y `sol = ...`."
+    ],
+    "explain": "`1/y == x (C1 - Log[x]^2/2)`. Para clasificar, primero deja `y'` con coeficiente 1.",
     "requires": [
      "Integrate"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "Divide todo entre x para dejar `y'` sola: `y' + y/x = y^2 ln x`. Tiene `y^2` a la derecha: es de Bernoulli con n = 2.",
-     "`P[x_] = 1/x; Q[x_] = Log[x]; n = 2;` y después `P1`, `Q1` como siempre.",
-     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify`"
-    ],
-    "explain": "Bernoulli con n = 2: `1/y == x (C1 - Log[x]^2/2)`. El primer paso de cualquier clasificación es dejar `y'` con coeficiente 1."
+    ]
    }
   },
   {
-   "type": "explain",
-   "section": "Riccati: la solución particular",
-   "title": "Hace falta una solución particular",
-   "md": "Una ecuación de **Riccati** es `y' = P(x) + Q(x) y + R(x) y^2`. No tiene fórmula general, pero si conoces UNA solución particular `yp(x)`, el cambio `y = yp + 1/z` la convierte en lineal: `z' + (Q + 2 R yp) z = -R`.\n\nEl enunciado te dice la forma de la particular con un parámetro, por ejemplo `y = a x`. Hay dos fases:\n- **hallar a**: meter la candidata en la ecuación y resolver en `a` (solo vale un valor constante);\n- **resolver**: la fórmula de la lineal para `z` y deshacer el cambio.",
-   "cells": []
-  },
-  {
    "type": "build",
+   "section": "Riccati: la particular",
    "title": "Hallar el parámetro",
-   "md": "Ejemplo 2.1.3 del guion: `y' = (6 + 18x) - ((1 + 12x)/x) y + (2/x) y²`, con una solución particular de la forma `y = a x`.",
-   "target": "P[x_] = 6 + 18 x; Q[x_] = -(1 + 12 x)/x; R[x_] = 2/x;\nys[x_] = a x;\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nSolve[edo, a]",
+   "md": "Ejemplo 2.1.3: `y' = P + Q y + R y²` con una solución de la forma `y = a x`.",
+   "target": "Solve[edo, a]",
    "parts": [
     {
      "code": "P[x_] = 6 + 18 x; Q[x_] = -(1 + 12 x)/x; R[x_] = 2/x;",
-     "md": "Los tres coeficientes: P (término libre), Q (multiplica a `y`) y R (multiplica a `y²`).",
+     "md": "Los tres coeficientes: libre, de `y` y de `y²`.",
      "run": true
     },
     {
      "code": "ys[x_] = a x;",
-     "md": "La candidata, con el parámetro `a` por determinar.",
+     "md": "La candidata, con el parámetro `a`.",
      "run": true
     },
     {
      "code": "edo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2",
-     "md": "La ecuación con la candidata metida: su derivada a la izquierda y la fórmula de Riccati a la derecha.",
+     "md": "Métela en la ecuación: derivada a la izquierda, Riccati a la derecha.",
      "run": true
     },
     {
      "code": "Solve[edo, a]",
-     "md": "Se resuelve en `a`. Sale `a -> 3` y otra solución que depende de x: esa se descarta.",
-     "run": true
-    },
-    {
-     "code": "P[x_] = 6 + 18 x; Q[x_] = -(1 + 12 x)/x; R[x_] = 2/x;\nys[x_] = a x;\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nSolve[edo, a]",
-     "md": "Las cuatro líneas de la primera fase.",
-     "run": true
+     "md": "Resuelve en `a`: vale la solución constante, `a -> 3`.",
+     "run": true,
+     "hint": "La otra solución depende de x: se descarta."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: para la Riccati con `P = 6 + 18x`, `Q = -(1 + 12x)/x`, `R = 2/x` y candidata `ys[x_] = a x`, plantea `edo` y resuélvela en `a`.",
+    "prompt": "Riccati del guion: define `P`, `Q`, `R`, `ys[x_] = a x`, la ecuación `edo` y resuélvela en `a`.",
     "hints": [
-     "Cuatro líneas: coeficientes, candidata, `edo = ... == ...;` y `Solve[edo, a]`.",
+     "Cuatro líneas: coeficientes, candidata, `edo = ...;`, `Solve[edo, a]`.",
      "`edo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;`"
     ],
     "check": {
      "type": "satisfies",
      "test": "MemberQ[a /. Solve[edo, a], 3] && Simplify[(ys[x] /. a -> 3) - 3 x] === 0",
-     "msg": "Define `P`, `Q`, `R`, la candidata `ys[x_] = a x` y la ecuación `edo`; al resolverla debe salir `a -> 3`."
-    }
+     "msg": "Define `P`, `Q`, `R`, `ys[x_] = a x` y `edo`; al resolver debe salir `a -> 3`."
+    },
+    "solution": "P[x_] = 6 + 18 x; Q[x_] = -(1 + 12 x)/x; R[x_] = 2/x;\nys[x_] = a x;\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nSolve[edo, a]"
    },
+   "more": "Riccati no tiene fórmula general. Pero conocida UNA solución `yp`, el cambio `y = yp + 1/z` la vuelve lineal: `z' + (Q + 2 R yp) z = −R`.",
    "cmds": [
     "D",
     "Solve"
@@ -556,10 +548,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e08",
+    "id": "2-m2-pl2-e07",
     "kind": "code",
-    "title": "Ejercicio 1: la solución particular",
-    "prompt": "**Guion PL2, ejercicio 1 (primera parte).** La ecuación `y' = cos x - tan x sec x · y^2 - y` admite una solución particular de la forma `y = a cos x`.\n\nDefine `P`, `Q`, `R` y la candidata `ys[x_] = a Cos[x]`, plantea la ecuación `edo`, resuélvela en `a` y define `yp[x_]` con el valor constante de `a`.",
+    "title": "La particular del guion",
+    "prompt": "**Ej. 1.** `y' = cos x − tan x sec x · y² − y` con solución `y = a cos x`. Halla `a` y define `yp[x_]`.",
     "difficulty": 3,
     "cmds": [
      "D",
@@ -574,51 +566,46 @@
      "expr": "yp[x]",
      "expected": "Cos[x]",
      "compare": "equal",
-     "msg": "`yp[x]` debe ser la candidata con el valor constante de `a` que cumple la ecuación."
+     "msg": "`yp[x]` debe ser la candidata con el valor constante de `a`."
     },
+    "hints": [
+     "`P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];`",
+     "`ys[x_] = a Cos[x];`, `edo` como antes y `Solve[edo // Simplify, a]`.",
+     "Sale a = 1: `yp[x_] = ys[x] /. a -> 1`."
+    ],
+    "explain": "`Solve` da `a -> 1` y `a -> -Cot[x]`; solo vale la constante. Simplificar antes ayuda a `Solve`.",
     "requires": [
      "Solve",
      "D"
-    ],
-    "hints": [
-     "Ordena por potencias de y: `P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];` (`Sec[x]` es 1/cos x).",
-     "`ys[x_] = a Cos[x];`, `edo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;` y `Solve[edo // Simplify, a]` (simplificar antes ayuda a `Solve`).",
-     "Sale a = 1 (la otra solución depende de x). Entonces `yp[x_] = ys[x] /. a -> 1`."
-    ],
-    "explain": "`Solve` da `a -> 1` y `a -> -Cot[x]`; solo vale la constante: `yp = Cos[x]`. Q es el coeficiente de `y` (aquí −1) y R el de `y^2`."
+    ]
    }
   },
   {
    "type": "build",
    "section": "Riccati: la solución general",
    "title": "De Riccati a lineal",
-   "md": "Segunda fase del ejemplo 2.1.3. Ya están definidas `P`, `Q`, `R` y la solución particular `yp[x] = 3x`.",
-   "target": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x]);\nSolve[sol, y]",
+   "md": "Ya definidas `P`, `Q`, `R` del ejemplo y la particular `yp[x] = 3x`.",
+   "target": "Solve[sol, y]",
    "setup": "P[x_] = 6 + 18 x; Q[x_] = -(1 + 12 x)/x; R[x_] = 2/x;\nyp[x_] = 3 x;",
    "parts": [
     {
      "code": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];",
-     "md": "Los coeficientes de la lineal en `z` que sale del cambio `y = yp + 1/z`.",
+     "md": "Coeficientes de la lineal en `z`.",
      "run": true
     },
     {
      "code": "sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x])",
-     "md": "La fórmula de la lineal para `z`, y el cambio deshecho: `z = 1/(y - yp)`.",
+     "md": "La fórmula para `z` y el cambio deshecho: `z = 1/(y − yp)`.",
      "run": true
     },
     {
      "code": "Solve[sol, y]",
-     "md": "Si se quiere `y` despejada, se resuelve la relación en `y`.",
-     "run": true
-    },
-    {
-     "code": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x]);\nSolve[sol, y]",
-     "md": "La segunda fase completa.",
+     "md": "Despeja `y`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar (con `P`, `Q`, `R`, `yp` ya definidas): define `P1`, `Q1`, guarda en `sol` la relación con el cambio deshecho y despeja `y`.",
+    "prompt": "Con `P`, `Q`, `R`, `yp` definidas: `P1`, `Q1`, la relación en `sol` y despeja `y`.",
     "hints": [
      "Línea 1: `P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];`",
      "Línea 2: `sol = z == fórmula con P1, Q1 /. z -> 1/(y - yp[x]);`",
@@ -628,7 +615,8 @@
      "type": "satisfies",
      "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(6 + 18 x - (1 + 12 x)/x y + 2/x y^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(6 + 18 x - (1 + 12 x)/x y + 2/x y^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
-    }
+    },
+    "solution": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x]);\nSolve[sol, y]"
    },
    "cmds": [
     "Integrate",
@@ -639,10 +627,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e09",
+    "id": "2-m2-pl2-e08",
     "kind": "code",
-    "title": "Ejercicio 1: la solución general",
-    "prompt": "**Guion PL2, ejercicio 1 (segunda parte).** Ya están definidas `P`, `Q`, `R` de `y' = cos x - tan x sec x · y^2 - y` y la particular `yp[x_] = Cos[x]`. Define `P1` y `Q1`, aplica la fórmula de la lineal para `z` y guarda en `sol` la relación con el cambio deshecho (`z -> 1/(y - yp[x])`, constante `C1`).\n\nConsejo: simplifica el integrando con `Simplify` antes de integrarlo; con tangentes y secantes la integral sale mucho más rápido.",
+    "title": "La general del guion",
+    "prompt": "**Ej. 1.** Ya definidas `P`, `Q`, `R` y `yp[x_] = Cos[x]`. Define `P1`, `Q1` y guarda la relación en `sol`. Simplifica el integrando.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -651,41 +639,82 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 1",
-    "setup": "P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];\nyp[x_] = Cos[x];",
     "solution": "P1[x_] = Q[x] + 2 R[x] yp[x] // Simplify;\nQ1[x_] = -R[x] // Simplify;\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Simplify[Exp[Integrate[P1[x], x]] Q1[x]], x]) /. z -> 1/(y - yp[x])",
     "check": {
      "type": "satisfies",
      "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(Cos[x] - Tan[x] Sec[x] y^2 - y)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(Cos[x] - Tan[x] Sec[x] y^2 - y)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
     },
+    "hints": [
+     "`P1[x_] = Q[x] + 2 R[x] yp[x] // Simplify; Q1[x_] = -R[x] // Simplify;`",
+     "Envuelve el integrando: `Integrate[Simplify[Exp[Integrate[P1[x], x]] Q1[x]], x]`.",
+     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Simplify[...], x]) /. z -> 1/(y - yp[x])`"
+    ],
+    "explain": "`P1 = -1 - 2 Tan[x]`, `Q1 = Tan[x] Sec[x]`; el integrando se reduce a `E^(-x) Sin[x]`. Redefine siempre `P1`, `Q1`: reutilizar las de otro ejercicio da una solución falsa.",
+    "setup": "P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];\nyp[x_] = Cos[x];",
     "requires": [
      "Integrate"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`P1[x_] = Q[x] + 2 R[x] yp[x] // Simplify; Q1[x_] = -R[x] // Simplify;`",
-     "El integrando `Exp[Integrate[P1[x], x]] Q1[x]` se simplifica a `E^(-x) Sin[x]`: envuélvelo en `Simplify[...]`.",
-     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Simplify[Exp[Integrate[P1[x], x]] Q1[x]], x]) /. z -> 1/(y - yp[x])`"
-    ],
-    "explain": "`P1 = -1 - 2 Tan[x]`, `Q1 = Tan[x] Sec[x]` y queda `1/(y - Cos[x]) == (E^x/Cos[x]^2) (C1 - E^(-x) (Sin[x] + Cos[x])/2)`. Si reutilizas `P1`, `Q1` de otro ejercicio sin redefinirlas, sale una solución falsa: redefine siempre."
+    ]
    }
   },
   {
-   "type": "explain",
-   "section": "Tanques: plantear y resolver",
-   "title": "Problemas de mezclas",
-   "md": "Un depósito con `c0` litros recibe `fe` l/min de una disolución y pierde `fs` l/min de mezcla bien removida. La incógnita es `y(t)` = **cantidad** de soluto (no la concentración).\n\nBalance: `y' = lo que entra - lo que sale`:\n- entra `fe` por la concentración de entrada (si es un porcentaje `pe`, `fe*pe/100`; si viene en g/l, `fe*pe`);\n- sale `fs` por la concentración que hay dentro, `y/V(t)`, con volumen `V(t) = c0 + (fe - fs) t`.\n\nEs una lineal con `P(t) = fs/(c0 + (fe - fs) t)` y `Q(t) = fe*pe/100`. La condición inicial es la cantidad de soluto en t = 0. Cayó en el examen de 2021 (P2).",
-   "cells": []
+   "type": "build",
+   "section": "Tanques: el balance",
+   "title": "Entra menos sale",
+   "md": "100 l de agua; entran 2 l/min de ácido al 10 %; salen 2 l/min. `y(t)` = litros de ácido.",
+   "target": "DSolve[{y'[t] == 2 10/100 - 2 y[t]/100, y[0] == 0}, y[t], t]",
+   "parts": [
+    {
+     "code": "2 10/100",
+     "md": "Ácido que entra por minuto: caudal por concentración.",
+     "run": true
+    },
+    {
+     "code": "2 y[t]/100",
+     "md": "Ácido que sale: caudal por la concentración de dentro, `y/V`.",
+     "hint": "El volumen es constante (100 l) porque entra lo mismo que sale."
+    },
+    {
+     "code": "y'[t] == 2 10/100 - 2 y[t]/100",
+     "md": "El balance: `y'` = entra − sale."
+    },
+    {
+     "code": "DSolve[{y'[t] == 2 10/100 - 2 y[t]/100, y[0] == 0}, y[t], t]",
+     "md": "Resuélvelo con `y(0) = 0` (agua pura al principio).",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Tanque del guion: resuelve con `DSolve` el balance `y' = 2·10/100 − 2y/100`, `y(0) = 0`.",
+    "hints": [
+     "Entra `2 10/100`; sale `2 y[t]/100`.",
+     "`DSolve[{y'[t] == ..., y[0] == 0}, y[t], t]`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y'[t] == 1/5 - y[t]/50",
+     "func": "y",
+     "var": "t",
+     "ics": [
+      "y[0]==0"
+     ]
+    }
+   },
+   "more": "La incógnita es la CANTIDAD de soluto, no la concentración. Sale `fs·y/V(t)` con volumen `V(t) = c0 + (fe − fs) t`. Cayó en el examen de 2021.",
+   "cmds": [
+    "DSolve"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e10",
+    "id": "2-m2-pl2-e09",
     "kind": "code",
-    "title": "Plantea el balance",
-    "prompt": "Un depósito tiene 50 l de agua pura. Entran 3 l/min de una disolución con 2 g/l de sal y salen 1 l/min de mezcla. Escribe la ecuación del balance para la cantidad de sal `y[t]` (entra − sale) y resuélvela con `DSolve`, con la condición `y(0) = 0`.",
+    "title": "Volumen que cambia",
+    "prompt": "50 l de agua pura; entran 3 l/min con 2 g/l; sale 1 l/min. Resuelve el balance con `DSolve`, `y(0) = 0`.",
     "difficulty": 2,
     "cmds": [
      "DSolve"
@@ -701,52 +730,53 @@
      "ics": [
       "y[0]==0"
      ],
-     "msg": "Eso no resuelve el balance correcto. Entra 3·2 g/min; sale 1 l/min con concentración `y/V`, y el volumen es `V = 50 + 2t`."
+     "msg": "Balance incorrecto. Entra 3·2 g/min; sale 1 l/min con concentración `y/V`, `V = 50 + 2t`."
     },
-    "requires": [
-     "DSolve"
-    ],
     "hints": [
-     "Entra: 3 l/min · 2 g/l = 6 g/min.",
-     "Sale: 1 l/min por la concentración `y[t]/V`, con `V = 50 + (3 - 1) t`.",
+     "Entra 3·2 = 6 g/min.",
+     "Sale `1 y[t]/V` con `V = 50 + (3 - 1) t`.",
      "`DSolve[{y'[t] == 6 - y[t]/(50 + 2 t), y[0] == 0}, y[t], t]`"
     ],
-    "explain": "El volumen crece 3 − 1 = 2 l/min, por eso el denominador es `50 + 2t` y no 50. Olvidar que el volumen cambia es el fallo más común al plantear."
+    "explain": "El volumen crece 2 l/min: el denominador es `50 + 2t`, no 50. Es el fallo más común.",
+    "requires": [
+     "DSolve"
+    ]
    }
   },
   {
    "type": "build",
-   "title": "El tanque con la fórmula",
-   "md": "Ejemplo 2.2.1 del guion: 100 l de agua destilada; entran 2 l/min de ácido al 10 % y salen 2 l/min. El guion lo resuelve con la fórmula de la lineal, ahora en la variable `t`.",
-   "target": "c0 = 100; pe = 10; fe = 2; fs = 2;\nP[t_] = fs/(c0 + (fe - fs) t); Q[t_] = fe pe/100;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
+   "section": "Tanques: la receta del guion",
+   "title": "Datos, P y Q",
+   "md": "El guion resuelve el tanque con la fórmula de la lineal (ejemplo 2.2.1).",
+   "target": "y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
    "parts": [
     {
      "code": "c0 = 100; pe = 10; fe = 2; fs = 2;",
-     "md": "Los datos: volumen inicial, porcentaje de entrada, caudal de entrada y caudal de salida.",
+     "md": "Volumen inicial, % de entrada, caudal de entrada y de salida.",
+     "run": true
+    },
+    {
+     "code": "c0 + (fe - fs) t",
+     "md": "El volumen en cada instante.",
      "run": true
     },
     {
      "code": "P[t_] = fs/(c0 + (fe - fs) t); Q[t_] = fe pe/100;",
-     "md": "P = caudal de salida entre volumen; Q = ácido que entra por minuto.",
+     "md": "`P` = caudal de salida entre volumen; `Q` = lo que entra.",
      "run": true
     },
     {
      "code": "y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
-     "md": "La fórmula de la lineal de siempre, con `t` en lugar de `x`.",
-     "run": true
-    },
-    {
-     "code": "c0 = 100; pe = 10; fe = 2; fs = 2;\nP[t_] = fs/(c0 + (fe - fs) t); Q[t_] = fe pe/100;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
-     "md": "Datos, P y Q, fórmula.",
+     "md": "La fórmula de la lineal, ahora en `t`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: para el tanque del guion (`c0 = 100`, `pe = 10`, `fe = 2`, `fs = 2`), define los datos, `P[t_]`, `Q[t_]` y la fórmula `y[t_, C1_]`.",
+    "prompt": "Tanque del guion: datos (`c0`, `pe`, `fe`, `fs`), `P[t_]`, `Q[t_]` y la fórmula `y[t_, C1_]`.",
     "hints": [
-     "Línea 1: los cuatro datos separados por `;`.",
+     "Línea 1: `c0 = 100; pe = 10; fe = 2; fs = 2;`",
      "Línea 2: `P[t_] = fs/(c0 + (fe - fs) t); Q[t_] = fe pe/100;`",
-     "Línea 3: la fórmula de la lineal en `t`: `y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + ...) // Simplify`."
+     "Línea 3: la fórmula de la lineal con `t`."
     ],
     "check": {
      "type": "all",
@@ -757,15 +787,16 @@
        "func": "w",
        "var": "t",
        "expr": "y[t, C1]",
-       "msg": "`y[t, C1]` no cumple el balance del tanque (`y' = 0.2 - y/50`) o no está definida."
+       "msg": "`y[t, C1]` no cumple el balance del tanque."
       },
       {
        "type": "satisfies",
        "test": "!FreeQ[y[t, C1], C1]",
-       "msg": "Falta la constante `C1`."
+       "msg": "La solución general debe contener la constante `C1`."
       }
      ]
-    }
+    },
+    "solution": "c0 = 100; pe = 10; fe = 2; fs = 2;\nP[t_] = fs/(c0 + (fe - fs) t); Q[t_] = fe pe/100;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify"
    },
    "cmds": [
     "Integrate",
@@ -774,78 +805,97 @@
   },
   {
    "type": "build",
-   "title": "La cantidad inicial fija la constante",
-   "md": "Al principio hay agua destilada: `y(0) = 0`. Ya está definida la solución general del tanque, `y[t, C1] = 10 + C1 E^(-t/50)`.",
-   "target": "resC1 = Solve[y[0, C1] == 0, C1];\nys[t_] = y[t, C1] /. Flatten[resC1]",
+   "title": "La cantidad inicial",
+   "md": "Ya definida la solución general del tanque, `y[t, C1]`. Al principio, `y(0) = 0`.",
+   "target": "Limit[ys[t], t -> Infinity]",
    "setup": "y[t_, C1_] = 10 + C1 Exp[-t/50];",
    "parts": [
     {
      "code": "resC1 = Solve[y[0, C1] == 0, C1]",
-     "md": "Igual que en la lineal con condición inicial: una ecuación para `C1`.",
+     "md": "La condición inicial da `C1`.",
      "run": true
     },
     {
      "code": "ys[t_] = y[t, C1] /. Flatten[resC1]",
-     "md": "Sustituida la constante, `ys[t]` es la cantidad de ácido en cada instante.",
+     "md": "Sustituida: `ys[t]` es el ácido en cada instante.",
      "run": true
     },
     {
-     "code": "resC1 = Solve[y[0, C1] == 0, C1];\nys[t_] = y[t, C1] /. Flatten[resC1]",
-     "md": "Las dos líneas.",
+     "code": "ys[75] // N",
+     "md": "Litros de ácido tras 75 minutos.",
+     "run": true
+    },
+    {
+     "code": "Limit[ys[t], t -> Infinity]",
+     "md": "Y a la larga: el límite cuando t tiende a infinito.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar (con `y[t, C1]` ya definida): impón `y(0) = 0` y define la cantidad de ácido como `ys[t_]`.",
+    "prompt": "Con `y[t, C1]` definida: impón `y(0) = 0`, define `ys[t_]` y calcula su límite en infinito.",
     "hints": [
      "`resC1 = Solve[y[0, C1] == 0, C1];`",
-     "`ys[t_] = y[t, C1] /. Flatten[resC1]`"
+     "`ys[t_] = y[t, C1] /. Flatten[resC1];`",
+     "`Limit[ys[t], t -> Infinity]`"
     ],
     "check": {
-     "type": "ode",
-     "eq": "w'[t] == 1/5 - w[t]/50",
-     "func": "w",
-     "var": "t",
-     "ics": [
-      "w[0]==0"
-     ],
-     "expr": "ys[t]",
-     "msg": "`ys[t]` no cumple el balance o la condición `y(0) = 0` (o no está definida)."
-    }
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w'[t] == 1/5 - w[t]/50",
+       "func": "w",
+       "var": "t",
+       "ics": [
+        "w[0]==0"
+       ],
+       "expr": "ys[t]",
+       "msg": "`ys[t]` no cumple el balance o `y(0) = 0`."
+      },
+      {
+       "type": "expr",
+       "expected": "10",
+       "compare": "equal"
+      }
+     ]
+    },
+    "solution": "resC1 = Solve[y[0, C1] == 0, C1];\nys[t_] = y[t, C1] /. Flatten[resC1];\nLimit[ys[t], t -> Infinity]"
    },
    "cmds": [
     "Solve",
     "ReplaceAll",
-    "Flatten"
+    "Flatten",
+    "Limit",
+    "N"
    ]
   },
   {
    "type": "build",
-   "section": "Tanques: las preguntas de examen",
-   "title": "¿Cuándo se alcanza un valor?",
-   "md": "Con `ys[t] = 10 - 10 E^(-t/50)` ya definida (litros de ácido en 100 l), ¿cuándo está la mezcla al 5 %? Es decir, ¿cuándo `ys[t] = 5`? `FindRoot` busca la raíz numéricamente a partir de una estimación.",
+   "title": "¿Cuándo llega a un valor?",
+   "md": "`ys[t]` ya está definida. ¿Cuándo hay 5 litros de ácido (mezcla al 5 %)?",
    "target": "FindRoot[ys[t] == 5, {t, 30}]",
    "setup": "ys[t_] = 10 - 10 Exp[-t/50];",
    "parts": [
     {
-     "code": "ys[t] == 5",
-     "md": "La ecuación que se quiere resolver: 5 litros de ácido en 100 es el 5 %."
+     "code": "Plot[{ys[t], 5}, {t, 0, 100}]",
+     "md": "Dibuja `ys` y la recta 5: se cruzan cerca de t = 35.",
+     "run": true
     },
     {
-     "code": "{t, 30}",
-     "md": "La variable y un valor de partida aproximado (no hace falta afinar)."
+     "code": "ys[t] == 5",
+     "md": "La ecuación que hay que resolver."
     },
     {
      "code": "FindRoot[ys[t] == 5, {t, 30}]",
-     "md": "`FindRoot[ecuación, {variable, inicio}]` devuelve una regla con el número: t ≈ 34.66 min.",
+     "md": "`FindRoot`: ecuación y `{variable, valor de partida}`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar (con `ys[t]` ya definida): halla con `FindRoot` el instante en que `ys[t]` vale 5, empezando en t = 30.",
+    "prompt": "Con `ys[t]` definida: halla con `FindRoot` cuándo `ys[t]` vale 5 (empieza en t = 30).",
     "hints": [
      "`FindRoot[ecuación, {t, 30}]`.",
-     "La ecuación es `ys[t] == 5`."
+     "La ecuación: `ys[t] == 5`."
     ],
     "check": {
      "type": "expr",
@@ -854,75 +904,19 @@
      "tol": 0.0001
     }
    },
+   "more": "El guion usa `Solve[ys[t] == 5, t]` y luego `// N`. `FindRoot` da el número directamente y funciona aunque `Solve` no pueda con la ecuación.",
    "cmds": [
-    "FindRoot"
+    "FindRoot",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e11",
-    "kind": "code",
-    "title": "Cantidad en un instante",
-    "prompt": "Con `ys[t]` ya definida (el tanque del guion), calcula la cantidad de ácido tras 1 h 15 min (75 minutos), en decimal.",
-    "difficulty": 1,
-    "cmds": [
-     "N"
-    ],
-    "real": false,
-    "source": null,
-    "setup": "ys[t_] = 10 - 10 Exp[-t/50];",
-    "solution": "ys[75] // N",
-    "check": {
-     "type": "expr",
-     "expected": "7.768698399",
-     "compare": "numeric",
-     "tol": 1e-05
-    },
-    "hints": [
-     "Evalúa la función en 75 y pasa a decimal.",
-     "`ys[75] // N`"
-    ],
-    "explain": "7.77 litros en 100: la mezcla está al 7.77 %."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl2-e12",
-    "kind": "code",
-    "title": "La proporción límite",
-    "prompt": "Con `ys[t]` ya definida, justifica que la proporción límite es del 10 %: calcula el límite de `ys[t]` cuando t tiende a infinito.",
-    "difficulty": 1,
-    "cmds": [
-     "Limit"
-    ],
-    "real": false,
-    "source": null,
-    "setup": "ys[t_] = 10 - 10 Exp[-t/50];",
-    "solution": "Limit[ys[t], t -> Infinity]",
-    "check": {
-     "type": "expr",
-     "expected": "10",
-     "compare": "equal"
-    },
-    "requires": [
-     "Limit"
-    ],
-    "hints": [
-     "`Limit[expresión, variable -> valor]`.",
-     "Infinito se escribe `Infinity`: `Limit[ys[t], t -> Infinity]`"
-    ],
-    "explain": "10 litros en 100: el depósito acaba con la misma concentración que la entrada."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl2-e13",
+    "id": "2-m2-pl2-e10",
     "kind": "code",
     "title": "Un tanque completo",
-    "prompt": "Un depósito contiene 200 l de agua pura. Entra salmuera con 30 g/l a 4 l/min y sale mezcla a 4 l/min. Con la fórmula de la lineal, define `ys[t_]` (gramos de sal en el instante t) y calcula en la última línea los gramos que hay a los 30 minutos, en decimal.",
+    "prompt": "200 l de agua pura; entra salmuera de 30 g/l a 4 l/min; salen 4 l/min. Define `ys[t_]` (gramos) y termina con `ys[30] // N`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -944,7 +938,7 @@
         "w[0]==0"
        ],
        "expr": "ys[t]",
-       "msg": "`ys[t]` no cumple el balance `y' = 120 - y/50` con `y(0) = 0` (o no está definida)."
+       "msg": "`ys[t]` no cumple `y' = 120 − y/50`, `y(0) = 0`."
       },
       {
        "type": "expr",
@@ -954,25 +948,25 @@
       }
      ]
     },
+    "hints": [
+     "La entrada viene en g/l: `Q[t_] = fe pe` (sin dividir entre 100).",
+     "`c0 = 200; pe = 30; fe = 4; fs = 4;` y `P[t_] = fs/(c0 + (fe - fs) t);`",
+     "Fórmula, `resC1 = Solve[y[0, C1] == 0, C1];`, `ys[t_] = y[t, C1] /. Flatten[resC1];` y `ys[30] // N`."
+    ],
+    "explain": "`ys[t] = 6000 (1 - E^(-t/50))`; a los 30 min, unos 2707 g. Es la receta completa del tanque: seis líneas.",
     "requires": [
      "Integrate"
-    ],
-    "hints": [
-     "Datos: `c0 = 200; pe = 30; fe = 4; fs = 4;`. Como la entrada viene en g/l, `Q[t_] = fe pe` (sin dividir entre 100).",
-     "`P[t_] = fs/(c0 + (fe - fs) t);`, la fórmula en `t`, `resC1 = Solve[y[0, C1] == 0, C1];` y `ys[t_] = y[t, C1] /. Flatten[resC1];`",
-     "Última línea: `ys[30] // N` (unos 2707 g)."
-    ],
-    "explain": "`ys[t] = 6000 (1 - E^(-t/50))`: tiende a 6000 g, que es 30 g/l por 200 l. Has escrito la receta completa del tanque: seis líneas."
+    ]
    }
   },
   {
    "type": "exercise",
-   "section": "Guion, ejercicio 3: el depósito",
+   "section": "Guion: ejercicio 3 (depósito)",
    "ex": {
-    "id": "2-m2-pl2-e14",
+    "id": "2-m2-pl2-e11",
     "kind": "code",
-    "title": "Ejercicio 3: datos y fórmula",
-    "prompt": "**Guion PL2, ejercicio 3 (primer paso).** Un depósito de 200 l de capacidad está lleno hasta la mitad de agua destilada. Se vierte una disolución con 0.5 gramos de soluto por litro a 5 l/min y, a la vez, se extraen 3 l/min de la mezcla, que se remueve continuamente.\n\nDefine los datos (`c0`, `pe`, `fe`, `fs`), `P[t_]`, `Q[t_]` y la solución general `y[t_, C1_]` con la fórmula de la lineal.",
+    "title": "Datos y fórmula",
+    "prompt": "**Ej. 3.** Depósito de 200 l lleno hasta la mitad de agua; entran 5 l/min con 0.5 g/l; salen 3 l/min. Datos, `P`, `Q` y `y[t_, C1_]`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -990,33 +984,33 @@
        "func": "w",
        "var": "t",
        "expr": "y[t, C1]",
-       "msg": "`y[t, C1]` no cumple el balance del depósito (`y' = 2.5 - 3y/(100 + 2t)`) o no está definida."
+       "msg": "`y[t, C1]` no cumple `y' = 2.5 − 3y/(100 + 2t)`."
       },
       {
        "type": "satisfies",
        "test": "!FreeQ[y[t, C1], C1]",
-       "msg": "Falta la constante `C1`."
+       "msg": "La solución general debe contener la constante `C1`."
       }
      ]
     },
-    "requires": [
-     "Integrate"
-    ],
     "hints": [
-     "Lleno hasta la mitad: `c0 = 100`. Datos: `c0 = 100; pe = 1/2; fe = 5; fs = 3;`",
-     "El dato de entrada ya es g/l: `Q[t_] = fe pe` (sin dividir entre 100). `P[t_] = fs/(c0 + (fe - fs) t);`",
+     "Mitad de 200: `c0 = 100; pe = 1/2; fe = 5; fs = 3;`",
+     "Dato en g/l: `Q[t_] = fe pe`. `P[t_] = fs/(c0 + (fe - fs) t);`",
      "`y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify`"
     ],
-    "explain": "El volumen es `100 + 2t` y sale `y = 50 + t + (constante)/(50 + t)^(3/2)`. Escribir 1/2 en vez de 0.5 mantiene el resultado exacto."
+    "explain": "El volumen es `100 + 2t`. Escribir 1/2 en vez de 0.5 mantiene el resultado exacto.",
+    "requires": [
+     "Integrate"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e15",
+    "id": "2-m2-pl2-e12",
     "kind": "code",
-    "title": "Ejercicio 3: la constante",
-    "prompt": "**Guion PL2, ejercicio 3 (segundo paso).** Ya está definida la solución general del depósito, `y[t, C1]`. Al principio el agua es destilada: impón `y(0) = 0` y define la cantidad de soluto como `ys[t_]`.",
+    "title": "La constante",
+    "prompt": "**Ej. 3.** Ya definida `y[t, C1]` del depósito. Agua destilada al inicio: impón `y(0) = 0` y define `ys[t_]`.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -1025,7 +1019,6 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 3",
-    "setup": "y[t_, C1_] = 50 + t + Sqrt[2] C1/(4 (50 + t)^(3/2));",
     "solution": "resC1 = Solve[y[0, C1] == 0, C1];\nys[t_] = y[t, C1] /. Flatten[resC1]",
     "check": {
      "type": "ode",
@@ -1036,25 +1029,26 @@
       "w[0]==0"
      ],
      "expr": "ys[t]",
-     "msg": "`ys[t]` no cumple el balance o la condición `y(0) = 0` (o no está definida)."
+     "msg": "`ys[t]` no cumple el balance o `y(0) = 0`."
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
      "`resC1 = Solve[y[0, C1] == 0, C1];`",
      "`ys[t_] = y[t, C1] /. Flatten[resC1]`"
     ],
-    "explain": "`ys[t] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2)` gramos."
+    "explain": "`ys[t] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2)` gramos.",
+    "setup": "y[t_, C1_] = 50 + t + Sqrt[2] C1/(4 (50 + t)^(3/2));",
+    "requires": [
+     "Solve"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e16",
+    "id": "2-m2-pl2-e13",
     "kind": "code",
-    "title": "Ejercicio 3: instante de llenado y gramos",
-    "prompt": "**Guion PL2, ejercicio 3 (preguntas).** Ya están definidos el volumen `v[t] = 100 + 2t` y la cantidad de soluto `ys[t]`. ¿Cuándo se llenará el depósito (200 l)? Calcula en la última línea los gramos de soluto que contendrá en ese instante, en decimal.",
+    "title": "Llenado y gramos",
+    "prompt": "**Ej. 3.** Ya definidos `v[t] = 100 + 2t` y `ys[t]`. ¿Cuándo llega a 200 l? Termina con los gramos en ese instante, en decimal.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -1063,7 +1057,6 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 3",
-    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
     "solution": "sT = Solve[v[t] == 200, t]\nys[t] /. Flatten[sT] // N",
     "check": {
      "type": "expr",
@@ -1071,23 +1064,24 @@
      "compare": "numeric",
      "tol": 1e-05
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
-     "Se llena cuando el volumen llega a 200: `sT = Solve[v[t] == 200, t]`.",
+     "Se llena cuando `v[t] == 200`: `sT = Solve[v[t] == 200, t]`.",
      "`ys[t] /. Flatten[sT] // N`"
     ],
-    "explain": "Se llena a los 50 minutos y contiene 82.32 g. Reutilizar la regla de `Solve` con `/.` evita copiar números a mano."
+    "explain": "Se llena a los 50 min con 82.32 g. Reutilizar la regla con `/.` evita copiar números.",
+    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
+    "requires": [
+     "Solve"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e17",
+    "id": "2-m2-pl2-e14",
     "kind": "code",
-    "title": "Prueba de clase: ¿cuándo hay 50 g?",
-    "prompt": "**Prueba de clase de PL2 (curso anterior), mismo depósito.** Con `v[t]` y `ys[t]` ya definidos: halla con `FindRoot` (empezando en t = 20) el instante en que hay 50 g de soluto, guárdalo en `r`, y calcula en la última línea la concentración (g/l) en ese instante.",
+    "title": "¿Cuándo hay 50 g?",
+    "prompt": "**Prueba de clase.** Con `v[t]` y `ys[t]`: instante con 50 g (`FindRoot` desde t = 20, en `r`) y termina con la concentración entonces.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
@@ -1095,7 +1089,6 @@
     ],
     "real": true,
     "source": "PL2 · prueba de sesión 2020-21",
-    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
     "solution": "r = FindRoot[ys[t] == 50, {t, 20}]\n50/v[t] /. r",
     "check": {
      "type": "expr",
@@ -1103,62 +1096,52 @@
      "compare": "numeric",
      "tol": 0.0001
     },
-    "requires": [
-     "FindRoot"
-    ],
     "hints": [
-     "`r = FindRoot[ys[t] == 50, {t, 20}]` devuelve una regla `{t -> 26.447…}`.",
+     "`r = FindRoot[ys[t] == 50, {t, 20}]`",
      "Concentración = cantidad/volumen: `50/v[t] /. r`."
     ],
-    "explain": "t ≈ 26.45 min y concentración ≈ 0.327 g/l. En el examen de 2021 se preguntó exactamente esto con otros datos: instante de llenado, cantidad entonces, instante con cierta cantidad y concentración."
+    "explain": "t ≈ 26.45 min y 0.327 g/l. El examen de 2021 preguntó justo esto con otros datos.",
+    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
+    "requires": [
+     "FindRoot"
+    ]
    }
   },
   {
-   "type": "explain",
-   "section": "Envolventes",
-   "title": "Qué es una envolvente",
-   "md": "Una familia de curvas `G(x, y, C) = 0` puede tener una **envolvente**: una curva tangente a todas las de la familia. Es además una solución **singular** de la EDO de la familia: no sale dando un valor a la constante.\n\nSe obtiene eliminando `C` del sistema `G = 0`, `∂G/∂C = 0`.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "Calcular la envolvente",
-   "md": "Ejemplo 2.3.1 del guion: la familia `y = -x² + C x + C²`. Se escribe con todo a un lado, se deriva respecto de la constante y se elimina.",
-   "target": "G = y + x^2 - C1 x - C1^2;\nsC = Solve[D[G, C1] == 0, C1];\nSolve[(G /. Flatten[sC]) == 0, y]",
+   "section": "Envolventes",
+   "title": "Eliminar la constante",
+   "md": "Ejemplo 2.3.1: la familia `y = −x² + C x + C²` y su envolvente.",
+   "target": "Solve[(G /. Flatten[sC]) == 0, y]",
    "parts": [
     {
      "code": "G = y + x^2 - C1 x - C1^2;",
-     "md": "La familia con todo pasado a un lado (`G = 0`) y `C1` en lugar de `C`.",
+     "md": "La familia con todo a un lado, y `C1` en lugar de `C`.",
      "run": true
     },
     {
      "code": "D[G, C1]",
-     "md": "La derivada de `G` respecto de la constante.",
+     "md": "Deriva respecto de la constante.",
      "run": true
     },
     {
      "code": "sC = Solve[D[G, C1] == 0, C1]",
-     "md": "Igualada a 0, se despeja la constante: `C1 -> -x/2`.",
+     "md": "Iguala a 0 y despeja `C1`.",
      "run": true
     },
     {
      "code": "G /. Flatten[sC]",
-     "md": "Se sustituye esa constante en `G`.",
+     "md": "Sustituye esa constante en `G`.",
      "run": true
     },
     {
      "code": "Solve[(G /. Flatten[sC]) == 0, y]",
-     "md": "Y se despeja `y`: la envolvente es `y = -5x²/4`.",
-     "run": true
-    },
-    {
-     "code": "G = y + x^2 - C1 x - C1^2;\nsC = Solve[D[G, C1] == 0, C1];\nSolve[(G /. Flatten[sC]) == 0, y]",
-     "md": "La receta de la envolvente en tres líneas.",
+     "md": "Iguala a 0 y despeja `y`: es la envolvente.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: halla la envolvente de `y = -x² + C x + C²`. Define `G`, despeja `C1` de `D[G, C1] == 0` (guárdalo en `sC`) y termina con el `Solve` que da `y`.",
+    "prompt": "Envolvente de `y = −x² + C x + C²`: define `G`, despeja `C1` (en `sC`) y despeja `y`.",
     "hints": [
      "Línea 1: `G = y + x^2 - C1 x - C1^2;`",
      "Línea 2: `sC = Solve[D[G, C1] == 0, C1];`",
@@ -1168,8 +1151,10 @@
      "type": "expr",
      "expected": "{{y -> -5 x^2/4}}",
      "compare": "set"
-    }
+    },
+    "solution": "G = y + x^2 - C1 x - C1^2;\nsC = Solve[D[G, C1] == 0, C1];\nSolve[(G /. Flatten[sC]) == 0, y]"
    },
+   "more": "La envolvente es una curva tangente a todas las de la familia. Sale de eliminar `C` entre `G = 0` y `∂G/∂C = 0`, y es una solución singular: no corresponde a ningún valor de la constante.",
    "cmds": [
     "D",
     "Solve",
@@ -1179,10 +1164,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e18",
+    "id": "2-m2-pl2-e15",
     "kind": "code",
     "title": "Tu envolvente",
-    "prompt": "Halla la envolvente de la familia de rectas `y = C x - C^2`. Escribe `G` (todo a un lado, con `C1`), despeja `C1` de `D[G, C1] == 0`, sustituye y termina con el `Solve` que da `y` en función de `x`.",
+    "prompt": "Halla la envolvente de las rectas `y = C x − C²`: `G`, `sC` y el `Solve` final que da `y`.",
     "difficulty": 3,
     "cmds": [
      "D",
@@ -1197,49 +1182,51 @@
      "expected": "{{y -> x^2/4}}",
      "compare": "set"
     },
+    "hints": [
+     "`G = y - C1 x + C1^2;`",
+     "`sC = Solve[D[G, C1] == 0, C1];`",
+     "`Solve[(G /. Flatten[sC]) == 0, y]`"
+    ],
+    "explain": "La envolvente es la parábola `y = x^2/4`.",
     "requires": [
      "D",
      "Solve"
-    ],
-    "hints": [
-     "`G = y - C1 x + C1^2;`",
-     "`sC = Solve[D[G, C1] == 0, C1];` da `C1 -> x/2`.",
-     "`Solve[(G /. Flatten[sC]) == 0, y]`"
-    ],
-    "explain": "La envolvente es la parábola `y = x^2/4`: cada recta de la familia es tangente a ella."
+    ]
    }
   },
   {
    "type": "build",
-   "title": "Dibujar la familia con su envolvente",
-   "md": "Para verlo se dibuja la familia y, encima, la envolvente en trazo grueso (código del guion).",
-   "target": "q1 = Plot[Evaluate[Table[-x^2 + C1 x + C1^2, {C1, -2, 2, 0.2}]], {x, -2, 2}, PlotRange -> {-5, 5}];\nq2 = Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}];\nShow[q1, q2]",
+   "title": "Verla",
+   "md": "Dibuja la familia y, encima, la envolvente en trazo grueso.",
+   "target": "Show[q1, q2]",
    "parts": [
     {
      "code": "q1 = Plot[Evaluate[Table[-x^2 + C1 x + C1^2, {C1, -2, 2, 0.2}]], {x, -2, 2}, PlotRange -> {-5, 5}];",
-     "md": "La familia: `Table` + `Evaluate`, como en PL1.",
+     "md": "La familia, en `q1`.",
      "run": true
     },
     {
-     "code": "PlotStyle -> {AbsoluteThickness[4], Blue}",
-     "md": "Opción de estilo: grosor 4 y color azul."
+     "code": "Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}]",
+     "md": "La envolvente, gruesa y azul.",
+     "run": true
     },
     {
      "code": "q2 = Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}];",
-     "md": "La envolvente, gruesa.",
+     "md": "Guárdala en `q2`.",
      "run": true
     },
     {
-     "code": "q1 = Plot[Evaluate[Table[-x^2 + C1 x + C1^2, {C1, -2, 2, 0.2}]], {x, -2, 2}, PlotRange -> {-5, 5}];\nq2 = Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}];\nShow[q1, q2]",
-     "md": "Y `Show` para verlas juntas.",
+     "code": "Show[q1, q2]",
+     "md": "Juntas: cada curva toca a la envolvente.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: dibuja la familia `-x^2 + C1 x + C1^2` (C1 de −2 a 2 con paso 0.2, x entre −2 y 2, `PlotRange -> {-5, 5}`) en `q1`, la envolvente `-5 x^2/4` gruesa y azul en `q2`, y júntalas con `Show`.",
+    "prompt": "Familia `-x^2 + C1 x + C1^2` (C1 −2 a 2, paso 0.2) en `q1`, envolvente gruesa en `q2`, y `Show`.",
     "hints": [
-     "Tres líneas: `q1 = Plot[Evaluate[Table[...]], ...];`, `q2 = Plot[...];`, `Show[q1, q2]`.",
-     "El estilo: `PlotStyle -> {AbsoluteThickness[4], Blue}`."
+     "`q1 = Plot[Evaluate[Table[-x^2 + C1 x + C1^2, {C1, -2, 2, 0.2}]], {x, -2, 2}, PlotRange -> {-5, 5}];`",
+     "`q2 = Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}];`",
+     "`Show[q1, q2]`"
     ],
     "check": {
      "type": "graphics",
@@ -1248,8 +1235,9 @@
      "has": [
       "line"
      ],
-     "msg": "La figura debe llevar la familia (21 curvas) y la envolvente: `Show[q1, q2]`."
-    }
+     "msg": "La figura debe llevar la familia y la envolvente: `Show[q1, q2]`."
+    },
+    "solution": "q1 = Plot[Evaluate[Table[-x^2 + C1 x + C1^2, {C1, -2, 2, 0.2}]], {x, -2, 2}, PlotRange -> {-5, 5}];\nq2 = Plot[-5 x^2/4, {x, -2, 2}, PlotStyle -> {AbsoluteThickness[4], Blue}];\nShow[q1, q2]"
    },
    "cmds": [
     "Plot",
@@ -1260,24 +1248,49 @@
    ]
   },
   {
-   "type": "explain",
-   "title": "La envolvente en movimiento",
-   "md": "Con `Manipulate` se mueve una curva de la familia con un deslizador y se ve cómo va apoyándose en la envolvente. `{C1, -2, 2}` es el control: variable, desde, hasta.",
-   "cells": [
+   "type": "build",
+   "title": "Moverla",
+   "md": "Con `Manipulate`, una curva de la familia se mueve con un deslizador.",
+   "target": "Manipulate[Plot[{-5 x^2/4, -x^2 + C1 x + C1^2}, {x, -3, 3}, PlotRange -> {-8, 5}], {C1, -2, 2}]",
+   "parts": [
+    {
+     "code": "Plot[{-5 x^2/4, -x^2 + x + 1}, {x, -3, 3}, PlotRange -> {-8, 5}]",
+     "md": "Envolvente y la curva con C = 1.",
+     "run": true
+    },
+    {
+     "code": "{C1, -2, 2}",
+     "md": "El control: la constante, de −2 a 2."
+    },
     {
      "code": "Manipulate[Plot[{-5 x^2/4, -x^2 + C1 x + C1^2}, {x, -3, 3}, PlotRange -> {-8, 5}], {C1, -2, 2}]",
-     "note": "Animación del guion: mueve C1"
+     "md": "Cambia el 1 por `C1` y envuélvelo en `Manipulate`. Mueve el deslizador.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Animación del guion: `Manipulate` con la envolvente y la curva de constante `C1` entre −2 y 2.",
+    "hints": [
+     "`Manipulate[Plot[...], {C1, -2, 2}]`.",
+     "Dentro: `Plot[{-5 x^2/4, -x^2 + C1 x + C1^2}, {x, -3, 3}, PlotRange -> {-8, 5}]`."
+    ],
+    "check": {
+     "type": "none"
+    }
+   },
+   "cmds": [
+    "Manipulate",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
-   "section": "Guion, ejercicio 4",
+   "section": "Guion: ejercicio 4",
    "ex": {
-    "id": "2-m2-pl2-e19",
+    "id": "2-m2-pl2-e16",
     "kind": "code",
-    "title": "Ejercicio 4: el dibujo",
-    "prompt": "**Guion PL2, ejercicio 4 (dibujo).** Dibuja la familia `y = C x + 1/C^2` junto a la curva `y = (3/4^(1/3)) x^(2/3)`.\n\nDefine `f1[x_, C1_]` y `f2[x_]`. Dibuja la familia para C1 de 0.5 a 3 con paso 0.5 y x entre 0 y 3 (`PlotRange -> {0, 5}`), y la curva en trazo grueso negro. Última línea: `Show` de los dos gráficos.",
+    "title": "El dibujo",
+    "prompt": "**Ej. 4.** Ya definidas `f1[x, C1]` y `f2[x]`. Familia (C1 0.5 a 3, paso 0.5; x 0 a 3; `PlotRange -> {0, 5}`), `f2` gruesa, `Show`.",
     "difficulty": 3,
     "cmds": [
      "Table",
@@ -1288,55 +1301,36 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 4",
-    "solution": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);\nq1 = Plot[Evaluate[Table[f1[x, C1], {C1, 0.5, 3, 0.5}]], {x, 0, 3}, PlotRange -> {0, 5}];\nq2 = Plot[f2[x], {x, 0, 3}, PlotRange -> {0, 5}, PlotStyle -> {AbsoluteThickness[3], Black}];\nShow[q1, q2]",
+    "solution": "q1 = Plot[Evaluate[Table[f1[x, C1], {C1, 0.5, 3, 0.5}]], {x, 0, 3}, PlotRange -> {0, 5}];\nq2 = Plot[f2[x], {x, 0, 3}, PlotStyle -> {AbsoluteThickness[3], Black}];\nShow[q1, q2]",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "f1[2, 1/2]",
-       "expected": "5",
-       "compare": "equal",
-       "msg": "Define la familia como `f1[x_, C1_] = C1 x + 1/C1^2`."
-      },
-      {
-       "type": "value",
-       "expr": "f2[2]",
-       "expected": "3",
-       "compare": "numeric",
-       "tol": 1e-06,
-       "msg": "Define la curva como `f2[x_] = 3/4^(1/3) x^(2/3)`."
-      },
-      {
-       "type": "graphics",
-       "dim": 2,
-       "min": 7,
-       "has": [
-        "line"
-       ],
-       "msg": "La figura debe tener las 6 rectas de la familia y la curva: `Show[q1, q2]`."
-      }
-     ]
+     "type": "graphics",
+     "dim": 2,
+     "min": 7,
+     "has": [
+      "line"
+     ],
+     "msg": "La figura debe tener las 6 rectas y la curva: `Show[q1, q2]`."
     },
+    "hints": [
+     "`q1 = Plot[Evaluate[Table[f1[x, C1], {C1, 0.5, 3, 0.5}]], {x, 0, 3}, PlotRange -> {0, 5}];`",
+     "`q2 = Plot[f2[x], {x, 0, 3}, PlotStyle -> {AbsoluteThickness[3], Black}];`",
+     "`Show[q1, q2]`"
+    ],
+    "explain": "`f1 = C1 x + 1/C1^2` y `f2 = (3/4^(1/3)) x^(2/3)`: las rectas se apoyan en la curva. Solo x ≥ 0: `x^(2/3)` da complejos para x negativa.",
+    "setup": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);",
     "requires": [
      "Show",
      "Table"
-    ],
-    "hints": [
-     "`f1[x_, C1_] = C1 x + 1/C1^2; f2[x_] = 3/4^(1/3) x^(2/3);`",
-     "`q1 = Plot[Evaluate[Table[f1[x, C1], {C1, 0.5, 3, 0.5}]], {x, 0, 3}, PlotRange -> {0, 5}];`",
-     "`q2 = Plot[f2[x], {x, 0, 3}, PlotRange -> {0, 5}, PlotStyle -> {AbsoluteThickness[3], Black}];` y `Show[q1, q2]`."
-    ],
-    "explain": "Las rectas se apoyan sobre la curva gruesa: es la envolvente de la familia. Se dibuja solo x ≥ 0 porque `x^(2/3)` da complejos para x negativa."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e20",
+    "id": "2-m2-pl2-e17",
     "kind": "code",
-    "title": "Ejercicio 4: la familia es solución",
-    "prompt": "**Guion PL2, ejercicio 4 (comprobación, 1).** Con `f1[x, C1]` ya definida, comprueba sustituyendo que cumple `y = x y' + 1/(y')^2`: calcula el residuo `x y' + 1/y'^2 - y` simplificado.",
+    "title": "La familia es solución",
+    "prompt": "**Ej. 4.** Con `f1[x, C1]` definida, comprueba `y = x y' + 1/(y')²`: residuo `x y' + 1/y'^2 - y`, simplificado.",
     "difficulty": 2,
     "cmds": [
      "D",
@@ -1344,30 +1338,30 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 4",
-    "setup": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);",
     "solution": "x D[f1[x, C1], x] + 1/D[f1[x, C1], x]^2 - f1[x, C1] // Simplify",
     "check": {
      "type": "expr",
      "expected": "0",
      "compare": "equal"
     },
-    "requires": [
-     "D"
-    ],
     "hints": [
-     "La derivada es `D[f1[x, C1], x]`; aparece dos veces.",
+     "La derivada `D[f1[x, C1], x]` aparece dos veces.",
      "`x D[f1[x, C1], x] + 1/D[f1[x, C1], x]^2 - f1[x, C1] // Simplify`"
     ],
-    "explain": "0: la familia de rectas es la solución general de esa ecuación (una ecuación de Clairaut)."
+    "explain": "0: la familia de rectas es la solución general.",
+    "setup": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);",
+    "requires": [
+     "D"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e21",
+    "id": "2-m2-pl2-e18",
     "kind": "code",
-    "title": "Ejercicio 4: la curva también",
-    "prompt": "**Guion PL2, ejercicio 4 (comprobación, 2).** Lo mismo con la curva `f2[x]` (ya definida): calcula su residuo en `y = x y' + 1/(y')^2`, simplificado.",
+    "title": "La curva también",
+    "prompt": "**Ej. 4.** Lo mismo con `f2[x]` (ya definida): su residuo en `y = x y' + 1/(y')²`, simplificado.",
     "difficulty": 2,
     "cmds": [
      "D",
@@ -1375,62 +1369,52 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 4",
-    "setup": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);",
     "solution": "x D[f2[x], x] + 1/D[f2[x], x]^2 - f2[x] // Simplify",
     "check": {
      "type": "expr",
      "expected": "0",
      "compare": "equal"
     },
-    "requires": [
-     "D"
-    ],
     "hints": [
-     "Igual que antes, cambiando `f1[x, C1]` por `f2[x]`.",
+     "Cambia `f1[x, C1]` por `f2[x]`.",
      "`x D[f2[x], x] + 1/D[f2[x], x]^2 - f2[x] // Simplify`"
     ],
-    "explain": "También 0: la curva es la solución singular (la envolvente), que no se obtiene con ningún valor de C."
+    "explain": "También 0: es la solución singular (la envolvente).",
+    "setup": "f1[x_, C1_] = C1 x + 1/C1^2;\nf2[x_] = 3/4^(1/3) x^(2/3);",
+    "requires": [
+     "D"
+    ]
    }
   },
   {
-   "type": "explain",
-   "section": "Trayectorias ortogonales",
-   "title": "Curvas que se cortan a 90°",
-   "md": "Las **trayectorias ortogonales** de una familia son las curvas que cortan a todas las de la familia en ángulo recto (líneas de corriente y equipotenciales, por ejemplo). Tres pasos:\n\n- **EDO de la familia**: de la curva y su derivada se elimina la constante;\n- **cambiar la pendiente**: dos rectas perpendiculares cumplen m·m' = −1, así que en la EDO se sustituye `y'` por `-1/z'` (y `y` por `z`);\n- **resolver** la nueva EDO con `DSolve`.\n\nPara un ángulo cualquiera ω (trayectorias **isogonales**) se sustituye `y'` por `(z' - tan ω)/(1 + z' tan ω)`.",
-   "cells": []
-  },
-  {
    "type": "build",
+   "section": "Trayectorias ortogonales",
    "title": "La EDO de una familia",
-   "md": "Ejemplo 2.4.1 del guion: la familia `y = C x² + C`. Llamamos `yp` a la pendiente y'. Con la curva y su derivada (dos ecuaciones) se despejan `yp` y la constante (dos incógnitas).",
+   "md": "Ejemplo 2.4.1: familia `y = C x² + C`. Elimina la constante.",
    "target": "Solve[{y == C1 x^2 + C1, yp == D[C1 x^2 + C1, x]}, {yp, C1}]",
    "parts": [
     {
      "code": "y == C1 x^2 + C1",
-     "md": "La curva, escrita como ecuación."
+     "md": "La curva, como ecuación."
     },
     {
      "code": "yp == D[C1 x^2 + C1, x]",
-     "md": "Su derivada: la pendiente `yp` es la derivada del lado derecho.",
+     "md": "Su pendiente `yp`: la derivada del lado derecho.",
      "run": true
     },
     {
      "code": "Solve[{y == C1 x^2 + C1, yp == D[C1 x^2 + C1, x]}, {yp, C1}]",
-     "md": "Sistema de dos ecuaciones, incógnitas `yp` y `C1`. Lo que sale para `yp` es la EDO: `y' = 2xy/(1 + x²)`.",
-     "run": true
+     "md": "Dos ecuaciones, dos incógnitas: `yp` y `C1`.",
+     "run": true,
+     "hint": "Lo que sale para `yp` es la EDO de la familia: `y' = 2xy/(1 + x²)`."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: obtén la EDO de la familia `y = C1 x^2 + C1` con un `Solve` de dos ecuaciones (la curva y su derivada) e incógnitas `yp` y `C1`.",
+    "prompt": "EDO de la familia `y = C1 x^2 + C1`: `Solve` con la curva y su derivada, incógnitas `yp` y `C1`.",
     "hints": [
      "`Solve[{ecuación1, ecuación2}, {yp, C1}]`.",
-     "Las ecuaciones: `y == C1 x^2 + C1` y `yp == D[C1 x^2 + C1, x]`."
-    ],
-    "check": {
-     "type": "satisfies",
-     "test": "True",
-     "msg": "x"
-    }
+     "`y == C1 x^2 + C1` y `yp == D[C1 x^2 + C1, x]`."
+    ]
    },
    "cmds": [
     "Solve",
@@ -1439,36 +1423,32 @@
   },
   {
    "type": "build",
-   "title": "Resolver las ortogonales",
-   "md": "La EDO de la familia es `y' = 2xy/(1 + x²)`. Para las ortogonales, `y'` pasa a ser `-1/z'` e `y` pasa a ser `z`.",
+   "title": "Girar 90 grados",
+   "md": "La EDO de la familia es `y' = 2xy/(1 + x²)`. Perpendicular: `y'` pasa a `−1/z'`.",
    "target": "DSolve[-1/z'[x] == 2 x z[x]/(x^2 + 1), z[x], x]",
    "parts": [
     {
      "code": "-1/z'[x]",
-     "md": "La pendiente perpendicular: menos uno partido por la derivada de la nueva función `z`."
+     "md": "La pendiente perpendicular, con la nueva función `z`."
     },
     {
      "code": "-1/z'[x] == 2 x z[x]/(x^2 + 1)",
-     "md": "La EDO de la familia con el cambio hecho."
+     "md": "La EDO con el cambio: `y'` → `-1/z'`, `y` → `z`."
     },
     {
      "code": "DSolve[-1/z'[x] == 2 x z[x]/(x^2 + 1), z[x], x]",
-     "md": "`DSolve` de siempre, con `z[x]` como incógnita. Salen dos ramas (±).",
+     "md": "Resuélvela: salen dos ramas (±).",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: halla las trayectorias ortogonales a la familia con EDO `y' = 2xy/(x^2 + 1)`: sustituye `y'` por `-1/z'[x]` y resuelve con `DSolve` para `z[x]`.",
+    "prompt": "Ortogonales a la familia con EDO `y' = 2xy/(x² + 1)`: cambia `y'` por `-1/z'[x]` y usa `DSolve`.",
     "hints": [
      "`DSolve[ecuación, z[x], x]`.",
-     "La ecuación: `-1/z'[x] == 2 x z[x]/(x^2 + 1)`."
-    ],
-    "check": {
-     "type": "satisfies",
-     "test": "True",
-     "msg": "x"
-    }
+     "`-1/z'[x] == 2 x z[x]/(x^2 + 1)`"
+    ]
    },
+   "more": "Dos rectas perpendiculares cumplen m·m' = −1. Para un ángulo ω cualquiera (isogonales) se sustituye `y'` por `(z' − tan ω)/(1 + z' tan ω)`.",
    "cmds": [
     "DSolve"
    ]
@@ -1476,10 +1456,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e22",
+    "id": "2-m2-pl2-e19",
     "kind": "code",
-    "title": "Ortogonales a unas parábolas",
-    "prompt": "Halla las trayectorias ortogonales a la familia de parábolas `y = C x^2`.\n\nPrimero obtén la EDO de la familia con `Solve` (incógnitas `yp` y `C1`). Después sustituye `y'` por `-1/z'` y resuelve con `DSolve` para `z[x]`; guarda el resultado de `DSolve` en `ort`.",
+    "title": "Ortogonales a parábolas",
+    "prompt": "Familia `y = C x²`: saca su EDO con `Solve` (`yp`, `C1`) y guarda en `ort` el `DSolve` de las ortogonales `z[x]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -1492,28 +1472,81 @@
     "check": {
      "type": "satisfies",
      "test": "Length[ort] >= 1 && Max[Abs[(D[z[x] /. #, x] + x/(2 (z[x] /. #)) /. {x -> 0.3, C[1] -> 2.}) & /@ ort]] < 10^-6",
-     "msg": "`ort` debe ser el resultado de `DSolve` para la ecuación de las ortogonales, `-1/z' = 2z/x`, con función `z[x]`."
+     "msg": "`ort` debe ser el `DSolve` de `-1/z' = 2z/x`, con función `z[x]`."
     },
+    "hints": [
+     "`Solve[{y == C1 x^2, yp == D[C1 x^2, x]}, {yp, C1}]` da `yp -> 2 y/x`.",
+     "Cambia `y'` por `-1/z'[x]` e `y` por `z[x]`.",
+     "`ort = DSolve[-1/z'[x] == 2 z[x]/x, z[x], x]`"
+    ],
+    "explain": "Salen las elipses `x^2/2 + z^2 = C`.",
     "requires": [
      "DSolve",
      "Solve"
-    ],
-    "hints": [
-     "`Solve[{y == C1 x^2, yp == D[C1 x^2, x]}, {yp, C1}]` da `yp -> 2 y/x`: la EDO de la familia es `y' = 2y/x`.",
-     "Cambia `y'` por `-1/z'[x]` e `y` por `z[x]`: `-1/z'[x] == 2 z[x]/x`.",
-     "`ort = DSolve[-1/z'[x] == 2 z[x]/x, z[x], x]`"
-    ],
-    "explain": "Salen `z = ±Sqrt[C - x^2/2]`, es decir, las elipses `x^2/2 + z^2 = C`: cortan a todas las parábolas en ángulo recto."
+    ]
    }
   },
   {
+   "type": "build",
+   "title": "Verlas a escala",
+   "md": "Dibuja las dos familias del ejemplo con la misma escala en ambos ejes.",
+   "target": "Show[v1, v2]",
+   "parts": [
+    {
+     "code": "Plot[Evaluate[Table[C1 x^2 + C1, {C1, -2, 2, 0.5}]], {x, -2, 2}, PlotRange -> {-2, 2}]",
+     "md": "La familia: sale achatada.",
+     "run": true
+    },
+    {
+     "code": "v1 = Plot[Evaluate[Table[C1 x^2 + C1, {C1, -2, 2, 0.5}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];",
+     "md": "Con `AspectRatio -> Automatic`, misma escala. Guárdala en `v1`.",
+     "run": true
+    },
+    {
+     "code": "v2 = Plot[Evaluate[Table[{1, -1} Sqrt[(C1 - x^2 - Log[x^2])/2], {C1, 1, 9, 2}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];",
+     "md": "Las ortogonales, las dos ramas `{1, -1} Sqrt[...]`, en `v2`.",
+     "run": true
+    },
+    {
+     "code": "Show[v1, v2]",
+     "md": "Juntas: se cortan a 90°.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Familia `C1 x^2 + C1` en `v1`, ortogonales `±Sqrt[(C1 - x^2 - Log[x^2])/2]` en `v2`, a escala, y `Show`.",
+    "hints": [
+     "Las dos con `PlotRange -> {-2, 2}, AspectRatio -> Automatic`.",
+     "`v1 = Plot[Evaluate[Table[C1 x^2 + C1, {C1, -2, 2, 0.5}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];`",
+     "`v2 = Plot[Evaluate[Table[{1, -1} Sqrt[(C1 - x^2 - Log[x^2])/2], {C1, 1, 9, 2}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 12,
+     "has": [
+      "line"
+     ],
+     "msg": "La figura debe contener las dos familias: `Show[v1, v2]`."
+    },
+    "solution": "v1 = Plot[Evaluate[Table[C1 x^2 + C1, {C1, -2, 2, 0.5}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];\nv2 = Plot[Evaluate[Table[{1, -1} Sqrt[(C1 - x^2 - Log[x^2])/2], {C1, 1, 9, 2}]], {x, -2, 2}, PlotRange -> {-2, 2}, AspectRatio -> Automatic];\nShow[v1, v2]"
+   },
+   "cmds": [
+    "Plot",
+    "Table",
+    "Evaluate",
+    "Show",
+    "AspectRatio"
+   ]
+  },
+  {
    "type": "exercise",
-   "section": "Guion, ejercicio 5",
+   "section": "Guion: ejercicio 5",
    "ex": {
-    "id": "2-m2-pl2-e23",
+    "id": "2-m2-pl2-e20",
     "kind": "code",
-    "title": "Ejercicio 5: la EDO de la familia",
-    "prompt": "**Guion PL2, ejercicio 5 (primer paso).** Para la familia `y = 1 + C/x`, obtén su ecuación diferencial eliminando la constante: un `Solve` con la curva y su derivada, incógnitas `yp` (la pendiente y') y `C1`. Guarda el resultado en `edoF`.",
+    "title": "La EDO de la familia",
+    "prompt": "**Ej. 5.** Familia `y = 1 + C/x`: elimina la constante con `Solve` (incógnitas `yp`, `C1`). Guarda el resultado en `edoF`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -1525,26 +1558,26 @@
     "check": {
      "type": "satisfies",
      "test": "Abs[((yp /. First[edoF]) - (1 - y)/x) /. {x -> 0.7, y -> 1.3}] < 10^-8",
-     "msg": "`edoF` debe contener `yp` despejada en función de x e y (sin `C1`): `Solve[{curva, derivada}, {yp, C1}]`."
+     "msg": "`edoF` debe dar `yp` en función de x e y: `Solve[{curva, derivada}, {yp, C1}]`."
     },
+    "hints": [
+     "Ecuaciones: `y == 1 + C1/x` y `yp == D[1 + C1/x, x]`.",
+     "`edoF = Solve[{y == 1 + C1/x, yp == D[1 + C1/x, x]}, {yp, C1}]`"
+    ],
+    "explain": "`yp -> (1 - y)/x`: la EDO es `y' = (1 − y)/x`.",
     "requires": [
      "Solve",
      "D"
-    ],
-    "hints": [
-     "Las dos ecuaciones son `y == 1 + C1/x` y `yp == D[1 + C1/x, x]`.",
-     "`edoF = Solve[{y == 1 + C1/x, yp == D[1 + C1/x, x]}, {yp, C1}]`"
-    ],
-    "explain": "Sale `yp -> (1 - y)/x`: la EDO de la familia es `y' = (1 - y)/x`."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e24",
+    "id": "2-m2-pl2-e21",
     "kind": "code",
-    "title": "Ejercicio 5: las ortogonales",
-    "prompt": "**Guion PL2, ejercicio 5 (segundo paso).** La EDO de la familia es `y' = (1 - y)/x`. Sustituye `y'` por `-1/z'` y resuelve con `DSolve` para `z[x]`. Guarda el resultado en `ort`.",
+    "title": "Las ortogonales",
+    "prompt": "**Ej. 5.** La EDO de la familia es `y' = (1 − y)/x`. Cambia `y'` por `-1/z'` y guarda en `ort` el `DSolve` para `z[x]`.",
     "difficulty": 3,
     "cmds": [
      "DSolve"
@@ -1555,25 +1588,25 @@
     "check": {
      "type": "satisfies",
      "test": "Length[ort] >= 1 && Max[Abs[(D[z[x] /. #, x] - x/((z[x] /. #) - 1) /. {x -> 0.3, C[1] -> 2.}) & /@ ort]] < 10^-6",
-     "msg": "`ort` debe ser el resultado de `DSolve` para `-1/z' = (1 - z)/x`, con función `z[x]`."
+     "msg": "`ort` debe ser el `DSolve` de `-1/z' = (1 − z)/x`, con función `z[x]`."
     },
-    "requires": [
-     "DSolve"
-    ],
     "hints": [
-     "En `y' = (1 - y)/x` cambia `y'` por `-1/z'[x]` e `y` por `z[x]`.",
+     "Cambia `y'` por `-1/z'[x]` e `y` por `z[x]`.",
      "`ort = DSolve[-1/z'[x] == (1 - z[x])/x, z[x], x]`"
     ],
-    "explain": "`z = 1 ± Sqrt[x^2 + C]`: son las hipérbolas `(z - 1)^2 - x^2 = C`."
+    "explain": "`z = 1 ± Sqrt[x^2 + C]`: las hipérbolas `(z − 1)² − x² = C`.",
+    "requires": [
+     "DSolve"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e25",
+    "id": "2-m2-pl2-e22",
     "kind": "code",
-    "title": "Ejercicio 5: la familia, a escala",
-    "prompt": "**Guion PL2, ejercicio 5 (dibujo, 1).** Define `g1[t_, C1_] = 1 + C1/t` y dibuja la familia para C1 de −2 a 2 con paso 0.5, t entre −2 y 2, con `PlotRange -> {-2, 4}` y `AspectRatio -> Automatic` (misma escala en los dos ejes: sin eso los ángulos rectos se ven deformados).",
+    "title": "La familia, a escala",
+    "prompt": "**Ej. 5.** Dibuja `1 + C1/t` para C1 de −2 a 2 (paso 0.5), t de −2 a 2, `PlotRange -> {-2, 4}`, a escala. Guárdalo en `v1`.",
     "difficulty": 2,
     "cmds": [
      "Plot",
@@ -1583,46 +1616,34 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 5",
-    "solution": "g1[t_, C1_] = 1 + C1/t;\nPlot[Evaluate[Table[g1[t, C1], {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic]",
+    "solution": "v1 = Plot[Evaluate[Table[1 + C1/t, {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic]",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "g1[2, 1]",
-       "expected": "3/2",
-       "compare": "equal",
-       "msg": "Define `g1[t_, C1_] = 1 + C1/t`."
-      },
-      {
-       "type": "graphics",
-       "dim": 2,
-       "min": 8,
-       "has": [
-        "line"
-       ],
-       "msg": "Dibuja la familia con `Plot[Evaluate[Table[...]], ...]`."
-      }
-     ]
+     "type": "graphics",
+     "dim": 2,
+     "min": 8,
+     "has": [
+      "line"
+     ],
+     "msg": "Dibuja la familia con `Plot[Evaluate[Table[...]], ...]`."
     },
+    "hints": [
+     "A escala: `AspectRatio -> Automatic`.",
+     "`v1 = Plot[Evaluate[Table[1 + C1/t, {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic]`"
+    ],
+    "explain": "Una unidad mide lo mismo en horizontal y en vertical.",
     "requires": [
      "Plot",
      "AspectRatio"
-    ],
-    "hints": [
-     "`g1[t_, C1_] = 1 + C1/t;`",
-     "`Plot[Evaluate[Table[g1[t, C1], {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic]`"
-    ],
-    "explain": "`AspectRatio -> Automatic` hace que una unidad mida lo mismo en horizontal y en vertical."
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl2-e26",
+    "id": "2-m2-pl2-e23",
     "kind": "code",
-    "title": "Ejercicio 5: las dos familias juntas",
-    "prompt": "**Guion PL2, ejercicio 5 (dibujo, 2).** Ya está guardada en `v1` la familia `1 + C1/t`. Las ortogonales son `1 ± Sqrt[t^2 + C1]`: dibuja las dos ramas para C1 de 0 a 4 con paso 1 (t entre −2 y 2, `PlotRange -> {-2, 4}`, `AspectRatio -> Automatic`), guarda el gráfico en `v2` y termina con `Show[v1, v2]`.",
+    "title": "Las dos familias",
+    "prompt": "**Ej. 5.** `v1` ya guardada. Ortogonales `1 ± Sqrt[t^2 + C1]` (C1 de 0 a 4, paso 1), mismas opciones, en `v2`; termina con `Show`.",
     "difficulty": 3,
     "cmds": [
      "Plot",
@@ -1634,7 +1655,6 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 5",
-    "setup": "v1 = Plot[Evaluate[Table[1 + C1/t, {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic, PlotStyle -> Black];",
     "solution": "v2 = Plot[Evaluate[Table[{1 - Sqrt[t^2 + C1], 1 + Sqrt[t^2 + C1]}, {C1, 0, 4, 1}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic];\nShow[v1, v2]",
     "check": {
      "type": "graphics",
@@ -1643,18 +1663,19 @@
      "has": [
       "line"
      ],
-     "msg": "La figura debe contener las dos familias: `Show[v1, v2]`, con las dos ramas de cada hipérbola."
+     "msg": "La figura debe contener las dos familias: `Show[v1, v2]`, con las dos ramas."
     },
+    "hints": [
+     "Cada elemento de la tabla es una pareja: `{1 - Sqrt[t^2 + C1], 1 + Sqrt[t^2 + C1]}`.",
+     "`v2 = Plot[Evaluate[Table[{...}, {C1, 0, 4, 1}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic];`",
+     "`Show[v1, v2]`"
+    ],
+    "explain": "Las hipérbolas cortan a la familia a 90°.",
+    "setup": "v1 = Plot[Evaluate[Table[1 + C1/t, {C1, -2, 2, 0.5}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic, PlotStyle -> Black];",
     "requires": [
      "Show",
      "Table"
-    ],
-    "hints": [
-     "Cada elemento de la tabla es una pareja con las dos ramas: `{1 - Sqrt[t^2 + C1], 1 + Sqrt[t^2 + C1]}`.",
-     "`v2 = Plot[Evaluate[Table[{1 - Sqrt[t^2 + C1], 1 + Sqrt[t^2 + C1]}, {C1, 0, 4, 1}]], {t, -2, 2}, PlotRange -> {-2, 4}, AspectRatio -> Automatic];`",
-     "`Show[v1, v2]`"
-    ],
-    "explain": "Las hipérbolas cortan a la familia a 90°. Así dibuja el guion su ejemplo 2.4.1: una familia en negro, la otra en color, y `Show`."
+    ]
    }
   }
  ]

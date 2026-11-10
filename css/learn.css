@@ -4,6 +4,15 @@
    Prefixes: .lx- shared · .ex- exercise · .lp- lesson · .pr- practice · .sm- exam. */
 
 /* ============================================================ shared */
+/* Hardening: nothing of LEARN may ever fall back to native button / list looks (e.g. while another stylesheet is stale). */
+:where(button):where([class^="lx-"], [class*=" lx-"], [class^="ls-"], [class*=" ls-"], [class^="lp-"], [class*=" lp-"], [class^="pr-"], [class*=" pr-"], [class^="sm-"], [class*=" sm-"], [class^="ex-"], [class*=" ex-"]) { -webkit-appearance: none; appearance: none; background: none; border: 0; border-radius: 0; margin: 0; padding: 0; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
+:where(ol, ul):where([class^="ls-"], [class^="lp-"], [class^="pr-"], [class^="sm-"], [class^="ex-"]) { list-style: none; margin: 0; padding: 0; }
+:where(a):where([class^="ls-"], [class^="lp-"], [class^="pr-"], [class^="sm-"]) { text-decoration: none; }
+
+/* The STATEMENT is the headline of every screen: large, light, tight; code tokens in black monospace. */
+.lx-statement { margin: 0; font-size: clamp(1.4rem, 1rem + 1.9vw, 2.15rem); font-weight: 300; line-height: 1.22; letter-spacing: -.005em; color: var(--accent); max-width: 36ch; text-wrap: balance; }
+.lx-statement code { font-family: var(--mono); font-size: .86em; font-weight: 500; color: var(--ink); background: none; border: 0; padding: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.lx-statement strong { font-weight: 400; color: inherit; }
 .lx-md > :first-child { margin-top: 0; }
 .lx-md > :last-child { margin-bottom: 0; }
 .lx-md p { margin: 0 0 .75em; }
@@ -80,7 +89,7 @@ pre.lx-paper { padding: 9px 12px; }
 .lx-more-b { padding: 6px 0 4px 12px; margin-top: 4px; border-left: 2px solid var(--line); font-size: .96rem; color: var(--text); max-width: 66ch; }
 
 /* ============================================================ exercise widget */
-.ex { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ex { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .ex-head { display: flex; flex-direction: column; gap: 6px; }
 .ex-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .78rem; color: var(--muted); min-height: 1.5em; }
 .ex-kind { color: var(--muted); }
@@ -90,7 +99,8 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-xp[hidden] { display: none; }
 .ex-prior:empty { display: none; }
 .ex-title { font-size: 1.25rem; font-weight: 600; margin: 0; }
-.ex-prompt { font-size: 1.04rem; max-width: 70ch; }
+.ex-prompt { max-width: 32ch; }
+.ex-label { font-size: .8rem; color: var(--muted); margin-bottom: -6px; }
 .ex-body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .ex-cell { min-width: 0; }
 .ex-ref { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -135,7 +145,8 @@ pre.lx-paper { padding: 9px 12px; }
 .ex-diff-v { background: none !important; border: 0 !important; padding: 0 !important; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 5.4em; overflow: auto; color: var(--ink); }
 .ex-tips { margin: 0; padding-left: 1.1em; font-size: .9rem; color: var(--text); }
 .ex-tips b { font-weight: 600; }
-.ex-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.ex-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--line); opacity: .8; }
+.ex-foot .ex-badges { flex: 1 1 auto; font-size: .74rem; }
 .ex-foot-l { font-size: .76rem; color: var(--dim); }
 .ex-cmds { display: flex; flex-wrap: wrap; gap: 5px; }
 .ex-cmds .chip { text-decoration: none; font-size: .76rem; }
@@ -163,15 +174,6 @@ pre.lx-paper { padding: 9px 12px; }
 .lp-prog { display: flex; align-items: center; gap: 12px; }
 .lp-prog .progress { flex: 1; }
 .lp-count { font: 400 .74rem var(--mono); color: var(--dim); white-space: nowrap; }
-.lp-dots { flex: 1; display: flex; gap: 2px; align-items: center; height: 12px; min-width: 0; }
-.lp-dot { flex: 1 1 0; min-width: 3px; height: 2px; border: 0; padding: 0; border-radius: 0; background: var(--line); cursor: pointer; position: relative; transition: background .2s; }
-.lp-dot::after { content: ""; position: absolute; inset: -6px 0; }
-.lp-dot[data-st="seen"] { background: var(--dim); }
-.lp-dot[data-st="ok"] { background: var(--ok); }
-.lp-dot[data-st="tried"] { background: var(--bad); }
-.lp-dot[data-st="review"] { background: var(--warn); }
-.lp-dot.is-cur { height: 4px; background: var(--accent); }
-.lp-dot.is-end { flex: 0 0 4px; }
 .lp-stage { min-width: 0; }
 .lp-step { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 @keyframes lp-in-r { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
@@ -179,6 +181,7 @@ pre.lx-paper { padding: 9px 12px; }
 .lp-in-r { animation: lp-in-r .22s var(--ease) both; } .lp-in-l { animation: lp-in-l .22s var(--ease) both; } .lp-in { animation: lx-rise .22s var(--ease) both; }
 .lp-kicker { font-size: .8rem; color: var(--muted); margin-bottom: -12px; }
 .lp-kicker-real { color: var(--warn); }
+.lp-end-txt .lp-kicker, .sm-count-t .lp-kicker { margin-bottom: 0; }
 .lp-title { font-size: clamp(1.75rem, 5vw, 2.4rem); font-weight: 300; line-height: 1.15; color: var(--accent); margin: 0 0 4px; letter-spacing: -.005em; }
 .lp-title code { font-size: .9em; background: none; border: 0; padding: 0; color: inherit; }
 .lp-md { font-size: 1.06rem; line-height: 1.6; max-width: 68ch; }
@@ -246,7 +249,7 @@ pre.lx-paper { padding: 9px 12px; }
 }
 
 /* ============================================================ lesson: one thing per screen (SPEC §13) */
-.ls { display: flex; flex-direction: column; min-width: 0; max-width: 680px; margin: 0 auto; }
+.ls { display: flex; flex-direction: column; min-width: 0; max-width: 720px; margin: 0 auto; }
 .ls--list { gap: 14px; }
 .ls--list .lp-title { margin-top: 2px; }
 .ls-summary { margin: 0; font-size: 1.05rem; color: var(--muted); max-width: 62ch; }
@@ -268,14 +271,15 @@ pre.lx-paper { padding: 9px 12px; }
 .ls-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 10px; }
 .ls-cmds { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; font-size: .82rem; }
 
-.ls--tramo { min-height: calc(100dvh - var(--hud-h, 60px) - 150px); max-width: 640px; }
+.ls--tramo { min-height: calc(100dvh - var(--hud-h, 60px) - 150px); max-width: 720px; }
 .ls-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 6px 14px; padding-bottom: 0; }
 .ls-top-t { font-size: .84rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
 .ls-count { font: 400 .74rem var(--mono); color: var(--dim); white-space: nowrap; }
 .ls-bar { grid-column: 1 / -1; height: 2px; background: var(--line); }
 .ls-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s var(--ease); }
 .ls-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; padding: clamp(18px, 5vh, 44px) 0 28px; min-width: 0; }
-.ls-screen { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ls-screen { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.ls-label { font-size: .8rem; color: var(--muted); margin-bottom: -12px; }
 .ls-screen .lp-title { margin: -8px 0 0; font-size: clamp(1.5rem, 4.4vw, 2rem); }
 .ls-line { margin: 0; font-size: 1.12rem; line-height: 1.5; max-width: 62ch; }
 .ls-text { font-size: 1.12rem; line-height: 1.6; max-width: 62ch; }
@@ -284,7 +288,7 @@ pre.lx-paper { padding: 9px 12px; }
 .ls-ex { min-width: 0; }
 .ls-hint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0; font-size: .82rem; color: var(--muted); }
 .ls-hint[hidden] { display: none; }
-.ls-asm { min-width: 0; margin-bottom: 4px; }
+.ls-asm { min-width: 0; margin-bottom: -10px; }
 .ls-asm-l { font-size: .72rem; color: var(--dim); }
 .ls-asm-parts { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-bottom: 4px; }
 .ls-asm-parts code { font-size: .78rem; color: var(--muted); }

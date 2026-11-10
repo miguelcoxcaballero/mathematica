@@ -791,7 +791,11 @@
     "hints": [
      "`Flatten[soluc]` quita llaves",
      "`sol = y[t] /. Flatten[soluc]`"
-    ]
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "3 Exp[-2 t]"
+    }
    },
    "cmds": [
     "Flatten"
