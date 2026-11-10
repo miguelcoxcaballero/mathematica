@@ -1,6 +1,6 @@
 // data.js (SHELL) — carga de datos con caché en memoria. Rutas relativas al sitio (GitHub Pages).
 // SPEC §4: loadCourse, loadCommands, loadSchema, loadLesson(id), loadExam(id).  Extra: loadAllLessons() y utilidades.
-import { store } from './store.js?v=1794351634';
+import { store } from './store.js?v=1794351671';
 
 const ROOT = new URL('../', import.meta.url); // …/site/
 const BASES = ['data/'];

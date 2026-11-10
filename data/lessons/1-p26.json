@@ -421,7 +421,7 @@
     "solution": "Abs[b[k]] // N",
     "check": {
      "type": "expr",
-     "expected": "9.94985274e-06",
+     "expected": "0.00000994985274",
      "compare": "numeric",
      "tol": 1e-10
     },

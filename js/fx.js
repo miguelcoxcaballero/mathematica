@@ -1,6 +1,6 @@
 // fx.js (SHELL) — sonido WebAudio sintetizado (sin ficheros) + efectos visuales + utilidades de interfaz.
 // Todo respeta store.settings.sound / store.settings.fx y prefers-reduced-motion.
-import { store } from './store.js?v=1794351634';
+import { store } from './store.js?v=1794351671';
 
 /* =====================================================================
    SONIDO
@@ -338,7 +338,7 @@ export function wlPre(code, extraClass = '') {
 let nbModule = null;
 export function ghostCell(host, code, opts = {}) {
   host.replaceChildren(wlPre(code));
-  (nbModule ||= import('./notebook.js?v=1794351634')).then((nb) => {
+  (nbModule ||= import('./notebook.js?v=1794351671')).then((nb) => {
     if (!host.isConnected || typeof nb.createCell !== 'function') return;
     const box = document.createElement('div');
     try {
