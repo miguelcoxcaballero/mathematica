@@ -5,13 +5,14 @@
  "block": "Ecuaciones diferenciales",
  "order": 3,
  "title": "EDOs de orden superior: raíces características, coeficientes indeterminados, variación de constantes y resonancia",
- "summary": "Pasas a las ecuaciones de segundo orden (muelles, circuitos, vibraciones): solución con las raíces del polinomio característico, wronskiano, solución particular por coeficientes indeterminados y por variación de constantes, y oscilaciones forzadas con resonancia. Incluye las preguntas P3 y P4 del examen de 2021.",
- "minutes": 80,
+ "summary": "Ecuaciones de segundo orden (muelles, circuitos, vibraciones): solución con las raíces características, wronskiano, solución particular por coeficientes indeterminados y por variación de constantes, y resonancia. Incluye las preguntas P3 y P4 del examen de 2021.",
+ "minutes": 130,
  "commands": [
   "Det",
   "Collect",
   "CoefficientList",
-  "I"
+  "I",
+  "ListPlot"
  ],
  "uses": [
   "DSolve",
@@ -19,6 +20,7 @@
   "D",
   "Integrate",
   "Simplify",
+  "Expand",
   "ReplaceAll",
   "Flatten",
   "Exp",
@@ -28,27 +30,88 @@
   "Plot",
   "Manipulate",
   "N",
-  "Factor",
   "SetDelayed"
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "Segundo orden: dos constantes, dos condiciones",
-   "md": "Un muelle con masa, un circuito RLC o la vibración de un ala cumplen ecuaciones de **segundo orden**: aparece `y''`. Hoy aprendes a resolverlas con `DSolve` y, sobre todo, a mano con las recetas que entran en el examen (las preguntas P3 y P4 de 2021 eran de esta práctica).\n\nNovedades de sintaxis:\n- la derivada segunda es `y''[x]`: **dos comillas simples** seguidas (no la comilla doble `\"`). La tercera, `y'''[x]`;\n- la solución general de una EDO de orden 2 lleva **dos** constantes, `C[1]` y `C[2]`;\n- para fijarlas hacen falta dos condiciones: el valor inicial `y[0] == 1` y la pendiente inicial `y'[0] == 0`.\n\nTodo lo demás (lista de ecuación y condiciones, regla, `/. Flatten[...]`) es igual que en PL1.",
-   "cells": [
+   "type": "build",
+   "section": "Segundo orden con DSolve",
+   "title": "Dos comillas",
+   "md": "Ejemplo 3.1.2: `y'' + 3y' + 2y = 0`.",
+   "target": "DSolve[y''[x] + 3 y'[x] + 2 y[x] == 0, y[x], x]",
+   "parts": [
+    {
+     "code": "y''[x]",
+     "md": "La derivada segunda: dos comillas simples seguidas.",
+     "hint": "No es la comilla doble `\"`: esa abre un texto."
+    },
+    {
+     "code": "y''[x] + 3 y'[x] + 2 y[x] == 0",
+     "md": "La ecuación de segundo orden."
+    },
     {
      "code": "DSolve[y''[x] + 3 y'[x] + 2 y[x] == 0, y[x], x]",
-     "note": "Ejemplo 3.1.2: solución general, con C[1] y C[2]"
-    },
-    {
-     "code": "resul = DSolve[{y''[x] + 3 y'[x] + 2 y[x] == 0, y[0] == 1, y'[0] == 0}, y[x], x]",
-     "note": "Con posición inicial 1 y velocidad inicial 0"
-    },
-    {
-     "code": "ys[x_] = y[x] /. Flatten[resul];\nPlot[ys[x], {x, 0, 5}]",
-     "note": "Como en PL1: de regla a función, y a dibujar"
+     "md": "Resuélvela: salen DOS constantes, `C[1]` y `C[2]`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve `y'' + 3y' + 2y = 0` (función `y[x]`).",
+    "hints": [
+     "`DSolve[ecuación, y[x], x]`.",
+     "La ecuación: `y''[x] + 3 y'[x] + 2 y[x] == 0`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] + 3 y'[x] + 2 y[x] == 0",
+     "func": "y",
+     "var": "x",
+     "constants": 2
+    }
+   },
+   "cmds": [
+    "DSolve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Dos condiciones",
+   "md": "Orden 2: hacen falta dos datos, posición y pendiente iniciales.",
+   "target": "DSolve[{y''[x] + 3 y'[x] + 2 y[x] == 0, y[0] == 1, y'[0] == 0}, y[x], x]",
+   "parts": [
+    {
+     "code": "y[0] == 1",
+     "md": "Valor inicial: `y(0) = 1`."
+    },
+    {
+     "code": "y'[0] == 0",
+     "md": "Pendiente inicial: `y'(0) = 0`."
+    },
+    {
+     "code": "DSolve[{y''[x] + 3 y'[x] + 2 y[x] == 0, y[0] == 1, y'[0] == 0}, y[x], x]",
+     "md": "Todo en la lista: ecuación y las dos condiciones.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve `y'' + 3y' + 2y = 0` con `y(0) = 1`, `y'(0) = 0`.",
+    "hints": [
+     "La lista lleva tres cosas: ecuación, `y[0] == 1`, `y'[0] == 0`.",
+     "`DSolve[{...}, y[x], x]`."
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] + 3 y'[x] + 2 y[x] == 0",
+     "func": "y",
+     "var": "x",
+     "ics": [
+      "y[0]==1",
+      "y'[0]==0"
+     ]
+    }
+   },
+   "cmds": [
+    "DSolve"
    ]
   },
   {
@@ -57,14 +120,13 @@
     "id": "2-m2-pl3-e01",
     "kind": "fix",
     "title": "Comillas y corchetes",
-    "prompt": "Esta celda quiere resolver `y'' + 9y = 0` con `y(0) = 1`, `y'(0) = 3`, pero tiene dos errores de escritura. Corrígela.",
+    "prompt": "Esta celda quiere resolver `y'' + 9y = 0`, `y(0) = 1`, `y'(0) = 3`. Escríbela bien.",
     "difficulty": 1,
     "cmds": [
      "DSolve"
     ],
     "real": false,
     "source": null,
-    "broken": "DSolve[{y\"[x] + 9 y[x] == 0, y[0] == 1, y'(0) == 3}, y[x], x]",
     "solution": "DSolve[{y''[x] + 9 y[x] == 0, y[0] == 1, y'[0] == 3}, y[x], x]",
     "check": {
      "type": "ode",
@@ -76,98 +138,132 @@
       "y'[0]==3"
      ]
     },
+    "hints": [
+     "La derivada segunda: dos comillas simples, `y''[x]`.",
+     "La condición de la derivada: `y'[0] == 3`, con corchetes."
+    ],
+    "explain": "La comilla doble abre un texto y lo rompe todo; `y'(0)` con paréntesis sería un producto.",
+    "broken": "DSolve[{y\"[x] + 9 y[x] == 0, y[0] == 1, y'(0) == 3}, y[x], x]",
     "requires": [
      "DSolve"
-    ],
-    "hints": [
-     "La derivada segunda se escribe con dos comillas simples: `y''[x]`.",
-     "La condición sobre la derivada es `y'[0] == 3`, con corchetes."
-    ],
-    "explain": "La comilla doble abre un texto (una cadena) y lo rompe todo. Y `y'(0)` con paréntesis sería un producto, no \"la derivada en 0\"."
+    ]
    }
-  },
-  {
-   "type": "explain",
-   "title": "La ecuación diferencial de una familia de curvas",
-   "md": "Problema inverso: te dan la solución general, por ejemplo `y = C1 e^(-2x) + C2 e^(-x)`, y te piden la EDO de la que viene. La idea es **eliminar las constantes**: con 2 constantes hay que derivar 2 veces. De la curva y su primera derivada se despejan `C1` y `C2`; al sustituirlas en la segunda derivada queda una relación sin constantes: la EDO.\n\nEn Mathematica, llamando `yp` a y' e `ypp` a y'':\n- define la familia: `f[x_] = C1 Exp[-2 x] + C2 Exp[-x]`;\n- `Solve[{y == f[x], yp == D[f[x], x]}, {C1, C2}]` despeja las constantes;\n- sustituye en `ypp == D[f[x], {x, 2}]` con `/. Flatten[...]` y simplifica. `D[f, {x, 2}]` es la derivada segunda: `{variable, orden}`.\n\nEl guion hace lo mismo escribiendo la familia como ecuación, `ecu = ys[x] == ...`, y derivándola entera con `D[ecu, x]` y `D[ecu, {x, 2}]`.",
-   "cells": [
-    {
-     "code": "f[x_] = C1 Exp[-2 x] + C2 Exp[-x];",
-     "note": "Ejemplo 3.1.1: la familia"
-    },
-    {
-     "code": "solC = Solve[{y == f[x], yp == D[f[x], x]}, {C1, C2}]",
-     "note": "De la curva y su derivada se despejan las dos constantes"
-    },
-    {
-     "code": "ypp == D[f[x], {x, 2}] /. Flatten[solC] // Simplify",
-     "note": "Sustituidas en la derivada segunda: equivale a y'' + 3y' + 2y = 0"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl3-e02",
     "kind": "code",
-    "title": "EDO asociada a una familia",
-    "prompt": "**Guion PL3, ejercicio 1.** Halla la ecuación diferencial asociada a la familia `y = C1 e^x + C2 e^(-3x)`. Usa los símbolos `y`, `yp`, `ypp` para y, y', y'' y guarda la ecuación final (sin constantes) en `edo`.",
-    "difficulty": 3,
+    "title": "Otro problema inicial",
+    "prompt": "Resuelve `y'' − y' − 6y = 0` con `y(0) = 1`, `y'(0) = 8` (función `y[x]`).",
+    "difficulty": 2,
     "cmds": [
-     "Solve",
-     "D",
-     "ReplaceAll",
-     "Simplify"
-    ],
-    "real": true,
-    "source": "PL3 · ejercicio 1",
-    "solution": "f[x_] = C1 Exp[x] + C2 Exp[-3 x];\nsolC = Solve[{y == f[x], yp == D[f[x], x]}, {C1, C2}];\nedo = ypp == D[f[x], {x, 2}] /. Flatten[solC] // Simplify",
-    "check": {
-     "type": "any",
-     "checks": [
-      {
-       "type": "satisfies",
-       "test": "Head[edo] === Equal && With[{F = First[edo] - Last[edo], f0 = C1 Exp[x] + C2 Exp[-3 x]}, !FreeQ[F, ypp] && FreeQ[F, C1] && FreeQ[F, C2] && Abs[F /. {y -> f0, yp -> D[f0, x], ypp -> D[f0, {x, 2}]} /. {x -> 0.7, C1 -> 0.3, C2 -> 1.2}] < 10^-8 && Abs[F /. {y -> f0, yp -> D[f0, x], ypp -> D[f0, {x, 2}]} /. {x -> -0.4, C1 -> 1.3, C2 -> -0.6}] < 10^-8]",
-       "msg": "x"
-      },
-      {
-       "type": "satisfies",
-       "test": "Head[edo] === Equal && With[{F = First[edo] - Last[edo]}, FreeQ[F, C1] && FreeQ[F, C2] && !FreeQ[F, Derivative[2]] && Abs[F /. {ys -> Function[{x}, C1 Exp[x] + C2 Exp[-3 x]], y -> Function[{x}, C1 Exp[x] + C2 Exp[-3 x]]} /. {x -> 0.7, C1 -> 0.3, C2 -> 1.2}] < 10^-8]",
-       "msg": "`edo` debe ser una igualdad entre `y`, `yp`, `ypp` (sin `C1` ni `C2`) que cumpla toda la familia."
-      }
-     ]
-    },
-    "requires": [
-     "Solve",
-     "D"
-    ],
-    "forbids": [
      "DSolve"
     ],
+    "real": false,
+    "source": null,
+    "solution": "DSolve[{y''[x] - y'[x] - 6 y[x] == 0, y[0] == 1, y'[0] == 8}, y[x], x]",
+    "check": {
+     "type": "ode",
+     "eq": "y''[x] - y'[x] - 6 y[x] == 0",
+     "func": "y",
+     "var": "x",
+     "ics": [
+      "y[0]==1",
+      "y'[0]==8"
+     ]
+    },
     "hints": [
-     "`f[x_] = C1 Exp[x] + C2 Exp[-3 x];` y `solC = Solve[{y == f[x], yp == D[f[x], x]}, {C1, C2}];`",
-     "`edo = ypp == D[f[x], {x, 2}] /. Flatten[solC] // Simplify`"
+     "Lista: ecuación, `y[0] == 1`, `y'[0] == 8`.",
+     "`DSolve[{y''[x] - y'[x] - 6 y[x] == 0, y[0] == 1, y'[0] == 8}, y[x], x]`"
     ],
-    "explain": "Sale `ypp == 3 y - 2 yp`, es decir `y'' + 2y' - 3y = 0`. Tiene sentido: las raíces de `r^2 + 2r - 3` son 1 y −3, justo los exponentes de la familia."
+    "explain": "Sale `2 E^(3x) - E^(-2x)`.",
+    "requires": [
+     "DSolve"
+    ]
    }
   },
   {
-   "type": "explain",
-   "title": "Wronskiano: ¿son independientes?",
-   "md": "`y = C1 y1 + C2 y2` es la solución general de una lineal homogénea solo si `y1` e `y2` son soluciones **linealmente independientes** (ninguna es múltiplo de la otra). El test es el **wronskiano**: el determinante cuya primera fila son las funciones y cuyas filas siguientes son sus derivadas. Si no es 0, son independientes.\n\nEn Mathematica:\n- una lista de funciones se deriva de golpe: `D[funcs, x]` deriva cada elemento;\n- una matriz es una lista de filas: `{fila1, fila2}`;\n- `Det[...]` calcula el determinante; añade `// Simplify` para que se vea limpio (el guion usa `Expand[..., Trig -> True]`, que hace lo mismo con senos y cosenos).\n\nDe paso, el guion define un operador con `:=` para probar varias funciones a la vez: `ecdif[y_] := D[y, {x, 2}] + 4 y` es el lado izquierdo de `y'' + 4y = 0`; aplicado a la lista devuelve el residuo de cada una.",
-   "cells": [
+   "type": "build",
+   "section": "La EDO de una familia",
+   "title": "Derivar la familia",
+   "md": "Ejemplo 3.1.1: de la familia `y = C1 e^(−2x) + C2 e^(−x)` a su ecuación.",
+   "target": "ddecu = D[ecu, {x, 2}]",
+   "parts": [
     {
-     "code": "funcs = {Sin[2 x], Cos[2 x]};",
-     "note": "Ejemplo 3.3.1: dos candidatas para y'' + 4y = 0"
+     "code": "ecu = ys[x] == C1 Exp[-2 x] + C2 Exp[-x]",
+     "md": "La familia como ecuación, con `ys[x]` a la izquierda.",
+     "run": true
     },
     {
-     "code": "ecdif[y_] := D[y, {x, 2}] + 4 y\necdif[funcs]",
-     "note": "El operador aplicado a la lista: los dos residuos son 0, ambas son solución"
+     "code": "decu = D[ecu, x]",
+     "md": "Deriva la ecuación entera: los dos lados.",
+     "run": true
     },
     {
-     "code": "fila1 = funcs; fila2 = D[funcs, x];\nDet[{fila1, fila2}] // Simplify",
-     "note": "Wronskiano = −2, distinto de 0: independientes"
+     "code": "ddecu = D[ecu, {x, 2}]",
+     "md": "Derivada segunda: `{x, 2}`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Escribe la familia `ys[x] == C1 Exp[-2 x] + C2 Exp[-x]` en `ecu` y sus derivadas en `decu` y `ddecu`.",
+    "hints": [
+     "`ecu = ys[x] == C1 Exp[-2 x] + C2 Exp[-x];`",
+     "`decu = D[ecu, x];`",
+     "`ddecu = D[ecu, {x, 2}]`"
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "TrueQ[Simplify[decu /. ys -> Function[{x}, C1 Exp[-2 x] + C2 Exp[-x]]]] && TrueQ[Simplify[ddecu /. ys -> Function[{x}, C1 Exp[-2 x] + C2 Exp[-x]]]] && !FreeQ[ddecu, Derivative[2]]",
+     "msg": "Define `ecu`, `decu = D[ecu, x]` y `ddecu = D[ecu, {x, 2}]`."
+    },
+    "solution": "ecu = ys[x] == C1 Exp[-2 x] + C2 Exp[-x];\ndecu = D[ecu, x];\nddecu = D[ecu, {x, 2}]"
+   },
+   "cmds": [
+    "D"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Eliminar las constantes",
+   "md": "Ya definidas `ecu`, `decu`, `ddecu`. Con 2 constantes sobran 2 ecuaciones.",
+   "target": "ddecu /. Flatten[solC] // Simplify",
+   "setup": "ecu = ys[x] == C1 Exp[-2 x] + C2 Exp[-x];\ndecu = D[ecu, x];\nddecu = D[ecu, {x, 2}];",
+   "parts": [
+    {
+     "code": "solC = Solve[{ecu, decu}, {C1, C2}]",
+     "md": "Despeja `C1` y `C2` de las dos primeras.",
+     "run": true
+    },
+    {
+     "code": "ddecu /. Flatten[solC]",
+     "md": "Sustitúyelas en la tercera.",
+     "run": true
+    },
+    {
+     "code": "ddecu /. Flatten[solC] // Simplify",
+     "md": "Simplifica: es `y'' + 3y' + 2y = 0`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `ecu`, `decu`, `ddecu`: despeja `C1`, `C2` en `solC` y sustituye en `ddecu`, simplificado.",
+    "hints": [
+     "`solC = Solve[{ecu, decu}, {C1, C2}];`",
+     "`ddecu /. Flatten[solC] // Simplify`"
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "FreeQ[solC, Solve] && Length[Flatten[solC]] == 2",
+     "msg": "Guarda en `solC` el `Solve` de `{ecu, decu}` en `{C1, C2}` y termina con `ddecu /. Flatten[solC] // Simplify`."
+    },
+    "solution": "solC = Solve[{ecu, decu}, {C1, C2}];\nddecu /. Flatten[solC] // Simplify"
+   },
+   "cmds": [
+    "Solve",
+    "ReplaceAll",
+    "Simplify"
    ]
   },
   {
@@ -175,8 +271,145 @@
    "ex": {
     "id": "2-m2-pl3-e03",
     "kind": "code",
-    "title": "Wronskiano de tres funciones",
-    "prompt": "**Guion PL3, ejercicio 2.** Halla el wronskiano de `y1 = e^x`, `y2 = x e^x`, `y3 = x^2 e^x`. Con tres funciones la matriz es 3×3: la fila de las funciones, la de sus derivadas primeras y la de sus derivadas segundas. Devuelve el determinante simplificado.",
+    "title": "Familia del guion",
+    "prompt": "**Ej. 1.** EDO asociada a `y = C1 e^x + C2 e^(−3x)`: `ecu`, `decu`, `ddecu`, `solC` y guarda la ecuación final en `edo`.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Solve",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "PL3 · ejercicio 1",
+    "solution": "ecu = ys[x] == C1 Exp[x] + C2 Exp[-3 x];\ndecu = D[ecu, x];\nddecu = D[ecu, {x, 2}];\nsolC = Solve[{ecu, decu}, {C1, C2}];\nedo = ddecu /. Flatten[solC] // Simplify",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[edo] === Equal && With[{F = First[edo] - Last[edo]}, FreeQ[F, C1] && FreeQ[F, C2] && !FreeQ[F, Derivative[2]] && Abs[F /. {ys -> Function[{x}, C1 Exp[x] + C2 Exp[-3 x]], y -> Function[{x}, C1 Exp[x] + C2 Exp[-3 x]]} /. {x -> 0.7, C1 -> 0.3, C2 -> 1.2}] < 10^-8]",
+     "msg": "`edo` debe ser una igualdad con `ys''[x]`, sin `C1` ni `C2`, que cumpla toda la familia."
+    },
+    "hints": [
+     "Las tres primeras líneas: `ecu = ys[x] == C1 Exp[x] + C2 Exp[-3 x];`, `decu`, `ddecu`.",
+     "`solC = Solve[{ecu, decu}, {C1, C2}];`",
+     "`edo = ddecu /. Flatten[solC] // Simplify`"
+    ],
+    "explain": "Sale `ys'' == 3 ys - 2 ys'`, o sea `y'' + 2y' − 3y = 0`: raíces 1 y −3, los exponentes de la familia.",
+    "requires": [
+     "Solve",
+     "D"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Wronskiano",
+   "title": "¿Son solución?",
+   "md": "Ejemplo 3.3.1: ¿`sen 2x` y `cos 2x` resuelven `y'' + 4y = 0`?",
+   "target": "ecdif[funcs]",
+   "setup": "funcs = {Sin[2 x], Cos[2 x]};",
+   "parts": [
+    {
+     "code": "funcs = {Sin[2 x], Cos[2 x]};",
+     "md": "Las dos candidatas, en una lista.",
+     "run": true
+    },
+    {
+     "code": "D[funcs, {x, 2}]",
+     "md": "Una lista se deriva entera, elemento a elemento.",
+     "run": true
+    },
+    {
+     "code": "D[funcs, {x, 2}] + 4 funcs",
+     "md": "El residuo de las dos a la vez: `{0, 0}`.",
+     "run": true
+    },
+    {
+     "code": "ecdif[y_] := D[y, {x, 2}] + 4 y",
+     "md": "El guion lo guarda como operador, con `:=`.",
+     "run": true
+    },
+    {
+     "code": "ecdif[funcs]",
+     "md": "Y lo aplica a la lista.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `funcs` definida: define el operador `ecdif[y_]` de `y'' + 4y` y aplícalo a `funcs`.",
+    "hints": [
+     "`ecdif[y_] := D[y, {x, 2}] + 4 y`",
+     "`ecdif[funcs]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{0, 0}",
+     "compare": "equal"
+    },
+    "solution": "ecdif[y_] := D[y, {x, 2}] + 4 y\necdif[funcs]"
+   },
+   "cmds": [
+    "D",
+    "SetDelayed"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "El determinante",
+   "md": "¿Son independientes? Wronskiano: funciones en una fila, derivadas en la otra.",
+   "target": "Expand[Det[{fila1, fila2}], Trig -> True]",
+   "setup": "funcs = {Sin[2 x], Cos[2 x]};",
+   "parts": [
+    {
+     "code": "fila1 = funcs;",
+     "md": "Primera fila: las funciones.",
+     "run": true
+    },
+    {
+     "code": "fila2 = D[funcs, x]",
+     "md": "Segunda fila: sus derivadas.",
+     "run": true
+    },
+    {
+     "code": "Det[{fila1, fila2}]",
+     "md": "El determinante de la matriz de filas.",
+     "run": true
+    },
+    {
+     "code": "Expand[Det[{fila1, fila2}], Trig -> True]",
+     "md": "Con identidades trigonométricas: −2. No es 0: independientes.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `funcs` definida: `fila1`, `fila2` y el wronskiano con `Expand[..., Trig -> True]`.",
+    "hints": [
+     "`fila1 = funcs; fila2 = D[funcs, x];`",
+     "`Expand[Det[{fila1, fila2}], Trig -> True]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-2",
+     "compare": "equal"
+    },
+    "solution": "fila1 = funcs; fila2 = D[funcs, x];\nExpand[Det[{fila1, fila2}], Trig -> True]"
+   },
+   "more": "Si el wronskiano no se anula, las soluciones son linealmente independientes y `C1 y1 + C2 y2` es la solución general. `// Simplify` hace el mismo papel que `Expand[..., Trig -> True]`.",
+   "cmds": [
+    "Det",
+    "D",
+    "Expand"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl3-e04",
+    "kind": "code",
+    "title": "Tres funciones",
+    "prompt": "**Ej. 2.** Wronskiano de `e^x`, `x e^x`, `x² e^x`: tres filas (funciones, derivadas primeras, segundas). Devuélvelo simplificado.",
     "difficulty": 3,
     "cmds": [
      "Det",
@@ -191,48 +424,193 @@
      "expected": "2 Exp[3 x]",
      "compare": "equal"
     },
-    "requires": [
-     "Det",
-     "D"
-    ],
     "hints": [
      "`fila1 = {Exp[x], x Exp[x], x^2 Exp[x]};`",
      "`fila2 = D[fila1, x]; fila3 = D[fila1, {x, 2}];`",
      "`Det[{fila1, fila2, fila3}] // Simplify`"
     ],
-    "explain": "`W = 2 E^(3x)`, que nunca se anula: las tres funciones son independientes. Son justo las soluciones de una ecuación con raíz característica r = 1 triple."
+    "explain": "`2 E^(3x)`: nunca se anula. Son las soluciones de una raíz característica triple r = 1.",
+    "requires": [
+     "Det",
+     "D"
+    ]
    }
   },
   {
-   "type": "explain",
-   "title": "Coeficientes constantes: las raíces mandan",
-   "md": "Para `y'' + a y' + b y = 0` con `a`, `b` números, se prueba `y = e^(r x)` y queda el **polinomio característico** `r^2 + a r + b = 0`. Sus raíces (con `Solve`) dan la solución general:\n\n- dos raíces reales distintas `r1`, `r2`: `C1 e^(r1 x) + C2 e^(r2 x)`;\n- raíz **doble** `r`: `C1 e^(r x) + C2 x e^(r x)` (se añade un factor x);\n- raíces **complejas** `α ± β i`: `e^(α x) (C1 cos(β x) + C2 sen(β x))`.\n\n`I` (mayúscula) es la unidad imaginaria. Una raíz doble aparece repetida en la lista de `Solve`; con `Factor` lo ves en el exponente.\n\nLas constantes salen de las condiciones iniciales: defines la solución con `C1`, `C2` como argumentos, su derivada, y resuelves el sistema con `Solve`. Al final puedes comprobar con `DSolve` y las dos condiciones.",
-   "cells": [
+   "type": "build",
+   "section": "Raíces características",
+   "title": "Raíces reales",
+   "md": "`y'' + 3y' + 2y = 0`: prueba `e^(rx)` y queda `r² + 3r + 2 = 0`.",
+   "target": "DSolve[y''[x] + 3 y'[x] + 2 y[x] == 0, y[x], x]",
+   "parts": [
+    {
+     "code": "Solve[r^2 + 3 r + 2 == 0, r]",
+     "md": "Raíces del polinomio característico.",
+     "run": true
+    },
+    {
+     "code": "ya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x]",
+     "md": "Una exponencial por raíz: la solución general.",
+     "run": true
+    },
+    {
+     "code": "D[ya[x, C1, C2], {x, 2}] + 3 D[ya[x, C1, C2], x] + 2 ya[x, C1, C2] // Simplify",
+     "md": "Compruébala: residuo 0.",
+     "run": true
+    },
+    {
+     "code": "DSolve[y''[x] + 3 y'[x] + 2 y[x] == 0, y[x], x]",
+     "md": "Y `DSolve` da lo mismo.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`y'' + 3y' + 2y = 0`: raíces con `Solve` y solución general en `ya[x_, C1_, C2_]`.",
+    "hints": [
+     "`Solve[r^2 + 3 r + 2 == 0, r]` da −2 y −1.",
+     "`ya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x]`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[x] + 3 w'[x] + 2 w[x] == 0",
+       "func": "w",
+       "var": "x",
+       "expr": "ya[x, C1, C2]",
+       "msg": "`ya[x, C1, C2]` no cumple la ecuación (o no está definida)."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+       "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+      }
+     ]
+    },
+    "solution": "Solve[r^2 + 3 r + 2 == 0, r]\nya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x]"
+   },
+   "cmds": [
+    "Solve",
+    "Exp"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Raíces complejas",
+   "md": "Ejemplo 3.3.2: `y'' + 2y' + 5y = 0`.",
+   "target": "DSolve[y''[x] + 2 y'[x] + 5 y[x] == 0, y[x], x]",
+   "parts": [
     {
      "code": "Solve[r^2 + 2 r + 5 == 0, r]",
-     "note": "Ejemplo 3.3.2: y'' + 2y' + 5y = 0. Raíces −1 ± 2i: α = −1, β = 2"
+     "md": "Raíces −1 ± 2i. `I` es la unidad imaginaria.",
+     "run": true
     },
     {
-     "code": "ys[x_, C1_, C2_] = Exp[-x] (C1 Cos[2 x] + C2 Sin[2 x]);\ndys[x_, C1_, C2_] = D[ys[x, C1, C2], x];",
-     "note": "La solución general que dictan las raíces, y su derivada"
+     "code": "yb[x_, C1_, C2_] = Exp[-x] (C1 Cos[2 x] + C2 Sin[2 x])",
+     "md": "Parte real (−1) en la exponencial; imaginaria (2) en coseno y seno.",
+     "run": true
     },
     {
-     "code": "Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 5}, {C1, C2}]",
-     "note": "Condiciones y(0) = 1, y'(0) = 5: sale C1 = 1, C2 = 3"
-    },
-    {
-     "code": "Solve[r^2 + 2 r + 1 == 0, r]\nFactor[r^2 + 2 r + 1]",
-     "note": "Ejemplo 3.3.3: raíz doble r = −1. Solución: C1 e^(−x) + C2 x e^(−x)"
+     "code": "DSolve[y''[x] + 2 y'[x] + 5 y[x] == 0, y[x], x]",
+     "md": "`DSolve` lo confirma.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "`y'' + 2y' + 5y = 0`: raíces con `Solve` y solución general en `yb[x_, C1_, C2_]`.",
+    "hints": [
+     "Raíces −1 ± 2i: exponencial con −1, trigonométricas con 2.",
+     "`yb[x_, C1_, C2_] = Exp[-x] (C1 Cos[2 x] + C2 Sin[2 x])`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[x] + 2 w'[x] + 5 w[x] == 0",
+       "func": "w",
+       "var": "x",
+       "expr": "yb[x, C1, C2]",
+       "msg": "`yb[x, C1, C2]` no cumple la ecuación (o no está definida)."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+       "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+      }
+     ]
+    },
+    "solution": "Solve[r^2 + 2 r + 5 == 0, r]\nyb[x_, C1_, C2_] = Exp[-x] (C1 Cos[2 x] + C2 Sin[2 x])"
+   },
+   "cmds": [
+    "Solve",
+    "Exp",
+    "Cos",
+    "Sin"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Raíz doble",
+   "md": "Ejemplo 3.3.3: `y'' + 2y' + y = 0`.",
+   "target": "DSolve[y''[x] + 2 y'[x] + y[x] == 0, y[x], x]",
+   "parts": [
+    {
+     "code": "Solve[r^2 + 2 r + 1 == 0, r]",
+     "md": "La raíz −1 sale dos veces: es doble.",
+     "run": true
+    },
+    {
+     "code": "yc[x_, C1_, C2_] = C1 Exp[-x] + C2 x Exp[-x]",
+     "md": "La segunda solución lleva un factor `x`.",
+     "run": true
+    },
+    {
+     "code": "DSolve[y''[x] + 2 y'[x] + y[x] == 0, y[x], x]",
+     "md": "`DSolve` lo confirma.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`y'' + 2y' + y = 0`: raíces con `Solve` y solución general en `yc[x_, C1_, C2_]`.",
+    "hints": [
+     "Raíz doble −1: `e^(−x)` y `x e^(−x)`.",
+     "`yc[x_, C1_, C2_] = C1 Exp[-x] + C2 x Exp[-x]`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[x] + 2 w'[x] + w[x] == 0",
+       "func": "w",
+       "var": "x",
+       "expr": "yc[x, C1, C2]",
+       "msg": "`yc[x, C1, C2]` no cumple la ecuación (o no está definida)."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{u = yc[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+       "msg": "`yc[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+      }
+     ]
+    },
+    "solution": "Solve[r^2 + 2 r + 1 == 0, r]\nyc[x_, C1_, C2_] = C1 Exp[-x] + C2 x Exp[-x]"
+   },
+   "more": "Raíces reales distintas: una exponencial por raíz. Raíz doble `r`: `e^(rx)` y `x e^(rx)`. Complejas `α ± βi`: `e^(αx) cos βx` y `e^(αx) sen βx`.",
+   "cmds": [
+    "Solve",
+    "Exp"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl3-e04",
+    "id": "2-m2-pl3-e05",
     "kind": "code",
-    "title": "Raíz doble",
-    "prompt": "Para `y'' + 6y' + 9y = 0`: halla las raíces del polinomio característico con `Solve` y guarda la solución general como `yg[x_, C1_, C2_]`.",
+    "title": "Otra raíz doble",
+    "prompt": "`y'' + 6y' + 9y = 0`: raíces con `Solve` y solución general en `yg[x_, C1_, C2_]`.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -255,30 +633,91 @@
       {
        "type": "satisfies",
        "test": "With[{u = yg[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`yg[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
+       "msg": "`yg[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
       }
      ]
     },
+    "hints": [
+     "`Solve[r^2 + 6 r + 9 == 0, r]` da −3 dos veces.",
+     "`yg[x_, C1_, C2_] = C1 Exp[-3 x] + C2 x Exp[-3 x]`"
+    ],
+    "explain": "Sin el factor `x` las dos constantes se fundirían en una: solo habría una solución.",
     "requires": [
      "Solve"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`Solve[r^2 + 6 r + 9 == 0, r]` da r = −3 dos veces: raíz doble.",
-     "Con raíz doble, la segunda solución lleva un factor x: `yg[x_, C1_, C2_] = C1 Exp[-3 x] + C2 x Exp[-3 x]`"
-    ],
-    "explain": "Si pusieras `C1 E^(-3x) + C2 E^(-3x)` solo tendrías UNA solución repetida (las dos constantes se funden en una). El factor `x` es lo que da la segunda solución independiente."
+    ]
    }
+  },
+  {
+   "type": "build",
+   "section": "Constantes con condiciones",
+   "title": "Sin DSolve",
+   "md": "Ya definida `ys[x, C1, C2]`, solución general del ejemplo. Impón `y(0) = 1`, `y'(0) = 5`.",
+   "target": "ysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
+   "setup": "ys[x_, C1_, C2_] = Exp[-x] (C1 Cos[2 x] + C2 Sin[2 x]);",
+   "parts": [
+    {
+     "code": "dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];",
+     "md": "Define la derivada ANTES de sustituir x = 0.",
+     "run": true
+    },
+    {
+     "code": "ys[0, C1, C2] == 1",
+     "md": "Primera condición.",
+     "run": true
+    },
+    {
+     "code": "dys[0, C1, C2] == 5",
+     "md": "Segunda condición.",
+     "run": true
+    },
+    {
+     "code": "sC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 5}, {C1, C2}]",
+     "md": "Sistema de dos ecuaciones para `C1`, `C2`.",
+     "run": true
+    },
+    {
+     "code": "ysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
+     "md": "Sustituye y guarda la solución del problema.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `ys[x, C1, C2]` definida: `dys`, `sC` (con `y(0) = 1`, `y'(0) = 5`) y `ysol[x_]`.",
+    "hints": [
+     "`dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];`",
+     "`sC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 5}, {C1, C2}];`",
+     "`ysol[x_] = ys[x, C1, C2] /. Flatten[sC]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "w''[x] + 2 w'[x] + 5 w[x] == 0",
+     "func": "w",
+     "var": "x",
+     "ics": [
+      "w[0]==1",
+      "w'[0]==5"
+     ],
+     "expr": "ysol[x]",
+     "msg": "`ysol[x]` no cumple la ecuación o las condiciones."
+    },
+    "solution": "dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];\nsC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 5}, {C1, C2}];\nysol[x_] = ys[x, C1, C2] /. Flatten[sC]"
+   },
+   "cmds": [
+    "D",
+    "Solve",
+    "ReplaceAll"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl3-e05",
+    "id": "2-m2-pl3-e06",
     "kind": "code",
-    "title": "Problema de valor inicial sin DSolve",
-    "prompt": "Resuelve sin `DSolve`: `y'' + 4y' + 13y = 0`, `y(0) = 2`, `y'(0) = 5`. Halla las raíces con `Solve`, escribe la solución general `ys[x_, C1_, C2_]`, calcula las constantes y guarda la solución del problema como `ysol[x_]`.",
+    "title": "Problema inicial completo",
+    "prompt": "Sin `DSolve`: `y'' + 4y' + 13y = 0`, `y(0) = 2`, `y'(0) = 5`. Raíces, `ys[x_, C1_, C2_]`, `dys`, `sC` y `ysol[x_]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -287,7 +726,7 @@
     ],
     "real": false,
     "source": null,
-    "solution": "Solve[r^2 + 4 r + 13 == 0, r]\nys[x_, C1_, C2_] = Exp[-2 x] (C1 Cos[3 x] + C2 Sin[3 x]);\ndys[x_, C1_, C2_] = D[ys[x, C1, C2], x];\nsC = Solve[{ys[0, C1, C2] == 2, dys[0, C1, C2] == 5}, {C1, C2}]\nysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
+    "solution": "Solve[r^2 + 4 r + 13 == 0, r]\nys[x_, C1_, C2_] = Exp[-2 x] (C1 Cos[3 x] + C2 Sin[3 x]);\ndys[x_, C1_, C2_] = D[ys[x, C1, C2], x];\nsC = Solve[{ys[0, C1, C2] == 2, dys[0, C1, C2] == 5}, {C1, C2}];\nysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
     "check": {
      "type": "ode",
      "eq": "w''[x] + 4 w'[x] + 13 w[x] == 0",
@@ -298,87 +737,30 @@
       "w'[0]==5"
      ],
      "expr": "ysol[x]",
-     "msg": "`ysol[x]` no cumple la ecuación o alguna condición inicial (o no está definida)."
+     "msg": "`ysol[x]` no cumple la ecuación o alguna condición."
     },
+    "hints": [
+     "Raíces −2 ± 3i: `ys[x_, C1_, C2_] = Exp[-2 x] (C1 Cos[3 x] + C2 Sin[3 x]);`",
+     "`dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];` y `sC = Solve[{ys[0, C1, C2] == 2, dys[0, C1, C2] == 5}, {C1, C2}];`",
+     "`ysol[x_] = ys[x, C1, C2] /. Flatten[sC]`"
+    ],
+    "explain": "C1 = 2, C2 = 3: `e^(-2x) (2 cos 3x + 3 sen 3x)`.",
     "requires": [
      "Solve"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`Solve[r^2 + 4 r + 13 == 0, r]` da −2 ± 3i: `ys[x_, C1_, C2_] = Exp[-2 x] (C1 Cos[3 x] + C2 Sin[3 x]);`",
-     "`dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];` y `sC = Solve[{ys[0, C1, C2] == 2, dys[0, C1, C2] == 5}, {C1, C2}]`",
-     "`ysol[x_] = ys[x, C1, C2] /. Flatten[sC]`"
-    ],
-    "explain": "C1 = 2 y C2 = 3: `y = e^(-2x) (2 cos 3x + 3 sen 3x)`. La derivada se define ANTES de sustituir x = 0: si derivas `ys[0, C1, C2]` sale 0."
+    ]
    }
   },
   {
    "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl3-e06",
-    "kind": "code",
-    "title": "Solución general con las raíces (1 y 3)",
-    "prompt": "**Guion PL3, ejercicio 3 (ecuaciones 1 y 3).** Obtén la solución general sin usar `DSolve`, a partir de las raíces del polinomio característico, de:\n- `y'' + 3y' + 2y = 0` → guárdala como `ya[x_, C1_, C2_]`;\n- `y'' - 3y' + 2y = 0` → guárdala como `yb[x_, C1_, C2_]`.\n\nDespués puedes comprobar cada una con `DSolve`.",
-    "difficulty": 3,
-    "cmds": [
-     "Solve",
-     "Exp",
-     "Cos",
-     "Sin"
-    ],
-    "real": true,
-    "source": "PL3 · ejercicio 3",
-    "solution": "Solve[r^2 + 3 r + 2 == 0, r]\nya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x];\nSolve[r^2 - 3 r + 2 == 0, r]\nyb[x_, C1_, C2_] = C1 Exp[x] + C2 Exp[2 x];\nDSolve[y''[x] - 3 y'[x] + 2 y[x] == 0, y[x], x]",
-    "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "ode",
-       "eq": "w''[x] + 3 w'[x] + 2 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "ya[x, C1, C2]",
-       "msg": "`ya[x, C1, C2]` no cumple la primera ecuación (o no está definida)."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
-      },
-      {
-       "type": "ode",
-       "eq": "w''[x] - 3 w'[x] + 2 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "yb[x, C1, C2]",
-       "msg": "`yb[x, C1, C2]` no cumple la segunda ecuación (o no está definida)."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
-      }
-     ]
-    },
-    "requires": [
-     "Solve"
-    ],
-    "hints": [
-     "`Solve[r^2 + 3 r + 2 == 0, r]` da −2 y −1: `ya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x];`",
-     "`Solve[r^2 - 3 r + 2 == 0, r]` da 1 y 2: `yb[x_, C1_, C2_] = C1 Exp[x] + C2 Exp[2 x];`"
-    ],
-    "explain": "Raíces reales distintas: una exponencial por raíz. Cambiar el signo de `y'` cambia el signo de las raíces: de soluciones que se apagan a soluciones que crecen."
-   }
-  },
-  {
-   "type": "exercise",
+   "section": "Guion: ejercicio 3",
    "ex": {
     "id": "2-m2-pl3-e07",
     "kind": "code",
-    "title": "Solución general con las raíces (2 y 4)",
-    "prompt": "**Guion PL3, ejercicio 3 (ecuaciones 2 y 4).** Obtén la solución general sin usar `DSolve`, a partir de las raíces del polinomio característico, de:\n- `y'' + 9y = 0` → guárdala como `ya[x_, C1_, C2_]`;\n- `y'' + 3y = 0` → guárdala como `yb[x_, C1_, C2_]`.\n\nDespués puedes comprobar cada una con `DSolve`.",
+    "title": "Ecuaciones 1 y 3",
+    "prompt": "**Ej. 3.** Sin `DSolve`: solución general de `y'' + 3y' + 2y = 0` en `ya[x_, C1_, C2_]` y de `y'' − 3y' + 2y = 0` en `yb[x_, C1_, C2_]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -388,46 +770,57 @@
     ],
     "real": true,
     "source": "PL3 · ejercicio 3",
-    "solution": "Solve[r^2 + 9 == 0, r]\nya[x_, C1_, C2_] = C1 Cos[3 x] + C2 Sin[3 x];\nSolve[r^2 + 3 == 0, r]\nyb[x_, C1_, C2_] = C1 Cos[Sqrt[3] x] + C2 Sin[Sqrt[3] x];\nDSolve[y''[x] + 3 y[x] == 0, y[x], x]",
+    "solution": "Solve[r^2 + 3 r + 2 == 0, r]\nya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x];\nSolve[r^2 - 3 r + 2 == 0, r]\nyb[x_, C1_, C2_] = C1 Exp[x] + C2 Exp[2 x]",
     "check": {
      "type": "all",
      "checks": [
       {
-       "type": "ode",
-       "eq": "w''[x] + 9 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "ya[x, C1, C2]",
-       "msg": "`ya[x, C1, C2]` no cumple la primera ecuación (o no está definida)."
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] + 3 w'[x] + 2 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "ya[x, C1, C2]",
+         "msg": "`ya[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
       },
       {
-       "type": "satisfies",
-       "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
-      },
-      {
-       "type": "ode",
-       "eq": "w''[x] + 3 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "yb[x, C1, C2]",
-       "msg": "`yb[x, C1, C2]` no cumple la segunda ecuación (o no está definida)."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] - 3 w'[x] + 2 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "yb[x, C1, C2]",
+         "msg": "`yb[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
       }
      ]
     },
+    "hints": [
+     "Primero las raíces: `Solve[r^2 + 3 r + 2 == 0, r]` da −2 y −1.",
+     "`ya[x_, C1_, C2_] = C1 Exp[-2 x] + C2 Exp[-x];`",
+     "`Solve[r^2 - 3 r + 2 == 0, r]` da 1 y 2: `yb[x_, C1_, C2_] = C1 Exp[x] + C2 Exp[2 x]`"
+    ],
+    "explain": "Cambiar el signo de `y'` cambia el signo de las raíces: de apagarse a crecer. Comprueba con `DSolve`.",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "`Solve[r^2 + 9 == 0, r]` da ±3i: parte real 0, así que no hay exponencial: `ya[x_, C1_, C2_] = C1 Cos[3 x] + C2 Sin[3 x];`",
-     "`Solve[r^2 + 3 == 0, r]` da ±i√3: `yb[x_, C1_, C2_] = C1 Cos[Sqrt[3] x] + C2 Sin[Sqrt[3] x];`"
-    ],
-    "explain": "Raíces imaginarias puras: oscilación sin amortiguar, con frecuencia igual a la parte imaginaria (3 y √3)."
+    ]
    }
   },
   {
@@ -435,8 +828,8 @@
    "ex": {
     "id": "2-m2-pl3-e08",
     "kind": "code",
-    "title": "Solución general con las raíces (5 y 6)",
-    "prompt": "**Guion PL3, ejercicio 3 (ecuaciones 5 y 6).** Obtén la solución general sin usar `DSolve`, a partir de las raíces del polinomio característico, de:\n- `y'' + 2y' + 2y = 0` → guárdala como `ya[x_, C1_, C2_]`;\n- `y'' - 2y' + 5y = 0` → guárdala como `yb[x_, C1_, C2_]`.\n\nDespués puedes comprobar cada una con `DSolve`.",
+    "title": "Ecuaciones 2 y 4",
+    "prompt": "**Ej. 3.** Sin `DSolve`: solución general de `y'' + 9y = 0` en `ya[x_, C1_, C2_]` y de `y'' + 3y = 0` en `yb[x_, C1_, C2_]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -446,82 +839,225 @@
     ],
     "real": true,
     "source": "PL3 · ejercicio 3",
-    "solution": "Solve[r^2 + 2 r + 2 == 0, r]\nya[x_, C1_, C2_] = Exp[-x] (C1 Cos[x] + C2 Sin[x]);\nSolve[r^2 - 2 r + 5 == 0, r]\nyb[x_, C1_, C2_] = Exp[x] (C1 Cos[2 x] + C2 Sin[2 x]);\nDSolve[y''[x] - 2 y'[x] + 5 y[x] == 0, y[x], x]",
+    "solution": "Solve[r^2 + 9 == 0, r]\nya[x_, C1_, C2_] = C1 Cos[3 x] + C2 Sin[3 x];\nSolve[r^2 + 3 == 0, r]\nyb[x_, C1_, C2_] = C1 Cos[Sqrt[3] x] + C2 Sin[Sqrt[3] x]",
     "check": {
      "type": "all",
      "checks": [
       {
-       "type": "ode",
-       "eq": "w''[x] + 2 w'[x] + 2 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "ya[x, C1, C2]",
-       "msg": "`ya[x, C1, C2]` no cumple la primera ecuación (o no está definida)."
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] + 9 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "ya[x, C1, C2]",
+         "msg": "`ya[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
       },
       {
-       "type": "satisfies",
-       "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
-      },
-      {
-       "type": "ode",
-       "eq": "w''[x] - 2 w'[x] + 5 w[x] == 0",
-       "func": "w",
-       "var": "x",
-       "expr": "yb[x, C1, C2]",
-       "msg": "`yb[x, C1, C2]` no cumple la segunda ecuación (o no está definida)."
-      },
-      {
-       "type": "satisfies",
-       "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: una combinación con `C1` y `C2` de dos soluciones independientes."
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] + 3 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "yb[x, C1, C2]",
+         "msg": "`yb[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
       }
      ]
     },
+    "hints": [
+     "`Solve[r^2 + 9 == 0, r]` da ±3i: parte real 0, sin exponencial.",
+     "`ya[x_, C1_, C2_] = C1 Cos[3 x] + C2 Sin[3 x];`",
+     "±i√3: `yb[x_, C1_, C2_] = C1 Cos[Sqrt[3] x] + C2 Sin[Sqrt[3] x]`"
+    ],
+    "explain": "Raíces imaginarias puras: oscilación sin amortiguar, de frecuencia 3 y √3.",
     "requires": [
      "Solve"
-    ],
-    "hints": [
-     "`Solve[r^2 + 2 r + 2 == 0, r]` da −1 ± i: `ya[x_, C1_, C2_] = Exp[-x] (C1 Cos[x] + C2 Sin[x]);`",
-     "`Solve[r^2 - 2 r + 5 == 0, r]` da 1 ± 2i: `yb[x_, C1_, C2_] = Exp[x] (C1 Cos[2 x] + C2 Sin[2 x]);`"
-    ],
-    "explain": "Raíces complejas α ± βi: `e^(αx)` por una combinación de `cos(βx)` y `sen(βx)`. Con α < 0 la oscilación se amortigua; con α > 0 crece."
+    ]
    }
-  },
-  {
-   "type": "explain",
-   "title": "Solución particular: coeficientes indeterminados",
-   "md": "Si la ecuación tiene segundo miembro, `y'' + a y' + b y = f(x)`, la solución general es `y = yH + yp`: la de la homogénea más UNA solución particular.\n\n**Coeficientes indeterminados**: cuando `f` es un polinomio, una exponencial, senos y cosenos (o productos de ellos), se propone una `yp` del mismo tipo con coeficientes desconocidos. En el examen te dan la forma; tú hallas los coeficientes:\n- define `yp[x_]` con las incógnitas. `C` está reservada: usa `C1`;\n- sustituye en el lado izquierdo y agrupa por potencias con `Collect[pol, x]`;\n- iguala cada coeficiente con el del segundo miembro y resuelve con `Solve`.\n\nAtajo sin copiar a mano: `CoefficientList[residuo, x]` da la lista de coeficientes (de menor a mayor grado) y se iguala entera a ceros.\n\nCon senos y cosenos no hay potencias que agrupar. Truco: el residuo debe valer 0 para todo x, así que evalúalo en tantos valores de x como incógnitas tengas y resuelve ese sistema.\n\nPara comprobar: `DSolve[...]` seguido de `/. {C[1] -> 0, C[2] -> 0, C[3] -> 0}` anula las constantes y deja solo la solución particular.",
-   "cells": [
-    {
-     "code": "yp[x_] = A x + B x^2 + C1 x^3;",
-     "note": "Ejemplo 3.4.1: forma propuesta para y''' + 2y'' + y' = 2x²"
-    },
-    {
-     "code": "pol = D[yp[x], {x, 3}] + 2 D[yp[x], {x, 2}] + D[yp[x], x];\nCollect[pol, x]",
-     "note": "El lado izquierdo, agrupado por potencias de x"
-    },
-    {
-     "code": "Solve[{A + 4 B + 6 C1 == 0, 2 B + 12 C1 == 0, 3 C1 == 2}, {A, B, C1}]",
-     "note": "Igualando con 2x²: término libre 0, coeficiente de x 0, coeficiente de x² 2"
-    },
-    {
-     "code": "Solve[CoefficientList[pol - 2 x^2, x] == {0, 0, 0}, {A, B, C1}]",
-     "note": "El atajo: todos los coeficientes del residuo a cero"
-    },
-    {
-     "code": "yq[x_] = a Cos[x] + b Sin[x];\nres = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]",
-     "note": "Con senos y cosenos (y'' + y' = sen x): 2 incógnitas, 2 valores de x"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl3-e09",
     "kind": "code",
-    "title": "Coeficientes de un polinomio",
-    "prompt": "Halla `A`, `B`, `C1` para que `yp = A + B x + C1 x^2` sea solución particular de `y'' + y = x^2`. Define `yp[x_]`, calcula el residuo `res` (lado izquierdo menos `x^2`) y termina con el `Solve` que da los tres coeficientes.",
+    "title": "Ecuaciones 5 y 6",
+    "prompt": "**Ej. 3.** Sin `DSolve`: solución general de `y'' + 2y' + 2y = 0` en `ya[x_, C1_, C2_]` y de `y'' − 2y' + 5y = 0` en `yb[x_, C1_, C2_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "Exp",
+     "Cos",
+     "Sin"
+    ],
+    "real": true,
+    "source": "PL3 · ejercicio 3",
+    "solution": "Solve[r^2 + 2 r + 2 == 0, r]\nya[x_, C1_, C2_] = Exp[-x] (C1 Cos[x] + C2 Sin[x]);\nSolve[r^2 - 2 r + 5 == 0, r]\nyb[x_, C1_, C2_] = Exp[x] (C1 Cos[2 x] + C2 Sin[2 x])",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] + 2 w'[x] + 2 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "ya[x, C1, C2]",
+         "msg": "`ya[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = ya[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`ya[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
+      },
+      {
+       "type": "all",
+       "checks": [
+        {
+         "type": "ode",
+         "eq": "w''[x] - 2 w'[x] + 5 w[x] == 0",
+         "func": "w",
+         "var": "x",
+         "expr": "yb[x, C1, C2]",
+         "msg": "`yb[x, C1, C2]` no cumple la ecuación (o no está definida)."
+        },
+        {
+         "type": "satisfies",
+         "test": "With[{u = yb[x, C1, C2]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+         "msg": "`yb[x, C1, C2]` debe ser la solución GENERAL: `C1` y `C2` con dos soluciones independientes."
+        }
+       ]
+      }
+     ]
+    },
+    "hints": [
+     "`Solve[r^2 + 2 r + 2 == 0, r]` da −1 ± i.",
+     "`ya[x_, C1_, C2_] = Exp[-x] (C1 Cos[x] + C2 Sin[x]);`",
+     "1 ± 2i: `yb[x_, C1_, C2_] = Exp[x] (C1 Cos[2 x] + C2 Sin[2 x])`"
+    ],
+    "explain": "Con parte real negativa la oscilación se amortigua; con positiva, crece.",
+    "requires": [
+     "Solve"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Coeficientes indeterminados",
+   "title": "Sustituir y agrupar",
+   "md": "Ejemplo 3.4.1: solución particular de `y''' + 2y'' + y' = 2x²`.",
+   "target": "Solve[{A + 4 B + 6 C1 == 0, 2 B + 12 C1 == 0, 3 C1 == 2}, {A, B, C1}]",
+   "parts": [
+    {
+     "code": "yp[x_] = A x + B x^2 + C1 x^3;",
+     "md": "La forma propuesta, con coeficientes por hallar.",
+     "run": true,
+     "hint": "`C` está reservada en Mathematica: usa `C1`."
+    },
+    {
+     "code": "pol = D[yp[x], {x, 3}] + 2 D[yp[x], {x, 2}] + D[yp[x], x]",
+     "md": "Métela en el lado izquierdo de la ecuación.",
+     "run": true
+    },
+    {
+     "code": "Collect[pol, x]",
+     "md": "Agrupa por potencias de x.",
+     "run": true
+    },
+    {
+     "code": "Solve[{A + 4 B + 6 C1 == 0, 2 B + 12 C1 == 0, 3 C1 == 2}, {A, B, C1}]",
+     "md": "Iguala con `2x²`: libre 0, de x 0, de x² 2.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Halla `A`, `B`, `C1` para `yp = A x + B x² + C1 x³` en `y''' + 2y'' + y' = 2x²`.",
+    "hints": [
+     "`yp[x_] = A x + B x^2 + C1 x^3;` y `pol = D[yp[x], {x, 3}] + 2 D[yp[x], {x, 2}] + D[yp[x], x];`",
+     "`Collect[pol, x]` para ver los coeficientes.",
+     "`Solve[{A + 4 B + 6 C1 == 0, 2 B + 12 C1 == 0, 3 C1 == 2}, {A, B, C1}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{A -> 12, B -> -4, C1 -> 2/3}}",
+     "compare": "set"
+    },
+    "solution": "yp[x_] = A x + B x^2 + C1 x^3;\npol = D[yp[x], {x, 3}] + 2 D[yp[x], {x, 2}] + D[yp[x], x];\nCollect[pol, x]\nSolve[{A + 4 B + 6 C1 == 0, 2 B + 12 C1 == 0, 3 C1 == 2}, {A, B, C1}]"
+   },
+   "more": "La solución general es la de la homogénea más UNA particular. Si el segundo miembro es polinomio, exponencial o seno/coseno, se propone una particular del mismo tipo y se ajustan los coeficientes.",
+   "cmds": [
+    "D",
+    "Collect",
+    "Solve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "El atajo",
+   "md": "Ya definidas `yp` y `pol`. Sin copiar coeficientes a mano.",
+   "target": "Solve[CoefficientList[pol - 2 x^2, x] == {0, 0, 0}, {A, B, C1}]",
+   "setup": "yp[x_] = A x + B x^2 + C1 x^3;\npol = D[yp[x], {x, 3}] + 2 D[yp[x], {x, 2}] + D[yp[x], x];",
+   "parts": [
+    {
+     "code": "pol - 2 x^2",
+     "md": "El residuo: lado izquierdo menos segundo miembro.",
+     "run": true
+    },
+    {
+     "code": "CoefficientList[pol - 2 x^2, x]",
+     "md": "Sus coeficientes, de menor a mayor grado.",
+     "run": true
+    },
+    {
+     "code": "Solve[CoefficientList[pol - 2 x^2, x] == {0, 0, 0}, {A, B, C1}]",
+     "md": "Todos iguales a cero: mismo resultado.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `pol` definida: resuelve `A`, `B`, `C1` con `CoefficientList` del residuo `pol - 2 x^2`.",
+    "hints": [
+     "`CoefficientList[pol - 2 x^2, x] == {0, 0, 0}`.",
+     "`Solve[CoefficientList[pol - 2 x^2, x] == {0, 0, 0}, {A, B, C1}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{A -> 12, B -> -4, C1 -> 2/3}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "CoefficientList",
+    "Solve"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl3-e10",
+    "kind": "code",
+    "title": "Tu polinomio",
+    "prompt": "Halla `A`, `B`, `C1` para que `yp = A + B x + C1 x²` cumpla `y'' + y = x²`. Termina con el `Solve`.",
     "difficulty": 2,
     "cmds": [
      "D",
@@ -536,48 +1072,15 @@
      "expected": "{{A -> -2, B -> 0, C1 -> 1}}",
      "compare": "set"
     },
+    "hints": [
+     "`yp[x_] = A + B x + C1 x^2;` y el residuo `res = D[yp[x], {x, 2}] + yp[x] - x^2;`",
+     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]`"
+    ],
+    "explain": "`yp = x^2 - 2`.",
     "requires": [
      "Solve",
      "D"
-    ],
-    "hints": [
-     "`yp[x_] = A + B x + C1 x^2;` y `res = D[yp[x], {x, 2}] + yp[x] - x^2;`",
-     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]` (o agrupa con `Collect[res, x]` y escribe tú las tres ecuaciones)."
-    ],
-    "explain": "`yp = x^2 - 2`. Compruébalo de cabeza: su derivada segunda es 2, y `2 + x^2 - 2 = x^2`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl3-e10",
-    "kind": "code",
-    "title": "Coeficientes indeterminados: polinomio",
-    "prompt": "**Guion PL3, ejercicio 4.** Halla A, B y C para que `yp(x) = A + B x + C x^2` sea solución particular de `y'' - 4y = 2x^2 + x - 1`. Llama `C1` al coeficiente C. Última línea: el `Solve` que da los tres coeficientes.",
-    "difficulty": 3,
-    "cmds": [
-     "D",
-     "Collect",
-     "Solve"
-    ],
-    "real": true,
-    "source": "PL3 · ejercicio 4",
-    "solution": "yp[x_] = A + B x + C1 x^2;\npol = D[yp[x], {x, 2}] - 4 yp[x];\nCollect[pol, x]\nSolve[{-4 A + 2 C1 == -1, -4 B == 1, -4 C1 == 2}, {A, B, C1}]",
-    "check": {
-     "type": "expr",
-     "expected": "{{A -> 0, B -> -1/4, C1 -> -1/2}}",
-     "compare": "set"
-    },
-    "requires": [
-     "Solve",
-     "D"
-    ],
-    "hints": [
-     "`yp[x_] = A + B x + C1 x^2; pol = D[yp[x], {x, 2}] - 4 yp[x]; Collect[pol, x]`",
-     "Iguala con `2x^2 + x - 1`: término libre con −1, coeficiente de x con 1, coeficiente de x² con 2.",
-     "`Solve[{-4 A + 2 C1 == -1, -4 B == 1, -4 C1 == 2}, {A, B, C1}]`"
-    ],
-    "explain": "A = 0, B = −1/4, C = −1/2. Comprobación: `DSolve[y''[x] - 4 y[x] == 2 x^2 + x - 1, y[x], x] /. {C[1] -> 0, C[2] -> 0}`. En el examen de 2014 cayó igual con una ecuación de tercer orden."
+    ]
    }
   },
   {
@@ -585,33 +1088,31 @@
    "ex": {
     "id": "2-m2-pl3-e11",
     "kind": "code",
-    "title": "Coeficientes indeterminados: exponencial por senos",
-    "prompt": "**Examen de 2021, P3.** Halla `a`, `b`, `c`, `d` para que\n\n`yp(x) = a e^(-x) cos(3x) + b e^(-x) sen(3x) + c cos(3x) + d sen(3x)`\n\nsea solución particular de `y''' - y'' + 3y' - 2y = 5 e^(-x) sen(3x)`. Última línea: el `Solve` que da los cuatro coeficientes.",
-    "difficulty": 4,
+    "title": "Polinomio del guion",
+    "prompt": "**Ej. 4.** Halla A, B, C (llámalo `C1`) para que `yp = A + B x + C x²` cumpla `y'' − 4y = 2x² + x − 1`. Termina con el `Solve`.",
+    "difficulty": 3,
     "cmds": [
      "D",
-     "Solve",
-     "Table",
-     "ReplaceAll"
+     "CoefficientList",
+     "Solve"
     ],
     "real": true,
-    "source": "Examen 2021 · P3",
-    "solution": "yp[x_] = a Exp[-x] Cos[3 x] + b Exp[-x] Sin[3 x] + c Cos[3 x] + d Sin[3 x];\nres = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]",
+    "source": "PL3 · ejercicio 4",
+    "solution": "yp[x_] = A + B x + C1 x^2;\nres = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);\nSolve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]",
     "check": {
      "type": "expr",
-     "expected": "{{a -> 3/170, b -> 29/170, c -> 0, d -> 0}}",
+     "expected": "{{A -> 0, B -> -1/4, C1 -> -1/2}}",
      "compare": "set"
     },
+    "hints": [
+     "Residuo: `res = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);` (con paréntesis).",
+     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]`"
+    ],
+    "explain": "A = 0, B = −1/4, C = −1/2. También vale `Collect` e igualar a mano.",
     "requires": [
      "Solve",
      "D"
-    ],
-    "hints": [
-     "Define `yp[x_]` y el residuo: `res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];`",
-     "Cuatro incógnitas: evalúa `res` en cuatro valores de x (0, π/6, π/3, π/2) e iguala a 0.",
-     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]`"
-    ],
-    "explain": "a = 3/170, b = 29/170, c = d = 0 (en decimal 0.0176 y 0.1706, que es lo que se tecleaba en el examen). La alternativa es agrupar con `Collect` los cuatro tipos de término y copiar los coeficientes a mano; evaluar en puntos evita errores de copia."
+    ]
    }
   },
   {
@@ -619,8 +1120,8 @@
    "ex": {
     "id": "2-m2-pl3-e12",
     "kind": "code",
-    "title": "Examen 2014: polinomio en una ecuación de orden 3",
-    "prompt": "**Examen de 2014, pregunta 1.** Halla `a`, `b` y `c` para que `yp(x) = a + b x + c x^2` sea solución particular de `y''' + y'' + 2y' - 4y = 2x^2 + x - 1`. Última línea: el `Solve` que da los tres coeficientes.",
+    "title": "Examen 2014",
+    "prompt": "**Examen 2014, P1.** Halla `a`, `b`, `c` para que `yp = a + b x + c x²` cumpla `y''' + y'' + 2y' − 4y = 2x² + x − 1`.",
     "difficulty": 3,
     "cmds": [
      "D",
@@ -635,38 +1136,68 @@
      "expected": "{{a -> -3/8, b -> -3/4, c -> -1/2}}",
      "compare": "set"
     },
+    "hints": [
+     "`yp[x_] = a + b x + c x^2;` y el residuo con las cuatro derivadas.",
+     "`res = D[yp[x], {x, 3}] + D[yp[x], {x, 2}] + 2 D[yp[x], x] - 4 yp[x] - (2 x^2 + x - 1);`",
+     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {a, b, c}]`"
+    ],
+    "explain": "−0.375, −0.75, −0.5. El orden de la ecuación no cambia el método.",
     "requires": [
      "Solve",
      "D"
-    ],
-    "hints": [
-     "`yp[x_] = a + b x + c x^2;` y el residuo: lado izquierdo menos `(2 x^2 + x - 1)`, con paréntesis.",
-     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {a, b, c}]`, o `Collect[res, x]` e igualar a 0 los tres coeficientes."
-    ],
-    "explain": "a = −3/8, b = −3/4, c = −1/2 (en decimal −0.375, −0.75, −0.5). El orden de la ecuación no cambia el método: sustituir, agrupar, igualar."
+    ]
    }
   },
   {
-   "type": "explain",
-   "title": "Solución particular: variación de constantes",
-   "md": "Cuando el segundo miembro no es de los \"bonitos\" (por ejemplo `1/cos x`), se usa el método de **variación de constantes** (Lagrange): se busca `yp = C1(x) y1 + C2(x) y2`, con `y1`, `y2` las soluciones de la homogénea y las constantes convertidas en funciones.\n\nLas derivadas `C1'`, `C2'` (el guion las llama `K1`, `K2`) cumplen un sistema lineal:\n- `K1 y1 + K2 y2 = 0`\n- `K1 y1' + K2 y2' = f(x)` (con el coeficiente de `y''` igual a 1)\n\nReceta:\n- define `y1[x_]`, `y2[x_]` y resuelve el sistema con `Solve[..., {K1, K2}]`;\n- integra: `C1x = Integrate[K1, x]`, `C2x = Integrate[K2, x]`;\n- solución general: `(C1x + C1) y1 + (C2x + C2) y2`.\n\nEl ejemplo 3.4.2 del guion, `y'' - 3y' + 2y = sen(e^(-x))`, sigue exactamente estos pasos con `y1 = Exp[x]`, `y2 = Exp[2 x]` y `Sin[Exp[-x]]` a la derecha (allí las integrales tardan unos segundos). Y es la pregunta P4 del examen de 2021.",
-   "cells": [
+   "type": "build",
+   "section": "Con senos y cosenos",
+   "title": "Evaluar en puntos",
+   "md": "`y'' + y' = sen x`: no hay potencias que agrupar. Otro truco.",
+   "target": "Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]",
+   "parts": [
     {
-     "code": "y1[x_] = Exp[x]; y2[x_] = x Exp[x];",
-     "note": "Para y'' − 2y' + y = e^x/x (raíz doble r = 1): soluciones de la homogénea"
+     "code": "yq[x_] = a Cos[x] + b Sin[x];",
+     "md": "Se propone seno y coseno con coeficientes `a`, `b`.",
+     "run": true
     },
     {
-     "code": "sK = Solve[{K1 y1[x] + K2 y2[x] == 0,\n    K1 D[y1[x], x] + K2 D[y2[x], x] == Exp[x]/x}, {K1, K2}]",
-     "note": "El sistema: K1 = C1', K2 = C2'"
+     "code": "res = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x]",
+     "md": "El residuo: debe ser 0 para todo x.",
+     "run": true
     },
     {
-     "code": "C1x = Integrate[K1 /. Flatten[sK], x]\nC2x = Integrate[K2 /. Flatten[sK], x]",
-     "note": "Se integran para tener C1(x) y C2(x)"
+     "code": "res /. x -> 0",
+     "md": "Entonces también en x = 0: una ecuación.",
+     "run": true
     },
     {
-     "code": "ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
-     "note": "Solución general: homogénea + particular"
+     "code": "res /. x -> Pi/2",
+     "md": "Y en x = π/2: otra. Dos incógnitas, dos puntos.",
+     "run": true
+    },
+    {
+     "code": "Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]",
+     "md": "Resuelve el sistema.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "`y'' + y' = sen x` con `yq = a Cos[x] + b Sin[x]`: residuo `res` y `Solve` evaluando en 0 y π/2.",
+    "hints": [
+     "`yq[x_] = a Cos[x] + b Sin[x];` y `res = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];`",
+     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{a -> -1/2, b -> -1/2}}",
+     "compare": "set"
+    },
+    "solution": "yq[x_] = a Cos[x] + b Sin[x];\nres = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]"
+   },
+   "cmds": [
+    "D",
+    "ReplaceAll",
+    "Solve"
    ]
   },
   {
@@ -674,8 +1205,149 @@
    "ex": {
     "id": "2-m2-pl3-e13",
     "kind": "code",
+    "title": "Examen 2021, P3",
+    "prompt": "**Examen 2021, P3.** `yp[x]` (con `a`, `b`, `c`, `d`) ya está definida. Hállalos para `y''' − y'' + 3y' − 2y = 5 e^(−x) sen 3x`.",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "Solve",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P3",
+    "solution": "res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{a -> 3/170, b -> 29/170, c -> 0, d -> 0}}",
+     "compare": "set"
+    },
+    "hints": [
+     "Residuo: `res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];`",
+     "Cuatro incógnitas: evalúa `res` en 0, π/6, π/3 y π/2.",
+     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]`"
+    ],
+    "explain": "`yp = a e^(-x) cos 3x + b e^(-x) sen 3x + c cos 3x + d sen 3x`. Sale a = 3/170, b = 29/170, c = d = 0 (0.0176 y 0.1706).",
+    "setup": "yp[x_] = a Exp[-x] Cos[3 x] + b Exp[-x] Sin[3 x] + c Cos[3 x] + d Sin[3 x];",
+    "requires": [
+     "Solve",
+     "D"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Variación de constantes",
+   "title": "El sistema",
+   "md": "Ejemplo 3.4.2: `y'' − 3y' + 2y = sen(e^(−x))`. Raíces 1 y 2.",
+   "target": "sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Sin[Exp[-x]]}, {K1, K2}]",
+   "parts": [
+    {
+     "code": "y1[x_] = Exp[x]; y2[x_] = Exp[2 x];",
+     "md": "Las dos soluciones de la homogénea.",
+     "run": true
+    },
+    {
+     "code": "K1 y1[x] + K2 y2[x] == 0",
+     "md": "Primera ecuación. `K1`, `K2` son las derivadas `C1'`, `C2'`."
+    },
+    {
+     "code": "K1 D[y1[x], x] + K2 D[y2[x], x] == Sin[Exp[-x]]",
+     "md": "Segunda: con las derivadas, igual al segundo miembro."
+    },
+    {
+     "code": "sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Sin[Exp[-x]]}, {K1, K2}]",
+     "md": "Resuelve el sistema para `K1`, `K2`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`y'' − 3y' + 2y = sen(e^(−x))`: define `y1`, `y2` y resuelve el sistema de `K1`, `K2` en `sK`.",
+    "hints": [
+     "`y1[x_] = Exp[x]; y2[x_] = Exp[2 x];`",
+     "Ecuaciones: `K1 y1[x] + K2 y2[x] == 0` y `K1 D[y1[x], x] + K2 D[y2[x], x] == Sin[Exp[-x]]`.",
+     "`sK = Solve[{..., ...}, {K1, K2}]`"
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "Abs[(({K1, K2} /. First[sK]) - {-Exp[-x] Sin[Exp[-x]], Exp[-2 x] Sin[Exp[-x]]}) /. x -> 0.7 // Norm] < 10^-8",
+     "msg": "`sK` debe ser el `Solve` del sistema: `K1 y1 + K2 y2 == 0`, `K1 y1' + K2 y2' == Sin[Exp[-x]]`."
+    },
+    "solution": "y1[x_] = Exp[x]; y2[x_] = Exp[2 x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Sin[Exp[-x]]}, {K1, K2}]"
+   },
+   "more": "Se busca `yp = C1(x) y1 + C2(x) y2`. Las derivadas `K1 = C1'`, `K2 = C2'` cumplen `K1 y1 + K2 y2 = 0` y `K1 y1' + K2 y2' = f(x)`. Sirve cuando `f` no es de los tipos «bonitos».",
+   "cmds": [
+    "Solve",
+    "D"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Integrar y montar",
+   "md": "Ya definidas `y1`, `y2` y la solución `sK` del sistema.",
+   "target": "ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
+   "setup": "y1[x_] = Exp[x]; y2[x_] = Exp[2 x];\nsK = {{K1 -> -Exp[-x] Sin[Exp[-x]], K2 -> Exp[-2 x] Sin[Exp[-x]]}};",
+   "parts": [
+    {
+     "code": "K1 /. Flatten[sK]",
+     "md": "Saca `K1` de la regla: es `C1'(x)`.",
+     "run": true
+    },
+    {
+     "code": "C1x = Integrate[K1 /. Flatten[sK], x]",
+     "md": "Intégrala: `C1(x)`.",
+     "run": true
+    },
+    {
+     "code": "C2x = Integrate[K2 /. Flatten[sK], x]",
+     "md": "Lo mismo con `K2`: `C2(x)`.",
+     "run": true
+    },
+    {
+     "code": "ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
+     "md": "Solución general: cada función más su constante, por `y1` e `y2`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `y1`, `y2`, `sK` definidas: `C1x`, `C2x` (integrando) y la solución general `ysol[x_]`.",
+    "hints": [
+     "`C1x = Integrate[K1 /. Flatten[sK], x]`",
+     "`C2x = Integrate[K2 /. Flatten[sK], x]`",
+     "`ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[x] - 3 w'[x] + 2 w[x] == Sin[Exp[-x]]",
+       "func": "w",
+       "var": "x",
+       "expr": "ysol[x]",
+       "msg": "`ysol[x]` no cumple la ecuación."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{u = ysol[x]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+       "msg": "`ysol[x]` debe incluir `C1` y `C2`."
+      }
+     ]
+    },
+    "solution": "C1x = Integrate[K1 /. Flatten[sK], x]\nC2x = Integrate[K2 /. Flatten[sK], x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify"
+   },
+   "cmds": [
+    "Integrate",
+    "ReplaceAll",
+    "Simplify"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl3-e14",
+    "kind": "code",
     "title": "La receta completa",
-    "prompt": "Resuelve `y'' - 2y' + y = e^x/x^2` por variación de constantes (las soluciones de la homogénea son `e^x` y `x e^x`). Guarda la solución general como `ysol[x_]`, con constantes `C1` y `C2`.",
+    "prompt": "`y'' − 2y' + y = e^x/x²` (homogénea: `e^x`, `x e^x`). Variación de constantes: `y1`, `y2`, `sK`, `C1x`, `C2x`, `ysol[x_]`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -684,7 +1356,7 @@
     ],
     "real": false,
     "source": null,
-    "solution": "y1[x_] = Exp[x]; y2[x_] = x Exp[x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0,\n    K1 D[y1[x], x] + K2 D[y2[x], x] == Exp[x]/x^2}, {K1, K2}]\nC1x = Integrate[K1 /. Flatten[sK], x]\nC2x = Integrate[K2 /. Flatten[sK], x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
+    "solution": "y1[x_] = Exp[x]; y2[x_] = x Exp[x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Exp[x]/x^2}, {K1, K2}];\nC1x = Integrate[K1 /. Flatten[sK], x]\nC2x = Integrate[K2 /. Flatten[sK], x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
     "check": {
      "type": "all",
      "checks": [
@@ -694,37 +1366,38 @@
        "func": "w",
        "var": "x",
        "expr": "ysol[x]",
-       "msg": "`ysol[x]` no cumple la ecuación (o no está definida)."
+       "msg": "`ysol[x]` no cumple la ecuación."
       },
       {
        "type": "satisfies",
        "test": "With[{u = ysol[x]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`ysol[x]` debe incluir las constantes `C1` y `C2` (solución general)."
+       "msg": "`ysol[x]` debe incluir las constantes `C1` y `C2`."
       }
      ]
     },
+    "hints": [
+     "`y1[x_] = Exp[x]; y2[x_] = x Exp[x];`",
+     "`sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Exp[x]/x^2}, {K1, K2}];`",
+     "`C1x = Integrate[K1 /. Flatten[sK], x]`, `C2x = Integrate[K2 /. Flatten[sK], x]` y `ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`"
+    ],
+    "explain": "`K1 = -1/x`, `K2 = 1/x^2`; integrando, `-Log[x]` y `-1/x`. Cinco líneas: es la receta entera.",
     "requires": [
      "Integrate",
      "Solve"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`y1[x_] = Exp[x]; y2[x_] = x Exp[x];` y el sistema `sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == Exp[x]/x^2}, {K1, K2}]`.",
-     "`C1x = Integrate[K1 /. Flatten[sK], x]` y `C2x = Integrate[K2 /. Flatten[sK], x]`.",
-     "`ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`"
-    ],
-    "explain": "`K1 = -1/x`, `K2 = 1/x^2`; integrando, `C1(x) = -Log[x]`, `C2(x) = -1/x`. Cada línea usa lo que define la anterior: homogénea, sistema, integrales y montaje."
+    ]
    }
   },
   {
    "type": "exercise",
+   "section": "Guion: ejercicio 5 y examen",
    "ex": {
-    "id": "2-m2-pl3-e14",
+    "id": "2-m2-pl3-e15",
     "kind": "code",
-    "title": "Variación de constantes: el sistema",
-    "prompt": "**Guion PL3, ejercicio 5 (primera parte).** Para `y'' + y = 1/cos(x)` se busca `yp = C1(x) cos(x) + C2(x) sen(x)`. Define `y1[x_]`, `y2[x_]` y resuelve el sistema de las derivadas `K1 = C1'`, `K2 = C2'`. Última línea: el `Solve`, simplificado.",
+    "title": "El sistema",
+    "prompt": "**Ej. 5.** `y'' + y = 1/cos x` con `yp = C1(x) cos x + C2(x) sen x`. Define `y1`, `y2` y resuelve `K1`, `K2` (simplificado).",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -739,24 +1412,23 @@
      "expected": "{{K1 -> -Tan[x], K2 -> 1}}",
      "compare": "set"
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
      "`y1[x_] = Cos[x]; y2[x_] = Sin[x];`",
-     "Las ecuaciones: `K1 y1[x] + K2 y2[x] == 0` y `K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[x]`.",
-     "`Solve[{...}, {K1, K2}] // Simplify`"
+     "`Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify`"
     ],
-    "explain": "`K1 = -Tan[x]`, `K2 = 1`: son las DERIVADAS de `C1(x)` y `C2(x)`; todavía falta integrarlas."
+    "explain": "`K1 = -Tan[x]`, `K2 = 1`: son las DERIVADAS de `C1(x)`, `C2(x)`.",
+    "requires": [
+     "Solve"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl3-e15",
+    "id": "2-m2-pl3-e16",
     "kind": "code",
-    "title": "Variación de constantes: integrar y montar",
-    "prompt": "**Guion PL3, ejercicio 5 (segunda parte).** Sabiendo que `C1' = -tan x` y `C2' = 1`, calcula `C1x` y `C2x` integrando y guarda la solución general de `y'' + y = 1/cos(x)` como `ysol[x_]` (con las constantes `C1`, `C2`).",
+    "title": "Integrar y montar",
+    "prompt": "**Ej. 5.** Sabiendo `C1' = −tan x`, `C2' = 1` (y `y1`, `y2` ya definidas): `C1x`, `C2x` y la solución general `ysol[x_]`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -764,7 +1436,7 @@
     ],
     "real": true,
     "source": "PL3 · ejercicio 5",
-    "solution": "y1[x_] = Cos[x]; y2[x_] = Sin[x];\nC1x = Integrate[-Tan[x], x]\nC2x = Integrate[1, x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
+    "solution": "C1x = Integrate[-Tan[x], x]\nC2x = Integrate[1, x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
     "check": {
      "type": "all",
      "checks": [
@@ -774,93 +1446,203 @@
        "func": "w",
        "var": "x",
        "expr": "ysol[x]",
-       "msg": "`ysol[x]` no cumple `y'' + y = 1/cos x` (o no está definida)."
+       "msg": "`ysol[x]` no cumple `y'' + y = 1/cos x`."
       },
       {
        "type": "satisfies",
        "test": "With[{u = ysol[x]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
-       "msg": "`ysol[x]` debe incluir las constantes `C1` y `C2` (solución general)."
+       "msg": "`ysol[x]` debe incluir las constantes `C1` y `C2`."
       }
      ]
     },
+    "hints": [
+     "`C1x = Integrate[-Tan[x], x]` y `C2x = Integrate[1, x]`.",
+     "`ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`"
+    ],
+    "explain": "`C1(x) = Log[Cos[x]]`, `C2(x) = x`: `y = Cos[x] (C1 + Log[Cos[x]]) + (C2 + x) Sin[x]`.",
+    "setup": "y1[x_] = Cos[x]; y2[x_] = Sin[x];",
     "requires": [
      "Integrate"
     ],
     "forbids": [
      "DSolve"
-    ],
-    "hints": [
-     "`C1x = Integrate[-Tan[x], x]` y `C2x = Integrate[1, x]`.",
-     "`ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`, con `y1[x_] = Cos[x]; y2[x_] = Sin[x];`"
-    ],
-    "explain": "`C1(x) = Log[Cos[x]]`, `C2(x) = x` y `y = Cos[x] (C1 + Log[Cos[x]]) + (C2 + x) Sin[x]`. `DSolve[y''[x] + y[x] == 1/Cos[x], y[x], x]` da lo mismo."
+    ]
    }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m2-pl3-e16",
-    "kind": "code",
-    "title": "Variación de constantes con respuesta numérica",
-    "prompt": "**Examen de 2021, P4.** Para `y'' + 9y = 1/cos(x)` se busca `yp = C1(x) cos(3x) + C2(x) sen(3x)`. Resuelve el sistema de `K1`, `K2`, integra para obtener las funciones `C1x[x_]` y `C2x[x_]`, y devuelve en la última línea la lista `{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]}` en decimal.",
-    "difficulty": 4,
-    "cmds": [
-     "Solve",
-     "Integrate",
-     "N",
-     "ReplaceAll"
-    ],
-    "real": true,
-    "source": "Examen 2021 · P4",
-    "solution": "y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify\nC1x[x_] = Integrate[K1 /. Flatten[sK], x];\nC2x[x_] = Integrate[K2 /. Flatten[sK], x];\n{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]} // N",
-    "check": {
-     "type": "expr",
-     "expected": "{-0.2164519974, 0.1554028724}",
-     "compare": "numeric",
-     "tol": 0.0001
-    },
-    "requires": [
-     "Integrate",
-     "Solve"
-    ],
-    "hints": [
-     "`y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];` y el mismo sistema de siempre, con `1/Cos[x]` a la derecha. Guárdalo: `sK = Solve[...] // Simplify`.",
-     "`C1x[x_] = Integrate[K1 /. Flatten[sK], x]; C2x[x_] = Integrate[K2 /. Flatten[sK], x];`",
-     "`{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]} // N`"
-    ],
-    "explain": "Sale `{-0.2165, 0.1554}`. El examen pide diferencias de `C1(x)` y `C2(x)` porque así la constante de integración no influye: da igual qué primitiva escriba Mathematica."
-   }
-  },
-  {
-   "type": "explain",
-   "title": "Oscilaciones forzadas y resonancia",
-   "md": "`y'' + α y' + β y = f(t)` modela un sistema que vibra: `α` es el rozamiento, `β` la fuerza recuperadora y `f` una fuerza externa. La frecuencia propia del sistema es `Sqrt[β]`. Si la fuerza externa es periódica con una frecuencia `ω` cercana a la propia y hay poco rozamiento, la amplitud se dispara: **resonancia** (lo que rompe puentes y alas).\n\nPara estudiarlo se resuelve con `ω` como parámetro (símbolo `w`) y se guarda la solución como función de dos variables: `ys[t_, w_]`. Luego se compara para varias frecuencias, con `Plot` de una lista o con `Manipulate` y un deslizador para `w`.\n\nEl guion usa además `Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.02}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]`: para cada instante `t` pinta el valor de la solución frente a `ω`; el pico aparece alrededor de ω = 2.",
-   "cells": [
-    {
-     "code": "resul = DSolve[{y''[t] + 1/10 y'[t] + 4 y[t] == Cos[w t],\n    y[0] == 0, y'[0] == 0}, y[t], t];",
-     "note": "Ejemplo 3.5.1: α = 1/10, β = 4 (frecuencia propia 2), en reposo al inicio. Tarda un par de segundos"
-    },
-    {
-     "code": "ys[t_, w_] = y[t] /. Flatten[resul];",
-     "note": "La solución como función del tiempo y de la frecuencia de la fuerza"
-    },
-    {
-     "code": "Plot[{ys[t, 1], ys[t, 2], ys[t, 3]}, {t, 0, 20}, PlotRange -> {-3, 3}]",
-     "note": "Con ω = 1 y ω = 3 la amplitud es pequeña; con ω = 2 crece"
-    },
-    {
-     "code": "Manipulate[Plot[ys[t, w], {t, 0, 20}, PlotRange -> {-3, 3}], {w, 1, 3}]",
-     "note": "Mueve ω y busca dónde se dispara"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m2-pl3-e17",
     "kind": "code",
-    "title": "Oscilador forzado: la solución",
-    "prompt": "**Guion PL3, ejercicio 6 (solución).** Oscilador inicialmente en reposo y ligeramente forzado: `y'' + β y = (1/10) sen(ω t)`, `y(0) = 0`, `y'(0) = 0`, con β = 7. Resuélvelo con `DSolve` dejando `ω` como símbolo `w` y guarda la solución como `ys[t_, w_]`.",
+    "title": "Examen 2021, P4: el sistema",
+    "prompt": "**Examen 2021, P4.** `y'' + 9y = 1/cos x`, `yp = C1(x) cos 3x + C2(x) sen 3x`. Define `y1`, `y2` y guarda en `sK` el sistema resuelto.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "D",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P4",
+    "solution": "y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify",
+    "check": {
+     "type": "satisfies",
+     "test": "Abs[(({K1, K2} /. First[sK]) - {-Sin[3 x]/(3 Cos[x]), Cos[3 x]/(3 Cos[x])}) /. x -> 0.7 // Norm] < 10^-8",
+     "msg": "`sK` debe resolver `K1 y1 + K2 y2 == 0`, `K1 y1' + K2 y2' == 1/Cos[x]` con `y1 = Cos[3 x]`, `y2 = Sin[3 x]`."
+    },
+    "hints": [
+     "`y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];`",
+     "`sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[x]}, {K1, K2}] // Simplify`"
+    ],
+    "explain": "`K1 = -Sin[3x]/(3 Cos[x])`, `K2 = Cos[3x]/(3 Cos[x])`.",
+    "requires": [
+     "Solve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl3-e18",
+    "kind": "code",
+    "title": "Examen 2021, P4: los números",
+    "prompt": "**Examen 2021, P4.** Con `sK` ya resuelto: define `C1x[x_]`, `C2x[x_]` integrando y termina con `{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]} // N`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "N",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P4",
+    "solution": "C1x[x_] = Integrate[K1 /. Flatten[sK], x];\nC2x[x_] = Integrate[K2 /. Flatten[sK], x];\n{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{-0.2164519974, 0.1554028724}",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`C1x[x_] = Integrate[K1 /. Flatten[sK], x];` y lo mismo para `C2x` con `K2`.",
+     "`{C1x[Pi/3] - C1x[1/3], C2x[1/3] - C2x[Pi/3]} // N`"
+    ],
+    "explain": "`{-0.2165, 0.1554}`. Se piden diferencias para que la constante de integración no influya.",
+    "setup": "sK = {{K1 -> -Sin[3 x]/(3 Cos[x]), K2 -> Cos[3 x]/(3 Cos[x])}};",
+    "requires": [
+     "Integrate"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Resonancia",
+   "title": "Solución con parámetro",
+   "md": "Ejemplo 3.5.1: oscilador con rozamiento 1/10, fuerza `cos(w t)`, en reposo.",
+   "target": "Plot[{ys[t, 1], ys[t, 2], ys[t, 3]}, {t, 0, 20}, PlotRange -> {-3, 3}]",
+   "setup": "resul = DSolve[{y''[t] + 1/10 y'[t] + 4 y[t] == Cos[w t], y[0] == 0, y'[0] == 0}, y[t], t];\nys[t_, w_] = y[t] /. Flatten[resul];",
+   "parts": [
+    {
+     "code": "resul = DSolve[{y''[t] + 1/10 y'[t] + 4 y[t] == Cos[w t], y[0] == 0, y'[0] == 0}, y[t], t];",
+     "md": "Resuélvelo dejando la frecuencia `w` como símbolo. Tarda un poco.",
+     "run": true
+    },
+    {
+     "code": "ys[t_, w_] = y[t] /. Flatten[resul];",
+     "md": "Guárdalo como función del tiempo y de la frecuencia.",
+     "run": true
+    },
+    {
+     "code": "Plot[ys[t, 1], {t, 0, 20}, PlotRange -> {-3, 3}]",
+     "md": "Con w = 1: oscilación pequeña.",
+     "run": true
+    },
+    {
+     "code": "Plot[ys[t, 2], {t, 0, 20}, PlotRange -> {-3, 3}]",
+     "md": "Con w = 2: crece. Es la resonancia.",
+     "run": true
+    },
+    {
+     "code": "Plot[{ys[t, 1], ys[t, 2], ys[t, 3]}, {t, 0, 20}, PlotRange -> {-3, 3}]",
+     "md": "Las tres frecuencias juntas, como en el guion.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `ys[t, w]` definida: dibuja juntas w = 1, 2, 3 para t de 0 a 20, `PlotRange -> {-3, 3}`.",
+    "hints": [
+     "Una lista de tres funciones: `{ys[t, 1], ys[t, 2], ys[t, 3]}`.",
+     "`Plot[{...}, {t, 0, 20}, PlotRange -> {-3, 3}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 3,
+     "like": "Plot[{ys[t, 1], ys[t, 2], ys[t, 3]}, {t, 0, 20}, PlotRange -> {-3, 3}]",
+     "msg": "Dibuja `{ys[t, 1], ys[t, 2], ys[t, 3]}` para t de 0 a 20.",
+     "tol": 0.005
+    }
+   },
+   "more": "En `y'' + α y' + β y = f(t)`, la frecuencia propia es `Sqrt[β]` (aquí 2). Si la fuerza oscila cerca de esa frecuencia y hay poco rozamiento, la amplitud se dispara.",
+   "cmds": [
+    "DSolve",
+    "Flatten",
+    "ReplaceAll",
+    "Plot"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Barrer frecuencias",
+   "md": "`ys[t, w]` ya está definida. Mira todas las frecuencias a la vez.",
+   "target": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.05}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
+   "setup": "resul = DSolve[{y''[t] + 1/10 y'[t] + 4 y[t] == Cos[w t], y[0] == 0, y'[0] == 0}, y[t], t];\nys[t_, w_] = y[t] /. Flatten[resul];",
+   "parts": [
+    {
+     "code": "Manipulate[Plot[ys[t, w], {t, 0, 20}, PlotRange -> {-3, 3}], {w, 1, 3}]",
+     "md": "Un deslizador para `w`: busca dónde se dispara.",
+     "run": true
+    },
+    {
+     "code": "Table[{w, ys[10, w]}, {w, 1, 3, 0.5}]",
+     "md": "Pares (w, valor de la solución en t = 10).",
+     "run": true
+    },
+    {
+     "code": "ListPlot[Table[{w, ys[10, w]}, {w, 1, 3, 0.05}], PlotRange -> {-2, 2}]",
+     "md": "`ListPlot` los dibuja como puntos: el pico está en w = 2.",
+     "run": true
+    },
+    {
+     "code": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.05}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
+     "md": "El del guion: ahora el deslizador es el tiempo `t`.",
+     "run": true,
+     "hint": "`{{t, 0, \"t\"}, 0, 20}`: variable, valor inicial y etiqueta; después, mínimo y máximo."
+    }
+   ],
+   "recall": {
+    "prompt": "Con `ys` definida: el `Manipulate` del guion (`ListPlot` de la tabla en `w`, deslizador `t` de 0 a 20).",
+    "hints": [
+     "`Manipulate[ListPlot[Table[...], opciones], {{t, 0, \"t\"}, 0, 20}]`.",
+     "La tabla: `Table[{w, ys[t, w]}, {w, 1, 3, 0.05}]`."
+    ],
+    "check": {
+     "type": "none"
+    }
+   },
+   "cmds": [
+    "Manipulate",
+    "ListPlot",
+    "Table"
+   ]
+  },
+  {
+   "type": "exercise",
+   "section": "Guion: ejercicio 6",
+   "ex": {
+    "id": "2-m2-pl3-e19",
+    "kind": "code",
+    "title": "La solución",
+    "prompt": "**Ej. 6.** `y'' + 7y = (1/10) sen(w t)`, `y(0) = 0`, `y'(0) = 0`. Resuelve con `DSolve` (en `resul`) y define `ys[t_, w_]`.",
     "difficulty": 3,
     "cmds": [
      "DSolve",
@@ -880,32 +1662,31 @@
       "u'[0]==0"
      ],
      "expr": "ys[t, w]",
-     "msg": "`ys[t, w]` no cumple la ecuación del oscilador o las condiciones de reposo (o no está definida)."
+     "msg": "`ys[t, w]` no cumple la ecuación o las condiciones de reposo."
     },
-    "requires": [
-     "DSolve"
-    ],
     "hints": [
      "`resul = DSolve[{y''[t] + 7 y[t] == 1/10 Sin[w t], y[0] == 0, y'[0] == 0}, y[t], t];`",
      "`ys[t_, w_] = y[t] /. Flatten[resul]`"
     ],
-    "explain": "En el denominador aparece `w^2 - 7`: cuando ω se acerca a √7 ≈ 2.65 (la frecuencia propia) la solución se hace enorme. Eso es la resonancia."
+    "explain": "En el denominador sale `w^2 - 7`: cerca de √7 ≈ 2.65 la solución se hace enorme.",
+    "requires": [
+     "DSolve"
+    ]
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m2-pl3-e18",
+    "id": "2-m2-pl3-e20",
     "kind": "code",
-    "title": "Oscilador forzado: ¿dónde está la resonancia?",
-    "prompt": "**Guion PL3, ejercicio 6 (representación y conclusión).** Con `ys[t, w]` ya definida (la solución con β = 7), dibuja para t entre 0 y 100, en un solo `Plot`, la solución con ω = 2, con ω = 2.65 y con ω = 3.5, junto a las rectas `y = 1` e `y = -1` (una lista de cinco funciones, en ese orden). ¿Cuál supera el valor 1?",
+    "title": "¿Dónde supera 1?",
+    "prompt": "**Ej. 6.** Con `ys[t, w]` definida: dibuja juntas w = 2, 2.65 y 3.5 y las rectas 1 y −1, para t de 0 a 100.",
     "difficulty": 3,
     "cmds": [
      "Plot"
     ],
     "real": true,
     "source": "PL3 · ejercicio 6",
-    "setup": "ys[t_, w_] = (Sqrt[7] w Sin[Sqrt[7] t] - 7 Sin[t w])/(70 (w^2 - 7));",
     "solution": "Plot[{ys[t, 2], ys[t, 2.65], ys[t, 3.5], 1, -1}, {t, 0, 100}]",
     "check": {
      "type": "graphics",
@@ -915,14 +1696,15 @@
      "msg": "Dibuja `{ys[t, 2], ys[t, 2.65], ys[t, 3.5], 1, -1}` para t de 0 a 100.",
      "tol": 0.002
     },
-    "requires": [
-     "Plot"
-    ],
     "hints": [
-     "Varias funciones en un `Plot` van en una lista: `Plot[{f1, f2, f3, 1, -1}, {t, 0, 100}]`.",
+     "Una lista de cinco funciones en un solo `Plot`.",
      "`Plot[{ys[t, 2], ys[t, 2.65], ys[t, 3.5], 1, -1}, {t, 0, 100}]`"
     ],
-    "explain": "Solo la curva de ω = 2.65 supera 1: la frecuencia propia es `Sqrt[7]` ≈ 2.646, y la amplitud solo crece tanto cuando ω está muy cerca (entre 2.6 y 2.7, más o menos). El guion pide verlo con `Manipulate[Plot[{ys[t, w], 1, -1}, {t, 0, 100}, PlotRange -> {-2, 2}], {w, 1, 4}]`: pruébalo en el cuaderno."
+    "explain": "Solo w = 2.65 supera 1: la frecuencia propia es `Sqrt[7]` ≈ 2.646. Con `Manipulate[Plot[{ys[t, w], 1, -1}, {t, 0, 100}], {w, 1, 4}]` lo barres entero.",
+    "setup": "ys[t_, w_] = (Sqrt[7] w Sin[Sqrt[7] t] - 7 Sin[t w])/(70 (w^2 - 7));",
+    "requires": [
+     "Plot"
+    ]
    }
   }
  ]

@@ -81,6 +81,13 @@ class Ck:
         pct = getattr(self, "pct_line", None)
         if pct is not None:
             self.k.defs.set_line_no(pct + 1)
+            # `Out[$Line]` (work-around some lessons used before `%` was fixed) keeps meaning the same output
+            try:
+                from mathics.core.rules import Rule as _MRule
+
+                self.k.defs.add_rule("Out", _MRule(E("Out", Integer(pct + 1)), E("Out", Integer(pct))))
+            except Exception:
+                pass
         try:
             return self.k.eval_code(code)
         except Deadline:
@@ -88,6 +95,11 @@ class Ck:
             return None
         finally:
             self.k.defs.set_line_no(line0)
+            if pct is not None:
+                try:
+                    self.k.defs.unset("Out", E("Out", Integer(pct + 1)))
+                except Exception:
+                    pass
             self.k._deadline = None
             self.ev.out = []
             self.ev.stopped = False

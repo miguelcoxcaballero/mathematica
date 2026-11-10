@@ -5,8 +5,8 @@
  "block": "Cálculo I",
  "order": 4,
  "title": "Límites, derivadas e integrales",
- "summary": "Limit, D e Integrate, y sobre todo cómo encadenarlos: asíntotas, recta tangente y normal, un problema de optimización completo (la ventana de la práctica) y primitivas.",
- "minutes": 50,
+ "summary": "Limit, D e Integrate, y cómo encadenarlos: asíntotas, tangente y normal, optimización y primitivas.",
+ "minutes": 55,
  "commands": [
   "Limit",
   "Infinity",
@@ -29,45 +29,53 @@
   "Sin",
   "E",
   "Pi",
-  "Out"
+  "Part"
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "El cálculo de 1º, una línea cada cosa",
-   "md": "Límites, derivadas e integrales son tres comandos: `Limit`, `D` e `Integrate`. Lo difícil no es calcularlos, sino **encadenarlos** para resolver un problema: una asíntota son dos límites, una recta tangente es una derivada y un problema de optimización es un `Solve` de una derivada.\n\nAl acabar sabrás:\n- calcular límites (en un punto, en el infinito y laterales) y sacar asíntotas;\n- derivar con `D` y con la prima `f'[x]`;\n- escribir la recta tangente y la normal a una curva;\n- resolver paso a paso un problema de máximos con restricción (la ventana de la práctica);\n- calcular primitivas e integrales definidas.\n\nUna costumbre para toda esta práctica: empieza cada problema borrando lo anterior con la primera línea de abajo (tecléala: en el examen la escribirás muchas veces). Aquí vas a definir muchas `f`, `a`, `m`, `n`…, y los valores viejos son la primera causa de resultados absurdos.",
-   "cells": [
-    {
-     "code": "Clear[\"Global`*\"]",
-     "note": "Borra todas tus definiciones anteriores"
-    },
-    {
-     "code": "Limit[Sin[x]/x, x -> 0]"
-    },
-    {
-     "code": "D[x^3, x]"
-    },
-    {
-     "code": "Integrate[x^2, x]"
-    }
-   ]
-  },
-  {
-   "type": "explain",
+   "type": "build",
+   "section": "Límites",
    "title": "Limit",
-   "md": "`Limit[expr, x -> a]` calcula el límite de `expr` cuando `x` tiende a `a`.\n- Primer argumento: la expresión.\n- Segundo: una regla `variable -> punto`, con la misma flecha `->` de las sustituciones.\n\nEl punto puede ser `Infinity` o `-Infinity`.\n\n`Limit` resuelve solo las indeterminaciones (0/0, ∞/∞, ∞ − ∞, 1^∞…). No hay que hacer nada especial.",
-   "cells": [
+   "md": "Limit[expresión, x -> punto].",
+   "target": "Limit[(3 x^2 + 1)/(x^2 - 5), x -> Infinity]",
+   "parts": [
+    {
+     "code": "Limit[x^2, x -> 3]",
+     "md": "Un límite sin misterio: x tiende a 3.",
+     "run": true
+    },
+    {
+     "code": "Limit[Sin[x]/x, x -> 0]",
+     "md": "Una indeterminación 0/0.",
+     "run": true
+    },
     {
      "code": "Limit[(x^2 - 1)/(x - 1), x -> 1]",
-     "note": "Una indeterminación 0/0"
+     "md": "Otra 0/0.",
+     "run": true
     },
     {
-     "code": "Limit[(3 x^2 + 1)/(x^2 - 5), x -> Infinity]"
+     "code": "Limit[1/x, x -> Infinity]",
+     "md": "Ahora en el infinito.",
+     "run": true
     },
     {
-     "code": "Limit[(1 + 1/n)^n, n -> Infinity]",
-     "note": "La definición del número e"
+     "code": "Limit[(3 x^2 + 1)/(x^2 - 5), x -> Infinity]",
+     "md": "Un cociente de polinomios en el infinito.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: límite de (3x² + 1)/(x² − 5) cuando x tiende a infinito.",
+    "hints": [
+     "`Limit[expresión, x -> Infinity]`",
+     "Numerador y denominador entre paréntesis.",
+     "`Limit[(3 x^2 + 1)/(x^2 - 5), x -> Infinity]`"
+    ]
+   },
+   "cmds": [
+    "Limit",
+    "Infinity"
    ]
   },
   {
@@ -76,7 +84,7 @@
     "id": "1-p04-e01",
     "kind": "code",
     "title": "Límite en el infinito",
-    "prompt": "Calcula el límite de (2x + 1)/(x − 3) cuando x tiende a infinito.\n\nLa forma es `Limit[expresión, x -> punto]`, e infinito se escribe `Infinity`.",
+    "prompt": "Calcula el límite de (2x + 1)/(x − 3) cuando x tiende a infinito.",
     "difficulty": 1,
     "cmds": [
      "Limit",
@@ -94,10 +102,10 @@
      "Infinity"
     ],
     "hints": [
-     "Numerador y denominador, cada uno entre paréntesis: `(2 x + 1)/(x - 3)`.",
+     "`Limit[expresión, x -> Infinity]`",
      "`Limit[(2 x + 1)/(x - 3), x -> Infinity]`"
     ],
-    "explain": "`Limit[(2 x + 1)/(x - 3), x -> Infinity]` da 2: el cociente de los coeficientes principales."
+    "explain": "Da 2: el cociente de los coeficientes principales."
    }
   },
   {
@@ -105,7 +113,7 @@
    "ex": {
     "id": "1-p04-e02",
     "kind": "code",
-    "title": "Una indeterminación ∞ − ∞",
+    "title": "Infinito menos infinito",
     "prompt": "Calcula el límite de `Sqrt[x^2 + x] - x` cuando x tiende a infinito.",
     "difficulty": 2,
     "cmds": [
@@ -124,29 +132,60 @@
      "Limit"
     ],
     "hints": [
-     "La forma es `Limit[expresión, x -> Infinity]`.",
+     "La expresión tal cual, y `x -> Infinity`.",
      "`Limit[Sqrt[x^2 + x] - x, x -> Infinity]`"
     ],
-    "explain": "Sale 1/2. A mano habría que multiplicar por el conjugado; `Limit` lo hace solo."
+    "explain": "Sale 1/2. A mano habría que multiplicar por el conjugado."
    }
   },
   {
-   "type": "explain",
-   "title": "Límites laterales: Direction",
-   "md": "Cuando la función se comporta distinto a cada lado del punto, se pide el límite lateral con la opción `Direction`:\n- `Direction -> \"FromBelow\"` — por la **izquierda** (te acercas desde valores menores).\n- `Direction -> \"FromAbove\"` — por la **derecha** (desde valores mayores).\n\nEn tus prácticas y en los exámenes resueltos aparece la forma antigua, con números. Funciona igual y conviene conocerla:\n- `Direction -> 1` es por la **izquierda**.\n- `Direction -> -1` es por la **derecha**.\n\nVa al revés de lo que pide la intuición. Truco: el número indica el sentido en que te mueves. Con `1` avanzas hacia la derecha, así que vienes de la izquierda.\n\nLas opciones se escriben siempre al final, después de los argumentos, con la forma `nombre -> valor`.",
-   "cells": [
+   "type": "build",
+   "title": "Límites laterales",
+   "md": "Direction elige el lado por el que te acercas.",
+   "more": "En tus prácticas verás la forma con números: `1` izquierda, `-1` derecha. El número es el sentido en que te mueves: con `1` avanzas hacia la derecha, así que vienes de la izquierda.",
+   "target": "Limit[Abs[x]/x, x -> 0, Direction -> 1]",
+   "parts": [
     {
      "code": "Limit[1/x, x -> 0, Direction -> \"FromAbove\"]",
-     "note": "Forma moderna: por la derecha"
+     "md": "Por la derecha: desde valores mayores.",
+     "run": true
+    },
+    {
+     "code": "Limit[1/x, x -> 0, Direction -> \"FromBelow\"]",
+     "md": "Por la izquierda: desde valores menores.",
+     "run": true
+    },
+    {
+     "code": "Limit[1/x, x -> 0, Direction -> -1]",
+     "md": "Forma antigua: -1 es por la derecha.",
+     "run": true
+    },
+    {
+     "code": "Limit[1/x, x -> 0, Direction -> 1]",
+     "md": "Y 1 es por la izquierda.",
+     "run": true
     },
     {
      "code": "Limit[Abs[x]/x, x -> 0, Direction -> 1]",
-     "note": "Forma antigua: 1 es por la izquierda"
-    },
-    {
-     "code": "Limit[Abs[x]/x, x -> 0, Direction -> -1]",
-     "note": "Y -1 es por la derecha"
+     "md": "Otra función, por la izquierda.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: límite de |x|/x en 0 por la izquierda, con `Direction -> 1`.",
+    "hints": [
+     "La opción va al final: `Direction -> 1`.",
+     "`Limit[Abs[x]/x, x -> 0, Direction -> 1]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-1"
+    }
+   },
+   "cmds": [
+    "Limit",
+    "Direction",
+    "Abs"
    ]
   },
   {
@@ -155,7 +194,7 @@
     "id": "1-p04-e03",
     "kind": "code",
     "title": "Los dos laterales",
-    "prompt": "Calcula los límites laterales de `(x^2 - 4)/Abs[x - 2]` en x = 2. Devuelve una lista `{por la izquierda, por la derecha}`.",
+    "prompt": "Límites laterales de `(x^2 - 4)/Abs[x - 2]` en x = 2. Devuelve la lista `{izquierda, derecha}`.",
     "difficulty": 2,
     "cmds": [
      "Limit",
@@ -168,57 +207,119 @@
     "check": {
      "type": "expr",
      "expected": "{-4, 4}",
-     "msg": "No coincide. El orden pedido es {izquierda, derecha}: `Direction -> 1` es la izquierda y `Direction -> -1` la derecha."
+     "msg": "El orden es {izquierda, derecha}: `Direction -> 1` y `Direction -> -1`."
     },
     "requires": [
      "Limit",
      "Direction"
     ],
     "hints": [
-     "Son dos `Limit` dentro de una lista, cada uno con su `Direction`.",
-     "Izquierda: `Direction -> 1` (o `\"FromBelow\"`). Derecha: `Direction -> -1` (o `\"FromAbove\"`)."
+     "Dos `Limit` dentro de una lista: `Direction -> 1` (izquierda) y `Direction -> -1` (derecha).",
+     "`{Limit[(x^2 - 4)/Abs[x - 2], x -> 2, Direction -> 1], Limit[(x^2 - 4)/Abs[x - 2], x -> 2, Direction -> -1]}`"
     ],
-    "explain": "Por la izquierda −4 y por la derecha 4. La función vale −(x + 2) a la izquierda de 2 y (x + 2) a la derecha: tiene un salto."
+    "explain": "−4 por la izquierda y 4 por la derecha: la función tiene un salto."
    }
   },
   {
-   "type": "explain",
-   "title": "Asíntota oblicua: dos límites encadenados",
-   "md": "Una recta `y = m x + n` es asíntota oblicua de `h` si:\n- `m` = límite de `h(x)/x` cuando x → ∞ (la pendiente);\n- `n` = límite de `h(x) - m x` cuando x → ∞ (la ordenada en el origen).\n\nEl segundo límite necesita el resultado del primero. Por eso se guarda `m` en una variable.\n\nConsejo: guarda `m` **exacto** y aproxima solo al final con `N`. Si redondeas `m` antes de tiempo, en el segundo límite el término en x ya no se cancela bien.\n\nY recuerda: `m` y `n` quedan asignadas. Bórralas con `Clear[m, n]` antes de usarlas como símbolos en otro problema.",
-   "cells": [
+   "type": "build",
+   "title": "Asíntota oblicua",
+   "md": "Dos límites encadenados: pendiente m y ordenada n.",
+   "more": "Guarda `m` exacto y aproxima al final: si la redondeas antes, en el segundo límite el término en x ya no se cancela bien.",
+   "target": "{m, n}",
+   "parts": [
     {
-     "code": "h[x_] := (2 x^2 + 3 x - 1)/(x + 4)"
+     "code": "h[x_] := (2 x^2 + 3 x - 1)/(x + 4)",
+     "md": "Define la función.",
+     "run": true
     },
     {
      "code": "m = Limit[h[x]/x, x -> Infinity]",
-     "note": "Pendiente"
+     "md": "La pendiente: límite de h(x)/x.",
+     "run": true
     },
     {
      "code": "n = Limit[h[x] - m x, x -> Infinity]",
-     "note": "Ordenada en el origen. Asíntota: y = 2x − 5"
+     "md": "La ordenada: límite de h(x) − m x.",
+     "run": true
+    },
+    {
+     "code": "{m, n}",
+     "md": "Las dos juntas: la asíntota es y = m x + n.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `h` = (2x² + 3x − 1)/(x + 4), halla `m` y `n` y muestra `{m, n}`.",
+    "hints": [
+     "`m = Limit[h[x]/x, x -> Infinity]`",
+     "`n = Limit[h[x] - m x, x -> Infinity]`",
+     "`h[x_] := (2 x^2 + 3 x - 1)/(x + 4)`, las dos líneas de `m` y `n`, y `{m, n}`"
+    ],
+    "solution": "h[x_] := (2 x^2 + 3 x - 1)/(x + 4)\nm = Limit[h[x]/x, x -> Infinity];\nn = Limit[h[x] - m x, x -> Infinity];\n{m, n}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{m, n}",
+       "expected": "{2, -5}",
+       "msg": "`m` es el límite de `h[x]/x` y `n` el de `h[x] - m x`."
+      },
+      {
+       "type": "expr",
+       "expected": "{2, -5}"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Limit",
+    "Infinity",
+    "Set"
    ]
   },
   {
-   "type": "explain",
-   "title": "Derivar: D y la prima",
-   "md": "Hay dos notaciones, según lo que tengas.\n\n**Tienes una expresión** → `D[expr, x]`. Primer argumento: qué derivas. Segundo: respecto de qué variable. Para la derivada segunda, `D[expr, {x, 2}]` (variable y orden, entre llaves).\n\n**Tienes una función definida** `f[x_]` → la prima, como en papel: `f'[x]`, `f''[x]` y, directamente en un punto, `f'[2]`. La prima es el apóstrofo del teclado.\n\nError típico: escribir `D[f, x]` con la `f` sola. Eso deriva el símbolo `f`, que no depende de x, y da `0`. Hay que escribir `D[f[x], x]` o `f'[x]`.",
-   "cells": [
+   "type": "build",
+   "section": "Derivadas",
+   "title": "D: derivar una expresión",
+   "md": "D[expresión, variable].",
+   "target": "D[x^3, {x, 2}]",
+   "parts": [
+    {
+     "code": "D[x^3, x]",
+     "md": "Deriva x³ respecto de x.",
+     "run": true
+    },
     {
      "code": "D[x^3 Sin[x], x]",
-     "note": "Aplica sola la regla del producto"
+     "md": "Ahora un producto.",
+     "run": true
     },
     {
-     "code": "D[Sin[x]^2, {x, 2}]",
-     "note": "Derivada segunda"
+     "code": "D[x^2 y^3, x]",
+     "md": "Dos letras: deriva respecto de x.",
+     "run": true
     },
     {
-     "code": "f[x_] := x^3 - 3 x"
+     "code": "D[x^2 y^3, y]",
+     "md": "La misma, respecto de y.",
+     "run": true
     },
     {
-     "code": "{f'[x], f''[x], f'[2]}",
-     "note": "Con la prima: primera, segunda y valor en un punto"
+     "code": "D[x^3, {x, 2}]",
+     "md": "Derivada segunda: variable y orden, entre llaves.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: la derivada segunda de x³ respecto de x.",
+    "hints": [
+     "`D[expresión, {x, 2}]`",
+     "`D[x^3, {x, 2}]`"
+    ]
+   },
+   "cmds": [
+    "D"
    ]
   },
   {
@@ -226,36 +327,7 @@
    "ex": {
     "id": "1-p04-e04",
     "kind": "code",
-    "title": "¿Respecto de qué variable?",
-    "prompt": "Calcula la derivada de `x^2 y^3` respecto de **y**.",
-    "difficulty": 1,
-    "cmds": [
-     "D"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "D[x^2 y^3, y]",
-    "check": {
-     "type": "expr",
-     "expected": "3 x^2 y^2",
-     "msg": "No coincide. El segundo argumento de `D` dice respecto de qué se deriva: aquí es `y`, no `x`."
-    },
-    "requires": [
-     "D"
-    ],
-    "hints": [
-     "La forma es `D[expresión, variable]`, y la variable es `y`.",
-     "`D[x^2 y^3, y]`"
-    ],
-    "explain": "Al derivar respecto de `y`, `x^2` actúa como constante: queda `3 x^2 y^2`. Con `D[x^2 y^3, x]` habría salido `2 x y^3`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p04-e05",
-    "kind": "code",
-    "title": "Tu primera derivada",
+    "title": "Una derivada",
     "prompt": "Calcula la derivada de `x^2 E^(3 x)` respecto de x.",
     "difficulty": 1,
     "cmds": [
@@ -272,19 +344,76 @@
      "D"
     ],
     "hints": [
-     "La forma es `D[expresión, variable]`.",
+     "`D[expresión, variable]`",
      "`D[x^2 E^(3 x), x]`"
     ],
-    "explain": "Mathematica aplica la regla del producto y la de la cadena: `2 x E^(3 x) + 3 x^2 E^(3 x)`."
+    "explain": "Aplica sola la regla del producto y la de la cadena."
    }
+  },
+  {
+   "type": "build",
+   "title": "La prima",
+   "md": "Con una función definida, deriva con el apóstrofo.",
+   "target": "D[f[x], x]",
+   "parts": [
+    {
+     "code": "f[x_] := x^3 - 3 x",
+     "md": "Define una función.",
+     "run": true
+    },
+    {
+     "code": "f'[x]",
+     "md": "Su derivada: un apóstrofo.",
+     "run": true
+    },
+    {
+     "code": "f''[x]",
+     "md": "La segunda: dos apóstrofos.",
+     "run": true
+    },
+    {
+     "code": "f'[2]",
+     "md": "La derivada en un punto.",
+     "run": true
+    },
+    {
+     "code": "D[f, x]",
+     "md": "Mal a propósito: derivar la f sola.",
+     "run": true,
+     "hint": "Da 0: f sin [x] es un símbolo que no depende de x."
+    },
+    {
+     "code": "D[f[x], x]",
+     "md": "Bien: f[x] dentro de D.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `f` = x³ − 3x y guarda `f'[2]` en `p`.",
+    "hints": [
+     "`f[x_] := x^3 - 3 x`",
+     "Debajo: `p = f'[2]`"
+    ],
+    "solution": "f[x_] := x^3 - 3 x\np = f'[2]",
+    "check": {
+     "type": "value",
+     "expr": "p",
+     "expected": "9",
+     "msg": "`p` debe ser la derivada de `f` en 2: `p = f'[2]`."
+    }
+   },
+   "cmds": [
+    "Derivative",
+    "D"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p04-e06",
+    "id": "1-p04-e05",
     "kind": "fix",
     "title": "La derivada que da 0",
-    "prompt": "Queremos guardar en `df` la derivada de ln(x² + 1), pero sale 0. Corrige la segunda línea.",
+    "prompt": "Queremos guardar en `df` la derivada de ln(x² + 1), pero sale 0. Escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "D",
@@ -298,67 +427,267 @@
      "type": "value",
      "expr": "df",
      "expected": "2 x/(x^2 + 1)",
-     "msg": "`df` todavía no es la derivada. Recuerda: `D[f[x], x]` o `f'[x]`, nunca `D[f, x]`."
+     "msg": "`df` no es la derivada: usa `D[f[x], x]` o `f'[x]`, nunca `D[f, x]`."
     },
     "hints": [
-     "`f` sola es un símbolo que no depende de x: su derivada es 0.",
-     "Escribe `D[f[x], x]` o bien `f'[x]`."
+     "`f` sola no depende de x: su derivada es 0.",
+     "`df = D[f[x], x]` (o `df = f'[x]`)"
     ],
-    "explain": "Hay que derivar `f[x]`, la función evaluada en x, no el nombre `f`. Las dos formas correctas son `D[f[x], x]` y `f'[x]`."
+    "explain": "Hay que derivar `f[x]`, no el nombre `f`."
    }
   },
   {
-   "type": "explain",
-   "title": "Recta tangente y recta normal",
-   "md": "Con `f` definida y el punto guardado en `a`, las fórmulas de clase se escriben tal cual:\n- Tangente en x = a: `f[a] + f'[a] (x - a)`\n- Normal en x = a: `f[a] - 1/f'[a] (x - a)` (pendiente −1/f'(a): perpendicular a la tangente).\n\nPara poder evaluarlas después, se definen como funciones: `ytan[x_] = …`\n\nAquí se usa `=` y no `:=` a propósito: queremos que Mathematica calcule ahora `f[a]` y `f'[a]` y guarde la recta ya hecha. (Con `:=` también funcionaría; con `=` además ves el resultado.)\n\n¿Dónde corta una recta al eje OX? Donde vale 0: se resuelve `recta == 0` con `Solve`.",
-   "cells": [
+   "type": "build",
+   "section": "Tangente y normal",
+   "title": "Recta tangente",
+   "md": "Tangente en x = a: f(a) + f'(a)(x − a).",
+   "more": "Se define con `=` para que Mathematica calcule ahora `f[a]` y `f'[a]` y guarde la recta ya hecha.",
+   "target": "ytan[2]",
+   "parts": [
     {
-     "code": "f[x_] := x^2\na = 1;",
-     "note": "La curva y el punto"
+     "code": "f[x_] := x^2",
+     "md": "La curva.",
+     "run": true
+    },
+    {
+     "code": "a = 1;",
+     "md": "El punto.",
+     "run": true
+    },
+    {
+     "code": "f[a] + f'[a] (x - a)",
+     "md": "La fórmula de la tangente, tal cual.",
+     "run": true
     },
     {
      "code": "ytan[x_] = f[a] + f'[a] (x - a)",
-     "note": "Recta tangente en x = 1"
+     "md": "Guárdala como función, con =.",
+     "run": true
     },
     {
-     "code": "ynormal[x_] = f[a] - 1/f'[a] (x - a)",
-     "note": "Recta normal en x = 1"
-    },
-    {
-     "code": "Solve[ynormal[x] == 0, x]",
-     "note": "Corte de la normal con el eje OX"
+     "code": "ytan[2]",
+     "md": "Evalúala en x = 2.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: con `f` = x² y `a` = 1, define `ytan[x_]` y calcula `ytan[2]`.",
+    "hints": [
+     "`f[x_] := x^2` y `a = 1;`",
+     "`ytan[x_] = f[a] + f'[a] (x - a)`",
+     "Última línea: `ytan[2]`"
+    ],
+    "solution": "f[x_] := x^2\na = 1;\nytan[x_] = f[a] + f'[a] (x - a);\nytan[2]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "ytan[t]",
+       "expected": "2 t - 1",
+       "msg": "`ytan` debe ser `f[a] + f'[a] (x - a)` con f = x² y a = 1."
+      },
+      {
+       "type": "value",
+       "expr": "ytan[2]",
+       "expected": "3"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Derivative",
+    "Set"
    ]
   },
   {
-   "type": "explain",
-   "title": "Optimizar: derivar, igualar a cero y comprobar",
-   "md": "Todos los problemas de máximos y mínimos con una restricción siguen la misma receta. Ejemplo: un rectángulo de base `x` y altura `y` con perímetro 20. ¿Cuál tiene más área?\n\n1. **Restricción**: `2 x + 2 y == 20`. Se despeja una variable con `Solve`.\n2. **Convertir la solución en función**: `alto[x_] = y /. Flatten[sol]`. `Solve` devuelve `{{y -> 10 - x}}`, con dos niveles de llaves. `Flatten` quita uno y deja `{y -> 10 - x}`, lista para usar con `/.`.\n3. **Función a optimizar**, ya con una sola variable: `area[x_] = x alto[x]`.\n4. **Punto crítico**: `Solve[area'[x] == 0, x]`. El valor se extrae con `x /. Flatten[...]`.\n5. **Comprobar**: derivada segunda negativa → máximo; positiva → mínimo.\n6. **Valor óptimo**: evaluar la función en el punto crítico.\n\nFíjate en que cada resultado se guarda con un nombre (`sol`, `crit`, `xc`) para usarlo en el paso siguiente.",
-   "cells": [
+   "type": "build",
+   "title": "Recta normal",
+   "md": "Normal: la misma fórmula con pendiente −1/f'(a).",
+   "target": "x /. sol[[1]]",
+   "parts": [
+    {
+     "code": "f[x_] := x^2; a = 1;",
+     "md": "La misma curva y el mismo punto.",
+     "run": true
+    },
+    {
+     "code": "ynormal[x_] = f[a] - 1/f'[a] (x - a)",
+     "md": "La normal: cambia la pendiente.",
+     "run": true
+    },
+    {
+     "code": "sol = Solve[ynormal[x] == 0, x]",
+     "md": "¿Dónde corta al eje OX? Donde vale 0.",
+     "run": true
+    },
+    {
+     "code": "x /. sol[[1]]",
+     "md": "Saca el número de la solución.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: con `f` = x², `a` = 1, define `ynormal[x_]` y guarda en `sol` su corte con OX.",
+    "hints": [
+     "`ynormal[x_] = f[a] - 1/f'[a] (x - a)`",
+     "`sol = Solve[ynormal[x] == 0, x]`"
+    ],
+    "solution": "f[x_] := x^2; a = 1;\nynormal[x_] = f[a] - 1/f'[a] (x - a);\nsol = Solve[ynormal[x] == 0, x]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "ynormal[t]",
+       "expected": "1 - (t - 1)/2",
+       "msg": "`ynormal` debe ser `f[a] - 1/f'[a] (x - a)`."
+      },
+      {
+       "type": "value",
+       "expr": "x /. sol[[1]]",
+       "expected": "3",
+       "msg": "`sol` debe ser `Solve[ynormal[x] == 0, x]`."
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Derivative",
+    "Solve"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p04-e06",
+    "kind": "code",
+    "title": "Otra tangente",
+    "prompt": "Con `f[x_] := x^3` y `a = 2`, define `ytan[x_]`, la recta tangente a f en x = a.",
+    "difficulty": 3,
+    "cmds": [
+     "Derivative",
+     "Set"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f[x_] := x^3\na = 2;\nytan[x_] = f[a] + f'[a] (x - a)",
+    "check": {
+     "type": "value",
+     "expr": "ytan[t]",
+     "expected": "8 + 12 (t - 2)",
+     "msg": "`ytan` debe ser `f[a] + f'[a] (x - a)` con f = x³ y a = 2."
+    },
+    "hints": [
+     "`f[x_] := x^3` y `a = 2;`",
+     "`ytan[x_] = f[a] + f'[a] (x - a)`"
+    ],
+    "explain": "f(2) = 8 y f'(2) = 12: la tangente es y = 8 + 12 (x − 2)."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Optimizar",
+   "title": "Flatten",
+   "md": "Flatten quita las llaves sobrantes de una solución.",
+   "target": "alto[x_] = y /. Flatten[sol]",
+   "parts": [
     {
      "code": "sol = Solve[2 x + 2 y == 20, y]",
-     "note": "1. Restricción despejada"
+     "md": "Despeja y de un perímetro.",
+     "run": true
+    },
+    {
+     "code": "Flatten[sol]",
+     "md": "Quita un nivel de llaves.",
+     "run": true
+    },
+    {
+     "code": "y /. Flatten[sol]",
+     "md": "Aplica la regla: queda la expresión.",
+     "run": true
     },
     {
      "code": "alto[x_] = y /. Flatten[sol]",
-     "note": "2. La solución, convertida en función"
+     "md": "Conviértela en función.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: despeja `y` de 2x + 2y = 20 en `sol` y define `alto[x_]` con `Flatten`.",
+    "hints": [
+     "`sol = Solve[2 x + 2 y == 20, y]`",
+     "`alto[x_] = y /. Flatten[sol]`"
+    ],
+    "solution": "sol = Solve[2 x + 2 y == 20, y];\nalto[x_] = y /. Flatten[sol]",
+    "check": {
+     "type": "value",
+     "expr": "alto[t]",
+     "expected": "10 - t",
+     "msg": "`alto[x_]` debe ser la y despejada: `y /. Flatten[sol]`."
+    }
+   },
+   "cmds": [
+    "Flatten",
+    "Solve",
+    "ReplaceAll"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Máximo con restricción",
+   "md": "Deriva, iguala a cero y comprueba.",
+   "target": "area[xc]",
+   "parts": [
+    {
+     "code": "alto[x_] = 10 - x;",
+     "md": "La altura, ya despejada.",
+     "run": true
     },
     {
      "code": "area[x_] = x alto[x]",
-     "note": "3. Área en función solo de x"
+     "md": "El área, con una sola variable.",
+     "run": true
     },
     {
      "code": "crit = Solve[area'[x] == 0, x]",
-     "note": "4. Punto crítico"
+     "md": "Punto crítico: derivada igual a cero.",
+     "run": true
     },
     {
      "code": "xc = x /. Flatten[crit]",
-     "note": "Su valor, sin llaves ni flecha"
+     "md": "Saca el valor.",
+     "run": true
     },
     {
-     "code": "{area''[xc], area[xc]}",
-     "note": "5 y 6. Segunda derivada negativa: máximo. Área máxima: 25"
+     "code": "area''[xc]",
+     "md": "Segunda derivada: negativa, es un máximo.",
+     "run": true
+    },
+    {
+     "code": "area[xc]",
+     "md": "El área máxima.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: `area[x_] = x (10 - x)`; resuelve `area'[x] == 0`, guarda la x en `xc` y el área en `am`.",
+    "hints": [
+     "`crit = Solve[area'[x] == 0, x]`",
+     "`xc = x /. Flatten[crit]` y `am = area[xc]`"
+    ],
+    "solution": "area[x_] = x (10 - x);\ncrit = Solve[area'[x] == 0, x];\nxc = x /. Flatten[crit];\nam = area[xc]",
+    "check": {
+     "type": "value",
+     "expr": "{xc, am}",
+     "expected": "{5, 25}",
+     "msg": "`xc` debe ser la x que anula `area'` (5) y `am` el área en ese punto (25)."
+    }
+   },
+   "cmds": [
+    "Derivative",
+    "Solve",
+    "Flatten"
    ]
   },
   {
@@ -367,7 +696,7 @@
     "id": "1-p04-e07",
     "kind": "code",
     "title": "Una optimización completa",
-    "prompt": "Dos números positivos `x` e `y` suman 12. Halla el valor de `x` que hace máximo su producto, siguiendo la receta:\n\n1. Despeja `y` de `x + y == 12` con `Solve` y guarda la solución en `rel`.\n2. Define `p[x_]` como el producto `x y`, sustituyendo `y` con `/. Flatten[rel]`.\n3. Resuelve `p'[x] == 0` y guarda la solución en `crit`.\n4. Guarda en `xc` el valor de `x`: `x /. Flatten[crit]`.",
+    "prompt": "x + y = 12. Despeja `y` (en `rel`), define `p[x_]` = x·y, resuelve `p'[x] == 0` (en `crit`) y guarda la x en `xc`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -385,13 +714,13 @@
        "type": "value",
        "expr": "p[5]",
        "expected": "35",
-       "msg": "`p[x_]` debe ser el producto con la restricción ya sustituida: `p[x_] = x y /. Flatten[rel]`, que es x (12 − x)."
+       "msg": "`p[x_]` debe ser x (12 − x): `p[x_] = x y /. Flatten[rel]`."
       },
       {
        "type": "value",
        "expr": "xc",
        "expected": "6",
-       "msg": "`xc` debe ser el número que anula `p'[x]`: `xc = x /. Flatten[crit]`."
+       "msg": "`xc` debe ser el número que anula `p'[x]`."
       }
      ]
     },
@@ -400,29 +729,54 @@
     ],
     "hints": [
      "`rel = Solve[x + y == 12, y];` y `p[x_] = x y /. Flatten[rel];`",
-     "`crit = Solve[p'[x] == 0, x];`",
-     "`xc = x /. Flatten[crit]`"
+     "`crit = Solve[p'[x] == 0, x];` y `xc = x /. Flatten[crit]`"
     ],
-    "explain": "Restricción → función de una variable → `Solve` de la derivada → extraer el valor. Sale x = 6 (y entonces y = 6): el producto máximo es 36."
+    "explain": "Sale x = 6 (e y = 6): el producto máximo es 36."
    }
   },
   {
-   "type": "explain",
-   "title": "Integrar: Integrate",
-   "md": "`Integrate` tiene dos usos, según el segundo argumento:\n- `Integrate[f, x]` — **primitiva** (integral indefinida). Mathematica no añade la constante `+ C`: se da por supuesta.\n- `Integrate[f, {x, a, b}]` — **integral definida** entre a y b. El segundo argumento es la lista `{variable, desde, hasta}`, como en `Table`. Los límites pueden ser `Infinity`.\n\nPara comprobar una primitiva, derívala: tiene que salir la función original.\n\nSi la función lleva parámetros, se integran como constantes. Un aviso que sale en la práctica: una primitiva calculada con parámetros genéricos puede no valer para valores concretos (por ejemplo, si divide por `Log[p]` y luego resulta que p = 1). En esos casos se dan los valores **antes** de integrar.",
-   "cells": [
+   "type": "build",
+   "section": "Integrales",
+   "title": "Integrate",
+   "md": "Primitiva con la variable; definida con {x, a, b}.",
+   "target": "Integrate[1/(1 + x^2), {x, 0, Infinity}]",
+   "parts": [
     {
-     "code": "Integrate[x Cos[x], x]",
-     "note": "Una primitiva (por partes)"
+     "code": "Integrate[x^2, x]",
+     "md": "Una primitiva (sin + C).",
+     "run": true
     },
     {
-     "code": "D[%, x]",
-     "note": "Derivando se recupera la función"
+     "code": "D[x^3/3, x]",
+     "md": "Compruébala derivando.",
+     "run": true
+    },
+    {
+     "code": "Integrate[x^2, {x, 0, 3}]",
+     "md": "Ahora definida, entre 0 y 3.",
+     "run": true
     },
     {
      "code": "Integrate[Sin[x], {x, 0, Pi}]",
-     "note": "Integral definida"
+     "md": "Otra definida.",
+     "run": true
+    },
+    {
+     "code": "Integrate[1/(1 + x^2), {x, 0, Infinity}]",
+     "md": "Con límite infinito.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: la integral de 1/(1 + x²) entre 0 e infinito.",
+    "hints": [
+     "`Integrate[función, {x, desde, hasta}]`",
+     "`Integrate[1/(1 + x^2), {x, 0, Infinity}]`"
+    ]
+   },
+   "cmds": [
+    "Integrate",
+    "Infinity"
    ]
   },
   {
@@ -430,27 +784,27 @@
    "ex": {
     "id": "1-p04-e08",
     "kind": "code",
-    "title": "Área bajo una parábola",
-    "prompt": "Calcula la integral definida de x² entre 0 y 3.\n\nLa forma es `Integrate[función, {x, desde, hasta}]`.",
-    "difficulty": 1,
+    "title": "Una integral definida",
+    "prompt": "Calcula la integral definida de `x E^(-x)` entre 0 y 1.",
+    "difficulty": 2,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "solution": "Integrate[x^2, {x, 0, 3}]",
+    "solution": "Integrate[x E^(-x), {x, 0, 1}]",
     "check": {
      "type": "expr",
-     "expected": "9"
+     "expected": "1 - 2/E"
     },
     "requires": [
      "Integrate"
     ],
     "hints": [
-     "El segundo argumento es una lista con tres cosas: variable, límite inferior y límite superior.",
-     "`Integrate[x^2, {x, 0, 3}]`"
+     "`Integrate[función, {x, 0, 1}]`",
+     "`Integrate[x E^(-x), {x, 0, 1}]`"
     ],
-    "explain": "`Integrate[x^2, {x, 0, 3}]` da 9: la primitiva x³/3 evaluada entre 0 y 3."
+    "explain": "Sale 1 − 2/e."
    }
   },
   {
@@ -479,16 +833,61 @@
      "Para una primitiva, el segundo argumento es solo la variable.",
      "`Integrate[x^2 Log[x], x]`"
     ],
-    "explain": "Sale x³·ln(x)/3 − x³/9 (Mathematica puede escribirlo sacando factor común). Si lo derivas con `D[%, x]`, recuperas `x^2 Log[x]`."
+    "explain": "x³·ln(x)/3 − x³/9. Derívala y recuperas `x^2 Log[x]`."
    }
   },
   {
+   "type": "build",
+   "title": "Primitiva con parámetros",
+   "md": "Los parámetros se integran como constantes.",
+   "target": "fi[3]",
+   "parts": [
+    {
+     "code": "Integrate[a x^2, x]",
+     "md": "Un parámetro a: se trata como constante.",
+     "run": true
+    },
+    {
+     "code": "fi[x_] = Integrate[a x^2, x]",
+     "md": "Guarda la primitiva como función.",
+     "run": true
+    },
+    {
+     "code": "a = 2;",
+     "md": "Ahora dale valor al parámetro.",
+     "run": true
+    },
+    {
+     "code": "fi[3]",
+     "md": "Y evalúa.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: `fi[x_]` = primitiva de a·x²; después `a = 2;` y `fi[3]`.",
+    "hints": [
+     "`fi[x_] = Integrate[a x^2, x];`",
+     "Después `a = 2;` y `fi[3]`"
+    ],
+    "solution": "fi[x_] = Integrate[a x^2, x];\na = 2;\nfi[3]",
+    "check": {
+     "type": "expr",
+     "expected": "18"
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Set"
+   ]
+  },
+  {
    "type": "exercise",
+   "section": "Práctica 4 · límites y rectas",
    "ex": {
     "id": "1-p04-e10",
     "kind": "code",
-    "title": "Práctica 4 · límites en el infinito",
-    "prompt": "Ejercicio real. Considera la función\n\nf(x) = 2 / (e − π^(x−1))\n\nDefínela como `f[x_]` y calcula sus límites cuando x → +∞ y cuando x → −∞. Devuelve en decimales la lista `{límite en +∞, límite en −∞}`.",
+    "title": "Práctica 4 · 2a",
+    "prompt": "Ejercicio real. Define `f[x_]` = 2/(e − π^(x−1)) y da en decimales `{límite en +∞, límite en −∞}`.",
     "difficulty": 3,
     "cmds": [
      "Limit",
@@ -507,14 +906,14 @@
        "expected": "2/(E - Pi)",
        "compare": "numeric",
        "tol": 1e-08,
-       "msg": "Revisa la definición: `f[x_] = 2/(E - Pi^(x - 1))`, con paréntesis en el denominador y en el exponente."
+       "msg": "Revisa la definición: `f[x_] = 2/(E - Pi^(x - 1))`."
       },
       {
        "type": "expr",
        "expected": "{0, 2/E}",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "No coincide. Revisa el orden: primero el límite en +∞ y después el límite en −∞."
+       "msg": "Primero el límite en +∞ y después el límite en −∞."
       }
      ]
     },
@@ -522,11 +921,10 @@
      "Limit"
     ],
     "hints": [
-     "Primera línea: `f[x_] = 2/(E - Pi^(x - 1));`",
-     "Son dos límites: `Limit[f[x], x -> Infinity]` y `Limit[f[x], x -> -Infinity]`.",
-     "Mételos en una lista `{…, …}` y añade `// N` al final."
+     "`f[x_] = 2/(E - Pi^(x - 1));`",
+     "`{Limit[f[x], x -> Infinity], Limit[f[x], x -> -Infinity]} // N`"
     ],
-    "explain": "Resultados oficiales: 0 y 0.735759 (que es 2/e). Cuando x → −∞, π^(x−1) tiende a 0 y queda 2/e. Son las dos asíntotas horizontales de f."
+    "explain": "Oficial: 0 y 0.735759 (= 2/e). Son las asíntotas horizontales."
    }
   },
   {
@@ -534,8 +932,8 @@
    "ex": {
     "id": "1-p04-e11",
     "kind": "code",
-    "title": "Práctica 4 · límites laterales",
-    "prompt": "Considera g(x) = 3/8 + sin(x + 4)/|x + 4|. Su denominador se anula en un punto p.\n\nDefínela como `g[x_]` y calcula los límites laterales de g en p. Devuelve en decimales la lista `{por la izquierda, por la derecha}`.",
+    "title": "Práctica 4 · 2b",
+    "prompt": "Define `g[x_]` = 3/8 + sin(x + 4)/|x + 4| y da en decimales sus límites laterales en −4: `{izquierda, derecha}`.",
     "difficulty": 3,
     "cmds": [
      "Limit",
@@ -561,7 +959,7 @@
        "expected": "{-0.625, 1.375}",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "No coincide. El punto es p = −4 y el orden pedido es {izquierda, derecha}."
+       "msg": "El punto es −4 y el orden {izquierda, derecha}."
       }
      ]
     },
@@ -570,12 +968,10 @@
      "Direction"
     ],
     "hints": [
-     "Primera línea: `g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];`",
-     "El denominador `Abs[x + 4]` se anula cuando x + 4 = 0, es decir, en p = −4.",
-     "Izquierda: `Limit[g[x], x -> -4, Direction -> 1]`. Derecha: `Direction -> -1`.",
-     "Los dos dentro de una lista, y `// N` al final."
+     "`g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];`",
+     "`{Limit[g[x], x -> -4, Direction -> 1], Limit[g[x], x -> -4, Direction -> -1]} // N`"
     ],
-    "explain": "Resultados oficiales: −0.625 por la izquierda y 1.375 por la derecha. Cerca de −4 el cociente sin(u)/|u| vale −1 a la izquierda y +1 a la derecha: 3/8 − 1 y 3/8 + 1."
+    "explain": "Oficial: −0.625 y 1.375. El denominador se anula en p = −4."
    }
   },
   {
@@ -583,8 +979,8 @@
    "ex": {
     "id": "1-p04-e12",
     "kind": "code",
-    "title": "Práctica 4 · asíntota oblicua",
-    "prompt": "Considera h(x) = (3.27x² − 5.6x + 4)/(3 − 2.6x). Halla la pendiente `m` y la ordenada en el origen `n` de su asíntota oblicua.\n\nDefine `h[x_]`, guarda los dos límites en las variables `m` y `n` y devuelve en la última línea `{m, n}` con 6 cifras significativas.",
+    "title": "Práctica 4 · 2c",
+    "prompt": "Define `h[x_]` = (3.27x² − 5.6x + 4)/(3 − 2.6x); guarda `m` y `n` de su asíntota oblicua y da `N[{m, n}, 6]`.",
     "difficulty": 4,
     "cmds": [
      "Limit",
@@ -604,7 +1000,7 @@
        "expected": "1.67/0.4",
        "compare": "numeric",
        "tol": 1e-08,
-       "msg": "Revisa la definición: `h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x)`."
+       "msg": "Revisa la definición de `h[x_]`."
       },
       {
        "type": "value",
@@ -612,7 +1008,7 @@
        "expected": "-3.27/2.6",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`m` debe ser el límite de `h[x]/x` cuando x tiende a infinito."
+       "msg": "`m` es el límite de `h[x]/x` en el infinito."
       },
       {
        "type": "value",
@@ -620,7 +1016,7 @@
        "expected": "0.7026627218934911",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`n` debe ser el límite de `h[x] - m x` cuando x tiende a infinito. Calcula `m` sin redondear (sin `N`) antes de usarla aquí."
+       "msg": "`n` es el límite de `h[x] - m x`. Calcula `m` sin redondear antes de usarla."
       },
       {
        "type": "expr",
@@ -634,12 +1030,10 @@
      "Limit"
     ],
     "hints": [
-     "Primera línea: `h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);`",
-     "`m = Limit[h[x]/x, x -> Infinity];`",
-     "`n = Limit[h[x] - m x, x -> Infinity];` (con `m` tal cual, sin redondear).",
-     "Última línea: `N[{m, n}, 6]`."
+     "`m = Limit[h[x]/x, x -> Infinity];` y `n = Limit[h[x] - m x, x -> Infinity];`",
+     "Primera línea `h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);` y última `N[{m, n}, 6]`"
     ],
-    "explain": "Resultados oficiales: m = −1.25769 y n = 0.702663. La asíntota es y = −1.25769 x + 0.702663. El redondeo se deja para la última línea."
+    "explain": "Oficial: m = −1.25769 y n = 0.702663."
    }
   },
   {
@@ -647,9 +1041,9 @@
    "ex": {
     "id": "1-p04-e13",
     "kind": "code",
-    "title": "Práctica 4 · recta tangente",
-    "prompt": "Considera f(x) = ln(tan(3x)) y el punto a = π/9.\n\n1. Define `f[x_]` y guarda el punto en la variable `a`.\n2. Define la recta tangente a f en x = a como función `ytan[x_]`.\n3. En la última línea, calcula `ytan[1]` en decimales.",
-    "difficulty": 4,
+    "title": "Práctica 4 · 3a",
+    "prompt": "Define `f[x_]` = ln(tan(3x)) y `a` = π/9. Guarda en `v` la lista decimal `{f[a], f'[a]}`.",
+    "difficulty": 3,
     "cmds": [
      "Derivative",
      "Set",
@@ -657,35 +1051,21 @@
      "N"
     ],
     "real": true,
-    "source": "Práctica 4 · Pregunta 3a-b",
-    "solution": "f[x_] = Log[Tan[3 x]];\na = Pi/9;\nytan[x_] = f[a] + f'[a] (x - a);\nytan[1] // N",
+    "source": "Práctica 4 · Pregunta 3a",
+    "solution": "f[x_] = Log[Tan[3 x]];\na = Pi/9;\nv = N[{f[a], f'[a]}]",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "N[f[a]]",
-       "expected": "0.5493061443340549",
-       "compare": "numeric",
-       "tol": 1e-05,
-       "msg": "Revisa `f` y `a`: `f[a]` debe valer 0.549306. La función es `Log[Tan[3 x]]` y el punto `Pi/9`."
-      },
-      {
-       "type": "value",
-       "expr": "N[{ytan[1], ytan[2] - ytan[1]}]",
-       "expected": "{5.059110222297273, 6.928203230275509}",
-       "compare": "numeric",
-       "tol": 1e-05,
-       "msg": "`ytan` no es la tangente. Debe ser `f[a] + f'[a] (x - a)`."
-      }
-     ]
+     "type": "value",
+     "expr": "v",
+     "expected": "{0.5493061443340549, 6.928203230275509}",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`v` debe ser `N[{f[a], f'[a]}]` con `f[x_] = Log[Tan[3 x]]` y `a = Pi/9`."
     },
     "hints": [
      "`f[x_] = Log[Tan[3 x]];` y `a = Pi/9;`",
-     "La tangente: `ytan[x_] = f[a] + f'[a] (x - a);`",
-     "Última línea: `ytan[1] // N`."
+     "`v = N[{f[a], f'[a]}]`"
     ],
-    "explain": "Resultados oficiales: f(a) = 0.549306, f'(a) = 6.92820 y la tangente y = 0.549306 + 6.92820 (x − π/9) vale 5.05911 en x = 1. Para ver los dos coeficientes: `f[a] // N` y `f'[a] // N`."
+    "explain": "Oficial: f(a) = 0.549306 y f'(a) = 6.92820. La tangente es y = 0.549306 + 6.92820 (x − π/9)."
    }
   },
   {
@@ -693,49 +1073,44 @@
    "ex": {
     "id": "1-p04-e14",
     "kind": "code",
-    "title": "Práctica 4 · recta normal y corte con OX",
-    "prompt": "`f[x_]` (ln(tan(3x))) y `a` (π/9) siguen definidas como en el apartado anterior.\n\n1. Define la recta normal a f en x = a como función `ynormal[x_]`.\n2. Con `Solve`, halla la abscisa donde la normal corta al eje OX y guarda su valor decimal en la variable `corte`.",
-    "difficulty": 4,
+    "title": "Práctica 4 · 3b",
+    "prompt": "`f` y `a` ya están definidas. Define la tangente `ytan[x_]` y guarda en `y1` el valor decimal de `ytan[1]`.",
+    "difficulty": 3,
     "cmds": [
      "Derivative",
-     "Solve",
-     "Flatten",
-     "ReplaceAll"
+     "Set",
+     "N"
     ],
     "real": true,
-    "source": "Práctica 4 · Pregunta 3c-d",
+    "source": "Práctica 4 · Pregunta 3b",
     "setup": "f[x_] = Log[Tan[3 x]]; a = Pi/9;",
-    "solution": "ynormal[x_] = f[a] - 1/f'[a] (x - a);\nsol = Solve[ynormal[x] == 0, x];\ncorte = x /. Flatten[sol] // N",
+    "solution": "ytan[x_] = f[a] + f'[a] (x - a);\ny1 = N[ytan[1]]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
-       "expr": "N[ynormal[1] - ynormal[0]]",
-       "expected": "-0.14433756729740646",
+       "expr": "N[ytan[2] - ytan[1]]",
+       "expected": "6.928203230275509",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "La pendiente de `ynormal` debe ser −1/f'(a): `ynormal[x_] = f[a] - 1/f'[a] (x - a)`."
+       "msg": "`ytan` debe ser `f[a] + f'[a] (x - a)`."
       },
       {
        "type": "value",
-       "expr": "corte",
-       "expected": "4.15477045398425",
+       "expr": "y1",
+       "expected": "5.059110222297273",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`corte` debe ser el número donde `ynormal[x]` vale 0. Extráelo de la solución con `x /. Flatten[sol]`."
+       "msg": "`y1` debe ser `N[ytan[1]]`."
       }
      ]
     },
-    "requires": [
-     "Solve"
-    ],
     "hints": [
-     "`ynormal[x_] = f[a] - 1/f'[a] (x - a);`",
-     "Corta al eje OX donde vale 0: `sol = Solve[ynormal[x] == 0, x];`",
-     "`corte = x /. Flatten[sol] // N`"
+     "`ytan[x_] = f[a] + f'[a] (x - a);`",
+     "`y1 = N[ytan[1]]`"
     ],
-    "explain": "Resultados oficiales: pendiente de la normal −0.144338 y corte con OX en x = 4.15477. `Solve` devuelve `{{x -> …}}`; con `x /. Flatten[sol]` te quedas con el número."
+    "explain": "Oficial: y(1) = 5.05911."
    }
   },
   {
@@ -743,8 +1118,75 @@
    "ex": {
     "id": "1-p04-e15",
     "kind": "code",
-    "title": "Práctica 4 · la ventana: plantear",
-    "prompt": "Queremos diseñar una ventana con marco de titanio: un rectángulo de base `2x` y altura `h` rematado por un semicírculo de radio `x`. Solo hay 150 m de material para el marco exterior (base + dos laterales + semicircunferencia) y queremos la máxima luz, es decir, el **área máxima**.\n\nEn este apartado, plantea el problema:\n\n1. Relación entre x y h (perímetro): `2 x + 2 h + Pi x == 150`. Despeja `h` con `Solve`.\n2. Convierte la solución en la función `alt[x_]`.\n3. Define el área en función solo de x, `A[x_]`: rectángulo `2 x alt[x]` más semicírculo `Pi x^2/2`.",
+    "title": "Práctica 4 · 3c",
+    "prompt": "`f` y `a` ya están definidas. Define la recta normal a f en x = a como `ynormal[x_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Derivative",
+     "Set"
+    ],
+    "real": true,
+    "source": "Práctica 4 · Pregunta 3c",
+    "setup": "f[x_] = Log[Tan[3 x]]; a = Pi/9;",
+    "solution": "ynormal[x_] = f[a] - 1/f'[a] (x - a)",
+    "check": {
+     "type": "value",
+     "expr": "N[{ynormal[a], ynormal[1] - ynormal[0]}]",
+     "expected": "{0.5493061443340549, -0.14433756729740646}",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`ynormal` debe ser `f[a] - 1/f'[a] (x - a)`: pasa por (a, f(a)) con pendiente −1/f'(a)."
+    },
+    "hints": [
+     "La fórmula de la tangente, cambiando la pendiente por `-1/f'[a]`.",
+     "`ynormal[x_] = f[a] - 1/f'[a] (x - a)`"
+    ],
+    "explain": "Oficial: la pendiente de la normal es −0.144338."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p04-e16",
+    "kind": "code",
+    "title": "Práctica 4 · 3d",
+    "prompt": "`ynormal[x_]` ya está definida. Con `Solve`, guarda en `corte` (decimal) la x donde corta al eje OX.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "Flatten",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 4 · Pregunta 3d",
+    "setup": "f[x_] = Log[Tan[3 x]]; a = Pi/9; ynormal[x_] = f[a] - 1/f'[a] (x - a);",
+    "solution": "sol = Solve[ynormal[x] == 0, x];\ncorte = x /. Flatten[sol] // N",
+    "check": {
+     "type": "value",
+     "expr": "corte",
+     "expected": "4.15477045398425",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "`corte` debe ser el número donde `ynormal[x]` vale 0: `x /. Flatten[sol] // N`."
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`sol = Solve[ynormal[x] == 0, x];`",
+     "`corte = x /. Flatten[sol] // N`"
+    ],
+    "explain": "Oficial: 4.15477."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Práctica 4 · la ventana",
+   "ex": {
+    "id": "1-p04-e17",
+    "kind": "code",
+    "title": "Práctica 4 · 4 (restricción)",
+    "prompt": "Ventana: base `2x`, altura `h`, semicírculo de radio `x`. Despeja `h` de `2 x + 2 h + Pi x == 150` y define `alt[x_]`.",
     "difficulty": 4,
     "cmds": [
      "Solve",
@@ -753,19 +1195,47 @@
      "Set"
     ],
     "real": true,
-    "source": "Práctica 4 · Pregunta 4 (pasos 1-4)",
-    "solution": "rel = Solve[150 == 2 x + 2 h + Pi x, h];\nalt[x_] = h /. Flatten[rel];\nA[x_] = 2 x alt[x] + Pi x^2/2",
+    "source": "Práctica 4 · Pregunta 4 (pasos 1-3)",
+    "solution": "rel = Solve[2 x + 2 h + Pi x == 150, h];\nalt[x_] = h /. Flatten[rel]",
+    "check": {
+     "type": "value",
+     "expr": "alt[10]",
+     "expected": "65 - 5 Pi",
+     "compare": "numeric",
+     "tol": 1e-07,
+     "msg": "`alt[x_]` debe ser la h despejada: (150 − 2x − πx)/2."
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`rel = Solve[2 x + 2 h + Pi x == 150, h];`",
+     "`alt[x_] = h /. Flatten[rel]`"
+    ],
+    "explain": "El marco mide 150 m: base, dos laterales y semicircunferencia. Queda h = (150 − 2x − πx)/2."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p04-e18",
+    "kind": "code",
+    "title": "Práctica 4 · 4 (punto crítico)",
+    "prompt": "`alt` ya está definida. Define el área `A[x_] = 2 x alt[x] + Pi x^2/2` y guarda en `xcrit` (decimal) la x que anula `A'`.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "Derivative",
+     "Flatten",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 4 · Pregunta 4 (pasos 4-5)",
+    "setup": "alt[x_] = (150 - 2 x - Pi x)/2;",
+    "solution": "A[x_] = 2 x alt[x] + Pi x^2/2;\ncrit = Solve[A'[x] == 0, x] // N;\nxcrit = x /. Flatten[crit]",
     "check": {
      "type": "all",
      "checks": [
-      {
-       "type": "value",
-       "expr": "alt[10]",
-       "expected": "65 - 5 Pi",
-       "compare": "numeric",
-       "tol": 1e-07,
-       "msg": "`alt[x_]` debe ser la altura h despejada del perímetro: (150 − 2x − πx)/2."
-      },
       {
        "type": "value",
        "expr": "A[10]",
@@ -773,57 +1243,14 @@
        "compare": "numeric",
        "tol": 1e-07,
        "msg": "`A[x_]` debe ser `2 x alt[x] + Pi x^2/2`."
-      }
-     ]
-    },
-    "requires": [
-     "Solve"
-    ],
-    "hints": [
-     "`rel = Solve[150 == 2 x + 2 h + Pi x, h];`",
-     "`alt[x_] = h /. Flatten[rel];`: `Flatten` quita las llaves de más y `/.` aplica la regla.",
-     "`A[x_] = 2 x alt[x] + Pi x^2/2`"
-    ],
-    "explain": "La restricción deja h = (150 − 2x − πx)/2 y el área pasa a depender solo de x. Con `=` en las definiciones, `alt` y `A` guardan las expresiones ya calculadas."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p04-e16",
-    "kind": "code",
-    "title": "Práctica 4 · la ventana: optimizar",
-    "prompt": "`alt[x_]` y `A[x_]` ya están definidas como en el apartado anterior. Termina el problema:\n\n1. Halla el punto crítico con `Solve[A'[x] == 0, x]` y guarda su valor decimal en `xcrit`.\n2. Comprueba que es un máximo: guarda `A''[xcrit]` en `d2`.\n3. Guarda la altura correspondiente, `alt[xcrit]`, en `hcrit`.\n4. Guarda el área máxima, `A[xcrit]`, en `amax`.\n\nÚltima línea: `{xcrit, d2, hcrit, amax}`.",
-    "difficulty": 5,
-    "cmds": [
-     "Solve",
-     "Derivative",
-     "Flatten",
-     "ReplaceAll",
-     "N"
-    ],
-    "real": true,
-    "source": "Práctica 4 · Pregunta 4 (pasos 5-8)",
-    "setup": "alt[x_] = (150 - 2 x - Pi x)/2; A[x_] = 2 x alt[x] + Pi x^2/2;",
-    "solution": "crit = Solve[A'[x] == 0, x] // N;\nxcrit = x /. Flatten[crit];\nd2 = A''[xcrit];\nhcrit = alt[xcrit];\namax = A[xcrit];\n{xcrit, d2, hcrit, amax}",
-    "check": {
-     "type": "all",
-     "checks": [
+      },
       {
        "type": "value",
        "expr": "xcrit",
        "expected": "21.003718256683403",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`xcrit` debe ser el número que anula `A'[x]`. Extráelo con `x /. Flatten[crit]`."
-      },
-      {
-       "type": "value",
-       "expr": "{d2, hcrit, amax}",
-       "expected": "{-7.141592653589793, 21.003718256683406, 1575.2788692512554}",
-       "compare": "numeric",
-       "tol": 1e-05,
-       "msg": "Revisa `d2 = A''[xcrit]`, `hcrit = alt[xcrit]` y `amax = A[xcrit]`."
+       "msg": "`xcrit` debe ser el número que anula `A'[x]`: `x /. Flatten[crit]`."
       }
      ]
     },
@@ -831,20 +1258,50 @@
      "Solve"
     ],
     "hints": [
-     "`crit = Solve[A'[x] == 0, x] // N;` y después `xcrit = x /. Flatten[crit];`",
-     "`d2 = A''[xcrit];`, `hcrit = alt[xcrit];`, `amax = A[xcrit];`",
-     "Última línea: `{xcrit, d2, hcrit, amax}`."
+     "`A[x_] = 2 x alt[x] + Pi x^2/2;` y `crit = Solve[A'[x] == 0, x] // N;`",
+     "`xcrit = x /. Flatten[crit]`"
     ],
-    "explain": "Resultados oficiales: x = 21.0037, A'' = −7.14159 (negativa: es un máximo), h = 21.0037 y área máxima 1575.28 m². En el óptimo la altura del rectángulo coincide con el radio del semicírculo."
+    "explain": "Oficial: x = 21.0037. Área = rectángulo más semicírculo."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p04-e17",
+    "id": "1-p04-e19",
     "kind": "code",
-    "title": "Práctica 4 · primitiva con parámetros",
-    "prompt": "Calcula la primitiva de f(x) = x³·p^(q·x), con p y q parámetros, y evalúala en p = 2, q = 1, x = 1.2:\n\n1. Define `f[x_] := x^3 p^(q x)`.\n2. Guarda la primitiva como función: `fi[x_] = Integrate[f[x], x]`.\n3. Asigna `p = 2; q = 1;` y, en la última línea, calcula `fi[1.2]`.",
+    "title": "Práctica 4 · 4 (máximo)",
+    "prompt": "`A`, `alt` y `xcrit` ya están definidas. Guarda `A''[xcrit]` en `d2`, `alt[xcrit]` en `hcrit` y `A[xcrit]` en `amax`.",
+    "difficulty": 4,
+    "cmds": [
+     "Derivative",
+     "Set"
+    ],
+    "real": true,
+    "source": "Práctica 4 · Pregunta 4 (pasos 6-8)",
+    "setup": "alt[x_] = (150 - 2 x - Pi x)/2; A[x_] = 2 x alt[x] + Pi x^2/2; xcrit = 150/(4 + Pi) // N;",
+    "solution": "d2 = A''[xcrit];\nhcrit = alt[xcrit];\namax = A[xcrit]",
+    "check": {
+     "type": "value",
+     "expr": "{d2, hcrit, amax}",
+     "expected": "{-7.141592653589793, 21.003718256683406, 1575.2788692512554}",
+     "compare": "numeric",
+     "tol": 1e-05,
+     "msg": "Revisa `d2 = A''[xcrit]`, `hcrit = alt[xcrit]` y `amax = A[xcrit]`."
+    },
+    "hints": [
+     "`d2 = A''[xcrit];` y `hcrit = alt[xcrit];`",
+     "`amax = A[xcrit]`"
+    ],
+    "explain": "Oficial: A'' = −7.14159 (negativa: máximo), h = 21.0037 y área máxima 1575.28 m²."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p04-e20",
+    "kind": "code",
+    "title": "Práctica 4 · 6 (extra)",
+    "prompt": "Define `f[x_] := x^3 p^(q x)` y `fi[x_] = Integrate[f[x], x]`; asigna `p = 2; q = 1;` y calcula `fi[1.2]`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -864,10 +1321,10 @@
      "Integrate"
     ],
     "hints": [
-     "Las tres líneas están en el enunciado: definición de `f`, primitiva `fi` y valores de `p` y `q`.",
-     "Última línea: `fi[1.2]`."
+     "Las cuatro líneas están en el enunciado, en ese orden.",
+     "Última línea: `fi[1.2]`"
     ],
-    "explain": "Resultado oficial: −24.9752. Los apartados b) y c) del examen enseñan una trampa: con p = 1 y q = 0 esa primitiva general divide por `Log[p]^4`, que es 0, y no sirve. Si asignas `p = 1; q = 0;` **antes** de integrar, f es x³, la primitiva es x⁴/4 y en 1.2 vale 0.5184. El orden de las líneas importa."
+    "explain": "Oficial: −24.9752. Con p = 1, q = 0 esa primitiva divide por `Log[p]`, que es 0: hay que asignar `p` y `q` antes de integrar (sale x⁴/4, y en 1.2 vale 0.5184)."
    }
   }
  ]

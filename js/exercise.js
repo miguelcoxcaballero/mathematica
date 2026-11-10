@@ -6,10 +6,10 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794351671';
-import { createCell } from './notebook.js?v=1794351671';
-import { store } from './store.js?v=1794351671';
-import * as fx from './fx.js?v=1794351671';
+import { kernel } from './kernel-client.js?v=1794351916';
+import { createCell } from './notebook.js?v=1794351916';
+import { store } from './store.js?v=1794351916';
+import * as fx from './fx.js?v=1794351916';
 
 const { sfx, xpFloat } = fx;
 
@@ -589,7 +589,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       root.appendChild(statement(pr.line, ex.title || 'Una idea para recordar.'));
       const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
       if (ans) body.appendChild(h('div', { class: 'ex-note-a lx-md', html: mdInline(/`/.test(ans) || kind !== 'predict' ? ans : '`' + ans + '`') }));
-      const mb = moreBox({ more: [pr.rest, ex.explain].filter(Boolean).join('\n\n') });
+      const mb = moreBox({ hint: ex.hint, more: [pr.rest, ex.more, ex.explain].filter(Boolean).join('\n\n') });
       if (mb) body.appendChild(mb);
       root.append(body);
       if (foot) root.appendChild(foot);
@@ -622,7 +622,7 @@ export function mountExercise(container, exRaw, opts = {}) {
           const ans = Array.isArray(ex.options) && ex.options[ex.answer] != null ? String(ex.options[ex.answer]) : '';
           const box = h('div', { class: 'ex-fb ex-fb--ok' }, h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'), h('strong', null, ans ? 'Devuelve ' : 'Evaluada.'), ans ? h('code', null, ans) : null, gained ? h('span', { class: 'ex-gain' }, `+${gained} XP`) : null));
           after.replaceChildren(box);
-          const mb = moreBox({ more: ex.explain });
+          const mb = moreBox({ more: [ex.more, ex.explain].filter(Boolean).join('\n\n') });
           if (mb) after.appendChild(mb);
           if (gained) safe(() => xpFloat(xpChip.hidden ? root : xpChip, gained));
           report({ ok: true, xp: gained, typed: true });
@@ -637,7 +637,6 @@ export function mountExercise(container, exRaw, opts = {}) {
     /* ============================ code: an empty cell, the student writes everything ============================ */
     const pr = splitText(ex.prompt || '', 160);
     root.appendChild(statement(pr.line, ex.title && !generic ? ex.title : 'Escribe el código que se pide.'));
-    if (pr.rest) root.appendChild(moreBox({ more: pr.rest, moreLabel: 'Enunciado completo' }));
     if (kind === 'fix' && ex.broken) body.appendChild(refBlock('Con errores: escríbelo bien abajo', codeBlock(ex.broken), 'ex-ref--bad'));
     else if (kind === 'fill' && ex.template) body.appendChild(refBlock('Forma (□ = lo que falta)', codeBlock(String(ex.template).replace(/__\d+__/g, '□'))));
     else if (kind === 'order' && Array.isArray(ex.lines)) {
@@ -648,7 +647,11 @@ export function mountExercise(container, exRaw, opts = {}) {
     if (ex.setup && !isExam) body.appendChild(h('details', { class: 'ex-setup lx-more-d' }, h('summary', null, 'Datos ya definidos'), codeBlock(ex.setup)));
     const host = h('div', { class: 'ex-cell' });
     body.appendChild(host);
+    // «Más detalle»: what did not fit in the statement + the exercise's own `more` (e.g. the original exam statement); once solved, + `explain`
+    const detail = [pr.rest, ex.more].filter((x) => x && String(x).trim()).join('\n\n');
+    let moreEl = moreBox({ more: detail });
     root.append(body, actions, hintsBox, fb);
+    if (moreEl) root.appendChild(moreEl);
     const placeShape = () => { if (shapeEl && host.isConnected) host.parentNode.insertBefore(shapeEl, host); };
     if (foot) root.appendChild(foot);
 
@@ -660,7 +663,7 @@ export function mountExercise(container, exRaw, opts = {}) {
     const btnVariant = h('button', { class: 'lx-link ex-variant', type: 'button', hidden: true, title: 'El mismo ejercicio con otros números' }, 'Otra variante');
     const kbd = h('span', { class: 'ex-kbd', hidden: true });
     btnCheck.title = 'Ctrl+Enter comprueba · Shift+Enter solo evalúa';
-    const hints = Array.isArray(ex.hints) ? ex.hints.filter(Boolean) : [];
+    const hints = [ex.hint, ...(Array.isArray(ex.hints) ? ex.hints : [])].filter((x, i, a) => x && String(x).trim() && a.indexOf(x) === i);
     // hint ladder (never penalised): text hints → the shape of the line (brackets, braces, commas) → the whole solution as a ghost to type
     const shape = (() => { const sk = skeletonOf(solutionOf(ex)); return /[[{]/.test(sk) && squash(sk) !== squash(solutionOf(ex)) ? sk : ''; })();
     const shapeEl = h('pre', { class: 'lx-ghostref ex-shape', hidden: true, title: 'La forma de la línea: comando, corchetes, llaves y comas' });
@@ -789,7 +792,11 @@ export function mountExercise(container, exRaw, opts = {}) {
       if (!dry && !isExam && combo >= 3) head.appendChild(h('span', { class: 'ex-combo' }, `${combo} seguidos`));
       box.appendChild(head);
       fb.replaceChildren(box);
-      if (ex.explain && !isExam) fb.appendChild(moreBox({ more: ex.explain }));
+      if (!isExam) {
+        const mb = moreBox({ more: [detail, ex.explain].filter((x) => x && String(x).trim()).join('\n\n') });
+        if (moreEl) { moreEl.remove(); moreEl = null; }
+        if (mb) fb.appendChild(mb);
+      }
       btnCheck.hidden = true; btnSol.hidden = true; btnHint.hidden = true; kbd.hidden = true; shapeEl.hidden = true;
       if (exRaw.params && !isExam && !dry) btnVariant.hidden = false;
       setPrior(dry ? 'review' : 'ok');

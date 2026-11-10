@@ -3,18 +3,18 @@
 //  #/  #/indice  #/registro  #/esquema  #/comandos  #/comandos/<Nombre>
 //  #/leccion/<lessonId>[/<paso>]  #/practica  #/practica/comando/<Nombre>  #/practica/tema/<lessonId>  #/practica/aleatoria
 //  #/simulacros  #/simulacro/<examId>  #/cuaderno
-import { emptyState, h, icon } from './fx.js?v=1794351671';
+import { emptyState, h, icon } from './fx.js?v=1794351916';
 
 const LOADERS = {
-  home: () => import('./views/home.js?v=1794351671'),
-  indice: () => import('./views/indice.js?v=1794351671'),
-  registro: () => import('./views/registro.js?v=1794351671'),
-  esquema: () => import('./views/esquema.js?v=1794351671'),
-  comandos: () => import('./views/comandos.js?v=1794351671'),
-  cuaderno: () => import('./views/cuaderno.js?v=1794351671'),
-  leccion: () => import('./views/leccion.js?v=1794351671'),
-  practica: () => import('./views/practica.js?v=1794351671'),
-  simulacro: () => import('./views/simulacro.js?v=1794351671'),
+  home: () => import('./views/home.js?v=1794351916'),
+  indice: () => import('./views/indice.js?v=1794351916'),
+  registro: () => import('./views/registro.js?v=1794351916'),
+  esquema: () => import('./views/esquema.js?v=1794351916'),
+  comandos: () => import('./views/comandos.js?v=1794351916'),
+  cuaderno: () => import('./views/cuaderno.js?v=1794351916'),
+  leccion: () => import('./views/leccion.js?v=1794351916'),
+  practica: () => import('./views/practica.js?v=1794351916'),
+  simulacro: () => import('./views/simulacro.js?v=1794351916'),
 };
 
 // re → vista; keys = nombres de los grupos capturados; extra = params fijos. `nav` = entrada del menú que se ilumina.
@@ -190,7 +190,7 @@ export const router = {
   },
   /** vuelve a montar la vista actual */
   refresh() { if (current) current.key = null, current.view = null; return render(); },
-  /** registra o sustituye el cargador de una vista: register('leccion', () => import('./views/leccion.js?v=1794351671')) */
+  /** registra o sustituye el cargador de una vista: register('leccion', () => import('./views/leccion.js?v=1794351916')) */
   register(name, loader) { LOADERS[name] = loader; },
   /** cb({path, view, nav, params, title}) en cada cambio de ruta */
   onChange(cb) { listeners.add(cb); return () => listeners.delete(cb); },

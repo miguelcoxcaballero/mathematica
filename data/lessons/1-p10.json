@@ -6,7 +6,7 @@
  "order": 10,
  "title": "Aplicaciones de la integral: áreas, volúmenes, longitudes y Simpson",
  "summary": "Usa Integrate y NIntegrate para calcular áreas entre curvas, volúmenes de revolución y longitudes de arco (en cartesianas, paramétricas y polares), y aproxima integrales con la regla de Simpson controlando el error.",
- "minutes": 50,
+ "minutes": 55,
  "commands": [
   "NIntegrate",
   "Total",
@@ -29,19 +29,51 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "Integrar para medir: Integrate y NIntegrate",
-   "md": "Una integral definida es una suma de infinitos trocitos. Por eso sirve para **medir**: el área de una región, el volumen de un depósito o de una tobera, la longitud de un cable o de una trayectoria. En esta lección cada magnitud tendrá su fórmula, pero el trabajo en Mathematica es siempre el mismo: dibujar, plantear la integral y calcularla.\n\nTienes dos comandos, con la misma forma `[función, {x, a, b}]`:\n\n- `Integrate` busca la primitiva y da el resultado **exacto** (Práctica 4). A veces el resultado exacto es ilegible, tarda mucho o no existe.\n- `NIntegrate` calcula directamente un **número** aproximado. Funciona siempre que los límites sean números.\n\nRegla práctica: prueba `Integrate`; si la respuesta es rara o tarda, usa `NIntegrate`. Y si tienes un exacto y quieres decimales, `N[resultado, 6]` da 6 cifras.",
-   "cells": [
+   "type": "build",
+   "section": "Integrate y NIntegrate",
+   "title": "Exacta o numérica",
+   "md": "Dos comandos con la misma forma: uno da el valor exacto y otro el número.",
+   "target": "NIntegrate[Sin[x^2], {x, 0, 2}]",
+   "parts": [
+    {
+     "code": "Integrate[x^2, {x, 0, 1}]",
+     "md": "Exacta: sale una fracción.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[x^2, {x, 0, 1}]",
+     "md": "Pon una `N` delante: sale el número decimal.",
+     "run": true
+    },
     {
      "code": "Integrate[Sin[x^2], {x, 0, 2}]",
-     "note": "exacto… pero con una función rara"
+     "md": "Esta también sale exacta… con una función rarísima.",
+     "run": true
     },
     {
      "code": "NIntegrate[Sin[x^2], {x, 0, 2}]",
-     "note": "el número, directamente"
+     "md": "Con `NIntegrate`, directamente el número.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "Sin mirar: calcula numéricamente la integral de `Sin[x^2]` entre 0 y 2.",
+    "hints": [
+     "Misma forma que `Integrate`, con una `N` delante.",
+     "`NIntegrate[Sin[x^2], {x, 0, 2}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "0.8047764893437561",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "NIntegrate"
+   ],
+   "more": "Una integral definida suma infinitos trocitos: por eso mide áreas, volúmenes y longitudes. Regla práctica: prueba `Integrate`; si la respuesta es rara, tarda o no sale, usa `NIntegrate`."
   },
   {
    "type": "exercise",
@@ -49,7 +81,7 @@
     "id": "1-p10-e01",
     "kind": "code",
     "title": "Una integral sin primitiva",
-    "prompt": "Calcula numéricamente la integral de `Exp[-x^2/2]` entre `-1` y `1`.",
+    "prompt": "Calcula numéricamente la integral de `Exp[-x^2/2]` entre −1 y 1.",
     "difficulty": 1,
     "cmds": [
      "NIntegrate"
@@ -67,38 +99,103 @@
      "NIntegrate"
     ],
     "hints": [
-     "Misma forma que `Integrate`: `NIntegrate[función, {x, a, b}]`.",
+     "`NIntegrate[función, {x, a, b}]`",
      "`NIntegrate[Exp[-x^2/2], {x, -1, 1}]`"
     ],
     "explain": "Es la campana de Gauss: no tiene primitiva elemental, pero su integral numérica sale al instante (≈ 1.71125)."
    }
   },
   {
-   "type": "explain",
-   "title": "Área entre dos curvas",
-   "md": "El área encerrada entre dos curvas es la integral de **la de arriba menos la de abajo**, entre los puntos donde se cortan. Receta en tres pasos:\n\n1. **Dibuja** las dos curvas en el mismo `Plot` para ver cuál va por encima y cuántos cortes hay. La opción `Filling -> {1 -> {2}}` sombrea la zona entre la curva 1 y la 2.\n2. **Halla los cortes** igualando las funciones: `Solve[f == g, x]`.\n3. **Integra** `arriba - abajo` entre los cortes.\n\nSi te sale un área negativa, has restado al revés.\n\nEjemplo: la región entre la parábola `y = x^2` y la recta `y = x + 2`.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e02",
+    "kind": "code",
+    "title": "Exacta y con 6 cifras",
+    "prompt": "Calcula la integral exacta de `Exp[-x^2]` entre 0 y 1 y aproxímala con 6 cifras: `N[..., 6]`.",
+    "difficulty": 1,
+    "cmds": [
+     "Integrate",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "N[Integrate[Exp[-x^2], {x, 0, 1}], 6]",
+    "check": {
+     "type": "expr",
+     "expected": "0.746824132812427",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Integrate",
+     "N"
+    ],
+    "hints": [
+     "Envuelve el `Integrate` en `N[..., 6]`.",
+     "`N[Integrate[Exp[-x^2], {x, 0, 1}], 6]`"
+    ],
+    "explain": "Es el patrón de los exámenes: `N[Integrate[...], n]` da el resultado con `n` cifras significativas."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Área entre dos curvas",
+   "title": "Arriba menos abajo",
+   "md": "Área entre la parábola `x^2` y la recta `x + 2`: dibujar, cortar, integrar.",
+   "target": "Integrate[(x + 2) - x^2, {x, -1, 2}]",
+   "parts": [
+    {
+     "code": "Plot[{x^2, x + 2}, {x, -2, 3}]",
+     "md": "Dibuja las dos: ¿cuál va por encima entre los cortes?",
+     "run": true
+    },
     {
      "code": "Plot[{x^2, x + 2}, {x, -2, 3}, Filling -> {1 -> {2}}]",
-     "note": "la recta va por encima entre los dos cortes"
+     "md": "Sombrea la zona entre la curva 1 y la 2.",
+     "run": true
     },
     {
      "code": "Solve[x^2 == x + 2, x]",
-     "note": "cortes en x = -1 y x = 2"
+     "md": "Los cortes: iguala las dos funciones.",
+     "run": true
+    },
+    {
+     "code": "Integrate[x^2 - (x + 2), {x, -1, 2}]",
+     "md": "Integra parábola menos recta: sale negativa. Está al revés.",
+     "run": true
     },
     {
      "code": "Integrate[(x + 2) - x^2, {x, -1, 2}]",
-     "note": "arriba menos abajo"
+     "md": "Arriba menos abajo: el área.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: área entre `x^2` y `x + 2`, que se cortan en −1 y 2 (la recta va por encima).",
+    "hints": [
+     "Integra «arriba menos abajo» entre los cortes.",
+     "`Integrate[(x + 2) - x^2, {x, -1, 2}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "9/2",
+     "compare": "equal"
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Solve",
+    "Plot",
+    "Filling"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e02",
+    "id": "1-p10-e03",
     "kind": "code",
-    "title": "Entre la recta y la parábola",
-    "prompt": "Calcula el área de la región encerrada entre `y = x` e `y = x^2`. (Se cortan en `x = 0` y `x = 1`; entre ambos, la recta va por encima.)",
+    "title": "Recta y parábola",
+    "prompt": "Calcula el área encerrada entre `y = x` e `y = x^2` (se cortan en 0 y 1; la recta va por encima).",
     "difficulty": 1,
     "cmds": [
      "Integrate"
@@ -115,19 +212,50 @@
      "Integrate"
     ],
     "hints": [
-     "Arriba menos abajo: `x - x^2`.",
+     "Arriba menos abajo: `x - x^2`, entre 0 y 1.",
      "`Integrate[x - x^2, {x, 0, 1}]`"
     ],
-    "explain": "El área es `1/6`. Si hubieras escrito `x^2 - x` habría salido `-1/6`: mismo valor, signo cambiado."
+    "explain": "El área es `1/6`. Con `x^2 - x` habría salido `-1/6`: mismo valor, signo cambiado."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e03",
+    "id": "1-p10-e04",
+    "kind": "code",
+    "title": "Hallar los cortes y el área",
+    "prompt": "Halla con `Solve` los cortes de `x^2` con `2 x + 3` y, debajo, calcula el área entre las dos curvas.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "Integrate"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Solve[x^2 == 2 x + 3, x]\nIntegrate[2 x + 3 - x^2, {x, -1, 3}]",
+    "check": {
+     "type": "expr",
+     "expected": "32/3",
+     "compare": "equal"
+    },
+    "requires": [
+     "Solve",
+     "Integrate"
+    ],
+    "hints": [
+     "Primera línea: `Solve[x^2 == 2 x + 3, x]` da los cortes, −1 y 3.",
+     "Segunda línea: `Integrate[2 x + 3 - x^2, {x, -1, 3}]`."
+    ],
+    "explain": "Entre −1 y 3 la recta va por encima de la parábola. El área es `32/3`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e05",
     "kind": "fix",
     "title": "Un área negativa",
-    "prompt": "Esta celda quería calcular el área entre la parábola `y = x^2` y la recta horizontal `y = 4`. Da error y, aunque no lo diera, saldría negativa. Corrige los dos fallos.",
+    "prompt": "Esta celda quería el área entre `y = x^2` y la recta `y = 4`. Da error y además saldría negativa: escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -145,93 +273,168 @@
      "Integrate"
     ],
     "hints": [
-     "El intervalo va entre llaves: `{x, -2, 2}`.",
-     "Entre −2 y 2 la recta `y = 4` está por encima de la parábola: integra `4 - x^2`."
+     "El intervalo va entre llaves, y la recta `y = 4` está por encima: `4 - x^2`.",
+     "`Integrate[4 - x^2, {x, -2, 2}]`"
     ],
-    "explain": "Llaves en el intervalo y «arriba menos abajo»: `Integrate[4 - x^2, {x, -2, 2}]` da `32/3`."
+    "explain": "Llaves en el intervalo y «arriba menos abajo»: da `32/3`."
    }
   },
   {
-   "type": "explain",
-   "title": "Cuando los cortes no son exactos: FindRoot + integral",
-   "md": "Con funciones «de verdad» (logaritmos, cosenos, exponenciales) `Solve` no encuentra los cortes. Entonces:\n\n1. Dibuja y **lee en la gráfica** por dónde caen los cortes.\n2. Afina cada uno con `FindRoot[f == g, {x, valor cercano}]` (Práctica 8) y guarda el número con `x /. FindRoot[...]`.\n3. Integra entre esos números.\n\nSi las curvas se cruzan varias veces, en cada tramo cambia cuál va por encima: hay que **sumar una integral por tramo**, cada una con su «arriba menos abajo».\n\nEjemplo: `y = Cos[x]` e `y = x^2 - 1`.",
-   "cells": [
+   "type": "build",
+   "section": "Cortes que no son exactos",
+   "title": "FindRoot y después integrar",
+   "md": "`Cos[x]` y `x^2 - 1` se cortan en puntos sin fórmula. Hállalos con `FindRoot`.",
+   "target": "c1 = x /. FindRoot[Cos[x] == x^2 - 1, {x, 1.2}];\nIntegrate[Cos[x] - (x^2 - 1), {x, -c1, c1}]",
+   "parts": [
     {
      "code": "Plot[{Cos[x], x^2 - 1}, {x, -2, 2}]",
-     "note": "dos cortes simétricos, cerca de ±1.2"
+     "md": "Dibuja: dos cortes simétricos, cerca de ±1.2.",
+     "run": true
     },
     {
      "code": "c1 = x /. FindRoot[Cos[x] == x^2 - 1, {x, 1.2}]",
-     "note": "el corte positivo, guardado como número"
+     "md": "Afina el corte positivo y guarda el número.",
+     "run": true
     },
     {
      "code": "Integrate[Cos[x] - (x^2 - 1), {x, -c1, c1}]",
-     "note": "el coseno va por encima"
+     "md": "Integra arriba menos abajo entre `-c1` y `c1`.",
+     "run": true
+    },
+    {
+     "code": "c1 = x /. FindRoot[Cos[x] == x^2 - 1, {x, 1.2}];\nIntegrate[Cos[x] - (x^2 - 1), {x, -c1, c1}]",
+     "md": "Las dos líneas juntas.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "Sin mirar: `c1` = corte de `Cos[x]` y `x^2 - 1` cerca de 1.2; área entre `-c1` y `c1`.",
+    "hints": [
+     "`c1 = x /. FindRoot[Cos[x] == x^2 - 1, {x, 1.2}];`",
+     "Segunda línea: `Integrate[Cos[x] - (x^2 - 1), {x, -c1, c1}]`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "3.113897482006426",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "FindRoot",
+    "Integrate",
+    "ReplaceAll"
+   ],
+   "more": "Si las curvas se cruzan varias veces, en cada tramo cambia cuál va por encima: hay que sumar una integral por tramo, cada una con su «arriba menos abajo»."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e04",
+    "id": "1-p10-e06",
     "kind": "code",
-    "title": "Área con cortes numéricos",
-    "prompt": "Las curvas `y = 2 - x^2` e `y = Exp[x]` se cortan en dos puntos, uno cerca de `x = -1.3` y otro cerca de `x = 0.5`. Entre ellos la parábola va por encima.\n\nHalla los dos cortes con `FindRoot` (guárdalos en `x1` y `x2`) y calcula el área encerrada.",
-    "difficulty": 3,
+    "title": "Dos cortes numéricos",
+    "prompt": "`2 - x^2` y `Exp[x]` se cortan cerca de −1.3 y de 0.5. Guarda los cortes en `x1` y `x2` y devuelve `{x1, x2}`.",
+    "difficulty": 2,
     "cmds": [
      "FindRoot",
-     "NIntegrate",
      "ReplaceAll"
     ],
     "real": false,
     "source": null,
-    "solution": "x1 = x /. FindRoot[2 - x^2 == Exp[x], {x, -1.3}];\nx2 = x /. FindRoot[2 - x^2 == Exp[x], {x, 0.5}];\nNIntegrate[2 - x^2 - Exp[x], {x, x1, x2}]",
+    "solution": "x1 = x /. FindRoot[2 - x^2 == Exp[x], {x, -1.3}];\nx2 = x /. FindRoot[2 - x^2 == Exp[x], {x, 0.5}];\n{x1, x2}",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "{x1, x2}",
-       "expected": "{-1.31597377779629, 0.5372744491741097}",
-       "compare": "numeric",
-       "tol": 1e-06
-      },
-      {
-       "type": "expr",
-       "expected": "1.452013983248397",
-       "compare": "numeric",
-       "tol": 1e-05
-      }
-     ]
+     "type": "value",
+     "expr": "{x1, x2}",
+     "expected": "{-1.31597377779629, 0.5372744491741097}",
+     "compare": "numeric",
+     "tol": 1e-06
     },
     "requires": [
      "FindRoot"
     ],
     "hints": [
-     "`x1 = x /. FindRoot[2 - x^2 == Exp[x], {x, -1.3}];` y lo mismo para `x2` partiendo de 0.5.",
-     "El área: `NIntegrate[2 - x^2 - Exp[x], {x, x1, x2}]` (también vale `Integrate`)."
+     "`x1 = x /. FindRoot[2 - x^2 == Exp[x], {x, -1.3}];`",
+     "Lo mismo para `x2` partiendo de 0.5, y al final `{x1, x2}`."
     ],
-    "explain": "Cortes en −1.31597 y 0.537274; área ≈ 1.45201. Este es exactamente el esquema del primer ejercicio de la práctica."
+    "explain": "Un `FindRoot` por corte, cada uno con su punto de partida: −1.31597 y 0.537274."
    }
-  },
-  {
-   "type": "explain",
-   "title": "Volumen de revolución",
-   "md": "Si la región bajo la curva `y = f(x)`, entre `x = a` y `x = b`, gira una vuelta completa alrededor del eje X, genera un sólido (una tobera, un depósito, un cono de morro). Cortándolo en discos de radio `f(x)`:\n\n`V = Pi * Integrate[f(x)^2, {x, a, b}]`\n\nLo único que hay que recordar es el `Pi` de fuera y el **cuadrado** de dentro.\n\nComprobación clásica: media circunferencia `y = Sqrt[R^2 - x^2]` girando da una esfera.",
-   "cells": [
-    {
-     "code": "Pi*Integrate[Sqrt[R^2 - x^2]^2, {x, -R, R}]",
-     "note": "el volumen de la esfera: 4 π R^3 / 3"
-    }
-   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e05",
+    "id": "1-p10-e07",
+    "kind": "code",
+    "title": "El área entre esos cortes",
+    "prompt": "`x1` y `x2` ya están calculados. Entre ellos `2 - x^2` va por encima de `Exp[x]`: calcula el área encerrada.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Integrate"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "x1 = x /. FindRoot[2 - x^2 == Exp[x], {x, -1.3}];\nx2 = x /. FindRoot[2 - x^2 == Exp[x], {x, 0.5}];",
+    "solution": "NIntegrate[2 - x^2 - Exp[x], {x, x1, x2}]",
+    "check": {
+     "type": "expr",
+     "expected": "1.452013983248397",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "Arriba menos abajo, entre `x1` y `x2`.",
+     "`NIntegrate[2 - x^2 - Exp[x], {x, x1, x2}]` (también vale `Integrate`)."
+    ],
+    "explain": "Área ≈ 1.45201. Cortes con `FindRoot` y después la integral: es el esquema del primer ejercicio de la práctica."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Volumen de revolución",
+   "title": "Pi por la integral del cuadrado",
+   "md": "Al girar `y = f(x)` alrededor del eje X, el volumen es `Pi` por la integral de `f^2`.",
+   "target": "Pi*Integrate[Sqrt[R^2 - x^2]^2, {x, -R, R}]",
+   "parts": [
+    {
+     "code": "Pi*Integrate[(x/2)^2, {x, 0, 4}]",
+     "md": "Gira la recta `x/2`: un cono de altura 4 y radio 2.",
+     "run": true
+    },
+    {
+     "code": "Pi*Integrate[Sqrt[4 - x^2]^2, {x, -2, 2}]",
+     "md": "Gira media circunferencia: una esfera de radio 2.",
+     "run": true
+    },
+    {
+     "code": "Pi*Integrate[Sqrt[R^2 - x^2]^2, {x, -R, R}]",
+     "md": "Con el radio `R` en letra: la fórmula de la esfera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: volumen al girar `Sqrt[R^2 - x^2]` entre `-R` y `R` alrededor del eje X.",
+    "hints": [
+     "`Pi*Integrate[f^2, {x, a, b}]`: el `Pi` fuera y el cuadrado dentro.",
+     "`Pi*Integrate[Sqrt[R^2 - x^2]^2, {x, -R, R}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "4 Pi R^3/3",
+     "compare": "equal"
+    }
+   },
+   "cmds": [
+    "Integrate"
+   ],
+   "more": "El sólido se corta en discos de radio `f(x)` y área `Pi f(x)^2`; la integral los suma. Así se calculan toberas, depósitos y conos de morro."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e08",
     "kind": "code",
     "title": "Girar un arco de seno",
-    "prompt": "Calcula el volumen que genera el arco `y = Sin[x]`, entre `x = 0` y `x = Pi`, al girar alrededor del eje X.",
+    "prompt": "Calcula el volumen que genera `y = Sin[x]`, entre 0 y `Pi`, al girar alrededor del eje X.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -249,19 +452,19 @@
      "Pi"
     ],
     "hints": [
-     "Dentro de la integral va el **cuadrado** de la función: `Sin[x]^2`.",
+     "Dentro va el cuadrado de la función: `Sin[x]^2`.",
      "`Pi*Integrate[Sin[x]^2, {x, 0, Pi}]`"
     ],
-    "explain": "Sale `Pi^2/2` ≈ 4.93. El `Pi` de fuera y el cuadrado de dentro: es lo único que hay que recordar."
+    "explain": "Sale `Pi^2/2` ≈ 4.93."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e06",
+    "id": "1-p10-e09",
     "kind": "code",
     "title": "El volumen de una tobera",
-    "prompt": "El perfil de una tobera es `r(x) = 1 + x^2/4` para `x` entre 0 y 2 (en metros). Calcula el volumen interior, es decir, el del sólido que genera ese perfil al girar alrededor del eje X.",
+    "prompt": "El perfil de una tobera es `1 + x^2/4` para `x` entre 0 y 2. Calcula el volumen al girarlo alrededor del eje X.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -279,34 +482,148 @@
      "Pi"
     ],
     "hints": [
-     "`V = Pi*Integrate[r(x)^2, {x, a, b}]`.",
+     "`Pi*Integrate[(perfil)^2, {x, 0, 2}]`, con el perfil entre paréntesis.",
      "`Pi*Integrate[(1 + x^2/4)^2, {x, 0, 2}]`"
     ],
-    "explain": "Sale `56 Pi/15` ≈ 11.73 m³. No olvides los paréntesis antes de elevar al cuadrado."
+    "explain": "Sale `56 Pi/15` ≈ 11.73. No olvides los paréntesis antes de elevar al cuadrado."
    }
   },
   {
-   "type": "explain",
-   "title": "Longitud de una curva",
-   "md": "La longitud de una curva se obtiene sumando trocitos de hipotenusa. Según cómo venga dada la curva:\n\n- `y = f(x)`: `Integrate[Sqrt[1 + f'[x]^2], {x, a, b}]`\n- Paramétricas `(x(t), y(t))`: `Integrate[Sqrt[x'[t]^2 + y'[t]^2], {t, t1, t2}]`\n\nPara poder escribir `f'[x]` o `x'[t]` hay que **definir antes las funciones** con `:=`. La comilla simple es la derivada.\n\nEstas integrales, con su raíz cuadrada, casi nunca tienen primitiva sencilla: `Integrate` puede tardar muchísimo o rendirse. Para longitudes, ve directo a `NIntegrate`.",
-   "cells": [
+   "type": "build",
+   "section": "Longitud de una curva",
+   "title": "Longitud de y = f(x)",
+   "md": "La longitud es la integral de `Sqrt[1 + f'[x]^2]`. Mídela para `x^2` entre 0 y 1.",
+   "target": "f[x_] := x^2\nNIntegrate[Sqrt[1 + f'[x]^2], {x, 0, 1}]",
+   "parts": [
+    {
+     "code": "f[x_] := x^2",
+     "md": "Define la función: hace falta para poder derivarla con la comilla.",
+     "run": true
+    },
+    {
+     "code": "f'[x]",
+     "md": "La comilla simple es la derivada.",
+     "run": true
+    },
+    {
+     "code": "Sqrt[1 + f'[x]^2]",
+     "md": "El trocito de longitud en cada `x`.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[Sqrt[1 + f'[x]^2], {x, 0, 1}]",
+     "md": "Súmalos con `NIntegrate`.",
+     "run": true
+    },
     {
      "code": "f[x_] := x^2\nNIntegrate[Sqrt[1 + f'[x]^2], {x, 0, 1}]",
-     "note": "longitud de la parábola entre 0 y 1"
+     "md": "Las dos líneas juntas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar, en dos líneas: define `f[x_] := x^2` y calcula su longitud entre 0 y 1.",
+    "hints": [
+     "La longitud es la integral de `Sqrt[1 + f'[x]^2]`.",
+     "Segunda línea: `NIntegrate[Sqrt[1 + f'[x]^2], {x, 0, 1}]`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1.4789428575445975",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "NIntegrate",
+    "Derivative"
+   ],
+   "more": "Estas integrales, con su raíz cuadrada, casi nunca tienen primitiva sencilla: `Integrate` puede tardar muchísimo o rendirse. Para longitudes, ve directo a `NIntegrate`."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e10",
+    "kind": "code",
+    "title": "Un cable colgante",
+    "prompt": "Define `c[x_] := Cosh[x]` (la forma de un cable colgado) y guarda en `long` su longitud entre −1 y 1.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Derivative"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "c[x_] := Cosh[x]\nlong = NIntegrate[Sqrt[1 + c'[x]^2], {x, -1, 1}]",
+    "check": {
+     "type": "value",
+     "expr": "long",
+     "expected": "2 Sinh[1.]",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Derivative"
+    ],
+    "hints": [
+     "Segunda línea: `long = NIntegrate[Sqrt[1 + c'[x]^2], {x, -1, 1}]`.",
+     "Primera línea: `c[x_] := Cosh[x]`."
+    ],
+    "explain": "Sale 2.3504: mismo patrón, otra función. La curva `Cosh` se llama catenaria."
+   }
+  },
+  {
+   "type": "build",
+   "title": "Longitud en paramétricas",
+   "md": "Con `(x(t), y(t))`, la longitud es la integral de `Sqrt[x'[t]^2 + y'[t]^2]`.",
+   "target": "x[t_] := 3 Cos[t]\ny[t_] := 2 Sin[t]\nNIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]",
+   "parts": [
+    {
+     "code": "x[t_] := 3 Cos[t]\ny[t_] := 2 Sin[t]",
+     "md": "Define las dos coordenadas: una elipse de semiejes 3 y 2.",
+     "run": true
+    },
+    {
+     "code": "Sqrt[x'[t]^2 + y'[t]^2]",
+     "md": "El trocito de longitud: la velocidad del punto.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]",
+     "md": "Intégralo a lo largo de toda la vuelta.",
+     "run": true
     },
     {
      "code": "x[t_] := 3 Cos[t]\ny[t_] := 2 Sin[t]\nNIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]",
-     "note": "perímetro de una elipse de semiejes 3 y 2"
+     "md": "Las tres líneas juntas: el perímetro de la elipse.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `x[t_] := 3 Cos[t]`, `y[t_] := 2 Sin[t]` y calcula la longitud de 0 a 2π.",
+    "hints": [
+     "Bajo la raíz: `x'[t]^2 + y'[t]^2`.",
+     "Tercera línea: `NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "15.86543958929059",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "NIntegrate",
+    "Derivative"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e07",
+    "id": "1-p10-e11",
     "kind": "code",
     "title": "Un arco de cicloide",
-    "prompt": "Un punto del neumático de un avión que rueda describe la cicloide `x(t) = t - Sin[t]`, `y(t) = 1 - Cos[t]`. Define `x[t_]` e `y[t_]` y calcula la longitud de un arco completo (`t` entre 0 y `2 Pi`). Guarda el resultado en `long` (sin `;`).",
+    "prompt": "Define `x[t_] := t - Sin[t]` e `y[t_] := 1 - Cos[t]` y guarda en `long` la longitud para `t` de 0 a `2 Pi`.",
     "difficulty": 2,
     "cmds": [
      "NIntegrate",
@@ -326,38 +643,69 @@
      "Derivative"
     ],
     "hints": [
-     "Define las dos funciones con `:=` y el patrón `t_`.",
-     "`long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]`"
+     "Tercera línea: `long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, 2 Pi}]`.",
+     "Las dos primeras: las definiciones con `t_` y `:=`."
     ],
-    "explain": "Sale 8 (exactamente ocho veces el radio de la rueda). Fíjate en el patrón: definir `x[t_]`, `y[t_]` y usar sus derivadas con la comilla."
+    "explain": "Sale 8: exactamente ocho veces el radio de la rueda que dibuja la cicloide."
    }
   },
   {
-   "type": "explain",
-   "title": "En polares: área y volumen",
-   "md": "Para una curva en polares `ρ = r(t)`, con el ángulo `t` entre `t1` y `t2`:\n\n- **Área** del sector que barre: `(1/2) Integrate[r[t]^2, {t, t1, t2}]`\n- **Longitud**: `NIntegrate[Sqrt[r[t]^2 + r'[t]^2], {t, t1, t2}]`\n- **Volumen** al girar alrededor del eje polar (el eje X): `(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, t1, t2}]`\n\nEn el volumen hay que integrar solo la parte de la curva que queda **por encima** del eje (`t` entre 0 y π como mucho): la parte de abajo generaría el mismo sólido otra vez.\n\nEjemplo con la cardioide `r = 1 + Cos[t]`.",
-   "cells": [
+   "type": "build",
+   "section": "En polares: área y volumen",
+   "title": "Área y volumen de una cardioide",
+   "md": "Para `ρ = r(t)`: área `(1/2)∫r^2` y volumen (eje polar) `(2 Pi/3)∫r^3 Sin[t]`.",
+   "target": "r[t_] := 1 + Cos[t]\n(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, 0, Pi}]",
+   "parts": [
     {
-     "code": "r[t_] := 1 + Cos[t]\nPolarPlot[r[t], {t, 0, 2 Pi}]",
-     "note": "la cardioide"
+     "code": "r[t_] := 1 + Cos[t]",
+     "md": "El radio en función del ángulo.",
+     "run": true
     },
     {
      "code": "1/2 Integrate[r[t]^2, {t, 0, 2 Pi}]",
-     "note": "su área"
+     "md": "El área: la mitad de la integral de `r^2`, la vuelta entera.",
+     "run": true
+    },
+    {
+     "code": "(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, 0, 2 Pi}]",
+     "md": "El volumen con la vuelta entera… da 0: las dos mitades se cancelan.",
+     "run": true
     },
     {
      "code": "(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, 0, Pi}]",
-     "note": "volumen al girar la mitad superior alrededor del eje polar"
+     "md": "Solo la mitad de arriba, de 0 a `Pi`: ahora sí.",
+     "run": true
+    },
+    {
+     "code": "r[t_] := 1 + Cos[t]\n(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, 0, Pi}]",
+     "md": "Las dos líneas juntas.",
+     "run": true
     }
-   ]
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `r[t_] := 1 + Cos[t]` y calcula el volumen al girar sobre el eje polar (`t` de 0 a π).",
+    "hints": [
+     "Volumen: `(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, 0, Pi}]`.",
+     "Primera línea: `r[t_] := 1 + Cos[t]`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "8 Pi/3",
+     "compare": "equal"
+    }
+   },
+   "cmds": [
+    "Integrate"
+   ],
+   "more": "En el volumen se integra solo la parte de la curva que queda por encima del eje: la de abajo generaría el mismo sólido otra vez. La longitud en polares es `NIntegrate[Sqrt[r[t]^2 + r'[t]^2], {t, t1, t2}]`."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e08",
+    "id": "1-p10-e12",
     "kind": "code",
     "title": "El área de un pétalo",
-    "prompt": "La curva polar `r = 4 Cos[4 t]` dibuja un pétalo cuando `t` va de `-Pi/8` a `Pi/8`. Calcula su área.",
+    "prompt": "La curva polar `4 Cos[4 t]` dibuja un pétalo para `t` de `-Pi/8` a `Pi/8`. Calcula su área.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -374,42 +722,148 @@
      "Integrate"
     ],
     "hints": [
-     "Área en polares: `(1/2) Integrate[r^2, {t, t1, t2}]`.",
+     "Área en polares: `1/2 Integrate[r^2, {t, t1, t2}]`.",
      "`1/2 Integrate[(4 Cos[4 t])^2, {t, -Pi/8, Pi/8}]`"
     ],
-    "explain": "El área del pétalo es exactamente `Pi`. Con este mismo pétalo trabaja uno de los ejercicios reales de la práctica."
+    "explain": "El área del pétalo es exactamente `Pi`. Con este mismo pétalo trabaja uno de los ejercicios reales."
    }
   },
   {
-   "type": "explain",
-   "title": "La regla de Simpson con error controlado",
-   "md": "`NIntegrate` da el número, pero en clase se pide hacerlo «a mano» con la **regla de Simpson** y garantizar el error. El intervalo `[a, b]` se divide en `2n` trozos de anchura `h = (b - a)/(2n)` y\n\n`S = h/3 (f(x0) + 2·(suma de f en los nodos pares) + 4·(suma de f en los impares) + f(x2n))`\n\ndonde los nodos son `a + i h`. El error cumple `E <= M4 (b - a)^5/(2880 n^4)`, siendo `M4` una cota de la derivada cuarta `|f''''(x)|` en el intervalo. El procedimiento tiene tres pasos:\n\n1. **M4**: dibuja `Abs[f''''[x]]` (cuatro comillas) y toma un entero que quede por encima del máximo.\n2. **n**: el primer natural con el que la cota de error ya es menor que el error pedido. `NestWhile[# + 1 &, 1, condición &]` va probando 1, 2, 3… **mientras** la cota siga siendo demasiado grande.\n3. **S**: las sumas se hacen con `Table` (iterador con paso 2) y `Total`, que suma los elementos de una lista. Queda más claro guardar cada suma con un nombre (`pares`, `impares`) y montar la fórmula al final.\n\nEjemplo de los apuntes: la integral de `Exp[x]/x` en `[1, 2]` con error menor que `10^-8`.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e13",
+    "kind": "code",
+    "title": "Longitud de la cardioide",
+    "prompt": "Define `r[t_] := 1 + Cos[t]` y guarda en `long` su longitud: integral de `Sqrt[r[t]^2 + r'[t]^2]` de 0 a `2 Pi`.",
+    "difficulty": 2,
+    "cmds": [
+     "NIntegrate",
+     "Derivative"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "r[t_] := 1 + Cos[t]\nlong = NIntegrate[Sqrt[r[t]^2 + r'[t]^2], {t, 0, 2 Pi}]",
+    "check": {
+     "type": "value",
+     "expr": "long",
+     "expected": "8",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Derivative"
+    ],
+    "hints": [
+     "Segunda línea: `long = NIntegrate[Sqrt[r[t]^2 + r'[t]^2], {t, 0, 2 Pi}]`.",
+     "Primera línea: `r[t_] := 1 + Cos[t]`."
+    ],
+    "explain": "Sale 8. Ojo con la fórmula: bajo la raíz van `r^2` y `r'^2`, los dos al cuadrado."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Simpson: la cota M4 y el n",
+   "title": "La cota de la derivada cuarta",
+   "md": "Simpson necesita una cota `M4` de `|f''''|`. Búscala para `Exp[x]/x` en [1, 2].",
+   "target": "f[x_] := Exp[x]/x\nN[Abs[f''''[1]]]",
+   "parts": [
     {
-     "code": "f[x_] := Exp[x]/x\na = 1; b = 2;\nPlot[Abs[f''''[x]], {x, a, b}]",
-     "note": "el máximo está en x = 1 y vale unos 24.5: tomamos M4 = 25"
+     "code": "f[x_] := Exp[x]/x",
+     "md": "La función que se quiere integrar.",
+     "run": true
     },
     {
-     "code": "n = NestWhile[# + 1 &, 1, 25 (b - a)^5/(2880 #^4) >= 10^-8 &]",
-     "note": "el primer n que cumple la cota"
+     "code": "f''''[x]",
+     "md": "Cuatro comillas: la derivada cuarta.",
+     "run": true
     },
     {
-     "code": "h = (b - a)/(2 n);\npares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];\nimpares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];",
-     "note": "el paso y las dos sumas: nodos pares e impares"
+     "code": "Plot[Abs[f''''[x]], {x, 1, 2}]",
+     "md": "Dibuja su valor absoluto: el máximo está en `x = 1`.",
+     "run": true
     },
     {
-     "code": "S = N[h/3 (f[a] + 2 pares + 4 impares + f[b]), 10]",
-     "note": "la fórmula de Simpson, con 10 cifras; coincide con NIntegrate[f[x], {x, 1, 2}]"
+     "code": "N[Abs[f''''[1]]]",
+     "md": "Ese máximo vale 24.46: se toma `M4 = 25`.",
+     "run": true
+    },
+    {
+     "code": "f[x_] := Exp[x]/x\nN[Abs[f''''[1]]]",
+     "md": "Las dos líneas juntas.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: define `f[x_] := Exp[x]/x` y calcula en decimales `|f''''(1)|`.",
+    "hints": [
+     "La derivada cuarta son cuatro comillas simples: `f''''[1]`.",
+     "Segunda línea: `N[Abs[f''''[1]]]`."
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "24.46453645613141",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Abs",
+    "Derivative",
+    "Plot"
+   ],
+   "more": "Regla de Simpson con `2n` subintervalos: el error cumple `E <= M4 (b - a)^5/(2880 n^4)`, donde `M4` es una cota de `|f''''|` en `[a, b]`. Se toma un entero que quede por encima del máximo."
+  },
+  {
+   "type": "build",
+   "title": "El n que garantiza el error",
+   "md": "Busca el primer `n` con cota de error menor que `10^-8` (con `M4 = 25`, en [1, 2]).",
+   "target": "NestWhile[# + 1 &, 1, 25 (2 - 1)^5/(2880 #^4) >= 10^-8 &]",
+   "parts": [
+    {
+     "code": "N[25 (2 - 1)^5/(2880 3^4)]",
+     "md": "La cota del error con `n = 3`: aún muy grande.",
+     "run": true
+    },
+    {
+     "code": "N[25 (2 - 1)^5/(2880 31^4)]",
+     "md": "Con `n = 31`: ya es menor que `10^-8`.",
+     "run": true
+    },
+    {
+     "code": "25 (2 - 1)^5/(2880 #^4) >= 10^-8 &",
+     "md": "La condición para seguir probando, como función pura de `n`."
+    },
+    {
+     "code": "NestWhile[# + 1 &, 1, 25 (2 - 1)^5/(2880 #^4) >= 10^-8 &]",
+     "md": "`NestWhile` suma 1 a `n` mientras la cota sea demasiado grande.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: primer `n` con `25 (2 - 1)^5/(2880 n^4) < 10^-8`, sumando 1 con `NestWhile`.",
+    "hints": [
+     "`NestWhile[# + 1 &, 1, condición &]`",
+     "Condición para seguir: `25 (2 - 1)^5/(2880 #^4) >= 10^-8 &`.",
+     "`NestWhile[# + 1 &, 1, 25 (2 - 1)^5/(2880 #^4) >= 10^-8 &]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "31",
+     "compare": "equal"
+    }
+   },
+   "cmds": [
+    "NestWhile",
+    "Function"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e09",
+    "id": "1-p10-e14",
     "kind": "code",
     "title": "¿Cuántos subintervalos?",
-    "prompt": "Para cierta integral en `[0, 3]` se sabe que `M4 = 2`. Usa `NestWhile` para hallar el menor `n` tal que la cota del error de Simpson, `M4 (b - a)^5/(2880 n^4)`, sea menor que `10^-6`.",
+    "prompt": "Para una integral en [0, 3] con `M4 = 2`, halla con `NestWhile` el menor `n` con `2 (3 - 0)^5/(2880 n^4) < 10^-6`.",
     "difficulty": 2,
     "cmds": [
      "NestWhile"
@@ -426,20 +880,110 @@
      "NestWhile"
     ],
     "hints": [
-     "Se suma 1 (`# + 1 &`) empezando en 1 mientras la cota sea `>= 10^-6`.",
-     "La cota con estos datos: `2*(3 - 0)^5/(2880 #^4)`.",
-     "`NestWhile[# + 1 &, 1, 2*3^5/(2880 #^4) >= 10^-6 &]`"
+     "`NestWhile[# + 1 &, 1, cota >= 10^-6 &]`, con `#` en lugar de `n`.",
+     "`NestWhile[# + 1 &, 1, 2*(3 - 0)^5/(2880 #^4) >= 10^-6 &]`"
     ],
     "explain": "Sale `n = 21`, es decir, 42 subintervalos. La condición lleva `>=` porque indica cuándo hay que **seguir** probando."
    }
   },
   {
+   "type": "build",
+   "section": "Simpson: la suma",
+   "title": "La fórmula de Simpson",
+   "md": "Con `n = 31` y `h = (b - a)/(2n)`: extremos, 2 por los nodos pares y 4 por los impares.",
+   "target": "f[x_] := Exp[x]/x\na = 1; b = 2; n = 31; h = (b - a)/(2 n);\npares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];\nimpares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];\nS = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]",
+   "parts": [
+    {
+     "code": "f[x_] := Exp[x]/x\na = 1; b = 2; n = 31; h = (b - a)/(2 n);",
+     "md": "Los datos: función, extremos, `n` y el paso `h`.",
+     "run": true
+    },
+    {
+     "code": "pares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];",
+     "md": "Suma de `f` en los nodos pares: `Table` con paso 2 y `Total`.",
+     "run": true
+    },
+    {
+     "code": "impares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];",
+     "md": "Lo mismo en los impares: el iterador empieza en 1.",
+     "run": true
+    },
+    {
+     "code": "S = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]",
+     "md": "La fórmula completa.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[f[x], {x, 1, 2}]",
+     "md": "Compara con `NIntegrate`: coinciden.",
+     "run": true
+    },
+    {
+     "code": "f[x_] := Exp[x]/x\na = 1; b = 2; n = 31; h = (b - a)/(2 n);\npares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];\nimpares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];\nS = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]",
+     "md": "Todo seguido, en una celda.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: Simpson de `Exp[x]/x` en [1, 2] con `n = 31`: datos, `pares`, `impares` y `S`.",
+    "hints": [
+     "Datos: `f[x_] := Exp[x]/x` y `a = 1; b = 2; n = 31; h = (b - a)/(2 n);`",
+     "`pares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];` e `impares` igual, con `{i, 1, 2 n - 1, 2}`.",
+     "`S = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "S",
+     "expected": "3.0591165396",
+     "compare": "numeric",
+     "tol": 1e-07
+    }
+   },
+   "cmds": [
+    "Table",
+    "Total",
+    "N"
+   ],
+   "more": "Los nodos son `a + i h`, con `i` de 0 a `2n`. `Total` suma los elementos de una lista. Para pedir 12 cifras: `N[..., 12]`."
+  },
+  {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e10",
+    "id": "1-p10-e15",
     "kind": "code",
-    "title": "Simpson, paso a paso",
-    "prompt": "Ya están definidos `f[x_] := Exp[x]/x`, `a = 1`, `b = 2` y `n = 31`.\n\nCalcula la integral por Simpson: define `h`, las sumas `pares` e `impares` y guarda el resultado, en decimales, en `S` (sin `;`).",
+    "title": "Sumar con Table y Total",
+    "prompt": "Suma los cuadrados de los impares del 1 al 9: `Total` de `Table[i^2, {i, 1, 9, 2}]`.",
+    "difficulty": 1,
+    "cmds": [
+     "Table",
+     "Total"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Total[Table[i^2, {i, 1, 9, 2}]]",
+    "check": {
+     "type": "expr",
+     "expected": "165",
+     "compare": "equal"
+    },
+    "requires": [
+     "Table",
+     "Total"
+    ],
+    "hints": [
+     "El iterador `{i, 1, 9, 2}` va de 1 a 9 de dos en dos.",
+     "`Total[Table[i^2, {i, 1, 9, 2}]]`"
+    ],
+    "explain": "1 + 9 + 25 + 49 + 81 = 165. `Table` con paso 2 recorre los impares; empezando en 2, los pares."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e16",
+    "kind": "code",
+    "title": "Simpson con pocos nodos",
+    "prompt": "Ya existen `f[x_] := 1/x`, `a = 1`, `b = 2`, `n = 4`. Calcula `h`, `pares`, `impares` y guarda Simpson en `S`.",
     "difficulty": 3,
     "cmds": [
      "Table",
@@ -447,43 +991,87 @@
     ],
     "real": false,
     "source": null,
-    "setup": "f[x_] := Exp[x]/x\na = 1; b = 2; n = 31;",
+    "setup": "f[x_] := 1/x\na = 1; b = 2; n = 4;",
     "solution": "h = (b - a)/(2 n);\npares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];\nimpares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];\nS = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]",
     "check": {
      "type": "value",
      "expr": "S",
-     "expected": "3.0591165396",
+     "expected": "N[(1/8)/3 (1 + 2 Total[Table[1/(1 + i/8), {i, 2, 6, 2}]] + 4 Total[Table[1/(1 + i/8), {i, 1, 7, 2}]] + 1/2)]",
      "compare": "numeric",
-     "tol": 1e-07
+     "tol": 1e-09
     },
     "requires": [
      "Table",
      "Total"
     ],
     "hints": [
-     "`h = (b - a)/(2 n);`",
-     "`pares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];` y lo mismo para `impares` con `{i, 1, 2 n - 1, 2}`.",
+     "`h = (b - a)/(2 n);` y las sumas con `Total[Table[f[a + i h], {i, ..., ..., 2}]]`.",
+     "`pares`: `{i, 2, 2 n - 2, 2}`; `impares`: `{i, 1, 2 n - 1, 2}`.",
      "`S = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]`"
     ],
-    "explain": "Cada línea necesita la anterior: `h` usa `n`, las sumas usan `h`, y `S` lo junta todo. El resultado, 3.05911654, coincide con `NIntegrate[f[x], {x, 1, 2}]`."
+    "explain": "Sale 0.693155, muy cerca de `Log[2]` = 0.693147, con solo 8 subintervalos."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Práctica real · Ejercicio 1",
+   "ex": {
+    "id": "1-p10-e17",
+    "kind": "code",
+    "title": "Real 1 (1/3) · Las curvas",
+    "prompt": "Define `g1[x_] := -5 Log[(x + 4)/5]` y `g2[x_] := 5.2 Cos[2 x/3 + 4]` y dibújalas juntas para `x` de −10 a 10.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot"
+    ],
+    "real": true,
+    "source": "Práctica 10 · P2 (ej1), apartado a)",
+    "solution": "g1[x_] := -5 Log[(x + 4)/5]\ng2[x_] := 5.2 Cos[2 x/3 + 4]\nPlot[{g1[x], g2[x]}, {x, -10, 10}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{g1[1.], g2[0.]}",
+       "expected": "{0., 5.2 Cos[4.]}",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 2,
+       "like": "Plot[{-5 Log[(x + 4)/5], 5.2 Cos[2 x/3 + 4]}, {x, -10, 10}]"
+      }
+     ]
+    },
+    "requires": [
+     "Plot",
+     "SetDelayed"
+    ],
+    "hints": [
+     "Dos definiciones con `x_` y `:=`, y después `Plot[{g1[x], g2[x]}, {x, -10, 10}]`.",
+     "`g1[x_] := -5 Log[(x + 4)/5]` y `g2[x_] := 5.2 Cos[2 x/3 + 4]`."
+    ],
+    "explain": "En la gráfica se ven tres cortes, cerca de `x = 1`, `x = 7` y `x = 9`: serán las semillas de `FindRoot`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e11",
+    "id": "1-p10-e18",
     "kind": "code",
-    "title": "Real · Ej. 1 a) y b): cortes de dos curvas",
-    "prompt": "Considera las funciones\n\n`g1(x) = -5 Log[(x + 4)/5]` y `g2(x) = 5.2 Cos[2 x/3 + 4]`.\n\nDefínelas, represéntalas juntas para `x` entre −10 y 10 (se ven tres cortes, cerca de `x = 1`, `x = 7` y `x = 9`) y obtén las tres abscisas de corte con `FindRoot`. Termina la celda con la lista `{x1, x2, x3}` de las tres abscisas, de menor a mayor.",
+    "title": "Real 1 (2/3) · Los cortes",
+    "prompt": "`g1` y `g2` ya existen. Con `FindRoot` (semillas 1, 7 y 9) guarda los cortes en `x1`, `x2`, `x3` y devuelve `{x1, x2, x3}`.",
     "difficulty": 3,
     "cmds": [
      "FindRoot",
-     "Plot",
      "ReplaceAll"
     ],
     "real": true,
-    "source": "Práctica 10 · P2 (ej1), apartados a) y b)",
-    "solution": "g1[x_] := -5 Log[(x + 4)/5]\ng2[x_] := 5.2 Cos[2 x/3 + 4]\nPlot[{g1[x], g2[x]}, {x, -10, 10}]\nx1 = x /. FindRoot[g1[x] == g2[x], {x, 1}];\nx2 = x /. FindRoot[g1[x] == g2[x], {x, 7}];\nx3 = x /. FindRoot[g1[x] == g2[x], {x, 9}];\n{x1, x2, x3}",
+    "source": "Práctica 10 · P2 (ej1), apartado b)",
+    "setup": "g1[x_] := -5 Log[(x + 4)/5]\ng2[x_] := 5.2 Cos[2 x/3 + 4]",
+    "solution": "x1 = x /. FindRoot[g1[x] == g2[x], {x, 1}];\nx2 = x /. FindRoot[g1[x] == g2[x], {x, 7}];\nx3 = x /. FindRoot[g1[x] == g2[x], {x, 9}];\n{x1, x2, x3}",
     "check": {
      "type": "expr",
      "expected": "{1.0532918911266895, 7.089735679957707, 8.800256592578114}",
@@ -494,9 +1082,8 @@
      "FindRoot"
     ],
     "hints": [
-     "`g1[x_] := -5 Log[(x + 4)/5]` y `g2[x_] := 5.2 Cos[2 x/3 + 4]`.",
-     "Un `FindRoot` por corte: `x1 = x /. FindRoot[g1[x] == g2[x], {x, 1}];` y lo mismo con 7 y 9.",
-     "Última línea: `{x1, x2, x3}`."
+     "Un `FindRoot` por corte: `x1 = x /. FindRoot[g1[x] == g2[x], {x, 1}];`",
+     "Lo mismo para `x2` (semilla 7) y `x3` (semilla 9); última línea `{x1, x2, x3}`."
     ],
     "explain": "Los cortes están en `1.05329 < 7.08974 < 8.80026`, las respuestas de la prueba (con 6 cifras)."
    }
@@ -504,10 +1091,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e12",
+    "id": "1-p10-e19",
     "kind": "code",
-    "title": "Real · Ej. 1 c): área entre las dos curvas",
-    "prompt": "Ya están definidas `g1`, `g2` y las tres abscisas de corte `x1 < x2 < x3`.\n\nCalcula el **área encerrada entre las dos gráficas**. Ojo: entre `x1` y `x2` va por encima `g2`, y entre `x2` y `x3` va por encima `g1`.",
+    "title": "Real 1 (3/3) · El área",
+    "prompt": "Ya existen `g1`, `g2`, `x1`, `x2`, `x3`. Suma dos integrales: `g2 - g1` de `x1` a `x2` y `g1 - g2` de `x2` a `x3`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -524,29 +1111,71 @@
      "tol": 1e-05
     },
     "hints": [
-     "Dos tramos, dos integrales que se suman.",
      "Primer tramo: `Integrate[g2[x] - g1[x], {x, x1, x2}]`.",
-     "Segundo tramo: `Integrate[g1[x] - g2[x], {x, x2, x3}]`."
+     "Súmale el segundo: `Integrate[g1[x] - g2[x], {x, x2, x3}]`."
     ],
-    "explain": "El área es `27.4442`. Si integras de `x1` a `x3` de un tirón, el segundo tramo resta en lugar de sumar y el resultado sale mal."
+    "explain": "El área encerrada es `27.4442`. Entre `x1` y `x2` va por encima `g2`; entre `x2` y `x3`, `g1`. Si integras de `x1` a `x3` de un tirón, el segundo tramo resta en lugar de sumar."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Práctica real · Ejercicios 2 y 3",
+   "ex": {
+    "id": "1-p10-e20",
+    "kind": "code",
+    "title": "Real 2 (1/2) · El arco polar",
+    "prompt": "Define `r[t_] := 4 Cos[4 t]` y dibuja el arco en polares para `t` de `-Pi/8` a `Pi/8`.",
+    "difficulty": 2,
+    "cmds": [
+     "PolarPlot"
+    ],
+    "real": true,
+    "source": "Práctica 10 · P3 (ej2), representación",
+    "solution": "r[t_] := 4 Cos[4 t]\nPolarPlot[r[t], {t, -Pi/8, Pi/8}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "r[0]",
+       "expected": "4",
+       "compare": "equal"
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "like": "PolarPlot[4 Cos[4 t], {t, -Pi/8, Pi/8}]"
+      }
+     ]
+    },
+    "requires": [
+     "PolarPlot",
+     "SetDelayed"
+    ],
+    "hints": [
+     "Definición con `t_` y `:=`, y después `PolarPlot[r[t], {t, -Pi/8, Pi/8}]`.",
+     "`r[t_] := 4 Cos[4 t]`"
+    ],
+    "explain": "Sale un pétalo tumbado sobre el eje polar, simétrico respecto a él."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e13",
+    "id": "1-p10-e21",
     "kind": "code",
-    "title": "Real · Ej. 2: volumen de revolución en polares",
-    "prompt": "Representa el arco `C` en coordenadas polares `ρ = 4 Cos[4 t]`, con `-Pi/8 < t < Pi/8`, y calcula el **volumen** del sólido de revolución que genera al girar una vuelta completa alrededor del eje polar. Da el resultado en decimales.\n\nDefine antes `r[t_] := 4 Cos[4 t]`.",
+    "title": "Real 2 (2/2) · El volumen",
+    "prompt": "`r` ya existe. Volumen al girar sobre el eje polar: `(2 Pi/3)` por la integral de `r[t]^3 Sin[t]`, `t` de 0 a `Pi/8`. En decimales.",
     "difficulty": 4,
     "cmds": [
-     "PolarPlot",
      "Integrate",
      "N"
     ],
     "real": true,
-    "source": "Práctica 10 · P3 (ej2)",
-    "solution": "r[t_] := 4 Cos[4 t]\nPolarPlot[r[t], {t, -Pi/8, Pi/8}]\nN[(2 Pi/3)*Integrate[r[t]^3*Sin[t], {t, 0, Pi/8}]]",
+    "source": "Práctica 10 · P3 (ej2), volumen",
+    "setup": "r[t_] := 4 Cos[4 t]",
+    "solution": "N[(2 Pi/3)*Integrate[r[t]^3*Sin[t], {t, 0, Pi/8}]]",
     "check": {
      "type": "expr",
      "expected": "2.24654683703916",
@@ -554,29 +1183,71 @@
      "tol": 1e-06
     },
     "hints": [
-     "Volumen alrededor del eje polar: `(2 Pi/3) Integrate[r[t]^3 Sin[t], {t, t1, t2}]`.",
-     "Integra solo la mitad superior del pétalo: `t` entre `0` y `Pi/8`.",
+     "`(2 Pi/3)*Integrate[r[t]^3*Sin[t], {t, 0, Pi/8}]`, envuelto en `N[...]`.",
      "`N[(2 Pi/3)*Integrate[r[t]^3*Sin[t], {t, 0, Pi/8}]]`"
     ],
-    "explain": "`V = 2.24655`. El pétalo es simétrico respecto al eje polar: la mitad de arriba (de 0 a π/8) ya genera todo el sólido. Integrando de −π/8 a π/8 saldría 0, porque las dos mitades se cancelan."
+    "explain": "`V = 2.24655`. La mitad de arriba del pétalo (de 0 a π/8) ya genera todo el sólido. Integrando de −π/8 a π/8 saldría 0, porque las dos mitades se cancelan."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e14",
+    "id": "1-p10-e22",
     "kind": "code",
-    "title": "Real · Ej. 3: longitud de la pseudo-astroide",
-    "prompt": "Representa el arco de pseudo-astroide de ecuaciones paramétricas\n\n`x(t) = 2.6 Cos[t]^3`, `y(t) = 3.1 Sin[t]^3`\n\nsituado por encima del eje X (es decir, `t` entre 0 y `Pi`) y calcula su **longitud**. Guarda el resultado en `long` (sin `;`).",
+    "title": "Real 3 (1/2) · La pseudo-astroide",
+    "prompt": "Define `x[t_] := 2.6 Cos[t]^3` e `y[t_] := 3.1 Sin[t]^3` y dibuja el arco de encima del eje X (`t` de 0 a `Pi`).",
+    "difficulty": 2,
+    "cmds": [
+     "ParametricPlot"
+    ],
+    "real": true,
+    "source": "Práctica 10 · P4 (ej3), representación",
+    "solution": "x[t_] := 2.6 Cos[t]^3\ny[t_] := 3.1 Sin[t]^3\nParametricPlot[{x[t], y[t]}, {t, 0, Pi}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "{x[0], y[Pi/2]}",
+       "expected": "{2.6, 3.1}",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 1,
+       "like": "ParametricPlot[{2.6 Cos[t]^3, 3.1 Sin[t]^3}, {t, 0, Pi}]"
+      }
+     ]
+    },
+    "requires": [
+     "ParametricPlot",
+     "SetDelayed"
+    ],
+    "hints": [
+     "Dos definiciones y después `ParametricPlot[{x[t], y[t]}, {t, 0, Pi}]`.",
+     "`x[t_] := 2.6 Cos[t]^3` e `y[t_] := 3.1 Sin[t]^3`."
+    ],
+    "explain": "Con `t` entre 0 y π, `Sin[t]` es positivo: sale la mitad superior de la curva, con un pico arriba."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e23",
+    "kind": "code",
+    "title": "Real 3 (2/2) · La longitud",
+    "prompt": "`x[t_]` e `y[t_]` ya existen. Guarda en `long` la longitud del arco: `Sqrt[x'[t]^2 + y'[t]^2]` integrado de 0 a `Pi`.",
     "difficulty": 4,
     "cmds": [
-     "ParametricPlot",
      "NIntegrate",
      "Derivative"
     ],
     "real": true,
-    "source": "Práctica 10 · P4 (ej3)",
-    "solution": "x[t_] := 2.6 Cos[t]^3\ny[t_] := 3.1 Sin[t]^3\nParametricPlot[{x[t], y[t]}, {t, 0, Pi}]\nlong = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, Pi}]",
+    "source": "Práctica 10 · P4 (ej3), longitud",
+    "setup": "x[t_] := 2.6 Cos[t]^3\ny[t_] := 3.1 Sin[t]^3",
+    "solution": "long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, Pi}]",
     "check": {
      "type": "value",
      "expr": "long",
@@ -588,65 +1259,81 @@
      "Derivative"
     ],
     "hints": [
-     "Define `x[t_] := 2.6 Cos[t]^3` e `y[t_] := 3.1 Sin[t]^3`.",
-     "Longitud en paramétricas: raíz de `x'[t]^2 + y'[t]^2`.",
-     "`long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, Pi}]`"
+     "`long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, 0, Pi}]`",
+     "Usa `NIntegrate`: con `Integrate` habría que partir el intervalo en π/2."
     ],
-    "explain": "`L = 8.57193`. El enunciado sugería `Integrate` partiendo el intervalo en dos (de 0 a π/2 y de π/2 a π) porque la raíz cambia de expresión en π/2; con `NIntegrate` sale directamente y coincide."
+    "explain": "`L = 8.57193`. El enunciado sugería `Integrate` partiendo el intervalo en dos (de 0 a π/2 y de π/2 a π), porque la raíz cambia de expresión en π/2; con `NIntegrate` sale directamente y coincide."
    }
   },
   {
    "type": "exercise",
+   "section": "Práctica real · Ejercicio 4: Simpson",
    "ex": {
-    "id": "1-p10-e15",
+    "id": "1-p10-e24",
     "kind": "code",
-    "title": "Real · Ej. 4 a) y b): M4 y n para Simpson",
-    "prompt": "Queremos la integral de `f(x) = 6 Sin[Sqrt[2 x + Log[x]]]` en `[2, 4]` con error menor que `10^-10`. Ya están definidos `f`, `a = 2` y `b = 4`.\n\n1. Representa `Abs[f''''[x]]` en `[a, b]` y guarda en `M4` el menor número natural que sea cota superior. (El máximo está en `x = 2`: puedes verlo con `N[Abs[f''''[a]]]`.)\n2. Calcula con `NestWhile` el `n` tal que, con `2n` subintervalos, la cota del error `M4 (b - a)^5/(2880 n^4)` sea menor que `10^-10`. Guárdalo en `n`.",
-    "difficulty": 4,
+    "title": "Real 4 (1/3) · La cota M4",
+    "prompt": "Ya existen `f`, `a = 2`, `b = 4`. Dibuja `Abs[f''''[x]]` en `[a, b]`, calcula `N[Abs[f''''[a]]]` y guarda en `M4` el natural que lo acota.",
+    "difficulty": 3,
     "cmds": [
-     "NestWhile",
      "Abs",
      "Derivative",
      "Plot"
     ],
     "real": true,
-    "source": "Práctica 10 · P5 (ej4), apartados a) y b)",
+    "source": "Práctica 10 · P5 (ej4), apartado a)",
     "setup": "f[x_] := 6 Sin[Sqrt[2 x + Log[x]]]\na = 2; b = 4;",
-    "solution": "Plot[Abs[f''''[x]], {x, a, b}]\nM4 = 3;\nn = NestWhile[# + 1 &, 1, M4 (b - a)^5/(2880 #^4) >= 10^-10 &]",
+    "solution": "Plot[Abs[f''''[x]], {x, a, b}]\nN[Abs[f''''[a]]]\nM4 = 3",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "M4",
-       "expected": "3",
-       "compare": "equal"
-      },
-      {
-       "type": "value",
-       "expr": "n",
-       "expected": "136",
-       "compare": "equal"
-      }
-     ]
+     "type": "value",
+     "expr": "M4",
+     "expected": "3",
+     "compare": "equal"
     },
-    "requires": [
-     "NestWhile"
-    ],
     "hints": [
-     "`N[Abs[f''''[a]]]` da 2.82…: el menor natural por encima es 3.",
-     "`n = NestWhile[# + 1 &, 1, M4 (b - a)^5/(2880 #^4) >= 10^-10 &]`"
+     "`Plot[Abs[f''''[x]], {x, a, b}]` muestra que el máximo está en `x = a`.",
+     "`N[Abs[f''''[a]]]` da 2.82…: el menor natural por encima es 3. Última línea: `M4 = 3`."
     ],
-    "explain": "`M4 = 3` (el máximo de `|f''''|` es ≈ 2.822, en `x = 2`) y `n = 136`: hacen falta 272 subintervalos."
+    "explain": "Enunciado real: integral de `f(x) = 6 Sin[Sqrt[2 x + Log[x]]]` en [2, 4] con error menor que `10^-10`. El máximo de `|f''''|` es ≈ 2.822, así que `M4 = 3`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p10-e16",
+    "id": "1-p10-e25",
     "kind": "code",
-    "title": "Real · Ej. 4 c): la suma de Simpson",
-    "prompt": "Ya están definidos `f`, `a = 2`, `b = 4` y `n = 136`.\n\nAplica la fórmula de Simpson con ese `n`. Define el paso con decimales, `h = N[(b - a)/(2 n)]` (así el cálculo es mucho más rápido), calcula las sumas `pares` e `impares` y guarda el resultado en `S` (sin `;`).",
+    "title": "Real 4 (2/3) · El valor de n",
+    "prompt": "Con `a = 2`, `b = 4`, `M4 = 3`: guarda en `n` el primer natural con `M4 (b - a)^5/(2880 n^4) < 10^-10` (`NestWhile`).",
+    "difficulty": 3,
+    "cmds": [
+     "NestWhile"
+    ],
+    "real": true,
+    "source": "Práctica 10 · P5 (ej4), apartado b)",
+    "setup": "f[x_] := 6 Sin[Sqrt[2 x + Log[x]]]\na = 2; b = 4;\nM4 = 3;",
+    "solution": "n = NestWhile[# + 1 &, 1, M4 (b - a)^5/(2880 #^4) >= 10^-10 &]",
+    "check": {
+     "type": "value",
+     "expr": "n",
+     "expected": "136",
+     "compare": "equal"
+    },
+    "requires": [
+     "NestWhile"
+    ],
+    "hints": [
+     "Suma 1 mientras la cota sea `>= 10^-10`: `NestWhile[# + 1 &, 1, ... &]`.",
+     "`n = NestWhile[# + 1 &, 1, M4 (b - a)^5/(2880 #^4) >= 10^-10 &]`"
+    ],
+    "explain": "`n = 136`: hacen falta 272 subintervalos."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e26",
+    "kind": "code",
+    "title": "Real 4 (3/3) · La suma",
+    "prompt": "Con `f`, `a`, `b` y `n = 136`: define `h = N[(b - a)/(2 n)]`, calcula `pares` e `impares` y guarda Simpson en `S`.",
     "difficulty": 4,
     "cmds": [
      "Table",
@@ -655,7 +1342,7 @@
     ],
     "real": true,
     "source": "Práctica 10 · P5 (ej4), apartado c)",
-    "setup": "f[x_] := 6 Sin[Sqrt[2 x + Log[x]]]\na = 2; b = 4; n = 136;",
+    "setup": "f[x_] := 6 Sin[Sqrt[2 x + Log[x]]]\na = 2; b = 4;\nn = 136;",
     "solution": "h = N[(b - a)/(2 n)];\npares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];\nimpares = Total[Table[f[a + i h], {i, 1, 2 n - 1, 2}]];\nS = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]",
     "check": {
      "type": "value",
@@ -669,8 +1356,8 @@
      "Total"
     ],
     "hints": [
-     "`h = N[(b - a)/(2 n)];`",
-     "`pares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];` e `impares` igual con `{i, 1, 2 n - 1, 2}`.",
+     "`h = N[(b - a)/(2 n)];` (con decimales, el cálculo es mucho más rápido).",
+     "`pares = Total[Table[f[a + i h], {i, 2, 2 n - 2, 2}]];` e `impares` con `{i, 1, 2 n - 1, 2}`.",
      "`S = N[h/3 (f[a] + 2 pares + 4 impares + f[b])]`"
     ],
     "explain": "`S = 5.49230123870…`, la respuesta de la prueba con 12 dígitos. Compárala con `NIntegrate[f[x], {x, 2, 4}]`: coinciden hasta la décima cifra, como garantizaba la cota del error."
@@ -678,49 +1365,70 @@
   },
   {
    "type": "exercise",
+   "section": "Examen: curva paramétrica",
    "ex": {
-    "id": "1-p10-e17",
+    "id": "1-p10-e27",
     "kind": "code",
-    "title": "Real · Examen: área y longitud de una curva paramétrica",
-    "prompt": "Pregunta del examen de Mathematica de enero (PL1). Para el arco de curva\n\n`(x(t), y(t)) = (3 t^2/4 - 1, 20 Sin[3 t/5])`, con `-5 Pi/3 < t < 5 Pi/3`,\n\nlas funciones `x[t_]` e `y[t_]` ya están definidas (la dibujaste en la Práctica 7: es un lazo cerrado).\n\nCalcula y guarda:\n\n- en `area`, el área de la región que encierra, con la fórmula `Integrate[y[t]*x'[t], {t, t1, t2}]` (en valor absoluto, con `Abs`);\n- en `long`, la longitud del arco.\n\nTermina la celda con `{area, long} // N`.",
-    "difficulty": 4,
+    "title": "Examen (1/2) · El área",
+    "prompt": "Ya existen `x[t_] := 3 t^2/4 - 1`, `y[t_] := 20 Sin[3 t/5]`. Guarda en `area` el `Abs` de la integral de `y[t]*x'[t]`, `t` de `-5 Pi/3` a `5 Pi/3`.",
+    "difficulty": 3,
     "cmds": [
      "Integrate",
-     "NIntegrate",
      "Abs",
      "Derivative"
     ],
     "real": true,
-    "source": "Examen PL1 2014/15 · Pregunta 2, apartados b) y c)",
+    "source": "Examen PL1 2014/15 · Pregunta 2, apartado b)",
     "setup": "x[t_] := 3 t^2/4 - 1\ny[t_] := 20 Sin[3 t/5]",
-    "solution": "area = Abs[Integrate[y[t]*x'[t], {t, -5 Pi/3, 5 Pi/3}]];\nlong = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, -5 Pi/3, 5 Pi/3}];\n{area, long} // N",
+    "solution": "area = Abs[Integrate[y[t]*x'[t], {t, -5 Pi/3, 5 Pi/3}]]",
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "area",
-       "expected": "523.5987755983",
-       "compare": "numeric",
-       "tol": 1e-06
-      },
-      {
-       "type": "value",
-       "expr": "long",
-       "expected": "94.835980401",
-       "compare": "numeric",
-       "tol": 1e-06
-      }
-     ]
+     "type": "value",
+     "expr": "area",
+     "expected": "523.5987755983",
+     "compare": "numeric",
+     "tol": 1e-06
     },
     "requires": [
      "Derivative"
     ],
     "hints": [
-     "`area = Abs[Integrate[y[t]*x'[t], {t, -5 Pi/3, 5 Pi/3}]];`",
-     "`long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, -5 Pi/3, 5 Pi/3}];`"
+     "`Integrate[y[t]*x'[t], {t, -5 Pi/3, 5 Pi/3}]`, dentro de `Abs[...]`.",
+     "`area = Abs[Integrate[y[t]*x'[t], {t, -5 Pi/3, 5 Pi/3}]]`"
     ],
-    "explain": "`A = 523.599` y `L = 94.835980401`, las respuestas del examen (allí se pedían 6 y 11 cifras: `N[..., 6]` y `N[..., 11]`). El signo de `Integrate[y x']` depende del sentido en que se recorre la curva: por eso el `Abs`."
+    "explain": "`A = 500 Pi/3 = 523.599`, la respuesta del examen (allí con 6 cifras: `N[..., 6]`). Es el área del lazo que dibujaste en la Práctica 7. El signo de la integral depende del sentido en que se recorre la curva: por eso el `Abs`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p10-e28",
+    "kind": "code",
+    "title": "Examen (2/2) · La longitud",
+    "prompt": "Con las mismas `x[t_]`, `y[t_]`: guarda en `long` la longitud del arco, `t` de `-5 Pi/3` a `5 Pi/3`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate",
+     "Derivative"
+    ],
+    "real": true,
+    "source": "Examen PL1 2014/15 · Pregunta 2, apartado c)",
+    "setup": "x[t_] := 3 t^2/4 - 1\ny[t_] := 20 Sin[3 t/5]",
+    "solution": "long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, -5 Pi/3, 5 Pi/3}]",
+    "check": {
+     "type": "value",
+     "expr": "long",
+     "expected": "94.835980401",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Derivative"
+    ],
+    "hints": [
+     "La longitud es la integral de `Sqrt[x'[t]^2 + y'[t]^2]`.",
+     "`long = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, -5 Pi/3, 5 Pi/3}]`"
+    ],
+    "explain": "`L = 94.835980401`, la respuesta del examen (allí se pedían 11 cifras)."
    }
   }
  ]

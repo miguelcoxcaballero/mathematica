@@ -122,22 +122,47 @@ def _cis(e):
 
 
 def real_form(expr, real=True):
-    """Complex exponentials e^(i u) back to cos/sin, then the real part (all symbols are assumed real).
-    With real=False the imaginary part is kept (complex integrands)."""
+    """Complex exponentials e^(i u) back to cos/sin, then the real part (every symbol is treated as real,
+    which is how Mathematica prints these results). With real=False the imaginary part is kept."""
     if not expr.has(sp.I):
         return expr
     try:
-        e = expr.replace(lambda q: isinstance(q, sp.exp) and q.args[0].has(sp.I), _cis)
+        # symbols without a `real` assumption would give re(x), im(x): work on real stand-ins
+        fwd = {s_: sp.Dummy(s_.name, real=True, positive=bool(s_.is_positive)) for s_ in expr.free_symbols
+               if not s_.is_real}
+        back = {v: k for k, v in fwd.items()}
+        e = expr.xreplace(fwd) if fwd else expr
+        e = e.replace(lambda q: isinstance(q, sp.exp) and q.args[0].has(sp.I), _cis)
         re_, im_ = e.as_real_imag()
-        if re_.has(sp.re, sp.im, sp.arg, sp.Abs) or im_.has(sp.re, sp.im, sp.arg, sp.Abs):
+        if re_.has(sp.re, sp.im, sp.arg) or im_.has(sp.re, sp.im, sp.arg):
             return expr
-        if real:
-            return re_
-        return re_ + sp.I * im_
+        out = re_ if real else re_ + sp.I * im_
+        return out.xreplace(back) if back else out
     except SympyTimeout:
         raise
     except Exception:
         return expr
+
+
+def no_stray_complex(result, *inputs):
+    """Rule for every SymPy-backed path: a real input must not come back with I / complex exponentials.
+    Returns the result in real form, or None when that is not possible (caller then falls back)."""
+    if result is None or not isinstance(result, sp.Basic) or not result.has(sp.I):
+        return result
+    if any(isinstance(i_, sp.Basic) and i_.has(sp.I) for i_ in inputs):
+        return result
+    r = real_form(result)
+    if r.has(sp.I):
+        try:
+            r2 = sp.simplify(result.rewrite(sp.cos))
+            if not r2.has(sp.I):
+                return r2
+        except SympyTimeout:
+            raise
+        except Exception:
+            pass
+        return None
+    return r
 
 
 def exp_poly_antiderivative(expr, x, real=True):

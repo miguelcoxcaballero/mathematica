@@ -5,7 +5,7 @@
  "block": "Transformadas",
  "order": 3,
  "title": "Transformadas de Fourier, Laplace y Z",
- "summary": "Transformadas de Fourier con la definición de teoría, seno y coseno, Fourier y Laplace por residuos, EDOs con Laplace, transformada Z y su inversa, y ecuaciones en diferencias con Z y RSolve.",
+ "summary": "Fourier con la definición de teoría, seno y coseno, Fourier y Laplace por residuos, EDOs con Laplace, transformada Z y su inversa, y ecuaciones en diferencias con Z y RSolve.",
  "minutes": 100,
  "commands": [
   "FourierTransform",
@@ -33,47 +33,39 @@
   "SeriesCoefficient",
   "Table",
   "Total",
-  "N"
+  "N",
+  "Plot"
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Transformada de Fourier",
-   "title": "Para qué sirve esta práctica",
-   "md": "Una transformada cambia un problema difícil por uno fácil: **Fourier** pasa una señal del tiempo a la frecuencia, **Laplace** convierte una ecuación diferencial en una ecuación algebraica, y la **transformada Z** hace lo mismo con las ecuaciones en diferencias (sucesiones, señales muestreadas, control digital).\n\nEsta es la PL3 de Matemáticas III. Aprenderás a calcular las tres transformadas y sus inversas, a obtenerlas por **residuos** (así las piden en la prueba y en el examen) y a resolver EDOs y ecuaciones en diferencias paso a paso.\n\nNota: el guion llama λ a la variable de Fourier. Aquí usamos `w`, que se teclea sin letras griegas; puedes usar el nombre que quieras.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "Fourier con la definición de teoría",
-   "md": "Vamos a transformar f(t) = e^(−t) para t > 0 (y 0 para t < 0) con la definición que usáis en clase: F(w) = ∫ f(t) e^(−iwt) dt.",
+   "section": "Transformada de Fourier",
+   "title": "Fourier de teoría",
+   "md": "FourierTransform necesita una opción para usar la definición de clase.",
    "target": "FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
    "parts": [
     {
-     "code": "UnitStep[t] Exp[-t]",
-     "md": "`UnitStep[t]` es el escalón: 0 si t < 0 y 1 si t ≥ 0. Multiplicar por él «enciende» la función en t = 0. El guion usa `HeavisideTheta[t]`, que es lo mismo."
-    },
-    {
-     "code": "FourierTransform[UnitStep[t] Exp[-t], t, w]",
-     "md": "Tres argumentos: la función, su variable y la variable nueva. Pero por defecto Mathematica usa otra definición, con un factor 1/√(2π): no es la de teoría.",
+     "code": "{UnitStep[-2], UnitStep[3]}",
+     "md": "El escalón vale 0 en los negativos y 1 en los positivos.",
      "run": true
     },
     {
-     "code": "FourierParameters -> {1, -1}",
-     "md": "La opción que selecciona la definición de teoría. Hay que añadirla **siempre**, en la directa y en la inversa."
+     "code": "FourierTransform[UnitStep[t] Exp[-t], t, w]",
+     "md": "Transforma e^(−t) (para t > 0): función, variable, variable nueva.",
+     "run": true
     },
     {
      "code": "FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
-     "md": "Ahora sí: 1/(1 + i w).",
+     "md": "Añade la opción de teoría: desaparece el factor √(2π).",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula la transformada de Fourier de `UnitStep[t] Exp[-t]` (variable `t`, nueva variable `w`) con la definición de teoría.",
+    "prompt": "Transformada de Fourier de `UnitStep[t] Exp[-t]` (de `t` a `w`) con la definición de teoría.",
     "hints": [
-     "`FourierTransform[función, t, w, opción]`",
      "La opción es `FourierParameters -> {1, -1}`.",
-     "Esqueleto: `FourierTransform[ , t, w, FourierParameters -> { , }]`"
+     "`FourierTransform[función, t, w, FourierParameters -> {1, -1}]`",
+     "`FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]`"
     ],
     "check": {
      "type": "expr",
@@ -84,7 +76,8 @@
     "FourierTransform",
     "FourierParameters",
     "UnitStep"
-   ]
+   ],
+   "more": "Definición de teoría: F(w) = ∫ f(t) e^(−iwt) dt. El guion llama λ a la variable y usa `HeavisideTheta[t]` como escalón; aquí `w` y `UnitStep`, que se teclean mejor."
   },
   {
    "type": "exercise",
@@ -92,7 +85,7 @@
     "id": "2-m3-pl3-e01",
     "kind": "code",
     "title": "Una exponencial simétrica",
-    "prompt": "Calcula la transformada de Fourier (definición de teoría) de `Exp[-3 Abs[t]]`, con variable nueva `w`.",
+    "prompt": "Transformada de Fourier (teoría) de `Exp[-3 Abs[t]]`, de `t` a `w`.",
     "difficulty": 2,
     "cmds": [
      "FourierTransform"
@@ -109,19 +102,64 @@
      "FourierParameters"
     ],
     "hints": [
-     "No olvides la opción `FourierParameters -> {1, -1}`.",
+     "No olvides `FourierParameters -> {1, -1}`.",
      "`FourierTransform[Exp[-3 Abs[t]], t, w, FourierParameters -> {1, -1}]`"
     ],
     "explain": "6/(9 + w²): real y par, como la función de partida."
    }
   },
   {
+   "type": "build",
+   "title": "Guardar y evaluar",
+   "md": "En la prueba piden la transformada evaluada en puntos.",
+   "target": "F[w_] = FourierTransform[Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}];\nN[{F[-1.5], F[10]}]",
+   "parts": [
+    {
+     "code": "F[w_] = FourierTransform[Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}]",
+     "md": "Guarda la transformada como función F[w_], con = .",
+     "run": true
+    },
+    {
+     "code": "F[0]",
+     "md": "Evalúala en w = 0.",
+     "run": true
+    },
+    {
+     "code": "N[{F[-1.5], F[10]}]",
+     "md": "Y en varios puntos a la vez, en decimales.",
+     "run": true
+    },
+    {
+     "code": "F[w_] = FourierTransform[Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}];\nN[{F[-1.5], F[10]}]",
+     "md": "Las dos líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Guarda en `F[w_]` la transformada (teoría) de `Exp[-Abs[t]]` y devuelve `N[{F[-1.5], F[10]}]`.",
+    "hints": [
+     "`F[w_] = FourierTransform[Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}];`",
+     "`N[{F[-1.5], F[10]}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{2/(1 + 1.5^2), 2/101}",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "FourierTransform",
+    "N"
+   ]
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e02",
     "kind": "code",
-    "title": "Transformada evaluada en puntos",
-    "prompt": "Sea f(t) = |t| e^(−|t|). Guarda su transformada de Fourier (definición de teoría) como función `F[w_]` y devuelve la lista numérica `{F[-1.5], F[0], F[10]}`.",
+    "title": "Valores de la transformada",
+    "prompt": "f(t) = |t| e^(−|t|). Guarda su transformada (teoría) en `F[w_]` y devuelve `N[{F[-1.5], F[0], F[10]}]`.",
     "difficulty": 3,
     "cmds": [
      "FourierTransform",
@@ -140,19 +178,65 @@
      "FourierTransform"
     ],
     "hints": [
-     "`F[w_] = FourierTransform[Abs[t] Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}];` (con `=`, para que la transformada se calcule una sola vez).",
+     "`F[w_] = FourierTransform[Abs[t] Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}];`",
      "`N[{F[-1.5], F[0], F[10]}]`"
     ],
-    "explain": "F(w) = 2(1 − w²)/(1 + w²)². Valores: −0.2367, 2 y −0.0194. Así son las preguntas de la prueba: la transformada evaluada en dos o tres puntos."
+    "explain": "F(w) = 2(1 − w²)/(1 + w²)². Valores: −0.2367, 2 y −0.0194."
    }
+  },
+  {
+   "type": "build",
+   "title": "Función a trozos",
+   "md": "Piecewise define una función que vale 0 fuera de un intervalo.",
+   "target": "f = Piecewise[{{1, Abs[t] <= 2}}, 0];\nF[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}];\nN[F[1]]",
+   "parts": [
+    {
+     "code": "f = Piecewise[{{1, Abs[t] <= 2}}, 0];",
+     "md": "Un pulso: 1 si |t| ≤ 2 y 0 en el resto.",
+     "run": true
+    },
+    {
+     "code": "Plot[f, {t, -4, 4}]",
+     "md": "Dibújalo para verlo.",
+     "run": true
+    },
+    {
+     "code": "F[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}]",
+     "md": "Su transformada, guardada en F.",
+     "run": true
+    },
+    {
+     "code": "f = Piecewise[{{1, Abs[t] <= 2}}, 0];\nF[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}];\nN[F[1]]",
+     "md": "Todo seguido, evaluando en w = 1.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Pulso `f` (1 si |t| ≤ 2, 0 en el resto): guarda su transformada en `F[w_]` y devuelve `N[F[1]]`.",
+    "hints": [
+     "`f = Piecewise[{{1, Abs[t] <= 2}}, 0];`",
+     "`F[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}];` y `N[F[1]]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "2 Sin[2]",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Piecewise",
+    "FourierTransform",
+    "Plot"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e03",
     "kind": "code",
-    "title": "Una función a trozos",
-    "prompt": "Sea f(x) = cos x si |x| ≤ π y 0 en el resto. Defínela con `Piecewise[{{Cos[x], Abs[x] <= Pi}}, 0]`, calcula su transformada de Fourier `F[w_]` (definición de teoría) y devuelve `N[F[-2.5]]`.\n\n(El Ejercicio 1 del guion es del mismo tipo, con t² sin t para |t| ≤ 5π.)",
+    "title": "Coseno recortado",
+    "prompt": "f(x) = cos x si |x| ≤ π, 0 en el resto. Guarda su transformada (teoría, de `x` a `w`) en `F[w_]` y devuelve `N[F[-2.5]]`.",
     "difficulty": 3,
     "cmds": [
      "FourierTransform",
@@ -172,42 +256,48 @@
      "Piecewise"
     ],
     "hints": [
-     "`Piecewise[{{valor, condición}}, valor en el resto]`. Ahora la variable original es `x`.",
-     "`F[w_] = FourierTransform[f, x, w, FourierParameters -> {1, -1}];` y después `N[F[-2.5]]`."
+     "`f = Piecewise[{{Cos[x], Abs[x] <= Pi}}, 0];`",
+     "`F[w_] = FourierTransform[f, x, w, FourierParameters -> {1, -1}];` y `N[F[-2.5]]`"
     ],
-    "explain": "F(w) = −2w sin(πw)/(w² − 1); en w = −2.5 vale −0.9524."
+    "explain": "F(w) = −2w sin(πw)/(w² − 1); F(−2.5) ≈ −0.9524. El Ejercicio 1 del guion es igual con t² sin t para |t| ≤ 5π."
    }
   },
   {
    "type": "build",
-   "title": "Transformadas coseno y seno",
-   "md": "Para funciones definidas solo en t > 0 se usan las transformadas coseno y seno. Mathematica las define con un factor distinto al de teoría, que se corrige multiplicando.",
-   "target": "FourierCosTransform[Exp[-t], t, w] Sqrt[Pi/2]",
+   "title": "Coseno y seno",
+   "md": "Las transformadas coseno y seno llevan un factor que hay que corregir.",
+   "target": "FourierSinTransform[Exp[-t], t, w] Sqrt[Pi/2]",
    "parts": [
     {
      "code": "FourierCosTransform[Exp[-t], t, w]",
-     "md": "Misma sintaxis que `FourierTransform`. El resultado lleva un factor √(2/π) que en teoría no aparece.",
+     "md": "Transformada coseno de e^(−t): sale con un √(2/π).",
      "run": true
     },
     {
      "code": "FourierCosTransform[Exp[-t], t, w] Sqrt[Pi/2]",
-     "md": "Multiplicando por `Sqrt[Pi/2]` queda la de teoría: 1/(1 + w²). Con `FourierSinTransform` igual. En las inversas el factor es el contrario, `Sqrt[2/Pi]`.",
+     "md": "Multiplica por √(π/2): la de teoría.",
+     "run": true
+    },
+    {
+     "code": "FourierSinTransform[Exp[-t], t, w] Sqrt[Pi/2]",
+     "md": "Lo mismo con la transformada seno.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula la transformada coseno de Fourier de `Exp[-t]` con el factor de teoría.",
+    "prompt": "Transformada seno de Fourier de `Exp[-t]` con el factor de teoría.",
     "hints": [
-     "`FourierCosTransform[Exp[-t], t, w]`",
+     "`FourierSinTransform[Exp[-t], t, w]`",
      "Multiplica por `Sqrt[Pi/2]`."
     ],
     "check": {
      "type": "expr",
-     "expected": "1/(1 + w^2)"
+     "expected": "w/(1 + w^2)"
     }
    },
    "cmds": [
-    "FourierCosTransform"
+    "FourierCosTransform",
+    "FourierSinTransform"
    ]
   },
   {
@@ -215,98 +305,119 @@
    "ex": {
     "id": "2-m3-pl3-e04",
     "kind": "code",
-    "title": "Transformada seno y su inversa",
-    "prompt": "Devuelve la lista con: la transformada **seno** de `Exp[-t]` (factor de teoría `Sqrt[Pi/2]`) y la transformada seno **inversa** de `w/(1 + w^2)` (factor `Sqrt[2/Pi]`).",
+    "title": "Seno inversa",
+    "prompt": "Transformada seno inversa de `w/(1 + w^2)` (de `w` a `t`); en las inversas el factor es `Sqrt[2/Pi]`.",
     "difficulty": 2,
     "cmds": [
-     "FourierSinTransform",
      "InverseFourierSinTransform"
     ],
     "real": false,
     "source": null,
-    "solution": "{FourierSinTransform[Exp[-t], t, w] Sqrt[Pi/2], InverseFourierSinTransform[w/(1 + w^2), w, t] Sqrt[2/Pi]}",
+    "solution": "InverseFourierSinTransform[w/(1 + w^2), w, t] Sqrt[2/Pi]",
     "check": {
      "type": "expr",
-     "expected": "{w/(1 + w^2), Exp[-t]}"
+     "expected": "Exp[-t]"
     },
     "requires": [
-     "FourierSinTransform",
      "InverseFourierSinTransform"
     ],
     "hints": [
-     "Directa: `FourierSinTransform[Exp[-t], t, w] Sqrt[Pi/2]`.",
-     "Inversa: `InverseFourierSinTransform[w/(1 + w^2), w, t] Sqrt[2/Pi]` (el orden de las variables se invierte: `w, t`)."
+     "Las variables van en orden `w, t`.",
+     "`InverseFourierSinTransform[w/(1 + w^2), w, t] Sqrt[2/Pi]`"
     ],
-    "explain": "La directa da w/(1 + w²) y la inversa devuelve e^(−t): se deshacen una a otra."
+    "explain": "Devuelve e^(−t): deshace la transformada seno del paso anterior."
    }
   },
   {
    "type": "build",
    "section": "Fourier por residuos",
-   "title": "Transformada de Fourier con residuos",
-   "md": "Si f(t) es racional, su transformada se calcula con los residuos de f(t) e^(−iwt). Regla: para **w < 0** se suman los polos del semiplano **superior** (Im > 0) y se multiplica por 2πi; para **w > 0**, los del semiplano **inferior** y se multiplica por −2πi. Ejemplo: f(t) = 1/(1 + t²).",
-   "target": "Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}];\nFpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];\n{Fneg[-1], Fpos[1]}",
+   "title": "Residuos: w negativa",
+   "md": "Para w < 0: 2πi por los residuos de f(t)e^(−iwt) en los polos de arriba.",
+   "target": "Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}];\nFneg[-1]",
    "parts": [
     {
      "code": "Solve[1 + t^2 == 0, t]",
-     "md": "Los polos: t = i (semiplano superior) y t = −i (inferior).",
+     "md": "Polos de 1/(1 + t²): i (arriba) y −i (abajo).",
+     "run": true
+    },
+    {
+     "code": "Residue[Exp[-I w t]/(1 + t^2), {t, I}]",
+     "md": "Residuo de f(t) e^(−iwt) en el polo de arriba.",
      "run": true
     },
     {
      "code": "Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}]",
-     "md": "Para w < 0: 2πi por el residuo en el polo de arriba. Sale π e^w.",
+     "md": "Multiplica por 2πi y guárdalo: vale para w < 0.",
      "run": true
     },
     {
-     "code": "Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}]",
-     "md": "Para w > 0: −2πi por el residuo en el polo de abajo. Sale π e^(−w).",
-     "run": true
-    },
-    {
-     "code": "Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}];\nFpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];\n{Fneg[-1], Fpos[1]}",
-     "md": "Las dos ramas y un valor de cada una. Juntas son π e^(−|w|), lo que da `FourierTransform` con la definición de teoría.",
+     "code": "Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}];\nFneg[-1]",
+     "md": "Define y evalúa en w = −1.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: para f(t) = 1/(1 + t²), define `Fneg[w_]` (válida para w < 0) y `Fpos[w_]` (válida para w > 0) por residuos y devuelve `{Fneg[-1], Fpos[1]}`.",
+    "prompt": "f(t) = 1/(1 + t²). Define por residuos `Fneg[w_]` (válida para w < 0) y calcula `Fneg[-1]`.",
     "hints": [
-     "El integrando es `Exp[-I w t]/(1 + t^2)` y los polos son `I` y `-I`.",
-     "`Fneg[w_] = 2 Pi I Residue[..., {t, I}];` (polo de arriba, signo +).",
-     "`Fpos[w_] = -2 Pi I Residue[..., {t, -I}];` (polo de abajo, signo −)."
+     "Integrando: `Exp[-I w t]/(1 + t^2)`; polo de arriba: `I`.",
+     "`Fneg[w_] = 2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, I}];`",
+     "`Fneg[-1]`"
     ],
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "Fneg[-2]",
-       "expected": "Pi Exp[-2]",
-       "compare": "numeric",
-       "tol": 1e-07
-      },
-      {
-       "type": "value",
-       "expr": "Fpos[3]",
-       "expected": "Pi Exp[-3]",
-       "compare": "numeric",
-       "tol": 1e-07
-      }
-     ]
+     "type": "expr",
+     "expected": "Pi/E"
     }
    },
    "cmds": [
     "Residue",
-    "Exp"
+    "Solve"
    ]
+  },
+  {
+   "type": "build",
+   "title": "Residuos: w positiva",
+   "md": "Para w > 0: −2πi por los residuos en los polos de abajo.",
+   "target": "Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];\nFpos[1]",
+   "parts": [
+    {
+     "code": "Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}]",
+     "md": "Polo de abajo y signo menos: vale para w > 0.",
+     "run": true
+    },
+    {
+     "code": "Fpos[1]",
+     "md": "Evalúa en w = 1: lo mismo que Fneg[-1].",
+     "run": true
+    },
+    {
+     "code": "Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];\nFpos[1]",
+     "md": "Las dos líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "f(t) = 1/(1 + t²). Define por residuos `Fpos[w_]` (válida para w > 0) y calcula `Fpos[1]`.",
+    "hints": [
+     "Polo de abajo, `-I`, y factor `-2 Pi I`.",
+     "`Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];` y `Fpos[1]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "Pi/E"
+    }
+   },
+   "cmds": [
+    "Residue"
+   ],
+   "more": "Las dos ramas juntas son π e^(−|w|), lo que da `FourierTransform` con la opción de teoría."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e05",
     "kind": "code",
-    "title": "Cuatro polos: frecuencia negativa",
-    "prompt": "Sea f(t) = 1/(1 + t⁴). Sus polos son (±1 ± i)/√2. Calcula por residuos su transformada de Fourier en **w = −1** (número decimal): como w < 0, usa los dos polos del semiplano superior, `(1 + I)/Sqrt[2]` y `(-1 + I)/Sqrt[2]`.",
+    "title": "Cuatro polos, w negativa",
+    "prompt": "f(t) = 1/(1 + t⁴). Calcula por residuos F(−1) (decimal). Polos de arriba: (1 + i)/√2 y (−1 + i)/√2.",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -325,10 +436,10 @@
      "Residue"
     ],
     "hints": [
-     "Guarda el integrando: `g = Exp[-I w t]/(1 + t^4);`",
-     "`Fneg[w_] = 2 Pi I (Residue[g, {t, (1 + I)/Sqrt[2]}] + Residue[g, {t, (-1 + I)/Sqrt[2]}]);` y `N[Fneg[-1]]`."
+     "`g = Exp[-I w t]/(1 + t^4);` y suma los dos residuos de arriba por `2 Pi I`.",
+     "`Fneg[w_] = 2 Pi I (Residue[g, {t, (1 + I)/Sqrt[2]}] + Residue[g, {t, (-1 + I)/Sqrt[2]}]);` y `N[Fneg[-1]]`"
     ],
-    "explain": "F(−1) ≈ 1.5443. Si aparece una parte imaginaria `0. I` o del orden de 10⁻¹⁷, es ruido numérico: la transformada de una función real y par es real."
+    "explain": "F(−1) ≈ 1.5443. Una parte imaginaria `0. I` o de orden 10⁻¹⁷ es ruido numérico."
    }
   },
   {
@@ -336,8 +447,8 @@
    "ex": {
     "id": "2-m3-pl3-e06",
     "kind": "code",
-    "title": "Cuatro polos: frecuencia positiva",
-    "prompt": "Misma f(t) = 1/(1 + t⁴). Calcula ahora su transformada en **w = 2**: como w > 0, usa los polos del semiplano inferior, `(1 - I)/Sqrt[2]` y `(-1 - I)/Sqrt[2]`, con −2πi.",
+    "title": "Cuatro polos, w positiva",
+    "prompt": "Misma f(t) = 1/(1 + t⁴). Calcula por residuos F(2) (decimal). Polos de abajo: (1 − i)/√2 y (−1 − i)/√2.",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -356,10 +467,10 @@
      "Residue"
     ],
     "hints": [
-     "Mismo integrando `g`; cambian los polos y el signo.",
-     "`Fpos[w_] = -2 Pi I (Residue[g, {t, (1 - I)/Sqrt[2]}] + Residue[g, {t, (-1 - I)/Sqrt[2]}]);` y `N[Fpos[2]]`."
+     "Mismo integrando; polos de abajo y factor `-2 Pi I`.",
+     "`Fpos[w_] = -2 Pi I (Residue[g, {t, (1 - I)/Sqrt[2]}] + Residue[g, {t, (-1 - I)/Sqrt[2]}]);` y `N[Fpos[2]]`"
     ],
-    "explain": "F(2) ≈ 0.6177. Para comprobar: `FourierTransform[1/(1 + t^4), t, w, FourierParameters -> {1, -1}]` evaluada en 2 da lo mismo."
+    "explain": "F(2) ≈ 0.6177. Comprobación: `FourierTransform[1/(1 + t^4), t, w, FourierParameters -> {1, -1}]` en w = 2."
    }
   },
   {
@@ -367,8 +478,8 @@
    "ex": {
     "id": "2-m3-pl3-e07",
     "kind": "code",
-    "title": "Seis polos con Table y Total",
-    "prompt": "Calcula por residuos la transformada de Fourier de f(t) = 1/(1 + t⁶) en **w = −1**. Los polos del semiplano superior son `I`, `Exp[I Pi/6]` y `Exp[5 I Pi/6]`. Súmalos con `Total[Table[Residue[..., {t, q}], {q, lista}]]`.",
+    "title": "Seis polos",
+    "prompt": "f(t) = 1/(1 + t⁶). Calcula por residuos F(−1). Polos de arriba: `I`, `Exp[I Pi/6]`, `Exp[5 I Pi/6]` (súmalos con `Total` y `Table`).",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -388,44 +499,44 @@
      "Residue"
     ],
     "hints": [
-     "`g = Exp[-I w t]/(1 + t^6);` y la lista de polos `sup = {I, Exp[I Pi/6], Exp[5 I Pi/6]};`",
-     "`Fneg[w_] = 2 Pi I Total[Table[Residue[g, {t, q}], {q, sup}]];` y `N[Fneg[-1]]`."
+     "`g = Exp[-I w t]/(1 + t^6);` y `sup = {I, Exp[I Pi/6], Exp[5 I Pi/6]};`",
+     "`Fneg[w_] = 2 Pi I Total[Table[Residue[g, {t, q}], {q, sup}]];` y `N[Fneg[-1]]`"
     ],
-    "explain": "F(−1) ≈ 1.6348. En la solución de 2021 que circula hay un error clásico: está escrito `Exp[-i*λ*t]` con `i` minúscula, y el resultado queda en función de un símbolo `i` sin valor."
+    "explain": "F(−1) ≈ 1.6348. En la solución de 2021 que circula está escrito `Exp[-i*λ*t]` con `i` minúscula: el resultado queda con un símbolo `i` sin valor."
    }
   },
   {
    "type": "build",
-   "title": "Transformada inversa de Fourier con residuos",
-   "md": "Para la inversa se usan los residuos de F(w) e^(iwx), y la regla depende de dónde estén los polos. Polos en el semiplano **superior**: f(x) = i · (suma de residuos) para x > 0, y f(x) = 0 para x < 0. Polos en el **inferior**: f(x) = −i · (suma de residuos) para x < 0, y 0 para x > 0. Ejemplo de la prueba: F(w) = 1/(1 + 2iw)³.",
+   "title": "Inversa por residuos",
+   "md": "Inversa: residuos de F(w)e^(iwx). Polo arriba → f(x) = i·residuo para x > 0.",
    "target": "fx[x_] = I Residue[Exp[I w x]/(1 + 2 I w)^3, {w, I/2}];\nN[fx[3.7]]",
    "parts": [
     {
      "code": "Solve[1 + 2 I w == 0, w]",
-     "md": "El polo (triple): w = i/2, en el semiplano superior. Por tanto f(x) solo es distinta de cero para x > 0.",
+     "md": "Polo de F(w) = 1/(1 + 2iw)³: i/2, en el semiplano de arriba.",
      "run": true
     },
     {
-     "code": "Exp[I w x]/(1 + 2 I w)^3",
-     "md": "El integrando de la inversa: F(w) por e^(iwx). Ojo: aquí el exponente va con signo **más**."
+     "code": "Residue[Exp[I w x]/(1 + 2 I w)^3, {w, I/2}]",
+     "md": "Residuo de F(w) e^(iwx): aquí el exponente lleva signo +.",
+     "run": true
     },
     {
      "code": "fx[x_] = I Residue[Exp[I w x]/(1 + 2 I w)^3, {w, I/2}]",
-     "md": "f(x) para x > 0: i por el residuo. Sale x² e^(−x/2)/16.",
+     "md": "Multiplica por i y guárdalo: es f(x) para x > 0.",
      "run": true
     },
     {
      "code": "fx[x_] = I Residue[Exp[I w x]/(1 + 2 I w)^3, {w, I/2}];\nN[fx[3.7]]",
-     "md": "Definida como función, se evalúa donde pidan. Y f(−π) = 0, porque −π < 0.",
+     "md": "Define y evalúa en x = 3.7.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: para F(w) = 1/(1 + 2iw)³ (polo triple en w = i/2), define `fx[x_]` por residuos para x > 0 y calcula `N[fx[3.7]]`.",
+    "prompt": "F(w) = 1/(1 + 2iw)³, polo triple en i/2. Define `fx[x_]` por residuos (x > 0) y da `N[fx[3.7]]`.",
     "hints": [
-     "El integrando es `Exp[I w x]/(1 + 2 I w)^3` (signo + en la exponencial).",
-     "Polo arriba: `fx[x_] = I Residue[..., {w, I/2}];`",
-     "Última línea: `N[fx[3.7]]`"
+     "Integrando: `Exp[I w x]/(1 + 2 I w)^3` (signo + en la exponencial).",
+     "`fx[x_] = I Residue[..., {w, I/2}];` y `N[fx[3.7]]`"
     ],
     "check": {
      "type": "expr",
@@ -437,15 +548,16 @@
    "cmds": [
     "Residue",
     "Solve"
-   ]
+   ],
+   "more": "Con el polo arriba, f(x) = 0 para x < 0. Si el polo está abajo: f(x) = −i·residuo para x < 0 y 0 para x > 0. Es el ej. 4 de la prueba de 2021 (f(−π) = 0, f(3.7) = 0.1345)."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e08",
     "kind": "code",
-    "title": "Inversa con un polo de orden 5",
-    "prompt": "Calcula por residuos la transformada inversa de Fourier de F(w) = 1/(1 + 4πiw)⁵. El polo es w = i/(4π) (semiplano superior). Define `fx[x_]` para x > 0 y devuelve `N[fx[20]]`.",
+    "title": "Polo de orden 5",
+    "prompt": "F(w) = 1/(1 + 4πiw)⁵, polo en i/(4π) (arriba). Define `fx[x_]` por residuos (x > 0) y devuelve `N[fx[20]]`.",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -464,10 +576,10 @@
      "Residue"
     ],
     "hints": [
-     "Misma receta: `fx[x_] = I Residue[Exp[I w x]/(1 + 4 Pi I w)^5, {w, I/(4 Pi)}];`",
+     "`fx[x_] = I Residue[Exp[I w x]/(1 + 4 Pi I w)^5, {w, I/(4 Pi)}];`",
      "`N[fx[20]]`"
     ],
-    "explain": "f(x) = x⁴ e^(−x/(4π))/(24 (4π)⁵) para x > 0; f(20) ≈ 0.00433. En la solución de 2021 que circula el prefactor es I/(2π) y no cuadra con `InverseFourierTransform`: con la definición de teoría el factor correcto es `I`."
+    "explain": "f(x) = x⁴ e^(−x/(4π))/(24 (4π)⁵); f(20) ≈ 0.00433. En la solución de 2021 que circula el prefactor es I/(2π) y no cuadra con `InverseFourierTransform`: el correcto es `I`."
    }
   },
   {
@@ -475,8 +587,8 @@
    "ex": {
     "id": "2-m3-pl3-e09",
     "kind": "code",
-    "title": "Inversa con el polo abajo (pregunta de examen)",
-    "prompt": "En el examen de Mathematica de 2021 se pedía la transformada inversa de F(w) = 1/(1 − 2iw)³. Ahora el polo es w = −i/2, en el semiplano **inferior**: f(x) = −i · residuo para x < 0, y 0 para x > 0. Devuelve la lista numérica `{f(−π), f(3.7)}`.",
+    "title": "Polo abajo (examen)",
+    "prompt": "F(w) = 1/(1 − 2iw)³, polo en −i/2 (abajo): f(x) = −i·residuo para x < 0 y 0 para x > 0. Devuelve `N[{f(−π), f(3.7)}]`.",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -495,35 +607,35 @@
      "Residue"
     ],
     "hints": [
-     "Para x < 0: `fm[x_] = -I Residue[Exp[I w x]/(1 - 2 I w)^3, {w, -I/2}];`",
-     "f(3.7) es 0 sin calcular nada, porque 3.7 > 0: `N[{fm[-Pi], 0}]`."
+     "`fm[x_] = -I Residue[Exp[I w x]/(1 - 2 I w)^3, {w, -I/2}];`",
+     "f(3.7) es 0 sin calcular nada: `N[{fm[-Pi], 0}]`"
     ],
-    "explain": "f(−π) ≈ 0.1282 y f(3.7) = 0. Uno de los dos alumnos evaluó la fórmula del residuo en un punto positivo y obtuvo 2.97 en lugar de 0: antes de sustituir, mira en qué semiplano está el polo."
+    "explain": "f(−π) ≈ 0.1282 y f(3.7) = 0. Un alumno evaluó la fórmula del residuo en un punto positivo y obtuvo 2.97 en lugar de 0: mira primero en qué semiplano está el polo."
    }
   },
   {
    "type": "build",
-   "section": "Laplace y ecuaciones diferenciales",
-   "title": "Laplace de ida y vuelta",
-   "md": "La transformada de Laplace ya salió en Matemáticas II. Repaso rápido de los dos comandos con f(t) = t e^(−2t).",
-   "target": "InverseLaplaceTransform[LaplaceTransform[t Exp[-2 t], t, s], s, t]",
+   "section": "Laplace y EDOs",
+   "title": "Laplace ida y vuelta",
+   "md": "Laplace y su inversa (ya salieron en Matemáticas II).",
+   "target": "InverseLaplaceTransform[1/(s + 2)^2, s, t]",
    "parts": [
     {
      "code": "LaplaceTransform[t Exp[-2 t], t, s]",
-     "md": "Función, variable original `t`, variable nueva `s`. Da 1/(s + 2)².",
+     "md": "Transforma t e^(−2t): función, t, s.",
      "run": true
     },
     {
-     "code": "InverseLaplaceTransform[LaplaceTransform[t Exp[-2 t], t, s], s, t]",
-     "md": "La inversa deshace el camino: ahora las variables van al revés, `s, t`. Devuelve la función original.",
+     "code": "InverseLaplaceTransform[1/(s + 2)^2, s, t]",
+     "md": "Deshazlo con la inversa: ahora s, t.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: transforma `t Exp[-2 t]` con Laplace y, en la misma línea, aplícale la inversa para recuperar la función.",
+    "prompt": "Calcula la transformada inversa de Laplace de `1/(s + 2)^2`.",
     "hints": [
-     "Dentro: `LaplaceTransform[t Exp[-2 t], t, s]`.",
-     "Fuera: `InverseLaplaceTransform[..., s, t]`."
+     "Las variables van en orden `s, t`.",
+     "`InverseLaplaceTransform[1/(s + 2)^2, s, t]`"
     ],
     "check": {
      "type": "expr",
@@ -537,38 +649,38 @@
   },
   {
    "type": "build",
-   "title": "Resolver una EDO con Laplace en 4 pasos",
-   "md": "Los mismos pasos que a mano: transformar la ecuación, meter la condición inicial, despejar la transformada e invertir. Ejemplo del guion: y' − 7y = e^(7t), y(0) = 0.",
+   "title": "EDO con Laplace",
+   "md": "y' − 7y = e^(7t), y(0) = 0, en cuatro pasos.",
    "target": "paso1 = LaplaceTransform[y'[t] - 7 y[t] == Exp[7 t], t, s];\npaso2 = paso1 /. y[0] -> 0;\npaso3 = Solve[paso2, LaplaceTransform[y[t], t, s]];\nsol = InverseLaplaceTransform[paso3[[1, 1, 2]], s, t]",
    "parts": [
     {
      "code": "paso1 = LaplaceTransform[y'[t] - 7 y[t] == Exp[7 t], t, s]",
-     "md": "Se transforma la ecuación entera (con `==`). Aparecen `LaplaceTransform[y[t], t, s]`, que es la incógnita, e `y[0]`.",
+     "md": "Transforma la ecuación entera (con ==).",
      "run": true
     },
     {
      "code": "paso2 = paso1 /. y[0] -> 0",
-     "md": "Se sustituye la condición inicial con `/.`. Con dos condiciones: `/. {y[0] -> a, y'[0] -> b}`.",
+     "md": "Mete la condición inicial con /.",
      "run": true
     },
     {
      "code": "paso3 = Solve[paso2, LaplaceTransform[y[t], t, s]]",
-     "md": "Se despeja la transformada de y: la incógnita de `Solve` es la expresión `LaplaceTransform[y[t], t, s]` completa.",
+     "md": "Despeja la transformada de y: es la incógnita de Solve.",
      "run": true
     },
     {
      "code": "sol = InverseLaplaceTransform[paso3[[1, 1, 2]], s, t]",
-     "md": "`paso3[[1, 1, 2]]` es el lado derecho de la regla (solución 1, regla 1, parte 2). Su inversa es y(t) = t e^(7t).",
+     "md": "Invierte el lado derecho de la regla, [[1, 1, 2]].",
      "run": true
     },
     {
      "code": "paso1 = LaplaceTransform[y'[t] - 7 y[t] == Exp[7 t], t, s];\npaso2 = paso1 /. y[0] -> 0;\npaso3 = Solve[paso2, LaplaceTransform[y[t], t, s]];\nsol = InverseLaplaceTransform[paso3[[1, 1, 2]], s, t]",
-     "md": "Los cuatro pasos seguidos. Se comprueba con `DSolve[{y'[t] - 7 y[t] == Exp[7 t], y[0] == 0}, y[t], t]`.",
+     "md": "Los cuatro pasos seguidos.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: resuelve y' − 7y = e^(7t), y(0) = 0 con Laplace en cuatro pasos (`paso1`, `paso2`, `paso3`, `sol`).",
+    "prompt": "Resuelve y' − 7y = e^(7t), y(0) = 0 con Laplace: `paso1`, `paso2`, `paso3`, `sol`.",
     "hints": [
      "`paso1 = LaplaceTransform[ecuación, t, s];` y `paso2 = paso1 /. y[0] -> 0;`",
      "`paso3 = Solve[paso2, LaplaceTransform[y[t], t, s]];`",
@@ -584,15 +696,16 @@
     "LaplaceTransform",
     "InverseLaplaceTransform",
     "Solve"
-   ]
+   ],
+   "more": "Se comprueba con `DSolve[{y'[t] - 7 y[t] == Exp[7 t], y[0] == 0}, y[t], t]`."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e10",
     "kind": "code",
-    "title": "Una EDO de segundo orden",
-    "prompt": "Resuelve con Laplace en cuatro pasos: y'' + y = e^(−t), con y(0) = 1, y'(0) = 0. La última línea debe devolver la solución y(t).",
+    "title": "EDO de segundo orden",
+    "prompt": "Resuelve con Laplace y'' + y = e^(−t), y(0) = 1, y'(0) = 0. La última línea debe devolver y(t).",
     "difficulty": 3,
     "cmds": [
      "LaplaceTransform",
@@ -617,19 +730,67 @@
      "InverseLaplaceTransform"
     ],
     "hints": [
-     "Ahora hay dos condiciones: `paso2 = paso1 /. {y[0] -> 1, y'[0] -> 0};`",
-     "Los pasos 3 y 4 no cambian: `Solve[paso2, LaplaceTransform[y[t], t, s]]` e `InverseLaplaceTransform[paso3[[1, 1, 2]], s, t]`."
+     "Dos condiciones: `paso2 = paso1 /. {y[0] -> 1, y'[0] -> 0};`",
+     "Los pasos 3 y 4 no cambian."
     ],
-    "explain": "y(t) = (cos t + sin t + e^(−t))/2. Cumple y(0) = 1 e y'(0) = 0."
+    "explain": "y(t) = (cos t + sin t + e^(−t))/2."
    }
+  },
+  {
+   "type": "build",
+   "title": "Laplace inversa por residuos",
+   "md": "Inversa de Laplace: suma de residuos de e^(st)F(s) en todos los polos.",
+   "target": "F = 1/((s + 1) (s + 3));\nResidue[Exp[s t] F, {s, -1}] + Residue[Exp[s t] F, {s, -3}]",
+   "parts": [
+    {
+     "code": "F = 1/((s + 1) (s + 3));",
+     "md": "Guarda F: polos en −1 y −3.",
+     "run": true
+    },
+    {
+     "code": "Residue[Exp[s t] F, {s, -1}]",
+     "md": "Residuo de e^(st) F en s = −1.",
+     "run": true
+    },
+    {
+     "code": "Residue[Exp[s t] F, {s, -1}] + Residue[Exp[s t] F, {s, -3}]",
+     "md": "Suma el del otro polo: es f(t).",
+     "run": true
+    },
+    {
+     "code": "InverseLaplaceTransform[F, s, t]",
+     "md": "Compáralo con el comando directo.",
+     "run": true
+    },
+    {
+     "code": "F = 1/((s + 1) (s + 3));\nResidue[Exp[s t] F, {s, -1}] + Residue[Exp[s t] F, {s, -3}]",
+     "md": "Otra vez, en dos líneas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "F = 1/((s + 1)(s + 3)). Calcula su inversa de Laplace sumando residuos de `Exp[s t] F`.",
+    "hints": [
+     "Guarda `F` y usa el integrando `Exp[s t] F`.",
+     "`Residue[Exp[s t] F, {s, -1}] + Residue[Exp[s t] F, {s, -3}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "(Exp[-t] - Exp[-3 t])/2"
+    }
+   },
+   "cmds": [
+    "Residue",
+    "InverseLaplaceTransform"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e11",
     "kind": "code",
-    "title": "Laplace inversa por residuos",
-    "prompt": "La inversa de Laplace de una función racional es la suma de los residuos de e^(st) F(s) en **todos** sus polos. Para F(s) = 1/((s − 8)⁴ (s + 1)³ (s − 2)), devuelve esa suma (polos 8, 2 y −1).",
+    "title": "Tres polos múltiples",
+    "prompt": "F(s) = 1/((s − 8)⁴ (s + 1)³ (s − 2)). Devuelve su inversa de Laplace como suma de residuos (polos 8, 2 y −1).",
     "difficulty": 4,
     "cmds": [
      "Residue",
@@ -646,10 +807,10 @@
      "Residue"
     ],
     "hints": [
-     "Guarda `F` y usa el integrando `Exp[s t] F`.",
-     "Suma tres residuos: `Residue[Exp[s t] F, {s, 8}]`, `{s, 2}` y `{s, -1}`."
+     "Guarda `F` y suma `Residue[Exp[s t] F, {s, polo}]` para los tres polos.",
+     "`Residue[Exp[s t] F, {s, 8}] + Residue[Exp[s t] F, {s, 2}] + Residue[Exp[s t] F, {s, -1}]`"
     ],
-    "explain": "Coincide con `InverseLaplaceTransform[F, s, t]`, que es «la instrucción adecuada» que pide el enunciado para comprobar. Aquí no hay semiplanos: se suman todos los polos."
+    "explain": "Coincide con `InverseLaplaceTransform[F, s, t]`, «la instrucción adecuada» que pide el enunciado para comprobar."
    }
   },
   {
@@ -657,8 +818,8 @@
    "ex": {
     "id": "2-m3-pl3-e12",
     "kind": "code",
-    "title": "Laplace inversa evaluada en puntos",
-    "prompt": "Sea F(s) = 1/((s − 1)(s + 2)³). Define por residuos `f[t_]` (polos −2 y 1) y devuelve la lista `{f[0.1], f[0.3]}`.",
+    "title": "Inversa en dos instantes",
+    "prompt": "F(s) = 1/((s − 1)(s + 2)³). Define `f[t_]` por residuos (polos −2 y 1) y devuelve `{f[0.1], f[0.3]}`.",
     "difficulty": 3,
     "cmds": [
      "Residue"
@@ -679,36 +840,37 @@
      "`f[t_] = Residue[Exp[s t] F, {s, -2}] + Residue[Exp[s t] F, {s, 1}];`",
      "`{f[0.1], f[0.3]}`"
     ],
-    "explain": "f(t) = e^t/27 − e^(−2t)(2 + 6t + 9t²)/54; f(0.1) ≈ 0.000147 y f(0.3) ≈ 0.00314. En la prueba pedían además cada residuo por separado en un instante concreto."
+    "explain": "f(0.1) ≈ 0.000147 y f(0.3) ≈ 0.00314. En la prueba pedían además cada residuo por separado en un instante."
    }
   },
   {
    "type": "build",
    "section": "Transformada Z",
-   "title": "Transformada Z de ida y vuelta",
-   "md": "La transformada Z convierte una sucesión x_n (n = 0, 1, 2…) en una función X(z) = Σ x_n / zⁿ. Ejemplo del guion: x_n = n² 2^(−n).",
-   "target": "InverseZTransform[ZTransform[n^2 2^(-n), n, z], z, n]",
+   "title": "Z ida y vuelta",
+   "md": "La transformada Z convierte una sucesión x_n en una función X(z).",
+   "target": "InverseZTransform[2 z (1 + 2 z)/(2 z - 1)^3, z, n]",
    "parts": [
     {
-     "code": "n^2 2^(-n)",
-     "md": "La sucesión, escrita como fórmula en n."
-    },
-    {
-     "code": "ZTransform[n^2 2^(-n), n, z]",
-     "md": "Sucesión, su variable `n` y la variable nueva `z`. Da 2z(1 + 2z)/(2z − 1)³.",
+     "code": "ZTransform[2^n, n, z]",
+     "md": "Transforma la sucesión 2ⁿ: sucesión, n, z.",
      "run": true
     },
     {
-     "code": "InverseZTransform[ZTransform[n^2 2^(-n), n, z], z, n]",
-     "md": "La inversa, con las variables al revés (`z, n`), devuelve la sucesión.",
+     "code": "ZTransform[n^2 2^(-n), n, z]",
+     "md": "Ahora n² 2^(−n), el ejemplo del guion.",
+     "run": true
+    },
+    {
+     "code": "InverseZTransform[2 z (1 + 2 z)/(2 z - 1)^3, z, n]",
+     "md": "Deshazlo con la inversa: ahora z, n.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula la transformada Z de `n^2 2^(-n)` y aplícale la inversa en la misma línea.",
+    "prompt": "Calcula la transformada Z inversa de `2 z (1 + 2 z)/(2 z - 1)^3`.",
     "hints": [
-     "Dentro: `ZTransform[n^2 2^(-n), n, z]`.",
-     "Fuera: `InverseZTransform[..., z, n]`."
+     "Las variables van en orden `z, n`.",
+     "`InverseZTransform[2 z (1 + 2 z)/(2 z - 1)^3, z, n]`"
     ],
     "check": {
      "type": "expr",
@@ -718,7 +880,8 @@
    "cmds": [
     "ZTransform",
     "InverseZTransform"
-   ]
+   ],
+   "more": "X(z) = Σ x_n/zⁿ. La de aⁿ es z/(z − a); la de la delta discreta `DiscreteDelta[n]` (1 en n = 0, 0 en el resto) es 1."
   },
   {
    "type": "exercise",
@@ -745,7 +908,7 @@
      "`ZTransform[sucesión, n, z]`",
      "`{ZTransform[2^n, n, z], ZTransform[n 3^n, n, z]}`"
     ],
-    "explain": "z/(z − 2) y 3z/(z − 3)². La de aⁿ es siempre z/(z − a): la más usada de la tabla. Y la de la delta discreta `DiscreteDelta[n]` (1 en n = 0 y 0 en el resto) es 1."
+    "explain": "z/(z − 2) y 3z/(z − 3)²."
    }
   },
   {
@@ -754,7 +917,7 @@
     "id": "2-m3-pl3-e14",
     "kind": "code",
     "title": "Una inversa Z",
-    "prompt": "Calcula la transformada Z inversa de `z/((z - 1) (z - 2))`.",
+    "prompt": "Transformada Z inversa de `z/((z - 1) (z - 2))`.",
     "difficulty": 2,
     "cmds": [
      "InverseZTransform"
@@ -770,7 +933,7 @@
      "InverseZTransform"
     ],
     "hints": [
-     "Las variables van en el orden `z, n`.",
+     "Orden de variables: `z, n`.",
      "`InverseZTransform[z/((z - 1) (z - 2)), z, n]`"
     ],
     "explain": "x_n = 2ⁿ − 1: la sucesión 0, 1, 3, 7, 15…"
@@ -779,29 +942,25 @@
   {
    "type": "build",
    "title": "Inversa Z por residuos",
-   "md": "La inversa también sale por residuos: x_n es la suma de los residuos de z^(n−1) X(z) en todos sus polos. Con X(z) = 2z(1 + 2z)/(2z − 1)³ el único polo es z = 1/2.",
+   "md": "x_n = suma de residuos de z^(n−1)·X(z) en sus polos.",
    "target": "Residue[z^(n - 1) 2 z (1 + 2 z)/(2 z - 1)^3, {z, 1/2}]",
    "parts": [
     {
-     "code": "z^(n - 1)",
-     "md": "El factor que añade la fórmula. Cuidado: para n = 0 es 1/z y puede crear un polo nuevo en z = 0."
-    },
-    {
-     "code": "z^(n - 1) 2 z (1 + 2 z)/(2 z - 1)^3",
-     "md": "El integrando. Aquí la z del numerador cancela el posible polo en 0, así que la fórmula vale para todo n ≥ 0."
+     "code": "Residue[z^(n - 1) z/(z - 2), {z, 2}]",
+     "md": "Inversa de z/(z − 2): residuo de z^(n−1) X(z) en z = 2.",
+     "run": true
     },
     {
      "code": "Residue[z^(n - 1) 2 z (1 + 2 z)/(2 z - 1)^3, {z, 1/2}]",
-     "md": "El residuo en el polo triple z = 1/2, con n simbólica: n² 2^(−n).",
+     "md": "Ahora X(z) del guion, con polo triple en 1/2.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: obtén por residuos la inversa Z de X(z) = 2z(1 + 2z)/(2z − 1)³ (único polo: z = 1/2).",
+    "prompt": "Obtén por residuos la inversa Z de X(z) = 2z(1 + 2z)/(2z − 1)³ (polo en z = 1/2).",
     "hints": [
      "El integrando es `z^(n - 1)` por X(z).",
-     "`Residue[integrando, {z, 1/2}]`",
-     "Esqueleto: `Residue[z^(n - 1) 2 z (1 + 2 z)/(2 z - 1)^3, {z, }]`"
+     "`Residue[z^(n - 1) 2 z (1 + 2 z)/(2 z - 1)^3, {z, 1/2}]`"
     ],
     "check": {
      "type": "expr",
@@ -813,31 +972,80 @@
    ]
   },
   {
+   "type": "build",
+   "title": "El polo escondido",
+   "md": "Si X no lleva z en el numerador, z^(n−1) crea un polo en 0 para n = 0.",
+   "target": "X = 2 (1 + 2 z)/(2 z - 1)^3;\nxn = Residue[z^(n - 1) X, {z, 1/2}];\nx0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];\n{x0, xn}",
+   "parts": [
+    {
+     "code": "X = 2 (1 + 2 z)/(2 z - 1)^3;",
+     "md": "La X(z) de antes, sin la z del numerador.",
+     "run": true
+    },
+    {
+     "code": "xn = Residue[z^(n - 1) X, {z, 1/2}]",
+     "md": "Fórmula general con el polo 1/2.",
+     "run": true
+    },
+    {
+     "code": "xn /. n -> 0",
+     "md": "Pruébala en n = 0: da 2… y es falso.",
+     "run": true
+    },
+    {
+     "code": "x0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}]",
+     "md": "Para n = 0 hay que sumar también el polo z = 0: sale 0.",
+     "run": true
+    },
+    {
+     "code": "X = 2 (1 + 2 z)/(2 z - 1)^3;\nxn = Residue[z^(n - 1) X, {z, 1/2}];\nx0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];\n{x0, xn}",
+     "md": "Todo seguido: x0 aparte y xn para n ≥ 1.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "X = 2(1 + 2z)/(2z − 1)³. Calcula `xn` (polo 1/2) y `x0` (polos 1/2 y 0) y devuelve `{x0, xn}`.",
+    "hints": [
+     "`xn = Residue[z^(n - 1) X, {z, 1/2}];`",
+     "`x0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];`",
+     "`{x0, xn}`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{0, 2^(1 - n) (n - 1)^2}"
+    }
+   },
+   "cmds": [
+    "Residue"
+   ],
+   "more": "Es el Ejemplo 1 del guion. La sucesión es 0, 0, 1/2, 1, 9/8…; `InverseZTransform` lo indica con un `UnitStep`."
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl3-e15",
     "kind": "code",
-    "title": "Cuando z = 0 se cuela como polo",
-    "prompt": "Ejemplo 1 del guion: X(z) = 2(1 + 2z)/(2z − 1)³ (sin la z del numerador). Ahora, para **n = 0**, el factor z^(−1) añade un polo simple en z = 0 que hay que sumar. Calcula:\n\n- `x0`: residuo en 1/2 más residuo en 0 de `z^(-1) X`;\n- `xn`: residuo en 1/2 de `z^(n - 1) X` (vale para n ≥ 1);\n\ny devuelve la lista `{x0, xn}`.",
+    "title": "Polo cuádruple en cero",
+    "prompt": "X = 2(1 + 2z)/(z⁴(2z − 1)³). Devuelve `{x2, xn}`: `x2` con los polos 1/2 y 0 (n = 2) y `xn` solo con 1/2 (n ≥ 5).",
     "difficulty": 4,
     "cmds": [
      "Residue"
     ],
     "real": true,
-    "source": "PL3 · Ejemplo 1 del guion (Z inversa por residuos)",
-    "solution": "X = 2 (1 + 2 z)/(2 z - 1)^3;\nx0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];\nxn = Residue[z^(n - 1) X, {z, 1/2}];\n{x0, xn}",
+    "source": "PL3 · Ejemplo 2 del guion (Z inversa por residuos)",
+    "solution": "X = 2 (1 + 2 z)/(z^4 (2 z - 1)^3);\nx2 = Residue[z X, {z, 1/2}] + Residue[z X, {z, 0}];\nxn = Residue[z^(n - 1) X, {z, 1/2}];\n{x2, xn}",
     "check": {
      "type": "expr",
-     "expected": "{0, 2^(1 - n) (n - 1)^2}"
+     "expected": "{0, 2^(5 - n) (n - 5)^2}"
     },
     "requires": [
      "Residue"
     ],
     "hints": [
-     "`x0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];`",
-     "`xn = Residue[z^(n - 1) X, {z, 1/2}];` y la lista `{x0, xn}`."
+     "Para n = 2 el factor es z^(2−1) = z: `x2 = Residue[z X, {z, 1/2}] + Residue[z X, {z, 0}];`",
+     "`xn = Residue[z^(n - 1) X, {z, 1/2}];` y `{x2, xn}`"
     ],
-    "explain": "x0 = 0 y x_n = 2^(1−n) (n − 1)² para n ≥ 1: la sucesión 0, 0, 1/2, 1, 9/8… Si X tuviera z⁴ en el denominador, z = 0 sería polo para n = 0, 1, 2, 3 y 4, y habría que estudiar esos cinco términos aparte."
+    "explain": "x_0 = … = x_4 = 0 y x_n = 2^(5−n) (n − 5)² para n ≥ 5. Para n = 0…4, z = 0 es polo de orden 5, 4, 3, 2 y 1: esos términos se estudian aparte."
    }
   },
   {
@@ -845,8 +1053,8 @@
    "ex": {
     "id": "2-m3-pl3-e16",
     "kind": "code",
-    "title": "Transformada Z evaluada en un punto",
-    "prompt": "Calcula la transformada Z de x_n = (−1)ⁿ 3ⁿ/(2n)! y evalúala en z = 4/π² (resultado numérico).",
+    "title": "Z evaluada en un punto",
+    "prompt": "Transformada Z de x_n = (−1)ⁿ 3ⁿ/(2n)!, evaluada en z = 4/π² (decimal).",
     "difficulty": 3,
     "cmds": [
      "ZTransform",
@@ -868,7 +1076,7 @@
      "`X[z_] = ZTransform[(-1)^n 3^n/(2 n)!, n, z];`",
      "`N[X[4/Pi^2]]`"
     ],
-    "explain": "X(z) = cos(√(3/z)) y en z = 4/π² vale cos(√3 π/2) ≈ −0.9127. El factorial se escribe con `!`: `(2 n)!`."
+    "explain": "X(z) = cos(√(3/z)); en z = 4/π² vale cos(√3 π/2) ≈ −0.9127. El factorial es `(2 n)!`."
    }
   },
   {
@@ -876,8 +1084,8 @@
    "ex": {
     "id": "2-m3-pl3-e17",
     "kind": "code",
-    "title": "Inversa Z leyendo una serie",
-    "prompt": "X(z) = cos(2/z) no es racional, pero su definición X(z) = Σ x_n/zⁿ dice que x_n es el coeficiente de uⁿ al desarrollar X en u = 1/z, es decir, de `Cos[2 u]`. Devuelve la lista `{x0, x3, x6}` con `SeriesCoefficient`.",
+    "title": "Inversa leyendo una serie",
+    "prompt": "X(z) = cos(2/z): x_n es el coeficiente de uⁿ en `Cos[2 u]` (u = 1/z). Devuelve `{x0, x3, x6}`.",
     "difficulty": 3,
     "cmds": [
      "SeriesCoefficient",
@@ -892,52 +1100,87 @@
     },
     "hints": [
      "`SeriesCoefficient[Cos[2 u], {u, 0, k}]` da x_k.",
-     "Con `Table[..., {k, {0, 3, 6}}]` salen los tres: k recorre la lista {0, 3, 6}."
+     "`Table[SeriesCoefficient[Cos[2 u], {u, 0, k}], {k, {0, 3, 6}}]`"
     ],
-    "explain": "x0 = 1, x3 = 0 y x6 = −4/45 ≈ −0.0889. En Mathematica también sale con `InverseZTransform[Cos[2/z], z, n]`, que da (iⁿ 2^(n−1) (1 + (−1)ⁿ))/n!."
+    "explain": "x0 = 1, x3 = 0, x6 = −4/45. En Mathematica también: `InverseZTransform[Cos[2/z], z, n]`."
    }
   },
   {
-   "type": "explain",
-   "section": "Ecuaciones en diferencias",
-   "title": "Qué es una ecuación en diferencias",
-   "md": "Una ecuación en diferencias relaciona términos consecutivos de una sucesión: por ejemplo y_(n+1) − y_n/2 = (1/5)ⁿ con y_0 = 1. Es la versión discreta de una EDO, y la transformada Z hace aquí el papel de Laplace.\n\nSi Y es la transformada Z de y_n, la **propiedad del desplazamiento** dice:\n\n- transformada de y_(n+1) = z·Y − z·y_0\n- transformada de y_(n+2) = z²·Y − z²·y_0 − z·y_1\n\nEn el guion las sucesiones se escriben con subíndices, `Subscript[y, n + 1]`, y el primer paso es `paso1 = ZTransform[ecuación, n, z]`, que aplica esas propiedades solo; después `paso2 = paso1 /. Subscript[y, 0] -> 1`, `paso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]]` y la inversa. Aquí escribimos la ecuación transformada a mano, con `Y` como incógnita: se ve mejor qué pasa y son los mismos cuatro pasos.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "Resolver con la transformada Z",
-   "md": "Resolvemos y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1 (ejemplo 1 del guion): transformar, despejar Y e invertir.",
-   "target": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
+   "section": "Ecuaciones en diferencias",
+   "title": "El desplazamiento",
+   "md": "Si Y es la Z de y_n, la de y_(n+1) es z·Y − z·y_0.",
+   "target": "InverseZTransform[Simplify[z Y - z], z, n]",
    "parts": [
     {
-     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z]",
-     "md": "La ecuación transformada: y_(n+1) pasa a ser `z Y - z` (porque y_0 = 1), y_n/2 pasa a `Y/2`, y el lado derecho se transforma con `ZTransform`.",
+     "code": "Y = ZTransform[2^n, n, z]",
+     "md": "Transformada de y_n = 2ⁿ (y_0 = 1).",
      "run": true
     },
     {
-     "code": "Yz = Y /. Solve[ec, Y][[1]]",
-     "md": "Se despeja `Y`. `Solve` da `{{Y -> ...}}`; con `[[1]]` y `/.` nos quedamos con la expresión.",
+     "code": "Simplify[z Y - z]",
+     "md": "Aplica el desplazamiento: z·Y − z·y_0.",
      "run": true
     },
     {
-     "code": "yn = InverseZTransform[Yz, z, n]",
-     "md": "La inversa Z es la solución y_n.",
-     "run": true
-    },
-    {
-     "code": "Table[yn, {n, 0, 3}]",
-     "md": "Los primeros términos: 1, 3/2, 19/20, 103/200. El primero confirma y_0 = 1.",
-     "run": true
-    },
-    {
-     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
-     "md": "La receta completa en cuatro líneas.",
+     "code": "InverseZTransform[Simplify[z Y - z], z, n]",
+     "md": "Invierte para comprobar: sale 2·2ⁿ, que es y_(n+1).",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: resuelve y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1 con la transformada Z (`ec`, `Yz`, `yn`) y lista los términos n = 0…3.",
+    "prompt": "Con `Y = ZTransform[2^n, n, z]` ya definida, simplifica la transformada de y_(n+1): z·Y − z.",
+    "hints": [
+     "La regla es z·Y − z·y_0, con y_0 = 1.",
+     "`Simplify[z Y - z]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "2 z/(z - 2)"
+    },
+    "solution": "Simplify[z Y - z]"
+   },
+   "cmds": [
+    "ZTransform",
+    "InverseZTransform"
+   ],
+   "more": "Para dos pasos: la de y_(n+2) es z²·Y − z²·y_0 − z·y_1. En Mathematica, `ZTransform[Subscript[y, n + 1] - …, n, z]` aplica estas reglas solo; así empieza el guion (`paso1`).",
+   "setup": "Y = ZTransform[2^n, n, z];"
+  },
+  {
+   "type": "build",
+   "title": "Resolver con Z",
+   "md": "y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1: transformar, despejar, invertir.",
+   "target": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
+   "parts": [
+    {
+     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z]",
+     "md": "Ecuación transformada: y_(n+1) pasa a z Y − z, e y_n a Y.",
+     "run": true
+    },
+    {
+     "code": "Yz = Y /. Solve[ec, Y][[1]]",
+     "md": "Despeja Y y quédate con la expresión.",
+     "run": true
+    },
+    {
+     "code": "yn = InverseZTransform[Yz, z, n]",
+     "md": "Invierte: es la solución y_n.",
+     "run": true
+    },
+    {
+     "code": "Table[yn, {n, 0, 3}]",
+     "md": "Lista los primeros términos: el primero debe ser y_0 = 1.",
+     "run": true
+    },
+    {
+     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
+     "md": "Las cuatro líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Resuelve con Z y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1 (`ec`, `Yz`, `yn`) y lista n = 0…3.",
     "hints": [
      "`ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];`",
      "`Yz = Y /. Solve[ec, Y][[1]];` y `yn = InverseZTransform[Yz, z, n];`",
@@ -953,7 +1196,8 @@
     "InverseZTransform",
     "Solve",
     "Table"
-   ]
+   ],
+   "more": "Es el Ejemplo 1 del guion. Allí: `paso1 = ZTransform[ecuación con Subscript[y, n], n, z]`, `paso2 = paso1 /. Subscript[y, 0] -> 1`, `paso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]]` e inversa."
   },
   {
    "type": "exercise",
@@ -961,7 +1205,7 @@
     "id": "2-m3-pl3-e18",
     "kind": "code",
     "title": "Dibujar la solución",
-    "prompt": "La solución anterior **ya está guardada en `yn`**. Dibuja sus términos de n = 0 a n = 10 con `DiscretePlot`, que funciona como `Plot` pero solo en valores enteros.",
+    "prompt": "La solución anterior ya está en `yn`. Dibuja sus términos de n = 0 a 10 con `DiscretePlot`.",
     "difficulty": 1,
     "cmds": [
      "DiscretePlot"
@@ -979,38 +1223,39 @@
      "DiscretePlot"
     ],
     "hints": [
-     "Misma sintaxis que `Plot`: expresión y `{n, desde, hasta}`.",
+     "Misma sintaxis que `Plot`, con `{n, 0, 10}`.",
      "`DiscretePlot[yn, {n, 0, 10}]`"
     ],
-    "explain": "La sucesión sube a 3/2 en n = 1 y luego decae hacia 0 como (1/2)ⁿ."
+    "explain": "`DiscretePlot` es como `Plot`, pero solo en valores enteros de n."
    }
   },
   {
    "type": "build",
-   "title": "RSolve: el DSolve de las sucesiones",
-   "md": "`RSolve` resuelve directamente una ecuación en diferencias, igual que `DSolve` una EDO. Sirve para comprobar el resultado de la transformada Z.",
+   "title": "RSolve",
+   "md": "RSolve es el DSolve de las sucesiones.",
    "target": "RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]",
    "parts": [
     {
-     "code": "y[n + 1] - y[n]/2 == (1/5)^n",
-     "md": "La ecuación, con la sucesión escrita como función: `y[n]`, `y[n + 1]`. El guion usa `Subscript[y, n + 1]`."
+     "code": "RSolve[y[n + 1] == 2 y[n], y[n], n]",
+     "md": "Sin condición inicial: aparece una constante C.",
+     "run": true
     },
     {
-     "code": "y[0] == 1",
-     "md": "La condición inicial, también con `==`."
+     "code": "RSolve[{y[n + 1] == 2 y[n], y[0] == 3}, y[n], n]",
+     "md": "Con condición inicial, las dos en una lista.",
+     "run": true
     },
     {
      "code": "RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]",
-     "md": "Lista con ecuación y condiciones, la incógnita `y[n]` y la variable `n`. Devuelve una regla, como `DSolve`.",
+     "md": "Ahora la ecuación del guion: coincide con la de Z.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: resuelve con `RSolve` la ecuación y_(n+1) − y_n/2 = (1/5)ⁿ con y_0 = 1.",
+    "prompt": "Resuelve con `RSolve`: y_(n+1) − y_n/2 = (1/5)ⁿ con y_0 = 1.",
     "hints": [
-     "Ecuación y condición van en una lista: `{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}`.",
-     "Después, la incógnita `y[n]` y la variable `n`.",
-     "Esqueleto: `RSolve[{ , }, y[n], n]`"
+     "Ecuación y condición en una lista; después `y[n]` y `n`.",
+     "`RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]`"
     ],
     "check": {
      "type": "expr",
@@ -1019,7 +1264,8 @@
    },
    "cmds": [
     "RSolve"
-   ]
+   ],
+   "more": "El guion escribe las sucesiones con subíndices: `Subscript[y, n + 1]`, `Subscript[y, 0] == 1`."
   },
   {
    "type": "exercise",
@@ -1027,7 +1273,7 @@
     "id": "2-m3-pl3-e19",
     "kind": "code",
     "title": "Segundo orden con RSolve",
-    "prompt": "Resuelve con `RSolve`: y_(n+2) − 3y_(n+1) + 2y_n = 0, con y_0 = 0, y_1 = 1.",
+    "prompt": "Resuelve con `RSolve`: y_(n+2) − 3y_(n+1) + 2y_n = 0, y_0 = 0, y_1 = 1.",
     "difficulty": 2,
     "cmds": [
      "RSolve"
@@ -1043,7 +1289,7 @@
      "RSolve"
     ],
     "hints": [
-     "Ahora hay dos condiciones iniciales en la lista: `y[0] == 0, y[1] == 1`.",
+     "Dos condiciones en la lista: `y[0] == 0, y[1] == 1`.",
      "`RSolve[{y[n + 2] - 3 y[n + 1] + 2 y[n] == 0, y[0] == 0, y[1] == 1}, y[n], n]`"
     ],
     "explain": "y_n = 2ⁿ − 1."
@@ -1054,17 +1300,17 @@
    "ex": {
     "id": "2-m3-pl3-e20",
     "kind": "code",
-    "title": "Segundo orden con la transformada Z",
-    "prompt": "Ejemplo 2 del guion: x_(n+2) − 2x_(n+1) + x_n = n²/3ⁿ, con x_0 = 1, x_1 = −1. Con X la transformada de x_n, la ecuación transformada es\n\n`z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z]`\n\n(se ha usado el desplazamiento con x_0 = 1 y x_1 = −1). Despeja `X`, invierte y devuelve `Table[xn, {n, 0, 3}]`.",
+    "title": "Segundo orden con Z",
+    "prompt": "x_(n+2) − 2x_(n+1) + x_n = n²/3ⁿ, x_0 = 1, x_1 = −1. La ecuación transformada ya está en `ec` (incógnita `X`). Devuelve `Table[xn, {n, 0, 3}]`.",
     "difficulty": 4,
     "cmds": [
-     "ZTransform",
      "InverseZTransform",
      "Solve"
     ],
     "real": true,
     "source": "PL3 · Ejemplo 2 del guion",
-    "solution": "ec = z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z];\nXz = X /. Solve[ec, X][[1]];\nxn = InverseZTransform[Xz, z, n];\nTable[xn, {n, 0, 3}]",
+    "setup": "ec = z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z];",
+    "solution": "Xz = X /. Solve[ec, X][[1]];\nxn = InverseZTransform[Xz, z, n];\nTable[xn, {n, 0, 3}]",
     "check": {
      "type": "expr",
      "expected": "{1, -1, -3, -14/3}"
@@ -1073,10 +1319,10 @@
      "InverseZTransform"
     ],
     "hints": [
-     "Copia la ecuación en `ec` y despeja: `Xz = X /. Solve[ec, X][[1]];`",
-     "`xn = InverseZTransform[Xz, z, n];` y `Table[xn, {n, 0, 3}]`."
+     "`Xz = X /. Solve[ec, X][[1]];`",
+     "`xn = InverseZTransform[Xz, z, n];` y `Table[xn, {n, 0, 3}]`"
     ],
-    "explain": "x_n = 3^(−n) (45 + 18n(2 + n) − 3ⁿ (37 + 4n))/8. Los dos primeros términos, 1 y −1, son las condiciones iniciales: buena señal."
+    "explain": "`ec` es `z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z]`: desplazamiento con x_0 = 1, x_1 = −1. Los dos primeros términos, 1 y −1, son las condiciones iniciales."
    }
   },
   {
@@ -1084,8 +1330,8 @@
    "ex": {
     "id": "2-m3-pl3-e21",
     "kind": "code",
-    "title": "Con un seno a la derecha",
-    "prompt": "Resuelve y_(n+1) + y_n = sin(3n), con y_0 = 2. La transformada Z de sin(3n) **ya está guardada en `ZS`** (es lo que devuelve `ZTransform[Sin[3 n], n, z]`: z sin 3/(z² − 2z cos 3 + 1)). Plantea la ecuación transformada, despeja `Y`, invierte y devuelve `N[Table[yn, {n, 0, 3}]]`.",
+    "title": "Con un seno",
+    "prompt": "y_(n+1) + y_n = sin(3n), y_0 = 2. La Z de sin(3n) ya está en `ZS`. Plantea `ec`, despeja, invierte y devuelve `N[Table[yn, {n, 0, 3}]]`.",
     "difficulty": 4,
     "cmds": [
      "InverseZTransform",
@@ -1105,10 +1351,10 @@
      "InverseZTransform"
     ],
     "hints": [
-     "Desplazamiento con y_0 = 2: y_(n+1) pasa a `z Y - 2 z`. La ecuación es `ec = z Y - 2 z + Y == ZS;`",
-     "`Yz = Y /. Solve[ec, Y][[1]];`, `yn = InverseZTransform[Yz, z, n];` y `N[Table[yn, {n, 0, 3}]]`."
+     "Con y_0 = 2, y_(n+1) pasa a `z Y - 2 z`: `ec = z Y - 2 z + Y == ZS;`",
+     "`Yz = Y /. Solve[ec, Y][[1]];`, `yn = InverseZTransform[Yz, z, n];` y `N[Table[yn, {n, 0, 3}]]`"
     ],
-    "explain": "Términos: 2, −2, 2.141, −2.421. Se comprueban con la propia ecuación: y_1 = sin 0 − y_0 = −2, y_2 = sin 3 − y_1 = 2.141…"
+    "explain": "Términos: 2, −2, 2.141, −2.421. `ZS` es lo que da `ZTransform[Sin[3 n], n, z]`: z sin 3/(z² − 2z cos 3 + 1)."
    }
   },
   {
@@ -1116,8 +1362,8 @@
    "ex": {
     "id": "2-m3-pl3-e22",
     "kind": "code",
-    "title": "Un sistema de ecuaciones en diferencias",
-    "prompt": "Ejemplo 3 del guion: y_(n+1) + 3y_n + 2x_n = 0, x_(n+1) − y_n = 0, con x_0 = 1, y_0 = 2. Con X e Y las transformadas, el sistema transformado es\n\n`{z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0}`\n\nResuélvelo en `{X, Y}`, invierte cada una y devuelve la lista `{xn, yn}`.",
+    "title": "Un sistema",
+    "prompt": "y_(n+1) + 3y_n + 2x_n = 0, x_(n+1) − y_n = 0, x_0 = 1, y_0 = 2. El sistema transformado ya está en `sisZ` (incógnitas `X`, `Y`). Devuelve `{xn, yn}`.",
     "difficulty": 5,
     "cmds": [
      "InverseZTransform",
@@ -1125,7 +1371,8 @@
     ],
     "real": true,
     "source": "PL3 · Ejemplo 3 del guion (sistema)",
-    "solution": "sis = Solve[{z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0}, {X, Y}];\nxn = InverseZTransform[X /. sis[[1]], z, n];\nyn = InverseZTransform[Y /. sis[[1]], z, n];\n{xn, yn}",
+    "setup": "sisZ = {z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0};",
+    "solution": "sol = Solve[sisZ, {X, Y}];\nxn = InverseZTransform[X /. sol[[1]], z, n];\nyn = InverseZTransform[Y /. sol[[1]], z, n];\n{xn, yn}",
     "check": {
      "type": "value",
      "expr": "Table[{xn, yn}, {n, 0, 4}]",
@@ -1136,10 +1383,10 @@
      "Solve"
     ],
     "hints": [
-     "`sis = Solve[{ecuación 1, ecuación 2}, {X, Y}];` da las dos transformadas a la vez.",
-     "`xn = InverseZTransform[X /. sis[[1]], z, n];` y lo mismo con `Y` para `yn`."
+     "`sol = Solve[sisZ, {X, Y}];` da las dos transformadas a la vez.",
+     "`xn = InverseZTransform[X /. sol[[1]], z, n];` y lo mismo con `Y` para `yn`."
     ],
-    "explain": "x_n = −3(−2)ⁿ + 4(−1)ⁿ e y_n = 6(−2)ⁿ − 4(−1)ⁿ. En n = 0 dan 1 y 2, las condiciones iniciales. En Mathematica se comprueba con `RSolve` pasándole las dos ecuaciones y `{x[n], y[n]}`."
+    "explain": "`sisZ` es `{z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0}`. Solución: x_n = −3(−2)ⁿ + 4(−1)ⁿ, y_n = 6(−2)ⁿ − 4(−1)ⁿ. En Mathematica se comprueba con `RSolve` y `{x[n], y[n]}`."
    }
   }
  ]

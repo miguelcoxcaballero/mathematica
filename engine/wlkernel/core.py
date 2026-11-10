@@ -102,13 +102,45 @@ def _patch_nvalues():
     if getattr(orig, "_wlx", False):
         return
 
+    from mathics.core.atoms import MachineReal, Real as MReal
+    from mathics.core.atoms import Complex as MComplex
+    from mathics.core.systemsymbols import SymbolMachinePrecision
+
+    depth = [0]
+
     def eval_NValues(expr, prec, evaluation):
+        if isinstance(expr, MachineReal):
+            return expr                     # N[machine number, n] stays a machine number
+        if isinstance(expr, MComplex) and isinstance(expr.real, MachineReal) and isinstance(expr.imag, MachineReal):
+            return expr
         if isinstance(expr, Expression) and expr.head is SymbolPower and len(expr.elements) == 2:
             base, expo = expr.elements
             if isinstance(expo, Integer) and not base.is_numeric(evaluation):
                 nb = eval_NValues(base, prec, evaluation)
                 return Expression(SymbolPower, base if nb is None else nb, expo)
-        return orig(expr, prec, evaluation)
+        if depth[0] == 0 and prec is not SymbolMachinePrecision and isinstance(prec, (Integer, MReal)):
+            # N[expr, n]: work with guard digits and round at the end so that all n digits are right
+            try:
+                n = float(prec.to_python())
+            except Exception:
+                n = None
+            if n is not None and 1 <= n < 2000:
+                depth[0] += 1
+                try:
+                    r = orig(expr, Integer(int(n) + 12), evaluation)
+                    if r is None:
+                        return None
+                    if not r.is_literal:
+                        r = r.evaluate(evaluation)
+                    r2 = orig(r, prec, evaluation)
+                    return r if r2 is None else r2
+                finally:
+                    depth[0] -= 1
+        depth[0] += 1
+        try:
+            return orig(expr, prec, evaluation)
+        finally:
+            depth[0] -= 1
 
     eval_NValues._wlx = True
     for mod in list(sys.modules.values()):

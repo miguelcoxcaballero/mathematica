@@ -1,0 +1,1143 @@
+{
+ "id": "2-m2-pl9",
+ "year": 2,
+ "subject": "Matemáticas II",
+ "block": "Ecuaciones en derivadas parciales",
+ "order": 9,
+ "title": "EDPs de segundo orden",
+ "summary": "Las plantillas del guion PL9 (ondas, calor, Laplace en un rectángulo y cuerda forzada) construidas línea a línea, con valores numéricos tipo examen.",
+ "minutes": 100,
+ "commands": [
+  "Sinh"
+ ],
+ "uses": [
+  "Integrate",
+  "Sum",
+  "UnitStep",
+  "Plot",
+  "Plot3D",
+  "Manipulate",
+  "FindRoot",
+  "N",
+  "NIntegrate",
+  "D",
+  "Exp"
+ ],
+ "steps": [
+  {
+   "type": "build",
+   "section": "Coeficientes de Fourier",
+   "title": "Un coeficiente",
+   "md": "Las soluciones de esta práctica son sumas de senos. Calcula sus coeficientes.",
+   "target": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\n{An[1], An[2], An[3]}",
+   "parts": [
+    {
+     "code": "L = 5; phi[x_] = x (L - x);",
+     "md": "Longitud y dato inicial: una parábola.",
+     "run": true
+    },
+    {
+     "code": "(2/L) Integrate[phi[x]*Sin[1*Pi*x/L], {x, 0, L}]",
+     "md": "El coeficiente del primer seno (`n = 1`).",
+     "run": true
+    },
+    {
+     "code": "(2/L) Integrate[phi[x]*Sin[2*Pi*x/L], {x, 0, L}]",
+     "md": "Cambia a `n = 2`: sale 0, por simetría.",
+     "run": true
+    },
+    {
+     "code": "An[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "Para cualquier `n`: una función con `:=`.",
+     "run": true,
+     "hint": "`n_Integer` solo acepta enteros; `:=` hace la integral cada vez que pides un `An[n]`."
+    },
+    {
+     "code": "{An[1], An[2], An[3]}",
+     "md": "Pide los tres primeros.",
+     "run": true
+    },
+    {
+     "code": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\n{An[1], An[2], An[3]}",
+     "md": "Las tres líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `L = 5` y `phi = x (L - x)`, define `An[n_Integer]` y calcula `{An[1], An[2], An[3]}`.",
+    "hints": [
+     "`L = 5; phi[x_] = x (L - x);`",
+     "`An[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]`",
+     "`{An[1], An[2], An[3]}`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{200/Pi^3, 0, 200/(27 Pi^3)}",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Integrate"
+   ],
+   "more": "`A_n = (2/L)` por la integral de `phi(x) Sin[n Pi x/L]` entre 0 y `L`: es el coeficiente de Fourier del dato inicial."
+  },
+  {
+   "type": "build",
+   "title": "Suma parcial",
+   "md": "Suma unos pocos senos con sus coeficientes y compara con el dato.",
+   "target": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\ns3[x_] = Sum[An[n]*Sin[n*Pi*x/L], {n, 1, 3}];\nPlot[{phi[x], s3[x]}, {x, 0, L}]",
+   "parts": [
+    {
+     "code": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "Los datos y `An`, como antes.",
+     "run": true
+    },
+    {
+     "code": "s1[x_] = An[1]*Sin[Pi*x/L];\nPlot[{phi[x], s1[x]}, {x, 0, L}]",
+     "md": "Un solo término frente al dato.",
+     "run": true
+    },
+    {
+     "code": "s3[x_] = Sum[An[n]*Sin[n*Pi*x/L], {n, 1, 3}];\nPlot[{phi[x], s3[x]}, {x, 0, L}]",
+     "md": "Tres términos con `Sum`: casi iguales.",
+     "run": true,
+     "hint": "`{n, 1, 3}` = índice, desde, hasta."
+    },
+    {
+     "code": "L = 5; phi[x_] = x (L - x);\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\ns3[x_] = Sum[An[n]*Sin[n*Pi*x/L], {n, 1, 3}];\nPlot[{phi[x], s3[x]}, {x, 0, L}]",
+     "md": "Todo seguido: datos, `An`, suma y gráfico.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Datos, `An`, la suma `s3[x_]` de 3 términos y el gráfico de `phi` y `s3` en `[0, L]`.",
+    "hints": [
+     "`s3[x_] = Sum[An[n]*Sin[n*Pi*x/L], {n, 1, 3}];`",
+     "`Plot[{phi[x], s3[x]}, {x, 0, L}]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "s3[2.]",
+     "expected": "200/Pi^3 Sin[2 Pi/5.] + 200/(27 Pi^3) Sin[6 Pi/5.]",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "Sum",
+    "Plot",
+    "Integrate"
+   ],
+   "more": "Al número de términos el guion lo llama 'autovalores', `trunc` o `nau`."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e01",
+    "kind": "code",
+    "title": "Examen 2014: A1 y A2",
+    "prompt": "Con `L = 8` y `phi[x_] = x^2 (8 - x)/50`, define `An` y calcula `{An[1], An[2]} // N`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 13/01/2014 · pregunta 8",
+    "solution": "L = 8; phi[x_] = x^2 (8 - x)/50;\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\n{An[1], An[2]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{1.3210228504, -0.4953835689}",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`L = 8; phi[x_] = x^2 (8 - x)/50;`",
+     "La línea de `An[n_Integer] := ...` no cambia.",
+     "`{An[1], An[2]} // N`"
+    ],
+    "explain": "1.32102 y -0.495384: los valores de la solución oficial. `// N` pasa a decimales, como se introducen en PoliformaT.",
+    "requires": [
+     "Integrate"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Datos a trozos: pulsos",
+   "title": "El coeficiente de un pulso",
+   "md": "Un dato que vale 3 entre 2 y 3 y 0 fuera. Dos formas de integrarlo.",
+   "target": "L = 5;\nAn[n_Integer] := (2/L) Integrate[3 Sin[n*Pi*x/L], {x, 2, 3}]\nAn[1]",
+   "parts": [
+    {
+     "code": "L = 5; phi[x_] = 3 (UnitStep[x - 2] - UnitStep[x - 3]);\nPlot[phi[x], {x, 0, L}]",
+     "md": "El pulso, escrito con una ventana de escalones.",
+     "run": true
+    },
+    {
+     "code": "Integrate[phi[x]*Sin[Pi*x/L], {x, 0, L}]",
+     "md": "La integral como en el guion, de 0 a `L`.",
+     "run": true
+    },
+    {
+     "code": "Integrate[3 Sin[Pi*x/L], {x, 2, 3}]",
+     "md": "La misma integrando solo donde el pulso no es 0: igual y más rápida.",
+     "run": true
+    },
+    {
+     "code": "L = 5;\nAn[n_Integer] := (2/L) Integrate[3 Sin[n*Pi*x/L], {x, 2, 3}]\nAn[1]",
+     "md": "El coeficiente con la forma rápida.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `L = 5`, define `An[n_Integer]` para el pulso de altura 3 entre 2 y 3 (forma rápida) y calcula `An[1]`.",
+    "hints": [
+     "Integra `3 Sin[n*Pi*x/L]` solo entre 2 y 3",
+     "`An[n_Integer] := (2/L) Integrate[3 Sin[n*Pi*x/L], {x, 2, 3}]` y `An[1]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "3 (Sqrt[5] - 1)/Pi",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "UnitStep"
+   ],
+   "more": "En Mathematica las dos formas tardan lo mismo. En este cuaderno web la del guion es lenta: con pulsos usa la rápida."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e02",
+    "kind": "code",
+    "title": "Suma parcial de un pulso",
+    "prompt": "`L = 5`, pulso de altura 5 entre 2 y 4. Define `An` (forma rápida) y calcula la suma de 7 términos en `x = 3`, con `// N`.",
+    "difficulty": 2,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "L = 5;\nAn[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]\nSum[An[n]*Sin[n*Pi*3/L], {n, 1, 7}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "5.1110349625",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`An[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]`",
+     "`Sum[An[n]*Sin[n*Pi*3/L], {n, 1, 7}] // N`"
+    ],
+    "explain": "Da 5.111: cerca del 5 del pulso, no exacto. Con más términos se acerca; en los saltos queda un rizado.",
+    "requires": [
+     "Integrate",
+     "Sum"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Plantilla de ondas",
+   "title": "La cuerda con extremos fijos",
+   "md": "`u_tt = a^2 u_xx`, posición inicial `phi0`, velocidad inicial `phi1` (ejemplo 9.1.1).",
+   "target": "a = 2; L = 5; phi0[x_] = x^2 (L - x)/L; phi1[x_] = 0;\nAn[n_Integer] := (2/L) Integrate[phi0[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[phi1[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\nu[1, 0.5, 6]",
+   "parts": [
+    {
+     "code": "a = 2; L = 5; phi0[x_] = x^2 (L - x)/L; phi1[x_] = 0;",
+     "md": "Los datos. Ojo: en la ecuación está `a^2` (`u_tt = 4 u_xx` es `a = 2`).",
+     "run": true
+    },
+    {
+     "code": "An[n_Integer] := (2/L) Integrate[phi0[x]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "`An`: coeficientes de la posición inicial.",
+     "run": true
+    },
+    {
+     "code": "Bn[n_Integer] := (2/(n*Pi*a)) Integrate[phi1[x]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "`Bn`: los de la velocidad inicial, con `2/(n*Pi*a)` delante.",
+     "run": true
+    },
+    {
+     "code": "u[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]",
+     "md": "La serie: `An` con coseno del tiempo, `Bn` con seno.",
+     "run": true,
+     "hint": "El tercer argumento, `nau`, es el número de términos."
+    },
+    {
+     "code": "u[1, 0.5, 6]",
+     "md": "Un valor: `x = 1`, `t = 0.5`, 6 términos.",
+     "run": true
+    },
+    {
+     "code": "a = 2; L = 5; phi0[x_] = x^2 (L - x)/L; phi1[x_] = 0;\nAn[n_Integer] := (2/L) Integrate[phi0[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[phi1[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\nu[1, 0.5, 6]",
+     "md": "La plantilla entera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Plantilla de ondas con `a = 2`, `L = 5`, `phi0 = x^2 (L - x)/L`, `phi1 = 0`; calcula `u[1, 0.5, 6]`.",
+    "hints": [
+     "Datos, `An` con `phi0` y `2/L`, `Bn` con `phi1` y `2/(n*Pi*a)`",
+     "`u[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]`",
+     "`u[1, 0.5, 6]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1.1936919838",
+     "compare": "numeric",
+     "tol": 0.0001
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Sum"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Dibujar y animar",
+   "md": "Una solución ya calculada se dibuja en `x`, en `t`, o se anima.",
+   "target": "sol[x_, t_] = Sin[Pi x/5] Cos[2 Pi t/5];\nManipulate[Plot[sol[x, t], {x, 0, 5}, PlotRange -> {-1, 1}], {{t, 0, \"t\"}, 0, 5}]",
+   "parts": [
+    {
+     "code": "sol[x_, t_] = Sin[Pi x/5] Cos[2 Pi t/5];",
+     "md": "Una solución de ejemplo (un solo término).",
+     "run": true
+    },
+    {
+     "code": "Plot[sol[x, 0], {x, 0, 5}, PlotRange -> {-1, 1}]",
+     "md": "La cuerda en `t = 0`.",
+     "run": true
+    },
+    {
+     "code": "Plot[sol[2, t], {t, 0, 10}]",
+     "md": "El punto `x = 2` a lo largo del tiempo.",
+     "run": true
+    },
+    {
+     "code": "sol[x_, t_] = Sin[Pi x/5] Cos[2 Pi t/5];\nManipulate[Plot[sol[x, t], {x, 0, 5}, PlotRange -> {-1, 1}], {{t, 0, \"t\"}, 0, 5}]",
+     "md": "Con `Manipulate`: desliza `t`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Define `sol[x_, t_] = Sin[Pi x/5] Cos[2 Pi t/5]` y anímala con `Manipulate` (`t` de 0 a 5).",
+    "hints": [
+     "Dentro: `Plot[sol[x, t], {x, 0, 5}, PlotRange -> {-1, 1}]`",
+     "El deslizador: `{{t, 0, \"t\"}, 0, 5}`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "sol[2.5, 0]",
+     "expected": "1",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "Manipulate",
+    "Plot"
+   ],
+   "more": "Con la plantilla: `solondasa[x_, t_] = u[x, t, 10];` y luego `Manipulate[Plot[solondasa[x, t], {x, 0, L}, PlotRange -> {-4, 4}], {{t, 0, \"t\"}, 0, 2}]`."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e03",
+    "kind": "fix",
+    "title": "Examen 2014 · P8",
+    "prompt": "Datos, `An` y `Bn` del examen ya definidos. Corrige los dos errores de `u` para calcular `u(3.2, 2)` con 4 términos.",
+    "difficulty": 3,
+    "cmds": [
+     "Sum"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 13/01/2014 · pregunta 8",
+    "solution": "u[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\nu[3.2, 2, 4]",
+    "check": {
+     "type": "expr",
+     "expected": "4.2638654249",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Los tres argumentos llevan guion bajo: `u[x_, t_, nau_Integer]`.",
+     "Busca una `l` minúscula: Mathematica distingue `l` de `L`."
+    ],
+    "explain": "`u(3.2, 2)` = 4.26387, como la solución oficial (`u_tt = 3 u_xx`, `L = 8`, `phi0 = x^2 (8 - x)/50`, `phi1 = 2`). La `l` minúscula es una errata real de un cuaderno; `Bn[1] // N` = 3.74386.",
+    "broken": "u[x_, t, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/l])*Sin[n*Pi*x/L], {n, 1, nau}]\nu[3.2, 2, 4]",
+    "requires": [
+     "Sum"
+    ],
+    "setup": "a = Sqrt[3]; L = 8; phi0[x_] = x^2 (8 - x)/50; phi1[x_] = 2;\nAn[n_Integer] := (2/L) Integrate[phi0[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_Integer] := (2/(n*Pi*a)) Integrate[phi1[x]*Sin[n*Pi*x/L], {x, 0, L}]"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e04",
+    "kind": "code",
+    "title": "Guion 1: cuerda con un pulso",
+    "prompt": "`u_tt = 4 u_xx`, `L = 5`, pulso inicial de altura 5 entre 2 y 4, velocidad 0. Calcula `{u[2, 5, 2], u[2, 5, 7]} // N`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "N"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 1",
+    "solution": "a = 2; L = 5;\nAn[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]\nBn[n_Integer] := 0\nu[x_, t_, nau_Integer] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\n{u[2, 5, 2], u[2, 5, 7]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{2.3387232095, 2.4551119942}",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`a = 2; L = 5;` y `An` en forma rápida: integra `5 Sin[n*Pi*x/L]` entre 2 y 4.",
+     "Velocidad inicial 0: `Bn[n_Integer] := 0`. La línea de `u` es la de la plantilla.",
+     "`{u[2, 5, 2], u[2, 5, 7]} // N`"
+    ],
+    "explain": "`{2.33872, 2.45511}`: el segundo coincide con la prueba de clase (7 términos).",
+    "requires": [
+     "Integrate",
+     "Sum"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "Instantes con FindRoot",
+   "title": "Buscar una raíz numérica",
+   "md": "Los 'instantes' del examen se hallan con `FindRoot` y un punto de partida.",
+   "target": "FindRoot[Exp[-t] == 0.2, {t, 1}]",
+   "parts": [
+    {
+     "code": "FindRoot[Cos[t] == 0, {t, 1}]",
+     "md": "Busca una raíz de `Cos[t]` empezando en `t = 1`.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[Cos[t] == 0, {t, 4}]",
+     "md": "Cambia el punto de partida: encuentra otra raíz.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[Exp[-t] == 0.2, {t, 1}]",
+     "md": "Ahora, ¿cuándo vale 0.2 la exponencial?",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Halla con `FindRoot` el `t` en que `Exp[-t]` vale 0.2, empezando en `t = 1`.",
+    "hints": [
+     "Ecuación con `==` y lista `{t, 1}`",
+     "`FindRoot[Exp[-t] == 0.2, {t, 1}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{t -> 1.6094379124}",
+     "compare": "set",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "FindRoot"
+   ],
+   "more": "Dibuja antes la función para elegir el punto de partida. Con dos valores, `{t, 1, 2}`, busca entre ellos."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e05",
+    "kind": "code",
+    "title": "Prueba: ¿cuándo pasa por cero?",
+    "prompt": "`sol2[x, t]` (cuerda del guion 1, 2 términos) ya está definida. Halla el `t` entre 1 y 2 con `sol2[2, t] == 0`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot"
+    ],
+    "real": true,
+    "source": "Prueba de clase PL9 (2020-21) · pregunta 1b",
+    "solution": "FindRoot[sol2[2, t] == 0, {t, 1, 2}]",
+    "check": {
+     "type": "expr",
+     "expected": "{t -> 1.4638125056}",
+     "compare": "set",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`FindRoot[ecuación, {t, 1, 2}]`",
+     "`FindRoot[sol2[2, t] == 0, {t, 1, 2}]`"
+    ],
+    "explain": "`t` = 1.46381.",
+    "requires": [
+     "FindRoot"
+    ],
+    "setup": "a = 2; L = 5;\nAn[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]\nsol2[x_, t_] = Sum[An[n]*Cos[n*Pi*a*t/L]*Sin[n*Pi*x/L], {n, 1, 2}];"
+   }
+  },
+  {
+   "type": "build",
+   "section": "Plantilla del calor",
+   "title": "La barra que se enfría",
+   "md": "`u_t = a^2 u_xx`: como ondas, pero cada término se apaga (ejemplo 9.2.1).",
+   "target": "a = Sqrt[3]; L = 10; phi[x_] = x^3 (L - x)/L^2;\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[2, 1, 3]",
+   "parts": [
+    {
+     "code": "a = Sqrt[3]; L = 10; phi[x_] = x^3 (L - x)/L^2;",
+     "md": "Los datos: `a^2 = 3`, `L = 10` y la temperatura inicial.",
+     "run": true
+    },
+    {
+     "code": "An[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "El mismo coeficiente de Fourier.",
+     "run": true
+    },
+    {
+     "code": "u[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]",
+     "md": "La serie: `Exp[-(n*Pi*a/L)^2*t]` en lugar de cosenos y senos.",
+     "run": true
+    },
+    {
+     "code": "u[2, 1, 3]",
+     "md": "Un valor: `x = 2`, `t = 1`, 3 términos.",
+     "run": true
+    },
+    {
+     "code": "Plot[u[2, t, 3], {t, 0, 20}]",
+     "md": "La temperatura del punto `x = 2` con el tiempo.",
+     "run": true
+    },
+    {
+     "code": "a = Sqrt[3]; L = 10; phi[x_] = x^3 (L - x)/L^2;\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[2, 1, 3]",
+     "md": "La plantilla entera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Plantilla del calor con `a = Sqrt[3]`, `L = 10`, `phi = x^3 (L - x)/L^2`; calcula `u[2, 1, 3]`.",
+    "hints": [
+     "Datos y `An[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]`",
+     "`u[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]`",
+     "`u[2, 1, 3]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "N[Sum[(2/10) Integrate[x^3 (10 - x)/100 Sin[n Pi x/10], {x, 0, 10}] Exp[-3 (n Pi/10)^2] Sin[n Pi/5], {n, 1, 3}]]",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Sum",
+    "Exp"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e06",
+    "kind": "code",
+    "title": "Examen 2014 · P9",
+    "prompt": "`u_t = 3 u_xx`, `L = 8`, `u(x, 0) = x^2 (8 - x)/50`. Plantilla del calor; calcula `u[3.2, 2, 4]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 13/01/2014 · pregunta 9 (adaptado)",
+    "solution": "a = Sqrt[3]; L = 8; phi[x_] = x^2 (8 - x)/50;\nAn[n_Integer] := (2/L) Integrate[phi[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[3.2, 2, 4]",
+    "check": {
+     "type": "expr",
+     "expected": "0.4908539749",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`a = Sqrt[3]; L = 8; phi[x_] = x^2 (8 - x)/50;`",
+     "`An` y `u` son las de la plantilla del calor.",
+     "`u[3.2, 2, 4]`"
+    ],
+    "explain": "`u(3.2, 2)` = 0.490854. Mismo dato que en la pregunta 8, pero ahora decae en vez de oscilar. (El enunciado no conserva qué valor se pedía.)",
+    "requires": [
+     "Integrate",
+     "Sum",
+     "Exp"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e07",
+    "kind": "code",
+    "title": "Guion 2: barra con un pulso",
+    "prompt": "`u_t = 4 u_xx`, `L = 5`, pulso inicial de altura 5 entre 2 y 4. Calcula `u[3, 1, 7] // N`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "Exp",
+     "N"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 2",
+    "solution": "a = 2; L = 5;\nAn[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]\nu[x_, t_, nau_Integer] := Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[3, 1, 7] // N",
+    "check": {
+     "type": "expr",
+     "expected": "0.6996415780",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`a = 2; L = 5;` y `An` en forma rápida (integra `5 Sin[n*Pi*x/L]` entre 2 y 4).",
+     "La línea de `u` es la de la plantilla del calor.",
+     "`u[3, 1, 7] // N`"
+    ],
+    "explain": "`u(3, 1)` = 0.699642, el valor de la prueba de clase.",
+    "requires": [
+     "Integrate",
+     "Sum",
+     "Exp"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e08",
+    "kind": "code",
+    "title": "Guion 2: ¿cuándo baja a 1?",
+    "prompt": "`solcalor[x, t]` (barra del ejercicio anterior, 7 términos) ya está definida. Halla el `t` con `solcalor[3, t] == 1`, desde `t = 0.5`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 2",
+    "solution": "FindRoot[solcalor[3, t] == 1, {t, 0.5}]",
+    "check": {
+     "type": "expr",
+     "expected": "{t -> 0.7770147049}",
+     "compare": "set",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`FindRoot[ecuación, {t, 0.5}]`",
+     "`FindRoot[solcalor[3, t] == 1, {t, 0.5}]`"
+    ],
+    "explain": "`t` = 0.777. Un cuaderno antiguo lo estimaba a ojo sobre la gráfica (0.7756). En la prueba pedían `u(3, t) = 2`: 0.367745.",
+    "requires": [
+     "FindRoot"
+    ],
+    "setup": "a = 2; L = 5;\nAn[n_Integer] := (2/L) Integrate[5 Sin[n*Pi*x/L], {x, 2, 4}]\nsolcalor[x_, t_] = Sum[An[n]*Exp[-(n*Pi*a/L)^2*t]*Sin[n*Pi*x/L], {n, 1, 7}];"
+   }
+  },
+  {
+   "type": "build",
+   "section": "Laplace en un rectángulo",
+   "title": "La placa",
+   "md": "`u_xx + u_yy = 0` en `0 < x < a`, `0 < y < b`; arriba vale `theta(x)` (ejemplo 9.3.1).",
+   "target": "a = 1; b = 2; theta[x_] = 10 x^2 (1 - x);\nAn[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]\nu[x_, y_, nau_Integer] := Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, nau}]\nu[0.5, 1, 5]",
+   "parts": [
+    {
+     "code": "Plot[{Sin[y], Sinh[y]}, {y, 0, 2}]",
+     "md": "Compara el seno con el seno hiperbólico `Sinh`: este no oscila, crece.",
+     "run": true
+    },
+    {
+     "code": "a = 1; b = 2; theta[x_] = 10 x^2 (1 - x);",
+     "md": "Los datos: anchura `a`, altura `b` y el dato del lado de arriba.",
+     "run": true
+    },
+    {
+     "code": "An[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]",
+     "md": "El coeficiente: lleva `Sinh[b*n*Pi/a]` dividiendo.",
+     "run": true,
+     "hint": "Aquí `a` hace el papel de `L`."
+    },
+    {
+     "code": "u[x_, y_, nau_Integer] := Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, nau}]",
+     "md": "La serie: `Sinh` en `y`, `Sin` en `x`.",
+     "run": true
+    },
+    {
+     "code": "u[0.5, 1, 5]",
+     "md": "Un valor: `x = 0.5`, `y = 1`, 5 términos.",
+     "run": true
+    },
+    {
+     "code": "a = 1; b = 2; theta[x_] = 10 x^2 (1 - x);\nAn[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]\nu[x_, y_, nau_Integer] := Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, nau}]\nu[0.5, 1, 5]",
+     "md": "La plantilla entera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Plantilla de Laplace con `a = 1`, `b = 2`, `theta = 10 x^2 (1 - x)`; calcula `u[0.5, 1, 5]`.",
+    "hints": [
+     "`An[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]`",
+     "`u[x_, y_, nau_Integer] := Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, nau}]`",
+     "`u[0.5, 1, 5]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "N[Sum[2/Sinh[2 n Pi] Integrate[10 x^2 (1 - x) Sin[n Pi x], {x, 0, 1}] Sinh[n Pi] Sin[n Pi/2], {n, 1, 5}]]",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Sum",
+    "Sinh"
+   ],
+   "more": "El guion define aquí `An` y `u` con `=`; con `:=` funciona igual."
+  },
+  {
+   "type": "build",
+   "title": "Superficies con Plot3D",
+   "md": "Una función de `x` e `y` se dibuja como superficie.",
+   "target": "Plot3D[Sinh[y] Sin[x], {x, 0, Pi}, {y, 0, 2}]",
+   "parts": [
+    {
+     "code": "Plot[Sinh[1] Sin[x], {x, 0, Pi}]",
+     "md": "Un corte: la función `Sinh[y] Sin[x]` con `y = 1` fija.",
+     "run": true
+    },
+    {
+     "code": "Plot3D[Sinh[y] Sin[x], {x, 0, Pi}, {y, 0, 2}]",
+     "md": "La superficie entera: dos listas, una por variable.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Dibuja en 3D `Sinh[y] Sin[x]` para `x` de 0 a `Pi` e `y` de 0 a 2.",
+    "hints": [
+     "`Plot3D[función, {x, ...}, {y, ...}]`",
+     "`Plot3D[Sinh[y] Sin[x], {x, 0, Pi}, {y, 0, 2}]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "like": "Plot3D[Sinh[y] Sin[x], {x, 0, Pi}, {y, 0, 2}]"
+    }
+   },
+   "cmds": [
+    "Plot3D"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e09",
+    "kind": "code",
+    "title": "Guion 3: un valor",
+    "prompt": "Laplace con `a = 3`, `b = 5`, `theta = 2 x^2 (a - x)^3`, 5 términos. Guarda `solLaplace[x_, y_]` y calcula `solLaplace[1, 3] // N`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "Sinh",
+     "N"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 3",
+    "solution": "a = 3; b = 5; theta[x_] = 2 x^2 (a - x)^3;\nAn[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]\nu[x_, y_, nau_Integer] := Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, nau}]\nsolLaplace[x_, y_] = u[x, y, 5];\nsolLaplace[1, 3] // N",
+    "check": {
+     "type": "expr",
+     "expected": "1.4942698356",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`a = 3; b = 5; theta[x_] = 2 x^2 (a - x)^3;` y las dos líneas de la plantilla.",
+     "`solLaplace[x_, y_] = u[x, y, 5];`",
+     "`solLaplace[1, 3] // N`"
+    ],
+    "explain": "`u(1, 3)` = 1.49427, el valor de la prueba de clase.",
+    "requires": [
+     "Integrate",
+     "Sum",
+     "Sinh"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e10",
+    "kind": "code",
+    "title": "Guion 3: la superficie",
+    "prompt": "`solLaplace[x, y]` del ejercicio anterior ya está definida (`a = 3`, `b = 5`). Dibújala en 3D con `PlotRange -> {0, 20}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot3D"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 3",
+    "solution": "Plot3D[solLaplace[x, y], {x, 0, a}, {y, 0, b}, PlotRange -> {0, 20}]",
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "like": "Plot3D[solLaplace[x, y], {x, 0, 3}, {y, 0, 5}, PlotRange -> {0, 20}]"
+    },
+    "hints": [
+     "`Plot3D[solLaplace[x, y], {x, 0, a}, {y, 0, b}, ...]`",
+     "`Plot3D[solLaplace[x, y], {x, 0, a}, {y, 0, b}, PlotRange -> {0, 20}]`"
+    ],
+    "explain": "Vale 0 en tres bordes y sube hasta `theta(x)` en `y = 5`.",
+    "requires": [
+     "Plot3D"
+    ],
+    "setup": "a = 3; b = 5; theta[x_] = 2 x^2 (a - x)^3;\nAn[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]\nsolLaplace[x_, y_] = Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, 5}];"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e11",
+    "kind": "code",
+    "title": "Guion 3: dos cortes",
+    "prompt": "Con la misma `solLaplace`: dibuja juntas las curvas `x = 1` y `x = 2` para `y` de 0 a `b`, con `PlotRange -> {0, 20}`.",
+    "difficulty": 2,
+    "cmds": [
+     "Plot"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 3",
+    "solution": "Plot[{solLaplace[1, y], solLaplace[2, y]}, {y, 0, b}, PlotRange -> {0, 20}]",
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "like": "Plot[{solLaplace[1, y], solLaplace[2, y]}, {y, 0, 5}, PlotRange -> {0, 20}]"
+    },
+    "hints": [
+     "Dos curvas en una lista: `Plot[{f1, f2}, {y, 0, b}]`",
+     "`Plot[{solLaplace[1, y], solLaplace[2, y]}, {y, 0, b}, PlotRange -> {0, 20}]`"
+    ],
+    "explain": "Crecen hasta `theta(1) = 16` y `theta(2) = 8` en el borde de arriba.",
+    "requires": [
+     "Plot"
+    ],
+    "setup": "a = 3; b = 5; theta[x_] = 2 x^2 (a - x)^3;\nAn[n_Integer] := (2/(a*Sinh[b*n*Pi/a]))*Integrate[theta[x]*Sin[n*Pi*x/a], {x, 0, a}]\nsolLaplace[x_, y_] = Sum[An[n]*Sinh[n*Pi*y/a]*Sin[n*Pi*x/a], {n, 1, 5}];"
+   }
+  },
+  {
+   "type": "build",
+   "section": "Cuerda forzada (1): u3, g y datos corregidos",
+   "title": "u3 y la fuerza corregida",
+   "md": "`u_tt = a^2 u_xx + f` con extremos que se mueven: `u(0, t) = psi1`, `u(L, t) = psi2`.",
+   "target": "L = 1; f[x_, t_] = x (L - x); psi1[t_] = t^2; psi2[t_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]",
+   "parts": [
+    {
+     "code": "L = 1; f[x_, t_] = x (L - x); psi1[t_] = t^2; psi2[t_] = 0;",
+     "md": "La fuerza `f` y el movimiento de los dos extremos.",
+     "run": true
+    },
+    {
+     "code": "u3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t])",
+     "md": "`u3`: la recta que une los dos extremos en cada instante.",
+     "run": true
+    },
+    {
+     "code": "{u3[0, t], u3[L, t]}",
+     "md": "Compruébalo en los extremos: salen `psi1` y `psi2`.",
+     "run": true
+    },
+    {
+     "code": "g[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]",
+     "md": "La fuerza corregida: `f` menos la derivada segunda de `u3` en `t`.",
+     "run": true
+    },
+    {
+     "code": "L = 1; f[x_, t_] = x (L - x); psi1[t_] = t^2; psi2[t_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]",
+     "md": "Las tres líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `L = 1`, `f = x (L - x)`, `psi1 = t^2`, `psi2 = 0`: define `u3` y `g`.",
+    "hints": [
+     "`u3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);`",
+     "`g[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "g[x, t]",
+     "expected": "x (1 - x) - 2 (1 - x)"
+    }
+   },
+   "cmds": [
+    "D"
+   ],
+   "more": "La solución se parte en `u = u1 + u2 + u3`: `u3` pone la frontera, `u1` los datos iniciales y `u2` responde a la fuerza `g`."
+  },
+  {
+   "type": "build",
+   "title": "Datos iniciales corregidos",
+   "md": "A la posición y velocidad iniciales se les resta lo que ya pone `u3`.",
+   "target": "phi1[x_] = 0; phi2[x_] = 0; u3[x_, t_] = (1 + t) (1 - x);\nu10[x_] = phi1[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = phi2[x] - du3[x, 0]",
+   "parts": [
+    {
+     "code": "phi1[x_] = 0; phi2[x_] = 0; u3[x_, t_] = (1 + t) (1 - x);",
+     "md": "Datos iniciales nulos y una `u3` de ejemplo.",
+     "run": true
+    },
+    {
+     "code": "u10[x_] = phi1[x] - u3[x, 0]",
+     "md": "Posición inicial corregida.",
+     "run": true
+    },
+    {
+     "code": "du3[x_, t_] = D[u3[x, t], t]",
+     "md": "La velocidad de `u3`.",
+     "run": true
+    },
+    {
+     "code": "du10[x_] = phi2[x] - du3[x, 0]",
+     "md": "Velocidad inicial corregida.",
+     "run": true
+    },
+    {
+     "code": "phi1[x_] = 0; phi2[x_] = 0; u3[x_, t_] = (1 + t) (1 - x);\nu10[x_] = phi1[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = phi2[x] - du3[x, 0]",
+     "md": "Las cuatro líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `phi1 = phi2 = 0` y `u3 = (1 + t) (1 - x)`: define `u10`, `du3` y `du10`.",
+    "hints": [
+     "`u10[x_] = phi1[x] - u3[x, 0];`",
+     "`du3[x_, t_] = D[u3[x, t], t];` y `du10[x_] = phi2[x] - du3[x, 0]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "{u10[x], du10[x]}",
+     "expected": "{x - 1, x - 1}"
+    }
+   },
+   "cmds": [
+    "D"
+   ],
+   "more": "El guion usa además los nombres `u0` y `du0` para `phi1` y `phi2`: `u10[x_] = u0[x] - u3[x, 0]`."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e12",
+    "kind": "code",
+    "title": "Guion 4b: u3 y g",
+    "prompt": "Definidos `L = 5`, `f = 0`, `psi1[t_] = Sin[3 t]`, `psi2 = 0`. Define `u3[x_, t_]` y `g[x_, t_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "D"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 4b",
+    "solution": "u3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "u3[x, t]",
+       "expected": "Sin[3 t] (1 - x/5)",
+       "msg": "`u3[x, t]` debe ser `psi1[t] + (x/L) (psi2[t] - psi1[t])`."
+      },
+      {
+       "type": "value",
+       "expr": "g[x, t]",
+       "expected": "9 Sin[3 t] (1 - x/5)",
+       "msg": "`g[x, t]` debe ser `f[x, t] - D[u3[x, t], {t, 2}]`."
+      }
+     ]
+    },
+    "hints": [
+     "`u3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);`",
+     "`g[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}]`"
+    ],
+    "explain": "`g = 9 Sin[3 t] (1 - x/5)`: mover el extremo equivale a una fuerza. Con el resto de la plantilla, `u(2, 5)` = -0.4954 con 2 términos (el -0.1369 de un cuaderno antiguo es de una celda sin reevaluar).",
+    "requires": [
+     "D"
+    ],
+    "setup": "L = 5; f[x_, t_] = 0; psi1[t_] = Sin[3 t]; psi2[t_] = 0;"
+   }
+  },
+  {
+   "type": "build",
+   "section": "Cuerda forzada (2): u2 y la suma",
+   "title": "La respuesta a la fuerza",
+   "md": "`u2`: coeficientes `gn` de la fuerza y una integral en el tiempo.",
+   "target": "a = 1; L = 1; nau = 2; g[x_, t_] = x (1 - x);\ngn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu2[0.5, 1]",
+   "parts": [
+    {
+     "code": "a = 1; L = 1; nau = 2; g[x_, t_] = x (1 - x);",
+     "md": "Datos de ejemplo, con la fuerza corregida ya calculada.",
+     "run": true
+    },
+    {
+     "code": "gn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]",
+     "md": "`gn`: coeficiente de Fourier de `g`, como `An`.",
+     "run": true
+    },
+    {
+     "code": "gn[1, t]",
+     "md": "El primero. Aquí no depende de `t` porque `g` tampoco.",
+     "run": true
+    },
+    {
+     "code": "u2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]",
+     "md": "`u2`: para cada `n`, integra `gn` por un seno entre 0 y `t`.",
+     "run": true,
+     "hint": "`tau` es la variable de integración en el tiempo."
+    },
+    {
+     "code": "u2[0.5, 1]",
+     "md": "Un valor.",
+     "run": true
+    },
+    {
+     "code": "a = 1; L = 1; nau = 2; g[x_, t_] = x (1 - x);\ngn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu2[0.5, 1]",
+     "md": "Las cuatro líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Con `a = 1; L = 1; nau = 2; g = x (1 - x)`: define `gn` y `u2` y calcula `u2[0.5, 1]`.",
+    "hints": [
+     "`gn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]`",
+     "`u2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]`",
+     "`u2[0.5, 1]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "16/Pi^5",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Sum"
+   ],
+   "more": "`u1` es la plantilla de ondas con `u10` y `du10` en lugar de `phi0` y `phi1`, y al final `u[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t]`."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e13",
+    "kind": "code",
+    "title": "Guion 4a: solo la fuerza",
+    "prompt": "Caso a) definido hasta `u1` (`nau = 7`). Escribe `gn`, `u2` y `u = u1 + u2 + u3`; calcula `{u[2, 1], u[2, 5]} // N`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "N"
+    ],
+    "real": true,
+    "source": "PL9 · ejercicio 4a (adaptado: se pide además u(2, 1))",
+    "solution": "gn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];\n{u[2, 1], u[2, 5]} // N",
+    "check": {
+     "type": "expr",
+     "expected": "{0.5333410014, 0}",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`gn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]`",
+     "`u2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]`",
+     "`u[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];` y `{u[2, 1], u[2, 5]} // N`"
+    ],
+    "explain": "0.533341 y 0. El cero no es un error: con fuerza constante y extremos fijos la cuerda oscila con periodo `2 L/a = 5`. Caso a): `u_tt = 4 u_xx + x (5 - x)/5`, todo lo demás nulo.",
+    "requires": [
+     "Integrate",
+     "Sum"
+    ],
+    "setup": "a = 2; L = 5; nau = 7;\nf[x_, t_] = (1/5) x (5 - x); psi1[t_] = 0; psi2[t_] = 0;\nphi1[x_] = 0; phi2[x_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\nu10[x_] = phi1[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = phi2[x] - du3[x, 0];\nAn[n_] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e14",
+    "kind": "code",
+    "title": "La plantilla entera",
+    "prompt": "`a = 1; L = 1; nau = 3;` `f = x (L - x)`, `psi1 = t^2`, `psi2 = 0`, `phi1 = phi2 = 0`. Escribe toda la plantilla y calcula `u[0.5, 1]`.",
+    "difficulty": 5,
+    "cmds": [
+     "Integrate",
+     "Sum",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "a = 1; L = 1; nau = 3;\nf[x_, t_] = x (L - x); psi1[t_] = t^2; psi2[t_] = 0;\nphi1[x_] = 0; phi2[x_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\nu10[x_] = phi1[x] - u3[x, 0];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = phi2[x] - du3[x, 0];\nAn[n_] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nBn[n_] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\ngn[n_, t_] := (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}]\nu2[x_, t_] := Sum[(L/(n*Pi*a)) Integrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];\nu[0.5, 1]",
+    "check": {
+     "type": "expr",
+     "expected": "0.3036127916",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Datos; `u3` y `g`; `u10`, `du3`, `du10`.",
+     "`An[n_] := (2/L) Integrate[u10[x]*Sin[n*Pi*x/L], {x, 0, L}]`, `Bn` con `du10` y `2/(n*Pi*a)`, y `u1` como en ondas.",
+     "`gn`, `u2`, `u[x_, t_] = u1[x, t] + u2[x, t] + u3[x, t];` y `u[0.5, 1]`"
+    ],
+    "explain": "`u(0.5, 1)` = 0.303613. Es larga, pero siempre igual: de un problema a otro solo cambian las tres primeras líneas.",
+    "requires": [
+     "Integrate",
+     "Sum"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl9-e15",
+    "kind": "code",
+    "title": "Examen 2021 · P8",
+    "prompt": "Datos del examen definidos hasta `u1` y `gn`. Escribe `u2` con `NIntegrate` en vez de `Integrate`, `u` con `:=`, y calcula `u[3, 6]`.",
+    "difficulty": 5,
+    "cmds": [
+     "NIntegrate",
+     "Sum"
+    ],
+    "real": true,
+    "source": "Examen de prácticas 15/01/2021 · P8",
+    "solution": "u2[x_, t_] := Sum[(L/(n*Pi*a)) NIntegrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]\nu[x_, t_] := u1[x, t] + u2[x, t] + u3[x, t]\nu[3, 6]",
+    "check": {
+     "type": "expr",
+     "expected": "2.7435122203",
+     "compare": "numeric",
+     "tol": 0.001
+    },
+    "hints": [
+     "La línea de `u2` de la plantilla, con `NIntegrate`.",
+     "`u2[x_, t_] := Sum[(L/(n*Pi*a)) NIntegrate[gn[n, tau]*Sin[n*Pi*a*(t - tau)/L], {tau, 0, t}]*Sin[n*Pi*x/L], {n, 1, nau}]`",
+     "`u[x_, t_] := u1[x, t] + u2[x, t] + u3[x, t]` y `u[3, 6]`"
+    ],
+    "explain": "`u(3, 6)` = 2.74351. Datos: `a = Sqrt[3]`, `L = 5`, `f = x (5 - x)/5`, `psi1 = 2 Sin[3 t]`, pulso de altura 3 entre 2 y 3, 5 términos. Como el extremo oscila, la integral exacta es lenta: `NIntegrate` la hace numérica (por eso `u` va con `:=`). La otra pregunta, `FindRoot[u[2, t], {t, 2, 3}]`, da 2.37194.",
+    "requires": [
+     "Sum"
+    ],
+    "setup": "a = Sqrt[3]; L = 5; nau = 5;\nf[x_, t_] = (1/5) x (5 - x); psi1[t_] = 2 Sin[3 t]; psi2[t_] = 0;\nphi1[x_] = 3 (UnitStep[x - 2] - UnitStep[x - 3]); phi2[x_] = 0;\nu3[x_, t_] = psi1[t] + (x/L) (psi2[t] - psi1[t]);\ng[x_, t_] = f[x, t] - D[u3[x, t], {t, 2}];\ndu3[x_, t_] = D[u3[x, t], t];\ndu10[x_] = phi2[x] - du3[x, 0];\nAn[n_] := (2/L) Integrate[3 Sin[n*Pi*x/L], {x, 2, 3}]\nBn[n_] := (2/(n*Pi*a)) Integrate[du10[x]*Sin[n*Pi*x/L], {x, 0, L}]\nu1[x_, t_] := Sum[(An[n]*Cos[n*Pi*a*t/L] + Bn[n]*Sin[n*Pi*a*t/L])*Sin[n*Pi*x/L], {n, 1, nau}]\ngn[n_, t_] = (2/L) Integrate[g[x, t]*Sin[n*Pi*x/L], {x, 0, L}];"
+   }
+  }
+ ]
+}

@@ -2095,6 +2095,12 @@ class IntQ(XB):
         try:
             with budget(10.0):
                 r = self._go(f, spec, assum, evaluation)
+            if r is not None and is_free_of(E("List", f, spec), "System`I") and \
+                    not _has_head(E("List", f, spec), ("System`Complex",)) and \
+                    (not is_free_of(r, "System`I") or _has_head(r, ("System`Complex",))):
+                # real input, complex-looking output: never show that (Mathics' own Integrate gets its chance)
+                r2 = E("Simplify", E("ExpToTrig", r)).evaluate(evaluation)
+                r = r2 if is_free_of(r2, "System`I") and not _has_head(r2, ("System`Complex",)) else None
         except SympyTimeout:
             SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             r = None
@@ -2144,7 +2150,7 @@ class IntQ(XB):
         if not definite:
             r = _heaviside_antiderivative(fs, xs) if fs.has(sp.Heaviside) else None
             if r is None and not piecewise and fs.has(sp.exp, sp.sin, sp.cos, sp.sinh, sp.cosh):
-                r = calc.exp_poly_antiderivative(fs, xs)
+                r = calc.no_stray_complex(calc.exp_poly_antiderivative(fs, xs), fs)
                 if r is not None:
                     return c.back(_tidy_antiderivative(_trig_tidy(r), xs)).evaluate(ev)
                 try:
@@ -2161,6 +2167,9 @@ class IntQ(XB):
                 return None
             r = _generic_branch(r, xs)
             r = _heaviside_fix(r)
+            r = calc.no_stray_complex(r, fs)
+            if r is None:
+                return None
             return c.back(_tidy_antiderivative(r, xs)).evaluate(ev)
         a, b = c.to(spec.elements[1]), c.to(spec.elements[2])
         r = None
@@ -2194,9 +2203,10 @@ class IntQ(XB):
         except Exception:
             _dbg()
             r = None
+        r = calc.no_stray_complex(r, fs, a, b)
         if r is not None:
             return c.back(self._finish(_trig_tidy(r))).evaluate(ev)
-        r = self._by_pieces(fs, xs, a, b) if piecewise else None
+        r = calc.no_stray_complex(self._by_pieces(fs, xs, a, b), fs, a, b) if piecewise else None
         if r is not None:
             return c.back(self._finish(r)).evaluate(ev)
         try:
@@ -2228,6 +2238,9 @@ class IntQ(XB):
         if r in (sp.nan,):
             return None
         r = _generic_branch(r, xs)
+        r = calc.no_stray_complex(r, fs, a, b)
+        if r is None:
+            return None
         return c.back(self._finish(r)).evaluate(ev)
 
     @staticmethod
@@ -2543,10 +2556,11 @@ def install(kernel):
     _install_watchdog()
     _init_numpy_extra()
     contribute(kernel, BUILTINS)
-    from . import solve, more
+    from . import solve, more, numeric
 
     solve.install(kernel)
     more.install(kernel)
+    numeric.install(kernel)
     from . import gfx
 
     gfx.install(kernel)

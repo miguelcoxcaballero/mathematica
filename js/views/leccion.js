@@ -4,14 +4,14 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794351671';
-import * as data from '../data.js?v=1794351671';
-import { kernel } from '../kernel-client.js?v=1794351671';
-import * as fx from '../fx.js?v=1794351671';
+import { store } from '../store.js?v=1794351916';
+import * as data from '../data.js?v=1794351916';
+import { kernel } from '../kernel-client.js?v=1794351916';
+import * as fx from '../fx.js?v=1794351916';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
   safe, play, exStatus, startKernel, kernelPill, newSeed,
-} from '../exercise.js?v=1794351671';
+} from '../exercise.js?v=1794351916';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson
@@ -273,6 +273,13 @@ async function enterTramo(S, t, stepIdx) {
   const nav = h('footer', { class: 'ls-nav' }, prevBtn, navHint, skipBtn, nextBtn);
   root.replaceChildren(top, body, nav);
   Object.assign(S, { body, bar, count, prevBtn, skipBtn, nextBtn, navHint });
+  // once a typed cell is done, Enter / Shift+Enter inside it moves on to the next screen (fast flow)
+  body.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.altKey || nextBtn.disabled || nextBtn.hidden) return;
+    if (!(e.target instanceof Element) || !e.target.closest('.lx-ghost.is-done')) return;
+    e.preventDefault(); e.stopPropagation();
+    goScreen(S, S.pos + 1);
+  }, true);
   prevBtn.addEventListener('click', () => goScreen(S, S.pos - 1));
   skipBtn.addEventListener('click', () => goScreen(S, S.pos + 1));
   nextBtn.addEventListener('click', () => { if (!nextBtn.disabled) goScreen(S, S.pos + 1); });
@@ -384,12 +391,7 @@ function ghostScreen(S, wrap, code, { run, before, onDone, hint, more }) {
   wrap.appendChild(host);
   const pill = kernelPill();
   if (run) wrap.appendChild(h('div', { class: 'ls-hint' }, pill.el));
-  let finished = false;
-  const g = mountGhost(host, code, { run: run ? undefined : false, before, onDone: (res) => { finished = true; onDone(res); } });
-  // once the piece is done, Enter / Shift+Enter inside the cell moves on to the next screen
-  host.addEventListener('keydown', (e) => {
-    if (finished && e.key === 'Enter' && !e.altKey) { e.preventDefault(); e.stopPropagation(); if (S.nextBtn && !S.nextBtn.disabled) goScreen(S, S.pos + 1); }
-  }, true);
+  const g = mountGhost(host, code, { run: run ? undefined : false, before, onDone });
   const mb = moreBox({ hint, more });
   if (mb) wrap.appendChild(mb);
   S.screenCleanup.push(() => { pill.destroy(); g.destroy(); });

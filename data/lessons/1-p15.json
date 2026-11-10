@@ -6,14 +6,13 @@
  "order": 15,
  "title": "Matrices II y sistemas de ecuaciones lineales",
  "summary": "Recortas bloques de una matriz con Take y los unes con Join, resuelves sistemas con LinearSolve y Solve, y los clasificas (determinado, indeterminado, incompatible) con Det, MatrixRank y RowReduce, también cuando llevan parámetros.",
- "minutes": 55,
+ "minutes": 60,
  "commands": [
   "Take",
   "Join",
   "LinearSolve",
   "MatrixRank",
   "RowReduce",
-  "Rationalize",
   "Append"
  ],
  "uses": [
@@ -26,26 +25,42 @@
   "Solve",
   "N",
   "ReplaceAll",
-  "MatrixForm",
-  "Clear"
+  "MatrixForm"
  ],
  "steps": [
   {
-   "type": "explain",
-   "title": "Matrices con receta: Table con paso",
-   "md": "Un sistema de ecuaciones lineales es lo que queda cuando discretizas casi cualquier problema de ingeniería: una estructura, un circuito, el flujo alrededor de un perfil. En esta práctica aprendes a **trocear y montar matrices**, a **resolver** sistemas y a **clasificarlos** (una solución, infinitas o ninguna), también cuando dependen de parámetros. Son las preguntas de álgebra del examen.\n\nEmpezamos fabricando la matriz de la prueba, una **matriz de Vandermonde**: en cada columna una base y en cada fila un exponente. Con `Table` (lo viste en la práctica anterior) el iterador puede llevar un cuarto dato, el **paso**:\n\n`{j, 2, 8, 2}` = j va de 2 a 8 **de 2 en 2**: 2, 4, 6, 8.\n\nRecuerda: el primer iterador recorre las filas y el segundo las columnas. Termina con `;` las matrices grandes y míralas con `// MatrixForm`.",
-   "cells": [
+   "type": "build",
+   "section": "Una matriz de potencias",
+   "title": "Table con paso",
+   "md": "Haz crecer un `Table` hasta fabricar una matriz de potencias (de Vandermonde).",
+   "target": "Table[j^i, {i, 0, 3}, {j, 2, 8, 2}]",
+   "parts": [
+    {
+     "code": "Table[j, {j, 2, 8, 2}]",
+     "md": "Un iterador con paso: de 2 a 8, de 2 en 2.",
+     "run": true
+    },
+    {
+     "code": "Table[j^3, {j, 2, 8, 2}]",
+     "md": "Eleva cada base al cubo.",
+     "run": true
+    },
     {
      "code": "Table[j^i, {i, 0, 3}, {j, 2, 8, 2}]",
-     "note": "filas: exponentes 0 a 3; columnas: bases 2, 4, 6, 8"
-    },
-    {
-     "code": "Vand = Table[j^i, {i, 0, 4}, {j, 1, 5}];\nVand // MatrixForm"
-    },
-    {
-     "code": "Vand[[4, 3]]",
-     "note": "fila 4 (exponente 3), columna 3 (base 3): 3³"
+     "md": "Pon delante un iterador de exponentes `i`: una fila por exponente.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Con `Table`: bases 2, 4, 6, 8 en columnas y exponentes 0 a 3 en filas (elemento `j^i`).",
+    "hints": [
+     "El iterador de las bases lleva paso: `{j, 2, 8, 2}`.",
+     "El de los exponentes va primero: `{i, 0, 3}`.",
+     "`Table[j^i, { , , }, { , , , }]`"
+    ]
+   },
+   "cmds": [
+    "Table"
    ]
   },
   {
@@ -54,7 +69,7 @@
     "id": "1-p15-e01",
     "kind": "code",
     "title": "Una Vandermonde pequeña",
-    "prompt": "Construye la matriz `V` cuyas columnas tienen las bases 2, 5, 8 y 11 y cuyas filas tienen los exponentes 0, 1, 2, 3, 4 y 5 (elemento = base elevada a exponente). No la muestres entera: devuelve el elemento (6,3).",
+    "prompt": "Crea `V`: columnas con las bases 2, 5, 8, 11; filas con los exponentes 0 a 5. Sin imprimirla, devuelve `V[[6, 3]]`.",
     "difficulty": 2,
     "cmds": [
      "Table",
@@ -85,22 +100,48 @@
      "Las bases van de 2 a 11 de 3 en 3: `{j, 2, 11, 3}`. Los exponentes, `{i, 0, 5}`.",
      "`V = Table[j^i, {i, 0, 5}, {j, 2, 11, 3}];` y luego `V[[6, 3]]`."
     ],
-    "explain": "La fila 6 corresponde al exponente 5 (se empieza en 0) y la columna 3 a la base 8: 8⁵ = 32768. Ese desfase de 1 entre fila y exponente es la trampa de la pregunta real."
+    "explain": "La fila 6 es el exponente 5 (se empieza en 0) y la columna 3 es la base 8: 8⁵ = 32768. Ese desfase es la trampa de la pregunta real."
    }
   },
   {
-   "type": "explain",
+   "type": "build",
+   "section": "Recortar y pegar: Take y Join",
    "title": "Take: recortar un bloque",
-   "md": "`Take` recorta un trozo rectangular de una matriz:\n\n`Take[m, {f1, f2}, {c1, c2}]` = de la matriz `m`, las filas de la f1 a la f2 y las columnas de la c1 a la c2.\n\n- Cada par de llaves es un rango «desde, hasta» (los dos incluidos).\n- Si solo das el rango de filas, `Take[m, {f1, f2}]`, se queda con esas filas enteras.\n- La matriz original no cambia: `Take` devuelve una matriz nueva.",
-   "cells": [
+   "md": "`m` es una matriz 3×4 ya definida. Recorta trozos rectangulares con `Take`.",
+   "target": "Take[m, {1, 1}, {1, 2}]",
+   "setup": "m = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};",
+   "parts": [
     {
-     "code": "m = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};\nTake[m, {2, 3}, {3, 4}]",
-     "note": "filas 2-3, columnas 3-4"
+     "code": "m",
+     "md": "Escribe `m` para verla.",
+     "run": true
     },
     {
-     "code": "Take[m, {1, 2}]",
-     "note": "solo filas: la 1 y la 2 enteras"
+     "code": "Take[m, {2, 3}]",
+     "md": "Un rango de filas: de la 2 a la 3.",
+     "run": true
+    },
+    {
+     "code": "Take[m, {2, 3}, {3, 4}]",
+     "md": "Añade un rango de columnas: de la 3 a la 4.",
+     "run": true
+    },
+    {
+     "code": "Take[m, {1, 1}, {1, 2}]",
+     "md": "Una sola fila también es un rango: de la 1 a la 1.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Recorta de `m` la fila 1 (solo esa) y las columnas 1 a 2.",
+    "hints": [
+     "`Take[matriz, {fila inicial, fila final}, {columna inicial, columna final}]`",
+     "Una sola fila: `{1, 1}`.",
+     "`Take[m, { , }, { , }]`"
+    ]
+   },
+   "cmds": [
+    "Take"
    ]
   },
   {
@@ -109,7 +150,7 @@
     "id": "1-p15-e02",
     "kind": "code",
     "title": "Tu primer recorte",
-    "prompt": "Ya está definida `m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}`.\n\nExtrae con `Take` el bloque formado por las filas 1 a 2 y las columnas 2 a 3.",
+    "prompt": "`m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}` ya está definida. Extrae con `Take` las filas 1 a 2 y las columnas 2 a 3.",
     "difficulty": 1,
     "cmds": [
      "Take"
@@ -126,10 +167,10 @@
      "Take"
     ],
     "hints": [
-     "Primero el rango de filas, después el de columnas, cada uno entre llaves.",
+     "Primero el rango de filas, después el de columnas.",
      "`Take[m, {1, 2}, {2, 3}]`"
     ],
-    "explain": "Primero las filas (1 y 2), después las columnas (2 y 3): de `{1, 2, 3}` y `{4, 5, 6}` quedan `{2, 3}` y `{5, 6}`."
+    "explain": "De `{1, 2, 3}` y `{4, 5, 6}` quedan `{2, 3}` y `{5, 6}`."
    }
   },
   {
@@ -137,8 +178,8 @@
    "ex": {
     "id": "1-p15-e03",
     "kind": "code",
-    "title": "Recorta tú",
-    "prompt": "Ya está definida la matriz de 4×5 `m = Table[10 i + j, {i, 1, 4}, {j, 1, 5}]` (el elemento de la fila 2, columna 3 es 23).\n\nExtrae el bloque formado por las filas 2 a 4 y las columnas 1 a 2.",
+    "title": "Un bloque de 3 × 2",
+    "prompt": "`m = Table[10 i + j, {i, 1, 4}, {j, 1, 5}]` ya está definida. Extrae las filas 2 a 4 y las columnas 1 a 2.",
     "difficulty": 1,
     "cmds": [
      "Take"
@@ -158,22 +199,74 @@
      "`Take[m, {fila inicial, fila final}, {columna inicial, columna final}]`",
      "`Take[m, {2, 4}, {1, 2}]`"
     ],
-    "explain": "Tres filas (2, 3, 4) y dos columnas (1, 2): un bloque de 3×2."
+    "explain": "Tres filas (2, 3, 4) y dos columnas (1, 2). El elemento de la fila i, columna j es 10i + j."
    }
   },
   {
-   "type": "explain",
+   "type": "build",
    "title": "Join: pegar bloques",
-   "md": "`Join` une listas. Como una matriz es una lista de filas, `Join[B1, B2]` pone las filas de `B2` **debajo** de las de `B1` (deben tener el mismo número de columnas).\n\nPara pegar **al lado** (una columna más) hay un camino que funciona siempre con `b` escrito como vector normal `{b1, b2}`: `Transpose[Append[Transpose[A], b]]`. Se lee de dentro afuera: trasponer A, añadirle `b` como una fila más (`Append`) y volver a trasponer. Así se forma la **matriz ampliada** de un sistema.\n\nEn los cuadernos de la práctica verás otra forma de Mathematica para lo mismo: `Join[A, b, 2]`, donde el 2 significa «pega por columnas» y `b` tiene que estar escrito como matriz columna, `{{b1}, {b2}}`.",
-   "cells": [
+   "md": "Misma `m` (3×4). Pega un bloque debajo de otro con `Join`.",
+   "target": "Join[Take[m, {1, 1}, {1, 2}], Take[m, {3, 3}, {3, 4}]]",
+   "setup": "m = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};",
+   "parts": [
     {
-     "code": "B1 = {{1, 2}, {3, 4}}; B2 = {{5, 6}};\nJoin[B1, B2]",
-     "note": "B2 debajo de B1"
+     "code": "Join[{{1, 2}}, {{3, 4}}]",
+     "md": "Dos matrices de una fila: la segunda queda debajo.",
+     "run": true
     },
     {
-     "code": "A = {{1, 2}, {3, 4}}; b = {5, 6};\nTranspose[Append[Transpose[A], b]]",
-     "note": "b pegado como última columna"
+     "code": "Join[Take[m, {1, 1}, {1, 2}], Take[m, {3, 3}, {3, 4}]]",
+     "md": "Lo mismo con dos bloques recortados de `m`.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Pega debajo de `Take[m, {1, 1}, {1, 2}]` el bloque `Take[m, {3, 3}, {3, 4}]`.",
+    "hints": [
+     "El comando que pega es `Join`, con los dos bloques separados por coma.",
+     "`Join[Take[ ], Take[ ]]`"
+    ]
+   },
+   "cmds": [
+    "Join",
+    "Take"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Pegar una columna: la ampliada",
+   "md": "`A = {{1, 2}, {3, 4}}` y `b = {5, 6}` ya existen. Pega `b` como última columna de `A`.",
+   "target": "Transpose[Append[Transpose[A], b]]",
+   "setup": "A = {{1, 2}, {3, 4}}; b = {5, 6};",
+   "parts": [
+    {
+     "code": "Transpose[A]",
+     "md": "Traspón `A`: sus columnas pasan a ser filas.",
+     "run": true
+    },
+    {
+     "code": "Append[Transpose[A], b]",
+     "md": "Añádele `b` como una fila más con `Append`.",
+     "run": true
+    },
+    {
+     "code": "Transpose[Append[Transpose[A], b]]",
+     "md": "Vuelve a trasponer: `b` queda como última columna.",
+     "run": true,
+     "hint": "En los cuadernos de la práctica verás `Join[A, b, 2]`, con `b` como columna `{{5}, {6}}`."
+    }
+   ],
+   "recall": {
+    "prompt": "Pega el vector `b` como última columna de la matriz `A`.",
+    "hints": [
+     "Traspón, añade `b` con `Append` y vuelve a trasponer.",
+     "Por dentro: `Append[Transpose[A], b]`.",
+     "`Transpose[Append[Transpose[ ], ]]`"
+    ]
+   },
+   "cmds": [
+    "Transpose",
+    "Append"
    ]
   },
   {
@@ -182,7 +275,7 @@
     "id": "1-p15-e04",
     "kind": "code",
     "title": "Recortar y pegar",
-    "prompt": "Ya está definida la matriz de 4×4 `m = Table[10 i + j, {i, 1, 4}, {j, 1, 4}]` (el elemento de la fila 2, columna 3 es 23).\n\nForma una matriz 2×2 que tenga arriba las columnas 1-2 de la fila 1 y abajo las columnas 3-4 de la fila 4.",
+    "prompt": "`m = Table[10 i + j, {i, 1, 4}, {j, 1, 4}]` ya existe. Une arriba la fila 1 (columnas 1-2) y abajo la fila 4 (columnas 3-4).",
     "difficulty": 2,
     "cmds": [
      "Take",
@@ -201,53 +294,51 @@
      "Join"
     ],
     "hints": [
-     "Una sola fila también es un rango: de la 1 a la 1, `{1, 1}`. Los dos bloques son `Take[m, {1, 1}, {1, 2}]` y `Take[m, {4, 4}, {3, 4}]`.",
+     "Los bloques son `Take[m, {1, 1}, {1, 2}]` y `Take[m, {4, 4}, {3, 4}]`.",
      "`Join[Take[m, {1, 1}, {1, 2}], Take[m, {4, 4}, {3, 4}]]`"
     ],
-    "explain": "Cada `Take` devuelve un bloque de una fila y `Join` coloca el segundo debajo del primero: `{{11, 12}, {43, 44}}`."
+    "explain": "Cada `Take` da un bloque de una fila y `Join` pone el segundo debajo: `{{11, 12}, {43, 44}}`."
    }
   },
   {
    "type": "exercise",
+   "section": "La prueba real: Vandermonde por bloques",
    "ex": {
     "id": "1-p15-e05",
     "kind": "code",
-    "title": "La Vandermonde de la prueba",
-    "prompt": "a) Construye la matriz de Vandermonde `Vand` con las bases 3, 5, 7, 9, 11, 13 y 15 (columnas) y los exponentes de 0 a 9 (filas).\n\nb) Con `Take` extrae el bloque `B1` (filas 1-2, columnas 2-5) y el bloque `B2` (filas 9-10, columnas 1-4), y únelos en una sola matriz `B` de 4×4, con B1 arriba.\n\nDevuelve la lista `{Vand(8,6), B(4,3) + B(2,2)·B(2,3)}`.",
+    "title": "Construye Vand",
+    "prompt": "Crea `Vand`: bases 3, 5, 7, …, 15 en columnas y exponentes 0 a 9 en filas. Sin imprimirla, devuelve `Vand[[8, 6]]`.",
     "difficulty": 3,
     "cmds": [
      "Table",
-     "Take",
-     "Join",
      "Part"
     ],
     "real": true,
-    "source": "Práctica 15 · P2 a) y b)",
-    "solution": "Vand = Table[j^i, {i, 0, 9}, {j, 3, 15, 2}];\nB1 = Take[Vand, {1, 2}, {2, 5}];\nB2 = Take[Vand, {9, 10}, {1, 4}];\nB = Join[B1, B2];\n{Vand[[8, 6]], B[[4, 3]] + B[[2, 2]]*B[[2, 3]]}",
+    "source": "Práctica 15 · P2 a)",
+    "solution": "Vand = Table[j^i, {i, 0, 9}, {j, 3, 15, 2}];\nVand[[8, 6]]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
-       "expr": "B",
-       "expected": "{{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}}",
-       "msg": "`B` no es la matriz pedida. B1 = `Take[Vand, {1, 2}, {2, 5}]`, B2 = `Take[Vand, {9, 10}, {1, 4}]`, B = `Join[B1, B2]`."
+       "expr": "Vand",
+       "expected": "Table[j^i, {i, 0, 9}, {j, 3, 15, 2}]",
+       "msg": "`Vand` no es la matriz pedida: 10 filas (exponentes 0 a 9) y 7 columnas (bases 3 a 15 de 2 en 2)."
       },
       {
        "type": "expr",
-       "expected": "{62748517, 40353670}"
+       "expected": "62748517"
       }
      ]
     },
     "requires": [
-     "Take",
-     "Join"
+     "Table"
     ],
     "hints": [
-     "`Vand = Table[j^i, {i, 0, 9}, {j, 3, 15, 2}];` (10 filas, 7 columnas).",
-     "`B = Join[Take[Vand, {1, 2}, {2, 5}], Take[Vand, {9, 10}, {1, 4}]];` y la lista `{Vand[[8, 6]], B[[4, 3]] + B[[2, 2]]*B[[2, 3]]}`."
+     "Iteradores: `{i, 0, 9}` para los exponentes y `{j, 3, 15, 2}` para las bases.",
+     "`Vand = Table[j^i, {i, 0, 9}, {j, 3, 15, 2}];` y luego `Vand[[8, 6]]`."
     ],
-    "explain": "Vand(8,6) = 13⁷ = 62748517 (fila 8 = exponente 7, columna 6 = base 13). En el enunciado real los bloques venían marcados en rojo y azul sobre la matriz; aquí te los doy por filas y columnas."
+    "explain": "Vand(8,6) = 13⁷ = 62748517: la fila 8 es el exponente 7 y la columna 6 es la base 13."
    }
   },
   {
@@ -255,20 +346,81 @@
    "ex": {
     "id": "1-p15-e06",
     "kind": "code",
-    "title": "M = (Bᵗ·B)⁻¹ y su determinante",
-    "prompt": "Ya está definida la matriz `B` de 4×4 del ejercicio anterior.\n\nc) Calcula `M`, la inversa del producto de la traspuesta de B por B, y guárdala con ese nombre.\n\nd) Calcula el determinante de `M` y míralo: es una fracción de numerador 1.\n\nLa última línea debe devolver la lista `{M(3,1), M(3,3)}` en decimales.",
+    "title": "Los bloques B1 y B2",
+    "prompt": "`Vand` ya existe. Guarda en `B` la unión de `Take[Vand, {1, 2}, {2, 5}]` (arriba) y `Take[Vand, {9, 10}, {1, 4}]` (abajo).",
+    "difficulty": 3,
+    "cmds": [
+     "Take",
+     "Join"
+    ],
+    "real": true,
+    "source": "Práctica 15 · P2 b), bloques",
+    "setup": "Vand = Table[j^i, {i, 0, 9}, {j, 3, 15, 2}];",
+    "solution": "B = Join[Take[Vand, {1, 2}, {2, 5}], Take[Vand, {9, 10}, {1, 4}]]",
+    "check": {
+     "type": "value",
+     "expr": "B",
+     "expected": "{{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}}",
+     "msg": "`B` no es la matriz pedida: `Join` de los dos `Take`, con el de las filas 1-2 arriba."
+    },
+    "requires": [
+     "Take",
+     "Join"
+    ],
+    "hints": [
+     "`Join[bloque de arriba, bloque de abajo]`.",
+     "`B = Join[Take[Vand, {1, 2}, {2, 5}], Take[Vand, {9, 10}, {1, 4}]]`"
+    ],
+    "explain": "En el enunciado real los bloques venían pintados en rojo (filas 1-2, columnas 2-5) y azul (filas 9-10, columnas 1-4). `B` es 4×4."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p15-e07",
+    "kind": "code",
+    "title": "Una cuenta con elementos de B",
+    "prompt": "`B` (4×4) ya está definida. Calcula `B(4,3) + B(2,2)·B(2,3)`.",
+    "difficulty": 2,
+    "cmds": [
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 15 · P2 b), casilla",
+    "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};",
+    "solution": "B[[4, 3]] + B[[2, 2]]*B[[2, 3]]",
+    "check": {
+     "type": "expr",
+     "expected": "40353670"
+    },
+    "requires": [
+     "Part"
+    ],
+    "hints": [
+     "Cada elemento con dobles corchetes: `B[[4, 3]]`.",
+     "`B[[4, 3]] + B[[2, 2]]*B[[2, 3]]`"
+    ],
+    "explain": "40353607 + 7·9 = 40353670. Aquí el `*` es correcto: son números, no matrices."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p15-e08",
+    "kind": "code",
+    "title": "M = (Bᵗ·B)⁻¹",
+    "prompt": "`B` ya está definida. Guarda en `M` la inversa de `Transpose[B].B` y devuelve `{M[[3, 1]], M[[3, 3]]}` en decimal.",
     "difficulty": 3,
     "cmds": [
      "Inverse",
      "Transpose",
      "Dot",
-     "Det",
      "N"
     ],
     "real": true,
-    "source": "Práctica 15 · P2 c) y d)",
+    "source": "Práctica 15 · P2 c)",
     "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};",
-    "solution": "M = Inverse[Transpose[B].B];\nDet[M]\n{N[M[[3, 1]]], N[M[[3, 3]]]}",
+    "solution": "M = Inverse[Transpose[B].B];\n{M[[3, 1]], M[[3, 3]]} // N",
     "check": {
      "type": "all",
      "checks": [
@@ -288,38 +440,91 @@
     },
     "requires": [
      "Inverse",
-     "Transpose",
-     "Det"
+     "Transpose"
     ],
     "hints": [
      "`M = Inverse[Transpose[B].B];` (con punto: producto matricial).",
-     "`Det[M]` en una línea y, al final, `{N[M[[3, 1]]], N[M[[3, 3]]]}`."
+     "Después: `{M[[3, 1]], M[[3, 3]]} // N`."
     ],
-    "explain": "M(3,1) = 1.71850 y M(3,3) = 0.193087. El determinante es 1/567608335088…: la casilla pedía las 6 primeras cifras del denominador, 567608. Trabajar con enteros exactos y pasar a decimal solo al final (`N`) evita errores de redondeo."
+    "explain": "M(3,1) = 1.71850 y M(3,3) = 0.193087. Trabaja con enteros exactos y pasa a decimal solo al final."
    }
   },
   {
-   "type": "explain",
-   "title": "Resolver A·x = b: LinearSolve",
-   "md": "Un sistema lineal se escribe con su **matriz de coeficientes** `A` (una fila por ecuación, una columna por incógnita) y el vector de **términos independientes** `b`. El de las celdas es:\n\n- 2x + y − z = 3\n- x − y + 2z = 4\n- 3x + 2y + z = 10\n\n`LinearSolve[A, b]` devuelve el vector solución (x, y, z).\n\nDos equivalentes que ya conoces: `Inverse[A].b`, y `Solve` con las ecuaciones escritas una a una con `==`.\n\nImportante: `LinearSolve` devuelve **una** solución. Es la herramienta adecuada cuando el sistema tiene solución única (compatible determinado). Si hay infinitas solo te da una de ellas, sin avisar; para esos casos usarás `Solve`, más abajo.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p15-e09",
+    "kind": "code",
+    "title": "El determinante de M",
+    "prompt": "`M` ya está definida. Calcula su determinante (es una fracción de numerador 1).",
+    "difficulty": 2,
+    "cmds": [
+     "Det"
+    ],
+    "real": true,
+    "source": "Práctica 15 · P2 d)",
+    "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};\nM = Inverse[Transpose[B].B];",
+    "solution": "Det[M]",
+    "check": {
+     "type": "value",
+     "expr": "1/%",
+     "expected": "567608335088055579476125286400",
+     "msg": "Calcula exactamente `Det[M]`."
+    },
+    "requires": [
+     "Det"
+    ],
+    "hints": [
+     "Un solo comando con `M` entre corchetes.",
+     "`Det[M]`"
+    ],
+    "explain": "Sale 1/567608335088…: la casilla pedía las 6 primeras cifras del denominador, 567608."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Resolver A·x = b",
+   "title": "Tres formas de resolver un sistema",
+   "md": "El sistema 2x + y = 5, x + 3y = 10, resuelto de tres maneras.",
+   "target": "LinearSolve[{{2, 1}, {1, 3}}, {5, 10}]",
+   "parts": [
     {
-     "code": "A = {{2, 1, -1}, {1, -1, 2}, {3, 2, 1}}; b = {3, 4, 10};\nLinearSolve[A, b]",
-     "note": "x, y, z"
+     "code": "Solve[{2 x + y == 5, x + 3 y == 10}, {x, y}]",
+     "md": "Con `Solve` y las ecuaciones, como ya sabes.",
+     "run": true
     },
     {
-     "code": "A.LinearSolve[A, b] == b",
-     "note": "comprobación: A por la solución da b"
+     "code": "Inverse[{{2, 1}, {1, 3}}].{5, 10}",
+     "md": "Con la inversa de la matriz de coeficientes por el vector.",
+     "run": true
+    },
+    {
+     "code": "LinearSolve[{{2, 1}, {1, 3}}, {5, 10}]",
+     "md": "Con `LinearSolve`: coeficientes y términos independientes.",
+     "run": true,
+     "hint": "`LinearSolve` da UNA solución: es para sistemas de solución única."
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve con `LinearSolve` el sistema 2x + y = 5, x + 3y = 10.",
+    "hints": [
+     "Primero la matriz de coeficientes: una fila por ecuación.",
+     "Después el vector de términos independientes: `{5, 10}`.",
+     "`LinearSolve[{{ , }, { , }}, { , }]`"
+    ]
+   },
+   "cmds": [
+    "LinearSolve",
+    "Inverse",
+    "Solve"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e07",
+    "id": "1-p15-e10",
     "kind": "code",
     "title": "Tu primer LinearSolve",
-    "prompt": "Resuelve con `LinearSolve` el sistema\n\n- x + y + z = 6\n- 2x − y + z = 3\n- x + 2y − z = 2\n\nDefine antes la matriz de coeficientes `A` y el vector `b`.",
+    "prompt": "Resuelve con `LinearSolve`: x + y + z = 6; 2x − y + z = 3; x + 2y − z = 2. Define antes `A` y `b`.",
     "difficulty": 2,
     "cmds": [
      "LinearSolve"
@@ -338,16 +543,16 @@
      "Cada fila de `A` son los coeficientes de x, y, z de una ecuación: la primera es `{1, 1, 1}`.",
      "`A = {{1, 1, 1}, {2, -1, 1}, {1, 2, -1}}; b = {6, 3, 2};` y luego `LinearSolve[A, b]`."
     ],
-    "explain": "Sale `{1, 2, 3}`: x = 1, y = 2, z = 3. Cuidado con los signos y con los coeficientes que no se ven (el de `−y` es −1)."
+    "explain": "Sale `{1, 2, 3}`. Cuidado con los coeficientes que no se ven: el de `−y` es −1."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e08",
+    "id": "1-p15-e11",
     "kind": "fix",
     "title": "LinearSolve mal escrito",
-    "prompt": "Esta celda debería resolver el sistema A·x = b, pero la última línea tiene dos errores. Corrígela.",
+    "prompt": "Debería resolver A·x = b, pero la última línea tiene dos errores. Escribe la celda corregida.",
     "difficulty": 1,
     "cmds": [
      "LinearSolve"
@@ -365,41 +570,86 @@
     ],
     "hints": [
      "Mayúsculas: `LinearSolve`.",
-     "La matriz y el vector son dos argumentos separados por una coma, no un producto."
+     "Matriz y vector son dos argumentos separados por una coma."
     ],
-    "explain": "`LinearSolve[A, b]`: dos argumentos. `A*b` multiplicaría cada fila de A por un número de b, que no tiene nada que ver con resolver el sistema."
+    "explain": "`A*b` multiplicaría cada fila de A por un número de b: nada que ver con resolver el sistema."
    }
   },
   {
-   "type": "explain",
-   "title": "¿Una solución, infinitas o ninguna? Rangos",
-   "md": "Antes de resolver conviene **clasificar** el sistema. Se comparan dos rangos (teorema de Rouché-Frobenius):\n\n- rango de A = rango de la ampliada = nº de incógnitas → **compatible determinado** (SCD): una solución.\n- rango de A = rango de la ampliada, pero menor que el nº de incógnitas → **compatible indeterminado** (SCI): infinitas soluciones.\n- rango de A menor que el de la ampliada → **incompatible**: ninguna.\n\nHerramientas:\n\n- `MatrixRank[M]` = rango de la matriz.\n- La **ampliada** es A con `b` pegado como última columna (lo del paso de `Join`).\n- `RowReduce[M]` = forma escalonada reducida (Gauss-Jordan). En la ampliada se ve todo: una fila de ceros quiere decir que sobra una ecuación; una fila `0 0 0 | 1` quiere decir 0 = 1, incompatible.",
-   "cells": [
+   "type": "build",
+   "section": "¿Una solución, infinitas o ninguna?",
+   "title": "Rangos iguales: compatible",
+   "md": "Ya existen `A` (3×3), `b` y su ampliada `aug` (A con `b` pegado). Compara los rangos.",
+   "target": "RowReduce[aug]",
+   "more": "Teorema de Rouché-Frobenius: rango(A) = rango(ampliada) = nº de incógnitas → compatible determinado (una solución); rangos iguales pero menores → compatible indeterminado (infinitas); rango(A) < rango(ampliada) → incompatible.",
+   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {1, 2, 3};\naug = Transpose[Append[Transpose[A], b]];",
+   "parts": [
     {
-     "code": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; b = {1, 2, 3};\nMatrixRank[A]",
-     "note": "rango 2 con 3 incógnitas"
-    },
-    {
-     "code": "aug = Transpose[Append[Transpose[A], b]]",
-     "note": "matriz ampliada"
+     "code": "MatrixRank[A]",
+     "md": "Rango de la matriz de coeficientes: 2, con 3 incógnitas.",
+     "run": true
     },
     {
      "code": "MatrixRank[aug]",
-     "note": "también 2: compatible indeterminado"
+     "md": "Rango de la ampliada: también 2.",
+     "run": true,
+     "hint": "Rangos iguales y menores que el nº de incógnitas: infinitas soluciones."
     },
     {
-     "code": "RowReduce[aug] // MatrixForm",
-     "note": "la tercera ecuación sobraba"
+     "code": "RowReduce[aug]",
+     "md": "Forma escalonada de la ampliada: una fila de ceros, sobra una ecuación.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Calcula la forma escalonada reducida de `aug`.",
+    "hints": [
+     "El comando es `RowReduce`.",
+     "`RowReduce[ ]`"
+    ]
+   },
+   "cmds": [
+    "MatrixRank",
+    "RowReduce"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Rangos distintos: incompatible",
+   "md": "Misma `A`, pero en `aug2` el último término independiente es 4 en vez de 3.",
+   "target": "RowReduce[aug2]",
+   "setup": "A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};\naug2 = Transpose[Append[Transpose[A], {1, 2, 4}]];",
+   "parts": [
+    {
+     "code": "MatrixRank[aug2]",
+     "md": "El rango de la ampliada sube a 3: ya no coincide con el de `A`.",
+     "run": true
+    },
+    {
+     "code": "RowReduce[aug2]",
+     "md": "La última fila dice 0 = 1: el sistema no tiene solución.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Calcula la forma escalonada reducida de `aug2` y mira su última fila.",
+    "hints": [
+     "Mismo comando que antes, con `aug2`.",
+     "`RowReduce[ ]`"
+    ]
+   },
+   "cmds": [
+    "MatrixRank",
+    "RowReduce"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e09",
+    "id": "1-p15-e12",
     "kind": "code",
     "title": "Lee la forma escalonada",
-    "prompt": "El sistema x + y = 1, x + y = 2 tiene como matriz ampliada `{{1, 1, 1}, {1, 1, 2}}`. Calcula su forma escalonada reducida.",
+    "prompt": "La ampliada del sistema x + y = 1, x + y = 2 es `{{1, 1, 1}, {1, 1, 2}}`. Calcula su forma escalonada reducida.",
     "difficulty": 1,
     "cmds": [
      "RowReduce"
@@ -418,16 +668,16 @@
      "`RowReduce[matriz]`, con la matriz escrita como lista de filas.",
      "`RowReduce[{{1, 1, 1}, {1, 1, 2}}]`"
     ],
-    "explain": "La segunda fila es `{0, 0, 1}`: dice 0·x + 0·y = 1, imposible. Sistema incompatible (rango de A = 1, rango de la ampliada = 2), como era de esperar: x + y no puede valer 1 y 2 a la vez."
+    "explain": "La segunda fila es `{0, 0, 1}`: 0 = 1, imposible. Incompatible: x + y no puede valer 1 y 2 a la vez."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e10",
+    "id": "1-p15-e13",
     "kind": "code",
     "title": "Rangos de un sistema",
-    "prompt": "Ya están definidos `A = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}` y `b = {1, 2, 4}`.\n\nConstruye la matriz ampliada y guárdala en `aug`. Devuelve la lista `{rango de A, rango de la ampliada}`.",
+    "prompt": "`A` (3×3) y `b = {1, 2, 4}` ya existen. Guarda la ampliada en `aug` y devuelve `{MatrixRank[A], MatrixRank[aug]}`.",
     "difficulty": 2,
     "cmds": [
      "MatrixRank",
@@ -460,73 +710,110 @@
      "Ampliada: `aug = Transpose[Append[Transpose[A], b]]`.",
      "`{MatrixRank[A], MatrixRank[aug]}`"
     ],
-    "explain": "Rangos 2 y 3: incompatible. Con `b = {1, 2, 3}` (el ejemplo de antes) era indeterminado: cambiar un solo término independiente cambia el tipo de sistema."
+    "explain": "Rangos 2 y 3: incompatible."
    }
   },
   {
-   "type": "explain",
-   "title": "Sistemas con parámetros",
-   "md": "En el examen el sistema lleva letras (k, m) y te preguntan para qué valores es de cada tipo. El plan:\n\n- **Det[A] distinto de 0** → rango máximo → compatible determinado, sea cual sea `b`. Así que se resuelve `Det[A] == 0` y los valores que salen son los **críticos**: fuera de ellos, SCD.\n- Para dar valores a los parámetros usa reglas: `A /. k -> 4`. (Los cuadernos de la práctica asignan `k = m = 4`; funciona, pero luego hay que acordarse de `Clear[k, m]`.)\n- En cada valor crítico se estudian los rangos de A y de la ampliada.\n\nUn consejo: para los rangos usa el valor crítico como **fracción** (17/5 y no 3.4). Con decimales, un redondeo minúsculo puede cambiar el rango. `Rationalize[3.4]` convierte el decimal en fracción.",
-   "cells": [
+   "type": "build",
+   "section": "Sistemas con parámetros",
+   "title": "Los valores críticos",
+   "md": "Una matriz con un parámetro `k`. Busca los valores de `k` que anulan su determinante.",
+   "target": "Solve[Det[{{1, k}, {k, 4}}] == 0, k]",
+   "parts": [
     {
-     "code": "A = {{1, k}, {k, 4}};\nSolve[Det[A] == 0, k]",
-     "note": "valores críticos: k = −2 y k = 2"
+     "code": "Det[{{1, k}, {k, 4}}]",
+     "md": "El determinante depende de `k`.",
+     "run": true
+    },
+    {
+     "code": "Solve[Det[{{1, k}, {k, 4}}] == 0, k]",
+     "md": "Resuelve «determinante = 0» en `k`: los valores críticos.",
+     "run": true,
+     "hint": "Fuera de esos valores el determinante no es 0: solución única."
+    }
+   ],
+   "recall": {
+    "prompt": "Halla los valores de `k` que anulan el determinante de `{{1, k}, {k, 4}}`.",
+    "hints": [
+     "Por dentro: `Det[{{1, k}, {k, 4}}] == 0`.",
+     "Por fuera: `Solve[..., k]`.",
+     "`Solve[Det[ ] == 0, k]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{k -> -2}, {k -> 2}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "Det",
+    "Solve"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Dar valor al parámetro",
+   "md": "`A = {{1, k}, {k, 4}}` ya está definida. Dale valores a `k` con una regla.",
+   "target": "MatrixRank[A /. k -> 2]",
+   "setup": "A = {{1, k}, {k, 4}};",
+   "parts": [
+    {
+     "code": "A /. k -> 3",
+     "md": "Sustituye `k` por 3 con `/.` y una regla.",
+     "run": true
+    },
+    {
+     "code": "MatrixRank[A /. k -> 3]",
+     "md": "Con un `k` cualquiera, rango máximo.",
+     "run": true
     },
     {
      "code": "MatrixRank[A /. k -> 2]",
-     "note": "en k = 2 el rango baja a 1"
-    },
-    {
-     "code": "Rationalize[3.4]",
-     "note": "de decimal a fracción"
+     "md": "En un valor crítico, el rango baja.",
+     "run": true
     }
+   ],
+   "recall": {
+    "prompt": "Calcula el rango de `A` cuando `k` vale 2.",
+    "hints": [
+     "Sustituye con `A /. k -> 2`.",
+     "`MatrixRank[A /. k -> ]`"
+    ]
+   },
+   "cmds": [
+    "ReplaceAll",
+    "MatrixRank"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e11",
+    "id": "1-p15-e14",
     "kind": "code",
-    "title": "Discusión con parámetros: el valor crítico",
-    "prompt": "Estudia el sistema según los valores de k y m:\n\n- 2x + (k − 3)y = 1\n- (k − 5)y − z = 1\n- 3x − y − z = 5m − 10\n\nYa están definidos `A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}` y `b = {1, 1, 5 m - 10}`.\n\na) Sea cual sea m, el sistema es compatible determinado si k ≠ k0. Además, resuelve el sistema con k = m = 4 y guarda la solución en `sol4`.\n\nLa última línea debe devolver el valor crítico k0 (vale la salida de `Solve`).",
+    "title": "El valor crítico k0",
+    "prompt": "`A` (3×3, con parámetro `k`) ya está definida; escribe `A` para verla. Halla el valor de `k` que anula su determinante.",
     "difficulty": 3,
     "cmds": [
      "Det",
-     "Solve",
-     "LinearSolve",
-     "ReplaceAll"
+     "Solve"
     ],
     "real": true,
-    "source": "Práctica 15 · P3 a)",
+    "source": "Práctica 15 · P3 a), valor crítico",
     "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {1, 1, 5 m - 10};",
-    "solution": "sol4 = LinearSolve[A /. k -> 4, b /. m -> 4]\nSolve[Det[A] == 0, k]",
+    "solution": "Solve[Det[A] == 0, k]",
     "check": {
-     "type": "all",
+     "type": "any",
      "checks": [
       {
-       "type": "value",
-       "expr": "Flatten[sol4]",
-       "expected": "{3, -5, 4}",
-       "compare": "numeric",
-       "tol": 1e-06,
-       "msg": "`sol4` no es la solución con k = m = 4: `LinearSolve[A /. k -> 4, b /. m -> 4]`."
+       "type": "expr",
+       "expected": "{{k -> 17/5}}",
+       "compare": "set"
       },
       {
-       "type": "any",
-       "checks": [
-        {
-         "type": "expr",
-         "expected": "{{k -> 17/5}}",
-         "compare": "set"
-        },
-        {
-         "type": "expr",
-         "expected": "17/5",
-         "compare": "numeric",
-         "tol": 1e-06,
-         "msg": "La última línea debe dar k0: resuelve `Det[A] == 0` en k."
-        }
-       ]
+       "type": "expr",
+       "expected": "17/5",
+       "compare": "numeric",
+       "tol": 1e-06
       }
      ]
     },
@@ -534,19 +821,51 @@
      "Det"
     ],
     "hints": [
-     "`sol4 = LinearSolve[A /. k -> 4, b /. m -> 4]`",
-     "`Solve[Det[A] == 0, k]` (añade `// N` si lo quieres en decimal)."
+     "`Det[A] == 0` es una ecuación en `k`.",
+     "`Solve[Det[A] == 0, k]`"
     ],
-    "explain": "k0 = 17/5 = 3.4: para cualquier otro k el determinante no es 0 y hay solución única. Con k = m = 4 la solución es (x, y, z) = (3, −5, 4)."
+    "explain": "k0 = 17/5 = 3.4. El sistema era 2x + (k−3)y = 1; (k−5)y − z = 1; 3x − y − z = 5m − 10: si k ≠ k0, es compatible determinado sea cual sea m."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e12",
+    "id": "1-p15-e15",
     "kind": "code",
-    "title": "Discusión con parámetros: el caso crítico",
-    "prompt": "Mismo sistema (`A` y `b` ya definidos, con k y m). Considera ahora k = k0 = 17/5. Halla el único valor real de m para el que el sistema es compatible indeterminado (y por tanto no es incompatible).\n\nPista del método: con k = 17/5 el rango de A es 2. La ampliada tendrá también rango 2 solo si se anula su menor de orden 3 formado por las columnas 2 a 4.",
+    "title": "La solución con k = m = 4",
+    "prompt": "`A` (con `k`) y `b` (con `m`) ya están definidas. Resuelve el sistema para k = 4 y m = 4.",
+    "difficulty": 3,
+    "cmds": [
+     "LinearSolve",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Práctica 15 · P3 a), solución",
+    "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {1, 1, 5 m - 10};",
+    "solution": "LinearSolve[A /. k -> 4, b /. m -> 4]",
+    "check": {
+     "type": "expr",
+     "expected": "{3, -5, 4}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "LinearSolve"
+    ],
+    "hints": [
+     "Sustituye en cada uno: `A /. k -> 4` y `b /. m -> 4`.",
+     "`LinearSolve[A /. k -> 4, b /. m -> 4]`"
+    ],
+    "explain": "(x, y, z) = (3, −5, 4). Los cuadernos de la práctica asignan `k = m = 4`; funciona, pero luego hay que hacer `Clear[k, m]`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p15-e16",
+    "kind": "code",
+    "title": "El caso crítico: ¿qué m?",
+    "prompt": "Con k = 17/5, guarda en `aug` la ampliada y resuelve en `m`: `Det[Take[aug, {1, 3}, {2, 4}]] == 0`.",
     "difficulty": 4,
     "cmds": [
      "Take",
@@ -580,30 +899,29 @@
      "Det"
     ],
     "hints": [
-     "Ampliada con el valor crítico: `aug = Transpose[Append[Transpose[A /. k -> 17/5], b]]`.",
+     "`aug = Transpose[Append[Transpose[A /. k -> 17/5], b]];`",
      "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
     ],
-    "explain": "m = 5/2 (la casilla era «m = __/2», es decir, 5). Con ese m, `MatrixRank[aug /. m -> 5/2]` da 2, igual que A: compatible indeterminado. Con cualquier otro m la ampliada tiene rango 3: incompatible."
+    "explain": "m = 5/2. Con k = k0 el rango de A es 2; la ampliada también tiene rango 2 solo si se anula su menor de las columnas 2 a 4: entonces es compatible indeterminado. Con otro m, incompatible. Usa la fracción 17/5, no 3.4, para que los rangos sean exactos."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e13",
+    "id": "1-p15-e17",
     "kind": "code",
-    "title": "La discusión de la versión de clase",
-    "prompt": "Mismo tipo de ejercicio con otros datos. Ya están definidos `A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}` y `b = {3, -1, m - 5}`.\n\n- Guarda en `sol15` la solución del sistema para k = m = 3/2.\n- Devuelve la lista `{k0, m0}`: el valor crítico k0 (donde deja de ser compatible determinado) y el valor m0 que hace el sistema compatible indeterminado cuando k = k0.",
-    "difficulty": 4,
+    "title": "Versión de clase: k0 y la solución",
+    "prompt": "Otros datos: `A` (con `k`) y `b` (con `m`) ya definidas. Guarda en `sol15` la solución con k = m = 3/2 y devuelve el valor crítico de `k`.",
+    "difficulty": 3,
     "cmds": [
      "Det",
      "Solve",
-     "LinearSolve",
-     "Take"
+     "LinearSolve"
     ],
     "real": true,
-    "source": "Práctica 15 · P2 (versión de clase)",
+    "source": "Práctica 15 · P2 a) (versión de clase)",
     "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {3, -1, m - 5};",
-    "solution": "sol15 = LinearSolve[A /. k -> 3/2, b /. m -> 3/2];\nSolve[Det[A] == 0, k]\naug = Transpose[Append[Transpose[A /. k -> 9/5], b]];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]\n{9/5, 6}",
+    "solution": "sol15 = LinearSolve[A /. k -> 3/2, b /. m -> 3/2];\nSolve[Det[A] == 0, k]",
     "check": {
      "type": "all",
      "checks": [
@@ -616,10 +934,20 @@
        "msg": "`sol15` no es la solución con k = m = 3/2: `LinearSolve[A /. k -> 3/2, b /. m -> 3/2]`."
       },
       {
-       "type": "expr",
-       "expected": "{9/5, 6}",
-       "compare": "numeric",
-       "tol": 1e-06
+       "type": "any",
+       "checks": [
+        {
+         "type": "expr",
+         "expected": "{{k -> 9/5}}",
+         "compare": "set"
+        },
+        {
+         "type": "expr",
+         "expected": "9/5",
+         "compare": "numeric",
+         "tol": 1e-06
+        }
+       ]
       }
      ]
     },
@@ -628,34 +956,99 @@
      "LinearSolve"
     ],
     "hints": [
-     "k0 sale de `Solve[Det[A] == 0, k]`: 9/5.",
-     "Con k = 9/5, forma la ampliada y anula el menor de las columnas 2 a 4: `Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`. Última línea: `{9/5, 6}`."
+     "`sol15 = LinearSolve[A /. k -> 3/2, b /. m -> 3/2];`",
+     "`Solve[Det[A] == 0, k]`"
     ],
-    "explain": "k0 = 9/5 = 1.8 y m0 = 6; con k = m = 1.5 la solución es (−3.5, −9, −3.5). Es exactamente la receta del ejercicio anterior con otros números."
+    "explain": "k0 = 9/5 = 1.8 y, con k = m = 1.5, la solución es (−3.5, −9, −3.5). El sistema era 3x + (k−3)y = 3; (k−1)y − z = −1; 2x − z = m − 5."
    }
   },
   {
-   "type": "explain",
-   "title": "Infinitas soluciones: Solve y los parámetros",
-   "md": "En un sistema compatible indeterminado hay más incógnitas que ecuaciones útiles: algunas incógnitas quedan **libres** (son los parámetros) y las demás se escriben en función de ellas.\n\nCon `Solve` tú eliges: pon en la lista **solo las incógnitas que quieres despejar**. Las que no aparecen en la lista quedan como parámetros.\n\nEn los cuadernos de la práctica verás otra forma: poner todas las variables y jugar con el orden. Mathematica despeja las **últimas** de la lista y deja libres las primeras, con el aviso `Solve::svars` (no es un error: avisa de que no hay solución única). Decir solo las que quieres despejar es más claro y no depende del orden.",
-   "cells": [
+   "type": "exercise",
+   "ex": {
+    "id": "1-p15-e18",
+    "kind": "code",
+    "title": "Versión de clase: el m del caso crítico",
+    "prompt": "Mismas `A` y `b`. Con k = 9/5, forma la ampliada `aug` y halla el `m` que anula `Det[Take[aug, {1, 3}, {2, 4}]]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Take",
+     "Det",
+     "Solve"
+    ],
+    "real": true,
+    "source": "Práctica 15 · P2 b) (versión de clase)",
+    "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {3, -1, m - 5};",
+    "solution": "aug = Transpose[Append[Transpose[A /. k -> 9/5], b]];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{{m -> 6}}",
+       "compare": "set"
+      },
+      {
+       "type": "expr",
+       "expected": "6",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "requires": [
+     "Det"
+    ],
+    "hints": [
+     "`aug = Transpose[Append[Transpose[A /. k -> 9/5], b]];`",
+     "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
+    ],
+    "explain": "m = 6: la misma receta del ejercicio anterior con otros números."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Infinitas soluciones: elegir parámetros",
+   "title": "Tú eliges qué se despeja",
+   "md": "Un sistema con más incógnitas que ecuaciones. Lo que no despejas queda como parámetro.",
+   "target": "Solve[{x + y + z == 6, x - y == 0}, {y, z}]",
+   "parts": [
     {
      "code": "Solve[{x + y + z == 6, x - y == 0}, {x, y}]",
-     "note": "despeja x e y; z es el parámetro"
+     "md": "Despeja `x` e `y`: `z` queda libre.",
+     "run": true
     },
     {
      "code": "Solve[{x + y + z == 6, x - y == 0}, {y, z}]",
-     "note": "ahora el parámetro es x"
+     "md": "Ahora despeja `y` y `z`: el parámetro es `x`.",
+     "run": true,
+     "hint": "En la lista final van solo las incógnitas que quieres despejar.",
+     "more": "En los cuadernos de la práctica se ponen todas las variables y se juega con el orden: Mathematica despeja las últimas de la lista y deja libres las primeras, con el aviso `Solve::svars`. Decir solo las que despejas es más claro."
     }
+   ],
+   "recall": {
+    "prompt": "Resuelve x + y + z = 6, x − y = 0 despejando `y` y `z` (parámetro `x`).",
+    "hints": [
+     "Las ecuaciones con `==`, en una lista.",
+     "Al final, solo las que despejas: `{y, z}`.",
+     "`Solve[{ == , == }, {y, z}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{y -> x, z -> 6 - 2 x}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "Solve"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e14",
+    "id": "1-p15-e19",
     "kind": "code",
-    "title": "Indeterminado con parámetros y, z",
-    "prompt": "Usa números decimales. Resuelve el sistema\n\n- 3x + y − 2z − w − 2t = 5\n- −3x/2 − y/2 + z + w/2 − t/4 = 1\n- 3x + y − 2z + 20w − 7t = 19\n\ntomando como **parámetros y, z** (es decir, despeja x, t y w). Añade `// N`.",
+    "title": "Parámetros y, z",
+    "prompt": "`ecs` (3 ecuaciones con x, y, z, w, t; escribe `ecs` para verlas) ya existe. Despeja x, t, w (parámetros y, z), en decimal.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -663,30 +1056,31 @@
     ],
     "real": true,
     "source": "Práctica 15 · P4 a) (versión A)",
-    "solution": "Solve[{3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19}, {x, t, w}] // N",
+    "setup": "ecs = {3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19};",
+    "solution": "Solve[ecs, {x, t, w}] // N",
     "check": {
      "type": "expr",
      "expected": "{{x -> -1/5 - y/3 + 2 z/3, t -> -14/5, w -> 0}}",
      "compare": "set",
-     "msg": "No coincide. Despeja exactamente x, t y w: `Solve[{…}, {x, t, w}]`."
+     "msg": "No coincide. Despeja exactamente x, t y w: `Solve[ecs, {x, t, w}]`."
     },
     "requires": [
      "Solve"
     ],
     "hints": [
-     "Las tres ecuaciones con `==` dentro de una lista; como incógnitas, solo las que se despejan: `{x, t, w}`.",
-     "`Solve[{3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19}, {x, t, w}] // N`"
+     "Como incógnitas, solo las que se despejan: `{x, t, w}`.",
+     "`Solve[ecs, {x, t, w}] // N`"
     ],
-    "explain": "x = −0.2 − 0.333333·y + 0.666667·z, t = −2.8, w = 0. Las casillas eran esos coeficientes. Tres ecuaciones y cinco incógnitas: dos quedan libres."
+    "explain": "x = −0.2 − 0.333333·y + 0.666667·z, t = −2.8, w = 0. El sistema: 3x + y − 2z − w − 2t = 5; −3x/2 − y/2 + z + w/2 − t/4 = 1; 3x + y − 2z + 20w − 7t = 19."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e15",
+    "id": "1-p15-e20",
     "kind": "code",
-    "title": "El mismo sistema con parámetros x, y",
-    "prompt": "Mismo sistema del ejercicio anterior. Resuélvelo ahora tomando como **parámetros x, y** (despeja z, t y w), en decimales.",
+    "title": "Parámetros x, y",
+    "prompt": "Mismo `ecs`. Resuélvelo ahora con parámetros x, y: despeja z, t, w, en decimal.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -694,60 +1088,62 @@
     ],
     "real": true,
     "source": "Práctica 15 · P4 b) (versión A)",
-    "solution": "Solve[{3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19}, {z, t, w}] // N",
+    "setup": "ecs = {3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19};",
+    "solution": "Solve[ecs, {z, t, w}] // N",
     "check": {
      "type": "expr",
      "expected": "{{z -> 3/10 + 3 x/2 + y/2, t -> -14/5, w -> 0}}",
      "compare": "set",
-     "msg": "No coincide. Despeja exactamente z, t y w: `Solve[{…}, {z, t, w}]`."
+     "msg": "No coincide. Despeja exactamente z, t y w: `Solve[ecs, {z, t, w}]`."
     },
     "requires": [
      "Solve"
     ],
     "hints": [
-     "Solo cambia la lista de incógnitas: ahora `{z, t, w}`.",
-     "`Solve[{…las mismas ecuaciones…}, {z, t, w}] // N`"
+     "Solo cambia la lista de incógnitas: `{z, t, w}`.",
+     "`Solve[ecs, {z, t, w}] // N`"
     ],
-    "explain": "z = 0.3 + 1.5·x + 0.5·y, t = −2.8, w = 0. Es la **misma** familia de soluciones que antes, escrita con otros parámetros."
+    "explain": "z = 0.3 + 1.5·x + 0.5·y, t = −2.8, w = 0: la misma familia de soluciones escrita con otros parámetros."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e16",
+    "id": "1-p15-e21",
     "kind": "code",
     "title": "El sistema del otro grupo",
-    "prompt": "Resuelve el sistema\n\n- x − 2y + 5z + 2w − t = −4\n- −x/2 + y − 5z/2 − w − t/2 = −2\n- 2x − 4y + 10z + 5w − 8t = 5\n\ntomando como **parámetros x, z** (despeja y, w y t).",
+    "prompt": "`ecs2` (otro sistema de 3 ecuaciones con x, y, z, w, t) ya existe. Despeja y, w, t (parámetros x, z).",
     "difficulty": 3,
     "cmds": [
      "Solve"
     ],
     "real": true,
     "source": "Práctica 15 · P4 a) (versión B)",
-    "solution": "Solve[{x - 2 y + 5 z + 2 w - t == -4, -x/2 + y - 5 z/2 - w - t/2 == -2, 2 x - 4 y + 10 z + 5 w - 8 t == 5}, {y, w, t}]",
+    "setup": "ecs2 = {x - 2 y + 5 z + 2 w - t == -4, -x/2 + y - 5 z/2 - w - t/2 == -2, 2 x - 4 y + 10 z + 5 w - 8 t == 5};",
+    "solution": "Solve[ecs2, {y, w, t}]",
     "check": {
      "type": "expr",
      "expected": "{{y -> 37 + x/2 + 5 z/2, w -> 37, t -> 4}}",
      "compare": "set",
-     "msg": "No coincide. Despeja exactamente y, w y t: `Solve[{…}, {y, w, t}]`."
+     "msg": "No coincide. Despeja exactamente y, w y t: `Solve[ecs2, {y, w, t}]`."
     },
     "requires": [
      "Solve"
     ],
     "hints": [
      "Incógnitas a despejar: `{y, w, t}`.",
-     "`Solve[{x - 2 y + 5 z + 2 w - t == -4, -x/2 + y - 5 z/2 - w - t/2 == -2, 2 x - 4 y + 10 z + 5 w - 8 t == 5}, {y, w, t}]`"
+     "`Solve[ecs2, {y, w, t}]`"
     ],
-    "explain": "y = 37 + 0.5·x + 2.5·z, t = 4, w = 37. El apartado b) pedía los parámetros y, z: `Solve[…, {x, w, t}]` da x = −74 + 2y − 5z. Aquí `LinearSolve` solo habría dado una solución suelta."
+    "explain": "y = 37 + 0.5·x + 2.5·z, t = 4, w = 37. El sistema: x − 2y + 5z + 2w − t = −4; −x/2 + y − 5z/2 − w − t/2 = −2; 2x − 4y + 10z + 5w − 8t = 5. Con parámetros y, z: x = −74 + 2y − 5z."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e17",
+    "id": "1-p15-e22",
     "kind": "code",
-    "title": "Estudia el sistema antes de resolverlo",
-    "prompt": "Estudia el sistema\n\n- 2x1 − 8x2 − 4x3 + x4 = 0\n- x1 − 4x2 − 2x3 + x4 = 1\n- −x1 + 4x2 + 2x3 = 1\n\nYa tienes su matriz ampliada en `a` (4 columnas de coeficientes y la de términos independientes). Mira su forma escalonada con `RowReduce` y devuelve la lista `{rango de la matriz de coeficientes, rango de la ampliada}`.",
+    "title": "Estudia antes de resolver",
+    "prompt": "`a` es la ampliada (3×5) de un sistema con 4 incógnitas. Devuelve `{rango de coeficientes, rango de la ampliada}`.",
     "difficulty": 3,
     "cmds": [
      "RowReduce",
@@ -757,7 +1153,7 @@
     "real": true,
     "source": "Práctica 15 · P5 (estudio)",
     "setup": "a = {{2, -8, -4, 1, 0}, {1, -4, -2, 1, 1}, {-1, 4, 2, 0, 1}};",
-    "solution": "RowReduce[a] // MatrixForm\n{MatrixRank[Take[a, {1, 3}, {1, 4}]], MatrixRank[a]}",
+    "solution": "{MatrixRank[Take[a, {1, 3}, {1, 4}]], MatrixRank[a]}",
     "check": {
      "type": "expr",
      "expected": "{2, 2}"
@@ -766,26 +1162,27 @@
      "MatrixRank"
     ],
     "hints": [
-     "La matriz de coeficientes son las 4 primeras columnas de `a`: `Take[a, {1, 3}, {1, 4}]`.",
+     "Los coeficientes son las 4 primeras columnas: `Take[a, {1, 3}, {1, 4}]`.",
      "`{MatrixRank[Take[a, {1, 3}, {1, 4}]], MatrixRank[a]}`"
     ],
-    "explain": "Los dos rangos valen 2 y hay 4 incógnitas: compatible indeterminado con 4 − 2 = 2 parámetros. `RowReduce[a]` lo enseña: una fila de ceros y ninguna del tipo 0 0 0 0 | 1."
+    "explain": "Rangos 2 y 2 con 4 incógnitas: compatible indeterminado con 2 parámetros. `RowReduce[a]` lo enseña: una fila de ceros y ninguna del tipo 0 0 0 0 | 1. Sistema: 2x1 − 8x2 − 4x3 + x4 = 0; x1 − 4x2 − 2x3 + x4 = 1; −x1 + 4x2 + 2x3 = 1."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p15-e18",
+    "id": "1-p15-e23",
     "kind": "code",
     "title": "La misma solución con dos caras",
-    "prompt": "Mismo sistema del ejercicio anterior:\n\n- 2x1 − 8x2 − 4x3 + x4 = 0\n- x1 − 4x2 − 2x3 + x4 = 1\n- −x1 + 4x2 + 2x3 = 1\n\nEl test real ofrecía, entre otras, estas dos respuestas: «la solución es de la forma (4·x2 + 2·x3 − 1, x2, x3, 2)» y «la solución es de la forma (x1, x2, 1/2 + x1/2 − 2·x2, 2)». Comprueba las dos:\n\n- guarda en `solC` la salida de `Solve` despejando x1 y x4 (parámetros x2, x3);\n- guarda en `solD` la salida de `Solve` despejando x3 y x4 (parámetros x1, x2).",
+    "prompt": "`ecs5` (ese sistema, con x1…x4) ya existe. Guarda en `solC` el `Solve` despejando x1, x4 y en `solD` despejando x3, x4.",
     "difficulty": 3,
     "cmds": [
      "Solve"
     ],
     "real": true,
     "source": "Práctica 15 · P5",
-    "solution": "ecs = {2 x1 - 8 x2 - 4 x3 + x4 == 0, x1 - 4 x2 - 2 x3 + x4 == 1, -x1 + 4 x2 + 2 x3 == 1};\nsolC = Solve[ecs, {x1, x4}]\nsolD = Solve[ecs, {x3, x4}]",
+    "setup": "ecs5 = {2 x1 - 8 x2 - 4 x3 + x4 == 0, x1 - 4 x2 - 2 x3 + x4 == 1, -x1 + 4 x2 + 2 x3 == 1};",
+    "solution": "solC = Solve[ecs5, {x1, x4}]\nsolD = Solve[ecs5, {x3, x4}]",
     "check": {
      "type": "all",
      "checks": [
@@ -794,14 +1191,14 @@
        "expr": "solC",
        "expected": "{{x1 -> -1 + 4 x2 + 2 x3, x4 -> 2}}",
        "compare": "set",
-       "msg": "`solC` debe ser la salida de `Solve[…, {x1, x4}]`."
+       "msg": "`solC` debe ser la salida de `Solve[ecs5, {x1, x4}]`."
       },
       {
        "type": "value",
        "expr": "solD",
        "expected": "{{x3 -> 1/2 + x1/2 - 2 x2, x4 -> 2}}",
        "compare": "set",
-       "msg": "`solD` debe ser la salida de `Solve[…, {x3, x4}]`."
+       "msg": "`solD` debe ser la salida de `Solve[ecs5, {x3, x4}]`."
       }
      ]
     },
@@ -809,10 +1206,10 @@
      "Solve"
     ],
     "hints": [
-     "Guarda las tres ecuaciones en una variable (`ecs = {…}`) para no teclearlas dos veces.",
-     "`solC = Solve[ecs, {x1, x4}]` y `solD = Solve[ecs, {x3, x4}]`."
+     "`solC = Solve[ecs5, {x1, x4}]`",
+     "`solD = Solve[ecs5, {x3, x4}]`"
     ],
-    "explain": "Las dos respuestas eran correctas: x1 = −1 + 4·x2 + 2·x3, x4 = 2 y x3 = 1/2 + x1/2 − 2·x2, x4 = 2 describen la misma familia de soluciones con distintos parámetros. La opción «compatible determinado con solución (−1, 0, 0, 2)» era falsa: ese punto cumple el sistema, pero no es la única solución."
+    "explain": "El test daba por buenas las dos formas: (4x2 + 2x3 − 1, x2, x3, 2) y (x1, x2, 1/2 + x1/2 − 2x2, 2). Es la misma familia con distintos parámetros. La opción «solución única (−1, 0, 0, 2)» era falsa."
    }
   }
  ]

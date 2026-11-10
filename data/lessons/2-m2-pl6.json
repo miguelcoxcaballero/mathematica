@@ -307,8 +307,8 @@
    "target": "LaplaceTransform[Sin[3 x] + 3 DiracDelta[x - 2], x, s]",
    "parts": [
     {
-     "code": "LaplaceTransform[DiracDelta[t], t, s]",
-     "md": "Transforma un golpe en `t = 0`.",
+     "code": "LaplaceTransform[DiracDelta[t - 1], t, s]",
+     "md": "Transforma un golpe en `t = 1`.",
      "run": true
     },
     {
@@ -846,7 +846,7 @@
     "id": "2-m2-pl6-e12",
     "kind": "code",
     "title": "Guion 2b",
-    "prompt": "Resuelve con Laplace `y'' + y = Sqrt[2] Sin[Sqrt[2] t]`, `y(0) = 10`, `y'(0) = 0`. Última salida: la solución.",
+    "prompt": "Resuelve con Laplace `y'' + y = 2 Sin[2 t]`, `y(0) = 10`, `y'(0) = 0`. Última salida: la solución.",
     "difficulty": 3,
     "cmds": [
      "LaplaceTransform",
@@ -854,11 +854,11 @@
      "Solve"
     ],
     "real": true,
-    "source": "PL6 · ejercicio 2b",
-    "solution": "ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 10, y'[0] -> 0}",
+    "source": "PL6 · ejercicio 2b (adaptado: frecuencia 2 en lugar de Sqrt[2])",
+    "solution": "ecdif = y''[t] + y[t] == 2 Sin[2 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 10, y'[0] -> 0}",
     "check": {
      "type": "ode",
-     "eq": "y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t]",
+     "eq": "y''[t] + y[t] == 2 Sin[2 t]",
      "func": "y",
      "var": "t",
      "ics": [
@@ -867,11 +867,11 @@
      ]
     },
     "hints": [
-     "La raíz es `Sqrt[2]`.",
-     "`ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];`",
+     "`ecdif = y''[t] + y[t] == 2 Sin[2 t];`",
+     "Después `ec1`, `sol1`, `sol2` como siempre.",
      "`soluc = sol2 /. {y[0] -> 10, y'[0] -> 0}`"
     ],
-    "explain": "Solución: `10 Cos[t] + 2 Sin[t] - Sqrt[2] Sin[Sqrt[2] t]`.",
+    "explain": "Solución: `10 Cos[t] + (4/3) Sin[t] - (2/3) Sin[2 t]`. En el guion el segundo miembro es `Sqrt[2] Sin[Sqrt[2] t]` y sale `10 Cos[t] + 2 Sin[t] - Sqrt[2] Sin[Sqrt[2] t]`: mismas cinco líneas.",
     "requires": [
      "LaplaceTransform",
      "InverseLaplaceTransform"

@@ -575,3 +575,15 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
   .sm-card-foot { justify-content: space-between; margin-top: 10px; }
   .sm-best { align-items: flex-start; }
 }
+
+/* practice session: the header stays small so the screen is about the exercise */
+.pr-session .pr-shead { grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-areas: "back titles meters finish"; align-items: baseline; gap: 6px 14px; }
+.pr-session .pr-shead .lp-crumbs { display: none; }
+.pr-session .pr-shead .lp-title { font-size: .9rem; font-weight: 600; color: var(--text); letter-spacing: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pr-session .pr-meters { font-size: .78rem; gap: 10px; }
+.pr-session .lp-prog .progress { height: 2px; border-radius: 0; }
+.pr-session .pr-src { border-bottom: 0; padding-bottom: 0; font-size: .8rem; margin-bottom: -8px; }
+.pr-session .lp-step { gap: 20px; }
+@media (max-width: 620px) {
+  .pr-session .pr-shead { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "back titles finish" "meters meters meters"; }
+}

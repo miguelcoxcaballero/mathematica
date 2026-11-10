@@ -150,6 +150,14 @@ Cofactor[m_?MatrixQ, {i_Integer, j_Integer}] := (-1)^(i + j) Det[Drop[m, {i}, {j
 D[(f : Erfi | SinIntegral | CosIntegral | SinhIntegral | CoshIntegral | LogIntegral)[u_], x_Symbol] := Switch[f, Erfi, 2 E^(u^2)/Sqrt[Pi], SinIntegral, Sin[u]/u, CosIntegral, Cos[u]/u, SinhIntegral, Sinh[u]/u, CoshIntegral, Cosh[u]/u, LogIntegral, 1/Log[u]] D[u, x];
 Protect[Expand, PowerExpand, Collect, Sum, Join, LinearSolve, Needs, Mod, Factorial2, D, Transpose];
 
+(* ---- complex numbers: Mathics' Abs drops the bars of products (Abs[-x] -> x) and mishandles exact complexes ---- *)
+Unprotect[Abs, Arg];
+Abs[c_?NumericQ x_] := Abs[c] Abs[x] /; !NumericQ[x];
+Abs[z_?NumericQ] := With[{r = WLX`NAbs[z]}, If[r === $Failed, Sqrt[Re[z]^2 + Im[z]^2], r]] /; !MatchQ[z, _Integer | _Rational | _Real | Complex[_Integer | _Rational | _Real, _Integer | _Rational | _Real]] && Precision[z] === Infinity;
+Abs[z_?NumericQ] := Abs[N[z]] /; !MatchQ[z, _Integer | _Rational | _Real | _Complex] && Precision[z] =!= Infinity;
+Arg[z_?NumericQ] := With[{r = WLX`NArg[z]}, If[r === $Failed, ArcTan[Re[z], Im[z]], r]] /; Precision[z] === Infinity && !MatchQ[z, _Integer | _Rational];
+Protect[Abs, Arg];
+
 (* ---- calculus fixes ---- *)
 SetAttributes[C, NHoldAll];
 Unprotect[D];

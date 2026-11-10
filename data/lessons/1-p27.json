@@ -175,7 +175,7 @@
   {
    "type": "build",
    "title": "Repetir con Mod",
-   "md": "Sustituir `x` por `a + Mod[x - a, b - a]` repite la función de `[a, b[` con periodo `b - a`.",
+   "md": "Sustituir `x` por `a + Mod[x - a, b - a]` repite la función de `[a, b[` periódicamente.",
    "target": "-2 + Mod[141 + 2, 4]",
    "parts": [
     {
@@ -299,7 +299,7 @@
    "type": "build",
    "title": "FourierTrigSeries",
    "md": "`FourierTrigSeries[f, x, n]`: suma de senos y cosenos hasta el armónico `n`.",
-   "target": "Plot[{x, S3[x]}, {x, -Pi, Pi}]",
+   "target": "FourierTrigSeries[x, x, 3]",
    "parts": [
     {
      "code": "FourierTrigSeries[x, x, 1]",
@@ -307,8 +307,8 @@
      "run": true
     },
     {
-     "code": "FourierTrigSeries[x, x, 3]",
-     "md": "Tres armónicos: se añaden términos, los anteriores no cambian.",
+     "code": "FourierTrigSeries[x, x, 2]",
+     "md": "Dos armónicos: se añade un término, el anterior no cambia.",
      "run": true
     },
     {
@@ -317,13 +317,13 @@
      "run": true
     },
     {
-     "code": "S3[x_] = FourierTrigSeries[x, x, 3];",
-     "md": "Guardado como función, con `=` para que se calcule una sola vez.",
+     "code": "Plot[{x, FourierTrigSeries[x, x, 3]}, {x, -Pi, Pi}]",
+     "md": "La recta y su aproximación con 3 armónicos.",
      "run": true
     },
     {
-     "code": "Plot[{x, S3[x]}, {x, -Pi, Pi}]",
-     "md": "La recta y su aproximación con 3 armónicos.",
+     "code": "FourierTrigSeries[x, x, 3]",
+     "md": "Y el polinomio de grado 3, escrito.",
      "run": true
     }
    ],
@@ -336,8 +336,7 @@
     "check": {
      "type": "expr",
      "expected": "2 Sin[x] - Sin[2 x] + 2 Sin[3 x]/3"
-    },
-    "solution": "FourierTrigSeries[x, x, 3]"
+    }
    },
    "cmds": [
     "FourierTrigSeries",
@@ -450,7 +449,7 @@
    "type": "build",
    "title": "FourierParameters",
    "md": "Para periodo `T`, la opción `FourierParameters -> {1, 2 Pi/T}`.",
-   "target": "F4[1] // N",
+   "target": "G2[x_] = FourierTrigSeries[x, x, 2, FourierParameters -> {1, 2 Pi/2}];\nG2[0.5]",
    "parts": [
     {
      "code": "FourierTrigSeries[x, x, 2]",
@@ -463,40 +462,40 @@
      "run": true
     },
     {
-     "code": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]",
-     "md": "La función de la práctica: periodo 4, intervalo `[-2, 2[`.",
+     "code": "G2[x_] = FourierTrigSeries[x, x, 2, FourierParameters -> {1, 2 Pi/2}];",
+     "md": "Guardado con `=` (se calcula una vez) y `;` para no imprimirlo.",
      "run": true
     },
     {
-     "code": "F4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];",
-     "md": "Su polinomio de grado 4, guardado con `=` (y `;` para no imprimirlo).",
+     "code": "G2[0.5]",
+     "md": "Evaluado en un punto.",
      "run": true
     },
     {
-     "code": "F4[1] // N",
-     "md": "Evaluado en un punto: cerca de `f[1] = 1`.",
+     "code": "G2[x_] = FourierTrigSeries[x, x, 2, FourierParameters -> {1, 2 Pi/2}];\nG2[0.5]",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria (con `f` y `F4` ya definidas): evalúa `F4` en `x = 1` en decimal.",
+    "prompt": "De memoria: define `G2[x_]`, Fourier de grado 2 de `x` con periodo 2, y evalúa `G2[0.5]`.",
     "hints": [
-     "`F4[1]` y después `// N`.",
-     "`F4[1] // N`"
+     "`G2[x_] = FourierTrigSeries[x, x, 2, opción];`",
+     "La opción: `FourierParameters -> {1, 2 Pi/2}`.",
+     "Segunda línea: `G2[0.5]`."
     ],
     "check": {
      "type": "expr",
-     "expected": "0.9137287832",
+     "expected": "0.6366197724",
      "compare": "numeric",
      "tol": 1e-06
-    },
-    "solution": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nF4[x_] = FourierTrigSeries[f[x], x, 4, FourierParameters -> {1, 2 Pi/4}];\nF4[1] // N"
+    }
    },
    "cmds": [
     "FourierTrigSeries",
     "N"
    ],
-   "more": "Se desarrolla la función inicial `f[x]`, no la extendida `FE`: el polinomio ya es periódico él solo.",
+   "more": "En la práctica, periodo 4: `FourierParameters -> {1, 2 Pi/4}`. Se desarrolla la función inicial `f[x]`, no la extendida `FE`.",
    "section": "Periodo 4: la práctica"
   },
   {
@@ -595,7 +594,7 @@
    "type": "build",
    "title": "El salto: Dirichlet y Gibbs",
    "md": "En un salto la serie tiende al punto medio; a su lado, los polinomios se pasan.",
-   "target": "Plot[{q[x], S9[x]}, {x, -Pi, Pi}]",
+   "target": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]\nS9[x_] = FourierTrigSeries[q[x], x, 9];\nPlot[{q[x], S9[x]}, {x, -Pi, Pi}]",
    "parts": [
     {
      "code": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]",
@@ -618,29 +617,29 @@
      "run": true
     },
     {
-     "code": "Plot[{q[x], S9[x]}, {x, -Pi, Pi}]",
-     "md": "Las oscilaciones junto al salto: fenómeno de Gibbs.",
+     "code": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]\nS9[x_] = FourierTrigSeries[q[x], x, 9];\nPlot[{q[x], S9[x]}, {x, -Pi, Pi}]",
+     "md": "Todo junto, con el dibujo: las oscilaciones son el fenómeno de Gibbs.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria (con `q` y `S9` definidas): dibuja juntas `q[x]` y `S9[x]` entre `-Pi` y `Pi`.",
+    "prompt": "De memoria: define `q` (−1 si `x < 0`, 1 si no), su `S9` (Fourier grado 9) y dibuja ambas de `-Pi` a `Pi`.",
     "hints": [
-     "Varias funciones en un `Plot`: dentro de una lista.",
+     "`q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]`",
+     "`S9[x_] = FourierTrigSeries[q[x], x, 9];`",
      "`Plot[{q[x], S9[x]}, {x, -Pi, Pi}]`"
     ],
     "check": {
      "type": "graphics",
      "dim": 2,
      "min": 2
-    },
-    "solution": "q[x_] := Piecewise[{{-1, x < 0}, {1, x >= 0}}]\nS9[x_] = FourierTrigSeries[q[x], x, 9];\nPlot[{q[x], S9[x]}, {x, -Pi, Pi}]"
+    }
    },
    "cmds": [
     "FourierTrigSeries",
     "Plot"
    ],
-   "more": "Dirichlet: en un salto, la serie converge a la semisuma de los límites laterales. Gibbs: el pico junto al salto se estrecha al subir el grado, pero su altura (≈ 9 % del salto) no baja.",
+   "more": "Dirichlet: en un salto, la serie converge a la semisuma de los límites laterales. Gibbs: el pico se estrecha al subir el grado, pero su altura (≈ 9 % del salto) no baja.",
    "section": "Dirichlet y Gibbs"
   },
   {

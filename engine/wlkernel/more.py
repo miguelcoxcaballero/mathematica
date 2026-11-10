@@ -580,7 +580,94 @@ class RecurrenceTable(XB):
             return None
 
 
-BUILTINS = SPECIALS + [KroneckerDelta, Surd, TrigExpand, FunctionExpand,
+class XNAbs(XB):
+    """WLX`NAbs[z] / WLX`NArg[z]: exact modulus / argument of an exact numeric quantity via SymPy."""
+    name = "NAbs"
+    context = "WLX`"
+
+    def eval(self, z, evaluation):
+        "WLX`NAbs[z_]"
+        try:
+            c = Conv()
+            with budget(4.0):
+                zs = c.to(z)
+                r = sp.Abs(zs)
+                if r.has(sp.Abs):
+                    re_, im_ = zs.as_real_imag()
+                    r = sp.sqrt(sp.simplify(re_ ** 2 + im_ ** 2)) if im_ != 0 else (re_ if sp.N(re_) >= 0 else -re_)
+                r = sp.simplify(r) if r.count_ops() < 150 else r
+            return c.back(r).evaluate(evaluation)
+        except Exception:
+            _dbg()
+            return S("$Failed")
+
+
+class XNArg(XB):
+    name = "NArg"
+    context = "WLX`"
+
+    def eval(self, z, evaluation):
+        "WLX`NArg[z_]"
+        try:
+            c = Conv()
+            with budget(4.0):
+                zs = c.to(z)
+                re_, im_ = zs.as_real_imag()
+                r = sp.atan2(im_, re_)
+                if r.has(sp.atan2):
+                    r = sp.arg(zs)
+                if r.has(sp.arg) or r.has(sp.atan2):
+                    return S("$Failed")
+            return c.back(r).evaluate(evaluation)
+        except Exception:
+            return S("$Failed")
+
+
+class ComplexExpand(XB):
+    def eval(self, e, evaluation):
+        "ComplexExpand[e_]"
+        return self._go(e, [], evaluation)
+
+    def eval_vars(self, e, vars, evaluation):
+        "ComplexExpand[e_, vars_]"
+        vl = vars.elements if vars.has_form("List", None) else [vars]
+        return self._go(e, [v.get_name() for v in vl], evaluation)
+
+    def _go(self, e, cvars, ev):
+        if isinstance(e, Expression) and e.get_head_name() in ("System`List", "System`Equal", "System`Rule"):
+            parts = [self._go(x, cvars, ev) for x in e.elements]
+            if any(p is None for p in parts):
+                return None
+            return Expression(e.get_head(), *parts)
+        try:
+            names = [nm for nm in _user_symbols(e) if nm not in cvars]
+            c = Conv(real=names)
+            with budget(6.0):
+                s_ = c.to(e)
+                if s_.atoms(sp.core.function.AppliedUndef):
+                    return None
+                re_, im_ = sp.expand(s_).as_real_imag()
+                re_ = sp.expand(re_)
+                im_ = sp.expand(im_)
+                try:
+                    r2, i2 = sp.simplify(re_), sp.simplify(im_)
+                    if r2.count_ops() <= re_.count_ops():
+                        re_ = r2
+                    if i2.count_ops() <= im_.count_ops():
+                        im_ = i2
+                except SympyTimeout:
+                    raise
+                except Exception:
+                    pass
+            if not cvars and (re_.has(sp.re, sp.im, sp.arg) or im_.has(sp.re, sp.im, sp.arg)):
+                return None
+            return c.back(re_ + sp.I * im_).evaluate(ev)
+        except Exception:
+            _dbg()
+            return None
+
+
+BUILTINS = SPECIALS + [XNAbs, XNArg, ComplexExpand, KroneckerDelta, Surd, TrigExpand, FunctionExpand,
                        PolynomialGCD, PolynomialLCM, NSum, XSumQ, XSumGet, RSolve, RecurrenceTable] + STASHED
 
 

@@ -1,0 +1,324 @@
+{
+ "id": "2-m3-sim1",
+ "year": 2,
+ "subject": "Matemáticas III",
+ "title": "Simulacro 1 · examen de Mathematica (PL4)",
+ "durationMin": 90,
+ "intro": "**Cómo es el examen real (PL4 de Matemáticas III).** Una sesión de laboratorio que evalúa las prácticas PL1, PL2 y PL3: cinco ejercicios con datos distintos para cada alumno, respuestas **numéricas** en casillas de PoliformaT y entrega del cuaderno `.nb` antes del cierre. Las prácticas no se recuperan.\n\n**Cómo responder aquí.** Resuelve en el cuaderno de al lado y copia cada número en su casilla, con punto decimal y 6 cifras significativas. Los resultados complejos se piden por separado: parte real y parte imaginaria.\n\n**Consejos.**\n\n- Unos 18 minutos por ejercicio. Empieza por el que veas más claro.\n- P1 es de residuos; P2 y P3 llevan `Im[z]`: ahí **no** valen los residuos, hay que parametrizar.\n- Antes de sumar residuos, comprueba qué polos caen dentro: `Abs[polo - centro] < radio`.\n- En P5, mira primero en qué semiplano está el polo.\n- `Clear[...]` o nombres distintos en cada ejercicio: muchos errores del examen real fueron variables reutilizadas.",
+ "source": "Mismo modelo que los dos exámenes de PL4 del curso 2020-21 (enunciados reconstruidos a partir de las respuestas de dos alumnos; las soluciones oficiales nunca se publicaron). Datos numéricos nuevos, comprobados por dos métodos independientes.",
+ "questions": [
+  {
+   "title": "P1 · Integrales de contorno por residuos",
+   "prompt": "Sea f(z) = e^z cos z / ((z − 1)² (z + 2) (z − 3i)). Calcula ∫ f(z) dz, en sentido antihorario, sobre cada contorno:\n\n- **C1**: circunferencia de centro −1 y radio 5/2.\n- **C2**: elipse de centro i, semieje horizontal 2 y semieje vertical 3.\n- **C3**: cuadrado de vértices 4 − 4i, 4 + 4i, −4 + 4i y −4 − 4i.\n\nDecide qué polos quedan dentro de cada contorno y aplica el teorema de los residuos.",
+   "points": 2.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": 1.015618,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nia = N[2 Pi I (r1 + r2)];\nRe[ia]",
+     "explain": "Polos: 1 (doble), −2 y 3i. Distancias al centro −1: `Abs[{1, -2, 3 I} + 1]` = {2, 1, 3.16}; con radio 5/2 entran 1 y −2. La integral es 2πi por la suma de sus residuos: ≈ 1.01562 − 0.02186 i."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": -0.021863,
+     "tol": 0.0001,
+     "points": 0.4,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nia = N[2 Pi I (r1 + r2)];\nIm[ia]",
+     "explain": "Polos: 1 (doble), −2 y 3i. Distancias al centro −1: `Abs[{1, -2, 3 I} + 1]` = {2, 1, 3.16}; con radio 5/2 entran 1 y −2. La integral es 2πi por la suma de sus residuos: ≈ 1.01562 − 0.02186 i."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": 2.727012,
+     "tol": 0.001,
+     "points": 0.45,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nib = N[2 Pi I (r1 + r3)];\nRe[ib]",
+     "explain": "En la elipse x²/4 + (y − 1)²/9 = 1 se comprueba cada polo: z = 1 da 1/4 + 1/9 < 1 (dentro), z = 3i da 4/9 < 1 (dentro) y z = −2 da 1 + 1/9 > 1 (fuera). Dibújala con `ParametricPlot[{2 Cos[t], 1 + 3 Sin[t]}, {t, 0, 2 Pi}]` y los polos con `Graphics[Point...]`. Resultado ≈ 2.72701 − 0.37146 i."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": -0.371461,
+     "tol": 0.001,
+     "points": 0.45,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nib = N[2 Pi I (r1 + r3)];\nIm[ib]",
+     "explain": "En la elipse x²/4 + (y − 1)²/9 = 1 se comprueba cada polo: z = 1 da 1/4 + 1/9 < 1 (dentro), z = 3i da 4/9 < 1 (dentro) y z = −2 da 1 + 1/9 > 1 (fuera). Dibújala con `ParametricPlot[{2 Cos[t], 1 + 3 Sin[t]}, {t, 0, 2 Pi}]` y los polos con `Graphics[Point...]`. Resultado ≈ 2.72701 − 0.37146 i."
+    },
+    {
+     "label": "e)",
+     "prompt": "Parte real de la integral sobre C3.",
+     "answerType": "numeric",
+     "value": 2.736085,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nic = N[2 Pi I (r1 + r2 + r3)];\nRe[ic]",
+     "explain": "El cuadrado de vértices ±4 ± 4i contiene los tres polos: se suman los tres residuos. Resultado ≈ 2.73609 − 0.36541 i. Para dibujarlo: `ListLinePlot[{{4, -4}, {4, 4}, {-4, 4}, {-4, -4}, {4, -4}}]`."
+    },
+    {
+     "label": "f)",
+     "prompt": "Parte imaginaria de la integral sobre C3.",
+     "answerType": "numeric",
+     "value": -0.365412,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "f[z_] = Exp[z] Cos[z]/((z - 1)^2 (z + 2) (z - 3 I));\nr1 = Residue[f[z], {z, 1}]; r2 = Residue[f[z], {z, -2}]; r3 = Residue[f[z], {z, 3 I}];\nic = N[2 Pi I (r1 + r2 + r3)];\nIm[ic]",
+     "explain": "El cuadrado de vértices ±4 ± 4i contiene los tres polos: se suman los tres residuos. Resultado ≈ 2.73609 − 0.36541 i. Para dibujarlo: `ListLinePlot[{{4, -4}, {4, 4}, {-4, 4}, {-4, -4}, {4, -4}}]`."
+    }
+   ]
+  },
+  {
+   "title": "P2 · Función no holomorfa por dos caminos",
+   "prompt": "Sea g(z) = 2z² − 3 Im(z). Se integra entre los puntos 1 − i y 3 + 2i por dos caminos:\n\n- **Γ1**: el segmento recto de 1 − i a 3 + 2i.\n- **Γ2**: la poligonal 1 − i → 3 − i → 3 + 2i.\n\nDespués se estudian las ecuaciones de Cauchy-Riemann de g = u + i v.",
+   "points": 2,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre Γ1.",
+     "answerType": "numeric",
+     "value": -7.666667,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 2 z^2 - 3 Im[z];\nz1[t_] = 1 - I + t (2 + 3 I);\ni1 = N[Integrate[g[z1[t]] z1'[t], {t, 0, 1}]];\nRe[i1]",
+     "explain": "Segmento de p a q: `z1[t_] = p + t (q - p)` con t de 0 a 1; el integrando es `g[z1[t]] z1'[t]`. Resultado: −23/3 + 55i/2 ≈ −7.66667 + 27.5 i. También vale `NIntegrate`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre Γ1.",
+     "answerType": "numeric",
+     "value": 27.5,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 2 z^2 - 3 Im[z];\nz1[t_] = 1 - I + t (2 + 3 I);\ni1 = N[Integrate[g[z1[t]] z1'[t], {t, 0, 1}]];\nIm[i1]",
+     "explain": "Segmento de p a q: `z1[t_] = p + t (q - p)` con t de 0 a 1; el integrando es `g[z1[t]] z1'[t]`. Resultado: −23/3 + 55i/2 ≈ −7.66667 + 27.5 i. También vale `NIntegrate`."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre Γ2.",
+     "answerType": "numeric",
+     "value": 1.333333,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 2 z^2 - 3 Im[z];\nza[t_] = 1 - I + 2 t; zb[t_] = 3 - I + 3 I t;\ni2 = N[Integrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[zb[t]] zb'[t], {t, 0, 1}]];\nRe[i2]",
+     "explain": "La poligonal son dos segmentos: de 1 − i a 3 − i (`za`) y de 3 − i a 3 + 2i (`zb`); se suman las dos integrales. Resultado: 4/3 + 55i/2 ≈ 1.33333 + 27.5 i. Error típico (lo cometió un alumno en 2021): reutilizar en el segundo tramo la parametrización del primero."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre Γ2.",
+     "answerType": "numeric",
+     "value": 27.5,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 2 z^2 - 3 Im[z];\nza[t_] = 1 - I + 2 t; zb[t_] = 3 - I + 3 I t;\ni2 = N[Integrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[zb[t]] zb'[t], {t, 0, 1}]];\nIm[i2]",
+     "explain": "La poligonal son dos segmentos: de 1 − i a 3 − i (`za`) y de 3 − i a 3 + 2i (`zb`); se suman las dos integrales. Resultado: 4/3 + 55i/2 ≈ 1.33333 + 27.5 i. Error típico (lo cometió un alumno en 2021): reutilizar en el segundo tramo la parametrización del primero."
+    },
+    {
+     "label": "e)",
+     "prompt": "Valor de la expresión u_y + v_x (segunda ecuación de Cauchy-Riemann pasada a un lado).",
+     "answerType": "numeric",
+     "value": -3,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "zz = x + I y;\nu = ComplexExpand[Re[2 zz^2 - 3 Im[zz]]];\nv = ComplexExpand[Im[2 zz^2 - 3 Im[zz]]];\nD[u, y] + D[v, x]",
+     "explain": "u = 2x² − 2y² − 3y y v = 4xy. La primera ecuación se cumple (u_x − v_y = 0), pero u_y + v_x = −3 ≠ 0."
+    },
+    {
+     "label": "f)",
+     "prompt": "¿Depende la integral del camino? Justifícalo en una línea.",
+     "answerType": "text",
+     "points": 0.3,
+     "solution": "zz = x + I y;\nu = ComplexExpand[Re[2 zz^2 - 3 Im[zz]]];\nv = ComplexExpand[Im[2 zz^2 - 3 Im[zz]]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+     "explain": "Sí depende: Cauchy-Riemann da {0, −3}, así que g no es holomorfa en ningún punto, y de hecho las dos integrales son distintas (−7.667 + 27.5 i frente a 1.333 + 27.5 i). En 2021 un alumno contestó que no dependía porque «los resultados coinciden» sin que coincidieran."
+    }
+   ]
+  },
+  {
+   "title": "P3 · Integral de Im(z)/(…) parametrizando",
+   "prompt": "Sea h(z) = Im(z) / ((z − 1)(z + 2i)). Calcula ∫ h(z) dz, en sentido antihorario, sobre:\n\n- **C1**: la circunferencia de centro 0 y radio 3/2.\n- **C2**: la circunferencia de centro −i y radio 1/2.",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": -0.785398,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "h[z_] = Im[z]/((z - 1) (z + 2 I));\nc1[t_] = 3/2 Exp[I t];\nj1 = NIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}];\nRe[j1]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: el teorema de los residuos **no** se puede aplicar y hay que parametrizar. Circunferencia de centro c y radio r: `c + r Exp[I t]`, t de 0 a 2π; integrando `h[c1[t]] c1'[t]` y `NIntegrate`. Resultado: −0.785398 − 1.963495 i."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": -1.963495,
+     "tol": 0.001,
+     "points": 0.4,
+     "solution": "h[z_] = Im[z]/((z - 1) (z + 2 I));\nc1[t_] = 3/2 Exp[I t];\nj1 = NIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}];\nIm[j1]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: el teorema de los residuos **no** se puede aplicar y hay que parametrizar. Circunferencia de centro c y radio r: `c + r Exp[I t]`, t de 0 a 2π; integrando `h[c1[t]] c1'[t]` y `NIntegrate`. Resultado: −0.785398 − 1.963495 i."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": -0.392699,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "h[z_] = Im[z]/((z - 1) (z + 2 I));\nc2[t_] = -I + 1/2 Exp[I t];\nj2 = NIntegrate[h[c2[t]] c2'[t], {t, 0, 2 Pi}];\nRe[j2]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: el teorema de los residuos **no** se puede aplicar y hay que parametrizar. Circunferencia de centro c y radio r: `c + r Exp[I t]`, t de 0 a 2π; integrando `h[c1[t]] c1'[t]` y `NIntegrate`. Resultado: −0.392699 − 0.392699 i (no es 0 aunque no haya polos dentro)."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": -0.392699,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "h[z_] = Im[z]/((z - 1) (z + 2 I));\nc2[t_] = -I + 1/2 Exp[I t];\nj2 = NIntegrate[h[c2[t]] c2'[t], {t, 0, 2 Pi}];\nIm[j2]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: el teorema de los residuos **no** se puede aplicar y hay que parametrizar. Circunferencia de centro c y radio r: `c + r Exp[I t]`, t de 0 a 2π; integrando `h[c1[t]] c1'[t]` y `NIntegrate`. Resultado: −0.392699 − 0.392699 i (no es 0 aunque no haya polos dentro)."
+    }
+   ]
+  },
+  {
+   "title": "P4 · Laurent en tres regiones, coeficientes y residuos",
+   "prompt": "Sea q(z) = 2 / ((z − i)(z − 4 + i)) y el centro z0 = 1 + i. Llama c_k al coeficiente de (z − z0)^k en cada desarrollo de Laurent de q en potencias de (z − z0).\n\nHay tres regiones posibles: el **disco** que llega hasta el polo más cercano, la **corona** entre los dos polos y el **exterior**.",
+   "points": 2.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Radio exterior de la corona (distancia de z0 al polo más lejano).",
+     "answerType": "numeric",
+     "value": 3.605551,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nN[Abs[4 - I - z0]]",
+     "explain": "Los polos son i (a distancia 1 del centro 1 + i) y 4 − i (a distancia √13 ≈ 3.606): `Abs[{I, 4 - I} - (1 + I)] // N`. Regiones: |z − z0| < 1, 1 < |z − z0| < 3.606 y |z − z0| > 3.606."
+    },
+    {
+     "label": "b)",
+     "prompt": "Disco: parte real de c1.",
+     "answerType": "numeric",
+     "value": 0.402367,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nc1 = SeriesCoefficient[q, {z, z0, 1}];\nN[Re[c1]]",
+     "explain": "En el disco el desarrollo es un Taylor: `SeriesCoefficient[q, {z, z0, 1}]` (o léelo de `Series[q, {z, z0, 3}]`). c1 ≈ 0.402367 + 0.165680 i."
+    },
+    {
+     "label": "c)",
+     "prompt": "Disco: parte imaginaria de c1.",
+     "answerType": "numeric",
+     "value": 0.16568,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nc1 = SeriesCoefficient[q, {z, z0, 1}];\nN[Im[c1]]",
+     "explain": "En el disco el desarrollo es un Taylor: `SeriesCoefficient[q, {z, z0, 1}]` (o léelo de `Series[q, {z, z0, 3}]`). c1 ≈ 0.402367 + 0.165680 i."
+    },
+    {
+     "label": "d)",
+     "prompt": "Corona: parte real de c₋₂.",
+     "answerType": "numeric",
+     "value": 0.4,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nq1 = Residue[q, {z, I}]/(z - I); q2 = q - q1;\ncm2 = SeriesCoefficient[q1 /. z -> w + z0, {w, Infinity, 2}];\nN[Re[cm2]]",
+     "explain": "En la corona, la fracción del polo cercano (i) va hacia fuera y la del lejano (4 − i) hacia dentro. `q1 = Residue[q, {z, I}]/(z - I)` es la fracción de i; c₋₂ sale de `q1 /. z -> w + z0` con centro `Infinity`. c₋₂ = 0.4 + 0.2 i. Con el guion: `Apart`, y `Series[frac /. z -> w + z0, {w, Infinity, 4}] /. w -> z - z0`."
+    },
+    {
+     "label": "e)",
+     "prompt": "Corona: parte imaginaria de c₋₂.",
+     "answerType": "numeric",
+     "value": 0.2,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nq1 = Residue[q, {z, I}]/(z - I); q2 = q - q1;\ncm2 = SeriesCoefficient[q1 /. z -> w + z0, {w, Infinity, 2}];\nN[Im[cm2]]",
+     "explain": "En la corona, la fracción del polo cercano (i) va hacia fuera y la del lejano (4 − i) hacia dentro. `q1 = Residue[q, {z, I}]/(z - I)` es la fracción de i; c₋₂ sale de `q1 /. z -> w + z0` con centro `Infinity`. c₋₂ = 0.4 + 0.2 i. Con el guion: `Apart`, y `Series[frac /. z -> w + z0, {w, Infinity, 4}] /. w -> z - z0`."
+    },
+    {
+     "label": "f)",
+     "prompt": "Corona: parte imaginaria de c1.",
+     "answerType": "numeric",
+     "value": -0.03432,
+     "tol": 0.0001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nq1 = Residue[q, {z, I}]/(z - I); q2 = q - q1;\nc1c = SeriesCoefficient[q2, {z, z0, 1}];\nN[Im[c1c]]",
+     "explain": "Las potencias positivas de la corona salen de la fracción del polo lejano, `q2 = q - q1`, desarrollada en Taylor: c1 ≈ 0.002367 − 0.034320 i (distinto del c1 del disco)."
+    },
+    {
+     "label": "g)",
+     "prompt": "Exterior: parte real de c₋₃.",
+     "answerType": "numeric",
+     "value": 4,
+     "tol": 0.001,
+     "points": 0.25,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\ncm3 = SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}];\nN[Re[cm3]]",
+     "explain": "Fuera de los dos polos se desarrolla q entera hacia fuera: `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}]` = 4 − 4i. (Aquí c₋₁ = 0: los dos residuos se cancelan.)"
+    },
+    {
+     "label": "h)",
+     "prompt": "Exterior: parte imaginaria de c₋₃.",
+     "answerType": "numeric",
+     "value": -4,
+     "tol": 0.001,
+     "points": 0.25,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\ncm3 = SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}];\nN[Im[cm3]]",
+     "explain": "Fuera de los dos polos se desarrolla q entera hacia fuera: `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}]` = 4 − 4i. (Aquí c₋₁ = 0: los dos residuos se cancelan.)"
+    },
+    {
+     "label": "i)",
+     "prompt": "Parte imaginaria del residuo de q en el polo z = i.",
+     "answerType": "numeric",
+     "value": -0.2,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "q = 2/((z - I) (z - 4 + I)); z0 = 1 + I;\nN[Im[Residue[q, {z, I}]]]",
+     "explain": "`Residue[q, {z, I}]` = −0.4 − 0.2 i, y en el otro polo, 0.4 + 0.2 i. Fíjate: el residuo en i es justo el c₋₁ de la corona."
+    }
+   ]
+  },
+  {
+   "title": "P5 · Transformada inversa de Fourier por residuos",
+   "prompt": "Sea F(w) = 8 / (2 − i w)³. Calcula por residuos su transformada inversa de Fourier f(x), con la definición de teoría: f(x) = (1/2π) ∫ F(w) e^(iwx) dw.",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de f(−1.2).",
+     "answerType": "numeric",
+     "value": 0.522535,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "G[w_] = 8/(2 - I w)^3;\nfm[x_] = -I Residue[G[w] Exp[I w x], {w, -2 I}];\nN[fm[-1.2]]",
+     "explain": "El polo es la solución de `2 - I w == 0`: w = −2i, en el semiplano **inferior**. Regla: f(x) = −i · Res[F(w) e^(iwx)] para x < 0 y f(x) = 0 para x > 0. Sale f(x) = 4x² e^(2x) para x < 0. En Mathematica se comprueba con `InverseFourierTransform[G[w], w, x, FourierParameters -> {1, -1}]`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de f(2.5).",
+     "answerType": "numeric",
+     "value": 0,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "G[w_] = 8/(2 - I w)^3;\nSolve[2 - I w == 0, w]\n0",
+     "explain": "El polo es la solución de `2 - I w == 0`: w = −2i, en el semiplano **inferior**. Regla: f(x) = −i · Res[F(w) e^(iwx)] para x < 0 y f(x) = 0 para x > 0. Sale f(x) = 4x² e^(2x) para x < 0. En Mathematica se comprueba con `InverseFourierTransform[G[w], w, x, FourierParameters -> {1, -1}]`. Como 2.5 > 0 y no hay polos en el semiplano superior, f(2.5) = 0 sin calcular nada. En 2021 un alumno sustituyó un x positivo en la fórmula del residuo y obtuvo un número enorme."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte imaginaria del residuo de F(w) e^(iwx) en el polo, para x = −0.5.",
+     "answerType": "numeric",
+     "value": 0.367879,
+     "tol": 0.001,
+     "points": 0.5,
+     "solution": "G[w_] = 8/(2 - I w)^3;\nres = Residue[G[w] Exp[I w x], {w, -2 I}] /. x -> -0.5;\nIm[N[res]]",
+     "explain": "El residuo vale 0 + 0.367879 i (imaginario puro); al multiplicarlo por −i da f(−0.5) = 0.367879 = 1/e."
+    }
+   ]
+  }
+ ]
+}
