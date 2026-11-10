@@ -4,14 +4,14 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794351974';
-import * as data from '../data.js?v=1794351974';
-import { kernel } from '../kernel-client.js?v=1794351974';
-import * as fx from '../fx.js?v=1794351974';
+import { store } from '../store.js?v=1794351989';
+import * as data from '../data.js?v=1794351989';
+import { kernel } from '../kernel-client.js?v=1794351989';
+import * as fx from '../fx.js?v=1794351989';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
   safe, play, exStatus, startKernel, kernelPill, newSeed,
-} from '../exercise.js?v=1794351974';
+} from '../exercise.js?v=1794351989';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson

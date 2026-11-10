@@ -465,11 +465,8 @@
     "setup": "B = {{1, 1, 1, 1}, {5, 7, 9, 11}, {6561, 390625, 5764801, 43046721}, {19683, 1953125, 40353607, 387420489}};\nM = Inverse[Transpose[B].B];",
     "solution": "Det[M]",
     "check": {
-     "type": "value",
-     "expr": "N[1/%]",
-     "expected": "5.676083350880556*^29",
-     "compare": "numeric",
-     "tol": 1e-06,
+     "type": "satisfies",
+     "test": "Abs[(1/%)/567608335088055579476125286400 - 1] < 10^-6",
      "msg": "Calcula `Det[M]`."
     },
     "requires": [
