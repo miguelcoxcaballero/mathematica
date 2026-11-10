@@ -404,6 +404,7 @@ class Kernel:
 
         ext.SKIP_ONCE.clear()
         ext._BUDGET[0] = None
+        ext._INT_SPENT[0] = 0.0
         # Mathics bug: ANY nested `a; b;` (function bodies, prelude, checker code...) leaves
         # evaluation.predetermined_out set and the next line stores it as its Out[n].
         self.ev.predetermined_out = None

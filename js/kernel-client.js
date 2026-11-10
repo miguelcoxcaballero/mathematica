@@ -113,7 +113,7 @@ function start() {
   startCreep();
   startPromise = new Promise((resolve, reject) => {
     try {
-      worker = new Worker(new URL('./kernel-worker.js?v=1794353703', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./kernel-worker.js?v=1794354055', import.meta.url), { type: 'module' });
     } catch (e) { reject(e); return; }
     worker.onmessage = onMessage;
     worker.onerror = (e) => {

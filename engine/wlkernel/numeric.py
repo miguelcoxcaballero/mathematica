@@ -321,6 +321,19 @@ class NIntegrate(XB):
             if any(p is None for p in parts):
                 return None
             return L(*parts)
+        if fe.get_head_name() == "System`Times":
+            # symbolic constant factors (k, rho ...) come out of the integral, as Integrate would do
+            from .conv import is_free_of
+
+            names = [v.get_name() for v in vars_]
+            free = [q for q in fe.elements if all(is_free_of(q, nm) for nm in names)
+                    and E("NumericQ", q).evaluate(ev) is not SymbolTrue]
+            if free:
+                rest = [q for q in fe.elements if not any(q is r_ for r_ in free)]
+                inner = self._go(E("Times", *rest) if rest else Integer(1), specs, ev, options)
+                if inner is None:
+                    return None
+                return E("Times", inner, *free).evaluate(ev)
         lims = []
         for sp_ in specs:
             els = [E("Block", blk, q).evaluate(ev) for q in sp_.elements[1:]]

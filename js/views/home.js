@@ -1,7 +1,7 @@
 // Vista: inicio (#/) — lo justo: continuar, próximo examen, progreso de 1º y 2º, y tres enlaces.
-import { store } from '../store.js?v=1794353703';
-import { loadCourse, safe, flatUnits, nextUnit, yearProgress, lessonHref } from '../data.js?v=1794353703';
-import { h, yearBadge, fmtDate, skeleton } from '../fx.js?v=1794353703';
+import { store } from '../store.js?v=1794354055';
+import { loadCourse, safe, flatUnits, nextUnit, yearProgress, lessonHref } from '../data.js?v=1794354055';
+import { h, yearBadge, fmtDate, skeleton } from '../fx.js?v=1794354055';
 
 let off = null;
 
@@ -107,6 +107,10 @@ function linksCol() {
     ['#/simulacros', 'Simulacros de examen', 'Con tiempo y casillas numéricas, como el real.'],
     ['#/cuaderno', 'Cuaderno libre', 'Una hoja en blanco para probar lo que quieras.'],
   ];
+  // La app Android es esta misma web en una ventana propia: no ofrecerla cuando ya se está dentro de ella.
+  if (!(typeof window !== 'undefined' && window.WolframLabApp)) {
+    items.push(['app/WolframLabAero.apk', 'App para Android', 'Instálala en el móvil: guarda tu progreso en la app.']);
+  }
   return h('section', { class: 'home-col' }, h('h2', { class: 'sec-title' }, 'Ir a'),
     h('ul', { class: 'home-links' }, items.map(([href, t, d]) => h('li', null, h('a', { class: 'more', href }, t), h('small', null, d)))));
 }

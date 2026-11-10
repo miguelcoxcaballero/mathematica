@@ -1609,6 +1609,53 @@ class NSolve(XB):
 
 
 # ----------------------------------------------------------------- Residue
+def _fast_residue(fs, zs, p):
+    """Residue at a pole that is visible as explicit factors of the denominator: remove them structurally and
+    differentiate (no series expansion). None if the structure is not that simple."""
+    num, den = sp.fraction(fs)
+    if not den.has(zs):
+        return None
+    m = 0
+    coef = sp.Integer(1)
+    rest = sp.Integer(1)
+    for fac in sp.Mul.make_args(den):
+        base, ex = (fac.base, fac.exp) if isinstance(fac, sp.Pow) else (fac, sp.Integer(1))
+        if not base.has(zs):
+            rest *= fac
+            continue
+        v = base.subs(zs, p)
+        try:
+            zero = v == 0 or sp.simplify(v) == 0 or (v.is_number and abs(complex(sp.N(v, 30))) < 1e-25)
+        except Exception:
+            return None
+        if not zero:
+            rest *= fac
+            continue
+        if not (ex.is_Integer and ex > 0) or not base.is_polynomial(zs):
+            return None
+        pb = sp.Poly(base, zs)
+        q, r = sp.div(pb, sp.Poly(zs - p, zs))
+        if sp.simplify(r.as_expr()) != 0:
+            return None
+        qe = q.as_expr()
+        if sp.simplify(qe.subs(zs, p)) == 0:
+            return None                         # repeated root inside the factor: let the general code do it
+        m += int(ex)
+        rest *= qe ** ex
+    if m == 0:
+        return None
+    try:
+        nv = num.subs(zs, p)
+        if nv.has(sp.nan, sp.zoo) or sp.N(rest.subs(zs, p)) == 0:
+            return None
+    except Exception:
+        return None
+    g = num / rest
+    if m > 1:
+        g = sp.diff(g, zs, m - 1) / sp.factorial(m - 1)
+    return g.subs(zs, p)
+
+
 class Residue(XB):
     def eval(self, f, z, z0, evaluation):
         "Residue[f_, {z_Symbol, z0_}]"
@@ -1617,12 +1664,28 @@ class Residue(XB):
             fs = c.to(f)
             zs = c.sym(z.get_name())
             p = c.to(z0)
-            if p in (sp.oo, sp.zoo):
-                w = sp.Symbol("WLX`w")
-                r = sp.residue(-fs.subs(zs, 1 / w) / w ** 2, w, 0)
-            else:
-                r = sp.residue(fs, zs, p)
-            r = simp(r)
+            r = None
+            if p not in (sp.oo, sp.zoo, -sp.oo):
+                try:
+                    with budget(4.0):
+                        r = _fast_residue(fs, zs, p)
+                except Exception:
+                    _dbg()
+                    r = None
+            if r is None:
+                with budget(9.0):
+                    if p in (sp.oo, sp.zoo):
+                        w = sp.Symbol("WLX`w")
+                        r = sp.residue(-fs.subs(zs, 1 / w) / w ** 2, w, 0)
+                    else:
+                        r = sp.residue(fs, zs, p)
+            try:
+                with budget(3.0):
+                    r2 = simp(r)
+                    if r2.count_ops() <= r.count_ops():
+                        r = r2
+            except Exception:
+                pass
             return c.back(r).evaluate(evaluation)
         except Exception:
             # numeric fallback through a small contour integral
@@ -2161,7 +2224,7 @@ class Fit(XB):
             b = np.array([p[len(vlist)] for p in pts], dtype=float)
             coef, *_ = np.linalg.lstsq(A, b, rcond=None)
             scale = float(np.max(np.abs(coef))) or 1.0
-            coef = np.array([0.0 if abs(cf) < 1e-11 * scale else float("%.12g" % cf) for cf in coef])
+            coef = np.array([0.0 if abs(cf) < 1e-13 * scale else float(cf) for cf in coef])
             terms = [E("Times", Real(float(cf)), fn) for cf, fn in zip(coef, funs.elements)]
             return E("Plus", *terms).evaluate(evaluation)
         except Exception:
@@ -2418,6 +2481,7 @@ def current_assumptions(ev, extra=None):
 
 
 _RESULT = {}
+_INT_SPENT = [0.0]
 
 
 def _stash(key, value):
@@ -2495,9 +2559,16 @@ class IntQ(XB):
 
     def eval(self, f, spec, assum, evaluation):
         "WLX`IntQ[f_, spec_, assum_]"
+        if _INT_SPENT[0] > 12.0:
+            # this cell already burnt its symbolic-integration allowance: leave the rest unevaluated
+            SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
+            return SymbolFalse
+        t_start = time.time()
         try:
             with budget(10.0):
                 r = self._go(f, spec, assum, evaluation)
+            if r is None:
+                _INT_SPENT[0] += time.time() - t_start
             if r is not None and is_free_of(E("List", f, spec), "System`I") and \
                     not _has_head(E("List", f, spec), ("System`Complex",)) and \
                     (not is_free_of(r, "System`I") or _has_head(r, ("System`Complex",))):
@@ -2505,6 +2576,7 @@ class IntQ(XB):
                 r2 = E("Simplify", E("ExpToTrig", r)).evaluate(evaluation)
                 r = r2 if is_free_of(r2, "System`I") and not _has_head(r2, ("System`Complex",)) else None
         except SympyTimeout:
+            _INT_SPENT[0] += time.time() - t_start
             SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             r = None
         except Exception:

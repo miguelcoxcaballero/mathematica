@@ -17,6 +17,11 @@ exámenes de 1º y 2º de Ingeniería Aeroespacial (Matemáticas I, II y III).
 Es una web estática: basta con servir esta carpeta (GitHub Pages, o en local `python3 -m http.server` y abrir
 `http://localhost:8000`). La primera carga del motor descarga Python y SymPy (unos segundos); después queda en caché.
 
+## App Android
+En `app/WolframLabAero.apk` hay una APK que abre esta misma web en una ventana propia a pantalla completa y guarda el
+progreso en el almacenamiento de la app. Necesita conexión (carga las lecciones y el motor desde la web). El código
+fuente y el script de compilación están en `android/`.
+
 ## Estructura
 `index.html`, `css/`, `js/` (interfaz), `engine/` (motor: paquete Python `wlkernel` + ruedas de Mathics3),
 `data/` (lecciones, comandos, simulacros), `docs/` (especificación interna).

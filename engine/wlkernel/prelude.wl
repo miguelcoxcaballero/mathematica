@@ -202,6 +202,8 @@ Integrate[f_, a__, opts__Rule] := With[{as = Assumptions /. {opts} /. Assumption
      (GenerateConditions /. {opts} /. GenerateConditions -> Automatic) === False]];
 WLX`StripCond[ConditionalExpression[v_, _], as_, gc_] := If[as === True, v, Simplify[v, as]] /; as =!= True || gc;
 WLX`StripCond[v_, as_, gc_] := v;
+N[HoldPattern[Integrate[Integrate[Integrate[f_, c_List], b_List], a_List]], ___] := NIntegrate[f, a, b, c];
+N[HoldPattern[Integrate[Integrate[f_, b_List], a_List]], ___] := NIntegrate[f, a, b];
 N[HoldPattern[Integrate[f_, l__List]], ___] := NIntegrate[f, l];
 Integrate[f_, x_Symbol] /; WLX`IntQ[f, x, True] := WLX`IntGet[];
 Integrate[f_, {x_Symbol, a_, b_}] /; WLX`IntQ[f, {x, a, b}, True] := WLX`IntGet[];
