@@ -1,15 +1,19 @@
 // views/simulacro.js (LEARN) — exam simulator (SPEC §9).
 //   #/simulacros            list of mock exams (grouped by year, best score, attempts, countdown to the real exam)
 //   #/simulacro/<examId>    intro → timed run (questions with numeric boxes + free notebook) → grading → review
-import { store } from '../store.js?v=1794352500';
-import * as data from '../data.js?v=1794352500';
-import { kernel } from '../kernel-client.js?v=1794352500';
-import { createNotebook } from '../notebook.js?v=1794352500';
-import * as fx from '../fx.js?v=1794352500';
-import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794352500';
+import { store } from '../store.js?v=1794353407';
+import * as data from '../data.js?v=1794353407';
+import { kernel } from '../kernel-client.js?v=1794353407';
+import { createNotebook } from '../notebook.js?v=1794353407';
+import * as fx from '../fx.js?v=1794353407';
+import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794353407';
 
 const KEY = (id) => `wolframlab-aero-exam-${id}`;
 const WARN_AT = [600, 300, 60]; // seconds left → warning
+// Exam time is wall-clock time since the start (no pause). `speed` is a hidden dev override (#/simulacro/<id>?min=2&speed=30)
+// that only exists to test the warnings / auto-submit quickly; it is 1 for every real attempt.
+const elapsedOf = (st, now = Date.now()) => (now - st.startTs) * (st.speed > 0 ? st.speed : 1);
+const leftOf = (st, now = Date.now()) => st.durMs - elapsedOf(st, now);
 let V = null;
 
 /* ============================================================ helpers */
@@ -185,7 +189,7 @@ async function mountList(me) {
       const att = attempts(e.id);
       const best = att.reduce((b, a) => (b == null || (a.max ? a.score / a.max : 0) > (b.max ? b.score / b.max : 0) ? a : b), null);
       const st = load(e.id);
-      const running = st && st.phase === 'run' && (st.mode === 'study' || st.startTs + st.durMs > Date.now());
+      const running = st && st.phase === 'run' && (st.mode === 'study' || leftOf(st) > 0);
       const d = daysTo(e.date);
       const nQ = exam ? (exam.questions || []).length : 0;
       const bestPct = best ? (best.max ? best.score / best.max : 0) : 0;
@@ -224,12 +228,13 @@ async function mountExam(me, id, query) {
   const X = (me.X = {
     exam, id: exam.id, entry,
     year: Number(exam.year || entry.year) || 0,
-    durMs: Math.max(1, Number(exam.durationMin || entry.durationMin) || 60) * 60000,
+    durMs: (Number(query.min) > 0 ? Number(query.min) : Math.max(1, Number(exam.durationMin || entry.durationMin) || 60)) * 60000,
+    speed: Number(query.speed) > 1 ? Math.min(600, Number(query.speed)) : 1,
     parts: partList(exam),
   });
   const st = load(X.id);
   if (st && st.phase === 'run') {
-    if (st.mode !== 'study' && st.startTs + st.durMs <= Date.now()) {
+    if (st.mode !== 'study' && leftOf(st) <= 0) {
       // time ran out while the student was away → grade what was saved
       toast('Se acabó el tiempo mientras estabas fuera: se ha entregado lo que tenías.', 'warn');
       return finish(me, st, true);
@@ -266,7 +271,8 @@ function renderIntro(me, prev) {
     mk('study', 'Modo estudio', 'Sin reloj. Compruebas cada apartado al momento y puedes ver su solución.'));
   const startBtn = h('button', { class: 'btn primary sm-start', type: 'button', 'data-nosfx': '' }, 'Empezar simulacro →');
   startBtn.addEventListener('click', () => {
-    const st = { v: 1, phase: 'run', mode, startTs: Date.now(), durMs: X.durMs, answers: {}, checked: {}, loaded: {}, cells: null, warned: [] };
+    // warnings that make no sense for a short exam (e.g. "quedan 10 minutos" in a 5-minute one) count as already given
+    const st = { v: 1, phase: 'run', mode, startTs: Date.now(), durMs: X.durMs, speed: X.speed, answers: {}, checked: {}, loaded: {}, cells: null, warned: WARN_AT.filter((w) => X.durMs / 1000 <= w) };
     save(X.id, st);
     play('exam');
     if (kernelReady()) exclusive(() => kernel.reset()).catch(() => {});
@@ -284,7 +290,7 @@ function renderIntro(me, prev) {
     h('ul', { class: 'sm-rules' },
       h('li', null, h('b', null, 'Cuaderno libre al lado. '), 'Calcula lo que quieras con Mathematica y escribe solo el resultado en cada casilla.'),
       h('li', null, h('b', null, 'Respuestas numéricas con tolerancia. '), 'Da al menos 4 cifras significativas. Vale punto o coma decimal, y también expresiones como ', h('code', null, '1/3'), ' o ', h('code', null, '2 Pi'), '.'),
-      h('li', null, h('b', null, '“Definir estos datos”'), ' carga en el kernel las matrices o funciones del enunciado. Todo lo demás lo escribes tú.'),
+      h('li', null, h('b', null, '“Cargar los datos del enunciado”'), ' define las matrices o funciones que da el examen. Todo lo demás lo escribes tú.'),
       h('li', null, h('b', null, 'El reloj no se para. '), 'Si sales de la página, sigue corriendo; tus respuestas se guardan solas. Al llegar a cero se entrega automáticamente.'),
       h('li', null, h('b', null, 'Al entregar'), ' ves tu nota sobre 10, el valor correcto de cada apartado y la solución, que podrás teclear para verla funcionar.')),
     exam.source ? h('p', { class: 'muted sm-source' }, `Origen: ${exam.source}`) : null,
@@ -338,16 +344,16 @@ function renderRun(me, st, resumed) {
       q.prompt ? h('div', { class: 'lx-md sm-q-p', html: md(q.prompt) }) : null);
     if (q.setup) {
       // the data of the statement can be defined in the kernel without typing it (nothing is written in the notebook)
-      const btn = h('button', { class: 'btn sm-load', type: 'button' }, 'Definir estos datos en el kernel');
-      const mark = () => { btn.classList.add('is-loaded'); btn.textContent = 'Datos definidos · volver a definir'; };
-      if (st.loaded[qi] && resumed) btn.textContent = 'Volver a definir los datos';
+      const btn = h('button', { class: 'btn sm-load', type: 'button', title: 'Ejecuta el código de arriba: las variables del enunciado quedan definidas para usarlas en tu cuaderno' }, 'Cargar los datos del enunciado');
+      const mark = () => { btn.classList.add('is-loaded'); btn.textContent = 'Datos cargados · volver a cargar'; };
+      if (st.loaded[qi] && resumed) btn.textContent = 'Volver a cargar los datos';
       btn.addEventListener('click', async () => {
-        btn.disabled = true; btn.innerHTML = '<i class="lx-spin"></i> Definiendo…';
+        btn.disabled = true; btn.innerHTML = '<i class="lx-spin"></i> Cargando…';
         try {
           await exclusive(() => kernel.run(q.setup));
           st.loaded[qi] = true; persist(); mark();
-          toast(`Datos de “${q.title || 'la pregunta ' + (qi + 1)}” definidos: ya puedes usarlos en tu cuaderno.`, 'ok');
-        } catch (e) { btn.textContent = 'Reintentar'; toast('No se pudieron definir los datos. ¿Está listo el motor?', 'bad'); }
+          toast('Datos cargados: ya puedes usarlos en tu cuaderno.', 'ok');
+        } catch (e) { btn.textContent = 'Reintentar'; toast('No se pudieron cargar los datos. ¿Está listo el motor?', 'bad'); }
         btn.disabled = false;
       });
       card.appendChild(h('div', { class: 'sm-setup' }, h('div', { class: 'ex-ref-l' }, 'Datos del enunciado'), codeBlock(q.setup), btn));
@@ -419,7 +425,7 @@ function renderRun(me, st, resumed) {
     R.nb = createNotebook(nbHost, { cells, title: 'Cuaderno', onResult: () => persistSoon(), onChange: () => persistSoon() });
   } catch (e) { console.error('[learn] createNotebook', e); nbHost.appendChild(h('p', { class: 'muted' }, 'No se pudo crear el cuaderno.')); }
   if (kernel.status === 'idle') startKernel();
-  if (resumed && Object.keys(st.loaded).length) toast('Simulacro recuperado. Si recargaste la página, vuelve a evaluar tus celdas y a definir los datos.', 'info');
+  if (resumed && Object.keys(st.loaded).length) toast('Simulacro recuperado. Si recargaste la página, vuelve a evaluar tus celdas y a cargar los datos.', 'info');
 
   tabs.addEventListener('click', (e) => {
     const b = e.target.closest('.sm-tab'); if (!b) return;
@@ -433,21 +439,22 @@ function renderRun(me, st, resumed) {
     if (V !== me || R.done) return;
     const now = Date.now();
     if (study) { clockB.textContent = fmtClock(now - st.startTs); return; }
-    const left = st.startTs + st.durMs - now;
+    const left = leftOf(st, now);
     clockB.textContent = fmtClock(left);
-    timeline.style.width = `${Math.max(0, Math.min(100, (100 * (now - st.startTs)) / st.durMs))}%`;
+    timeline.style.width = `${Math.max(0, Math.min(100, (100 * elapsedOf(st, now)) / st.durMs))}%`;
     const s = Math.ceil(left / 1000);
     bar.classList.toggle('is-warn', s <= 600 && s > 60);
     bar.classList.toggle('is-danger', s <= 60);
     clock.classList.toggle('is-warn', s <= 600 && s > 60);
     clock.classList.toggle('is-danger', s <= 60);
-    for (const w of WARN_AT) {
-      if (s <= w && s > w - 5 && !st.warned.includes(w)) {
-        st.warned.push(w); persistSoon();
-        play('tick'); setTimeout(() => play('tick'), 180); setTimeout(() => play('tick'), 360);
-        toast(w === 60 ? 'Queda 1 minuto. Repasa que has escrito todas las respuestas.' : `Quedan ${w / 60} minutos.`, 'warn');
-        clock.classList.remove('lx-pop'); void clock.offsetWidth; clock.classList.add('lx-pop');
-      }
+    // every threshold that has just been crossed is marked; only the tightest one is announced (also after a resume)
+    const crossed = WARN_AT.filter((w) => s <= w && s > 0 && !st.warned.includes(w));
+    if (crossed.length) {
+      st.warned.push(...crossed); persistSoon();
+      const w = Math.min(...crossed);
+      play('tick'); setTimeout(() => play('tick'), 180); setTimeout(() => play('tick'), 360);
+      toast(w === 60 ? 'Queda 1 minuto. Repasa que has escrito todas las respuestas.' : `Quedan ${w / 60} minutos.`, 'warn');
+      clock.classList.remove('lx-pop'); void clock.offsetWidth; clock.classList.add('lx-pop');
     }
     if (s <= 10 && s > 0 && s !== R.lastTick) { R.lastTick = s; play('tick'); }
     if (left <= 0) { toast('Tiempo agotado: examen entregado.', 'warn'); submit(true); }
@@ -484,7 +491,7 @@ async function finish(me, st, auto) {
   const { root, X } = me;
   root.className = 'sm';
   root.replaceChildren(examHead(X, 'Corrigiendo'), h('div', { class: 'sm-grading' }, h('i', { class: 'lx-spin' }), h('strong', null, 'Corrigiendo tus respuestas…'), h('span', { class: 'muted' }, 'Las expresiones como 1/3 o 2 Pi se evalúan con Mathematica.')));
-  const usedMs = st.mode === 'study' ? Date.now() - st.startTs : Math.min(st.durMs, Date.now() - st.startTs);
+  const usedMs = st.mode === 'study' ? Date.now() - st.startTs : Math.min(st.durMs, elapsedOf(st));
   const graded = {};
   let got = 0, total = 0;
   for (const part of X.parts) {

@@ -3,12 +3,12 @@
 //   #/practica/comando/<Nombre>     exercises (from every lesson) that use that command, easy → hard, unsolved first
 //   #/practica/tema/<lessonId>      exercises of one lesson
 //   #/practica/aleatoria[?n=10]     N exercises sampled from what the student has already studied (weak/stale first)
-import { store } from '../store.js?v=1794352500';
-import * as data from '../data.js?v=1794352500';
-import * as fx from '../fx.js?v=1794352500';
+import { store } from '../store.js?v=1794353407';
+import * as data from '../data.js?v=1794353407';
+import * as fx from '../fx.js?v=1794353407';
 import {
   mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
-} from '../exercise.js?v=1794352500';
+} from '../exercise.js?v=1794353407';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];

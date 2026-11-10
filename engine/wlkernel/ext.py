@@ -495,7 +495,15 @@ class DSolve(XB):
             sols = [[s] for s in sols]
         else:
             sol = None
-            if not ics and len(odes) == len(funcs):
+            if len(odes) == len(funcs):
+                try:
+                    with budget(10.0):
+                        sol = _laplace_system(odes, funcs, xs, ics) if (ics or not all(
+                            sp.ode_order(o.lhs - o.rhs, f_) <= 1 for o in odes for f_ in funcs)) else None
+                except Exception:
+                    _dbg()
+                    sol = None
+            if sol is None and not ics and len(odes) == len(funcs):
                 try:
                     with budget(8.0):
                         sol = _mma_linear_system(odes, funcs, xs)
@@ -735,10 +743,10 @@ def _pde_extra(eq, f, syms):
     if derivs and all(d in (d1, d2) for d in derivs):
         a, b = eq.coeff(d1), eq.coeff(d2)
         G = sp.simplify(-(eq - a * d1 - b * d2))
-        if a == 0 or b == 0 or a.has(v1, v2, f) or b.has(v1, v2, f) or G.has(v1, v2) or not G.has(f):
-            return None
         zz = sp.Dummy("z")
         Gz = G.subs(f, zz)
+        if a == 0 or b == 0 or a.has(v1, v2, f) or b.has(v1, v2, f) or Gz.has(v1, v2) or not Gz.has(zz):
+            return None
         if sp.diff(Gz, zz, 2) == 0:
             return None                 # linear in f: pdsolve gives the usual form
         I1 = sp.integrate(1 / Gz, zz)
@@ -982,6 +990,85 @@ def _mma_constants(ode, func, rhs):
     return sum(c_ * b_ for c_, b_ in zip(cs, basis)) + yp
 
 
+def _laplace_system(odes, funcs, x, ics):
+    """Linear constant-coefficient system of any order (conditions at 0, missing ones become C[i]) by the
+    Laplace transform: algebraic system for the transforms + inverse transform in real form."""
+    from . import calc
+
+    n = len(funcs)
+    s_ = sp.Symbol("WLX`s", positive=True)
+    tp = sp.Symbol("WLX`tpos", positive=True)
+    Ys = [sp.Symbol("WLX`Y%d" % i) for i in range(n)]
+    orders = []
+    exprs = [sp.expand(o.lhs - o.rhs) for o in odes]
+    for f in funcs:
+        orders.append(max([sp.ode_order(e, f) for e in exprs] + [0]))
+    # initial values
+    init = {}
+    cidx = 1
+    for (i, f), o in zip(enumerate(funcs), orders):
+        for j in range(o):
+            key = f.func(0) if j == 0 else sp.Subs(sp.Derivative(f, (x, j)), x, 0)
+            val = None
+            for k_, v_ in ics.items():
+                if j == 0 and isinstance(k_, sp.core.function.AppliedUndef) and k_.func == f.func and k_.args[0] == 0:
+                    val = v_
+                elif j > 0 and isinstance(k_, sp.Subs) and k_.expr.expr == f and k_.expr.variable_count[0][1] == j \
+                        and k_.point[0] == 0:
+                    val = v_
+            if val is None:
+                val = sp.Symbol("C%d" % cidx)
+                cidx += 1
+            init[(i, j)] = val
+    used = sum(1 for k_ in ics)
+    given = sum(1 for (i, j), v in init.items() if not (isinstance(v, sp.Symbol) and v.name.startswith("C")))
+    if used != given:
+        return None                     # conditions not at 0 (or not understood)
+    alg = []
+    for e in exprs:
+        tot = 0
+        rest = e
+        for i, f in enumerate(funcs):
+            for j in range(orders[i], -1, -1):
+                d = sp.Derivative(f, (x, j)) if j else f
+                co = rest.coeff(d)
+                if co == 0:
+                    continue
+                if co.has(x) or co.atoms(sp.core.function.AppliedUndef):
+                    return None
+                rest = sp.expand(rest - co * d)
+                tr = s_ ** j * Ys[i] - sum(s_ ** (j - 1 - m) * init[(i, m)] for m in range(j))
+                tot += co * tr
+        if rest.atoms(sp.core.function.AppliedUndef) or rest.has(sp.Derivative):
+            return None
+        if rest != 0:
+            G = calc.laplace_fast(rest.subs(x, tp), tp, s_)
+            if G is None:
+                return None
+            tot += G
+        alg.append(tot)
+    sol = sp.solve(alg, Ys, dict=True)
+    if not sol:
+        return None
+    out = []
+    for i, f in enumerate(funcs):
+        Yi = sp.together(sol[0][Ys[i]])
+        yi = calc.inverse_laplace_fast(Yi, s_, tp)
+        if yi is None:
+            return None
+        yi = yi.subs(tp, x)
+        try:
+            yi2 = sp.simplify(yi) if yi.count_ops() < 250 else yi
+            if not yi2.has(sp.I):
+                yi = yi2
+        except SympyTimeout:
+            raise
+        except Exception:
+            pass
+        out.append(sp.Eq(f, yi))
+    return out
+
+
 def _mma_linear_system(odes, funcs, x):
     """X' = A X with constant A: X = MatrixExp[A x].{C1, ..., Cn} (Mathematica's choice: C[i] = x_i(0))."""
     n = len(funcs)
@@ -994,6 +1081,8 @@ def _mma_linear_system(odes, funcs, x):
         return None
     A = sp.zeros(n, n)
     for i, d in enumerate(ders):
+        if d not in sol[0]:
+            return None
         e = sp.expand(sol[0][d])
         for j, f in enumerate(funcs):
             A[i, j] = e.coeff(f)
@@ -1721,6 +1810,41 @@ def _integ(expr, xs, lo, hi):
     return sp.simplify(val)
 
 
+def _coef_formula(make, xs, lo, hi, nmax):
+    """[c_1 .. c_nmax] with c_k = Integral make(k) dx: one symbolic integration in k, then substitution
+    (falls back to one integral per k where the general formula is singular)."""
+    from . import calc
+
+    k = sp.Symbol("WLX`kk", integer=True, positive=True)
+    gen = None
+    if nmax > 4:
+        try:
+            with budget(6.0):
+                gen = calc.definite_fast(make(k), xs, sp.sympify(lo), sp.sympify(hi))
+        except SympyTimeout:
+            gen = None
+        except Exception:
+            gen = None
+    out = []
+    for j in range(1, nmax + 1):
+        v = None
+        if gen is not None:
+            try:
+                v = gen.subs(k, j)
+                if v.has(sp.nan, sp.zoo, sp.oo):
+                    v = None
+                else:
+                    v = sp.simplify(v) if 40 < v.count_ops() < 120 else v
+            except SympyTimeout:
+                raise
+            except Exception:
+                v = None
+        if v is None:
+            v = _integ(make(j), xs, lo, hi)
+        out.append(v)
+    return out
+
+
 class FourierTrigSeries(XB):
     options = {"FourierParameters": "{1, 1}", "Assumptions": "$Assumptions"}
 
@@ -1730,12 +1854,13 @@ class FourierTrigSeries(XB):
             c, fs, xs, b, half = _fs_setup(f, x, options, evaluation)
             a0 = _integ(fs, xs, -half, half) / (2 * half)
             total = a0
+            aks = _coef_formula(lambda k: fs * sp.cos(b * k * xs), xs, -half, half, n.value)
+            bks = _coef_formula(lambda k: fs * sp.sin(b * k * xs), xs, -half, half, n.value)
             for k in range(1, n.value + 1):
-                ak = _integ(fs * sp.cos(b * k * xs), xs, -half, half) / half
-                bk = _integ(fs * sp.sin(b * k * xs), xs, -half, half) / half
-                total += ak * sp.cos(b * k * xs) + bk * sp.sin(b * k * xs)
+                total += aks[k - 1] / half * sp.cos(b * k * xs) + bks[k - 1] / half * sp.sin(b * k * xs)
             return c.back(total).evaluate(evaluation)
         except Exception:
+            _dbg()
             return None
 
 
@@ -1953,7 +2078,7 @@ def _invz_simple(term, zs, ns):
     a = -a0 / a1
     coef = num / (lead * a1 ** k)
     if a == 0:
-        return coef * sp.KroneckerDelta(ns - k, 0)
+        return coef * sp.KroneckerDelta(ns - (k - 1), 0)
     if k == 1:
         return coef * a ** ns
     return coef * sp.binomial(ns, k - 1) * a ** (ns - k + 1)
@@ -2522,7 +2647,33 @@ class IntQ(XB):
         r = calc.no_stray_complex(r, fs, a, b)
         if r is None:
             return None
-        return c.back(self._finish(r)).evaluate(ev)
+        r = self._finish(r)
+        if fs.has(sp.I) and not (fs.free_symbols - {xs}) and not a.free_symbols and not b.free_symbols:
+            # complex integrand: SymPy can take the wrong branch of a logarithm (closed contours give 0)
+            r = self._branch_check(r, fs, xs, a, b)
+        return c.back(r).evaluate(ev)
+
+    @staticmethod
+    def _branch_check(r, fs, xs, a, b):
+        from . import numeric
+
+        try:
+            nv = numeric.quick_numeric(fs, xs, a, b)
+            sv = complex(sp.N(r))
+            if nv is None or abs(nv - sv) <= 1e-6 * (1 + abs(nv)):
+                return r
+
+            def exact(v):
+                if abs(v) < 1e-10:
+                    return sp.Integer(0)
+                for base in (sp.Integer(1), sp.pi):
+                    q = sp.nsimplify(v / float(base), rational=True, tolerance=1e-9)
+                    if q.is_Rational and q.q <= 720:
+                        return q * base
+                return sp.Float(v)
+            return exact(nv.real) + sp.I * exact(nv.imag)
+        except Exception:
+            return r
 
     @staticmethod
     def _by_pieces(fs, xs, a, b):
@@ -2557,6 +2708,11 @@ class IntQ(XB):
     @staticmethod
     def _finish(r):
         r = _heaviside_fix(r)
+        if r.has(sp.polar_lift) or r.has(sp.exp_polar):
+            try:
+                r = sp.unpolarify(r)
+            except Exception:
+                pass
         try:
             if r.count_ops() < 400:
                 r2 = sp.simplify(r)
@@ -2677,9 +2833,16 @@ class LimitQ(XB):
             p = c.to(a)
             inexact = bool(fs.atoms(sp.Float)) or bool(p.atoms(sp.Float)) if isinstance(p, sp.Basic) else False
             if inexact:
-                from .solve import rationalize
+                from fractions import Fraction
 
-                fs, p = rationalize(fs), rationalize(p)
+                def near(fl):
+                    # 3.27 -> 327/100, -1.2576923076923077 -> -327/260 (so that leading terms cancel as in Mathematica)
+                    fr = Fraction(float(fl)).limit_denominator(10 ** 7)
+                    if abs(float(fr) - float(fl)) <= 1e-13 * max(1.0, abs(float(fl))):
+                        return sp.Rational(fr.numerator, fr.denominator)
+                    return sp.Rational(str(fl))
+                fs = fs.xreplace({q: near(q) for q in fs.atoms(sp.Float)})
+                p = p.xreplace({q: near(q) for q in p.atoms(sp.Float)}) if isinstance(p, sp.Basic) else p
             dv = d.get_string_value() if isinstance(d, String) else pyval(d, evaluation)
             side = 0
             if dv in ("FromAbove", -1.0):
@@ -2747,6 +2910,58 @@ class XNRank(XB):
             return Integer(int((sv > tol).sum()))
         except Exception:
             return S("$Failed")
+
+
+_DERIV_CACHE = {}
+_DERIV_BUSY = [False]
+
+
+class DerivQ(XB):
+    """WLX`DerivQ[f, n]: f' of a user-defined function is computed once and remembered (Mathics recomputes the
+    symbolic derivative on every call: 40 ms per f'[x] inside Table/Plot/NIntegrate)."""
+    name = "DerivQ"
+    context = "WLX`"
+
+    def eval(self, f, n, evaluation):
+        "WLX`DerivQ[f_Symbol, n_Integer]"
+        if _DERIV_BUSY[0]:
+            return SymbolFalse
+        name = f.get_name()
+        if name.startswith("System`") or n.value < 1:
+            return SymbolFalse
+        try:
+            d = evaluation.definitions.get_definition(name)
+            dv = d.downvalues
+            if not dv:
+                return SymbolFalse
+            sig = tuple(id(r) for r in dv)
+            key = (name, n.value)
+            hit = _DERIV_CACHE.get(key)
+            if hit is not None and hit[0] == sig:
+                return _stash("deriv", hit[1])
+            _DERIV_BUSY[0] = True
+            try:
+                res = E(E("Derivative", n), f).evaluate(evaluation)
+            finally:
+                _DERIV_BUSY[0] = False
+            if res.get_head_name() != "System`Function":
+                return SymbolFalse
+            if len(_DERIV_CACHE) > 300:
+                _DERIV_CACHE.clear()
+            _DERIV_CACHE[key] = (sig, res)
+            return _stash("deriv", res)
+        except Exception:
+            _DERIV_BUSY[0] = False
+            return SymbolFalse
+
+
+class DerivGet(XB):
+    name = "DerivGet"
+    context = "WLX`"
+
+    def eval(self, evaluation):
+        "WLX`DerivGet[]"
+        return _RESULT.pop("deriv", None)
 
 
 class IntGet(XB):
@@ -2887,7 +3102,14 @@ class SeriesQ(XB):
             p = c.to(x0)
             order = n.value
             w = sp.Symbol("WLX`w")
+            pref = None
             if p in (sp.oo, -sp.oo, sp.zoo):
+                facs = sp.Mul.make_args(sp.powsimp(fs))
+                ex = [q for q in facs if (isinstance(q, sp.exp) or (isinstance(q, sp.Pow) and q.base == sp.E)) and q.has(xs)
+                      or (isinstance(q, sp.Pow) and isinstance(q.base, sp.exp) and q.base.has(xs))]
+                if ex:
+                    pref = sp.Mul(*ex)
+                    fs = sp.Mul(*[q for q in facs if q not in ex])
                 g = fs.subs(xs, 1 / w)
             else:
                 g = fs.subs(xs, w + p)
@@ -2910,13 +3132,12 @@ class SeriesQ(XB):
             else:
                 nmin = min(coeffs)
                 lst = [sp.simplify(coeffs.get(k, 0)) for k in range(nmin, order + 1)]
-            if p in (sp.oo, -sp.oo, sp.zoo):
-                # Mathics cannot display/Normal a SeriesData at Infinity: give the finite sum in powers of 1/x
-                tot = sum(v * xs ** (-(nmin + k)) for k, v in enumerate(lst))
-                _SERIES_CACHE["last"] = c.back(tot).evaluate(evaluation)
-                return SymbolTrue
             data = E("SeriesData", x, c.back(p) if p not in (sp.oo, -sp.oo, sp.zoo) else x0,
                      L(*[c.back(v) for v in lst]), Integer(nmin), Integer(order + 1), Integer(1))
+            if pref is not None:
+                # essential singularity at Infinity: exponential factor times the (finite) expansion of the rest
+                tot = sum(v * xs ** (-(nmin + k_)) for k_, v in enumerate(lst))
+                data = E("Times", c.back(pref), c.back(tot))
             _SERIES_CACHE["last"] = data
             return SymbolTrue
         except Exception:
@@ -2997,7 +3218,7 @@ BUILTINS = [LaplaceTransform, InverseLaplaceTransform, SeriesQ, SeriesGet, DSolv
             FourierCoefficient, FourierSinCoefficient, FourierCosCoefficient, FourierSinSeries, FourierCosSeries,
             ZTransform, InverseZTransform, SumConvergence, TrigReduce, TrigFactor, JordanDecomposition, Fit,
             InterpolatingPolynomial, PolynomialQuotient, PolynomialRemainder, Reduce, XSympySimplify, Dt,
-            IntQ, IntGet, IntPVQ, LimitQ, LimitGet, XNRank, XConvolveCausal, XConvolveGet,
+            IntQ, IntGet, DerivQ, DerivGet, IntPVQ, LimitQ, LimitGet, XNRank, XConvolveCausal, XConvolveGet,
             XTimingNote]
 
 

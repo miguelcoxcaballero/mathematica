@@ -202,6 +202,8 @@ class Conv:
                     inner = fn(*[d if j == i else aa for j, aa in enumerate(args)])
                     res = sp.Subs(sp.Derivative(inner, (d, o)), d, a)
             return res
+        if isinstance(head, Symbol) and hn.split("`")[-1] in ("polar_lift", "principal_branch", "periodic_argument") and el:
+            return self.to(el[0])                               # leaked by Mathics' SymPy bridge
         if isinstance(head, Symbol) and hn.endswith("`atan2") and len(el) == 2:
             return sp.atan2(self.to(el[0]), self.to(el[1]))     # name leaked by Mathics' own SymPy bridge
         # user/undetermined function f[x]
@@ -269,6 +271,10 @@ class Conv:
             return E(S("ArcTan"), self.back(s.args[1]), self.back(s.args[0]))
         if isinstance(s, sp.atan):
             return E(S("ArcTan"), self.back(s.args[0]))
+        if isinstance(s, (sp.polar_lift, sp.principal_branch, sp.periodic_argument)):
+            return self.back(s.args[0])
+        if isinstance(s, sp.exp_polar):
+            return E(S("Power"), S("E"), self.back(s.args[0]))
         if isinstance(s, sp.sinc):
             a_ = self.back(s.args[0])
             return E(S("Times"), E(S("Sin"), a_), E(S("Power"), a_, Integer(-1)))

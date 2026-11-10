@@ -196,6 +196,68 @@ def _pre_scan(code):
     return _SLOT_RE.sub(lambda m: m.group(1) if m.group(1) else "# ", code)
 
 
+_SCI_RE = re.compile(r"<mrow>\s*<mn>([^<]*)</mn>\s*<mtext>\*\^</mtext>\s*<mn>(-?\d+)</mn>\s*</mrow>")
+
+
+def _fix_mathml(m):
+    """3.5*^20 is shown as 3.5 x 10^20 (as Mathematica's StandardForm does)."""
+    if m and "*^" in m:
+        m = _SCI_RE.sub(lambda g: "<mrow><mn>%s</mn><mo>&#215;</mo><msup><mn>10</mn><mn>%s</mn></msup></mrow>"
+                        % (g.group(1), g.group(2)), m)
+    return m
+
+
+def _display_copy(expr, _budget=None):
+    """Copy of expr for typesetting: machine reals rounded to 6 significant digits (Mathematica's display)."""
+    from mathics.core.atoms import MachineReal
+    from mathics.core.expression import Expression
+
+    if _budget is None:
+        _budget = [4000]
+    _budget[0] -= 1
+    if _budget[0] < 0:
+        return expr
+    if isinstance(expr, MachineReal):
+        try:
+            v = expr.value
+            r = float("%.6g" % v)
+            return MachineReal(r) if r != v else expr
+        except Exception:
+            return expr
+    if isinstance(expr, Expression):
+        hn = expr.get_head_name()
+        if hn == "System`SeriesData" and len(expr.elements) == 6 and \
+                expr.elements[1].get_head_name() == "System`DirectedInfinity":
+            # series at Infinity: show sum c_k (1/x)^k + O[1/x]^n (Mathics prints (x + -Infinity)^k)
+            try:
+                from mathics.core.atoms import Integer, String
+                from mathics.core.symbols import Symbol
+
+                x, _, cs, nmin, nmax, den = expr.elements
+                terms = []
+                for i, cf in enumerate(cs.elements):
+                    if isinstance(cf, Integer) and cf.value == 0:
+                        continue
+                    k = nmin.value + i
+                    terms.append(Expression(Symbol("System`Times"), cf, Expression(
+                        Symbol("System`Power"), x, Integer(-k))))
+                big_o = Expression(Symbol("System`Superscript"), Expression(
+                    Symbol("System`HoldForm"), Expression(Symbol("System`O"), Expression(
+                        Symbol("System`Power"), x, Integer(-1)))), nmax)
+                return Expression(Symbol("System`HoldForm"), Expression(Symbol("System`Plus"), *(terms + [big_o])))
+            except Exception:
+                return expr
+        if hn in ("System`NumberForm", "System`ScientificForm", "System`EngineeringForm", "System`InputForm",
+                  "System`FullForm", "System`PaddedForm", "System`AccountingForm", "System`Graphics",
+                  "System`Graphics3D"):
+            return expr
+        els = [_display_copy(q, _budget) for q in expr.elements]
+        if all(a is b for a, b in zip(els, expr.elements)):
+            return expr
+        return Expression(expr.get_head(), *els)
+    return expr
+
+
 _FORM_HEADS = ("System`TableForm", "System`MatrixForm", "System`NumberForm", "System`ScientificForm",
                "System`EngineeringForm", "System`TraditionalForm", "System`StandardForm", "System`OutputForm")
 
@@ -310,8 +372,8 @@ class Kernel:
         except Exception:
             out["text"] = str(expr)
         try:
-            shown = gfx.strip_graphics(self, expr)
-            out["mathml"] = fix_chars(str(self._orig_format_output(shown, "xml")))
+            shown = _display_copy(gfx.strip_graphics(self, expr))
+            out["mathml"] = _fix_mathml(fix_chars(str(self._orig_format_output(shown, "xml"))))
         except Exception:
             out["mathml"] = None
         try:
@@ -507,6 +569,9 @@ class Kernel:
         """Clear all Global` definitions (like Quit kernel but fast)."""
         self.eval_code('ClearAll["Global`*"]')
         self._restore_system()
+        # stored graphics payloads (for Show) of the previous exercise are no longer reachable
+        for key in [k_ for k_, v in self.registry.items() if isinstance(v, dict) and v.get("kind") == "g"]:
+            del self.registry[key]
         self._clear_history()
         self.ev.predetermined_out = None
 

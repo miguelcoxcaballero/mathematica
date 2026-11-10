@@ -98,6 +98,8 @@ HoldPattern[Expand[e_, Trig -> True]] /; WLX`ExpandTrigQ[e] := WLX`ExpandTrigGet
 HoldPattern[Expand[e_]] /; (!FreeQ[e, Power[_, _?(!IntegerQ[#] &)]] || !FreeQ[e, _Sin | _Cos | _Log | _Tan | _Sinh | _Cosh]) && WLX`ExpandQ[e] := WLX`ExpandGet[];
 HoldPattern[PowerExpand[e_]] /; WLX`PowerExpandQ[e] := WLX`PowerExpandGet[];
 Collect[a_ == b_, x__] := Collect[a, x] == Collect[b, x];
+Sum[f_, {i_Symbol, a_Integer, b_Integer}] := Total[Table[f, {i, a, b}]] /; b - a < 5000;
+Sum[f_, {i_Symbol, b_Integer}] := Total[Table[f, {i, 1, b}]] /; b < 5000;
 Sum[f_, {i_Symbol, a_, b_}] /; (b === Infinity || !NumericQ[b] || !NumericQ[a]) && FreeQ[{a, b}, i] && WLX`SumQ[f, {i, a, b}] := WLX`SumGet[];
 Join[a_List, b_List, 2] := MapThread[Join, {a, b}];
 Join[a_List, b_List, c_List, 2] := MapThread[Join, {a, b, c}];
@@ -157,8 +159,8 @@ Arg[z_?NumericQ] := With[{r = WLX`NArg[z]}, If[r === $Failed, ArcTan[Re[z], Im[z
 Protect[Abs, Arg];
 
 Unprotect[MatrixRank, NullSpace, ZTransform, InverseZTransform];
-MatrixRank[m_?MatrixQ] := WLX`NRank[m] /; !FreeQ[m, _Real];
-NullSpace[m_?MatrixQ] /; !TrueQ[WLX`$inNS] && FreeQ[m, _Real] := Block[{WLX`$inNS = True}, (# (LCM @@ Denominator[#])) & /@ NullSpace[m]] /; MatrixQ[m, IntegerQ[#] || Head[#] === Rational &];
+HoldPattern[MatrixRank[m_?MatrixQ]] := WLX`NRank[m] /; !FreeQ[m, _Real];
+HoldPattern[NullSpace[m_?MatrixQ]] /; !TrueQ[WLX`$inNS] && FreeQ[m, _Real] := Block[{WLX`$inNS = True}, (# (LCM @@ Denominator[#])) & /@ NullSpace[m]] /; MatrixQ[m, IntegerQ[#] || Head[#] === Rational &];
 ZTransform[a_ + b_, n_, z_] := ZTransform[a, n, z] + ZTransform[b, n, z] /; WLX`unk[{a, b}] || !FreeQ[{a, b}, _Subscript | _DiscreteDelta];
 ZTransform[c_ f_, n_, z_] := c ZTransform[f, n, z] /; FreeQ[c, n] && !FreeQ[f, n] && (WLX`unk[f] || !FreeQ[f, _Subscript | _DiscreteDelta]);
 ZTransform[eq_Equal, n_, z_] := ZTransform[#, n, z] & /@ eq;
@@ -170,6 +172,14 @@ InverseZTransform[ZTransform[f_, n_, z_], z_, n2_] := f /. n -> n2;
 InverseZTransform[r_Rule, z_, n_] := InverseZTransform[#, z, n] & /@ r;
 InverseZTransform[l_List, z_, n_] := InverseZTransform[#, z, n] & /@ l;
 Protect[MatrixRank, NullSpace, ZTransform, InverseZTransform];
+
+Unprotect[Derivative];
+HoldPattern[Derivative[n_Integer][f_Symbol]] /; WLX`DerivQ[f, n] := WLX`DerivGet[];
+
+Unprotect[Normal];
+Normal[HoldPattern[SeriesData[x_, DirectedInfinity[1], c_List, nmin_, nmax_, den_]]] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)/den), {WLX`k, Length[c]}]];
+Normal[e_] := (e /. s_SeriesData :> Normal[s]) /; Head[e] =!= SeriesData && !FreeQ[e, SeriesData[_, DirectedInfinity[1], __]];
+Protect[Normal];
 
 (* ---- calculus fixes ---- *)
 SetAttributes[C, NHoldAll];
@@ -195,6 +205,7 @@ WLX`StripCond[v_, as_, gc_] := v;
 N[HoldPattern[Integrate[f_, l__List]], ___] := NIntegrate[f, l];
 Integrate[f_, x_Symbol] /; WLX`IntQ[f, x, True] := WLX`IntGet[];
 Integrate[f_, {x_Symbol, a_, b_}] /; WLX`IntQ[f, {x, a, b}, True] := WLX`IntGet[];
+ClearAttributes[Limit, Listable];
 HoldPattern[Limit[f_, x_Symbol -> a_]] /; WLX`LimitQ[f, x, a, 0, True] := WLX`LimitGet[];
 HoldPattern[Limit[f_, x_Symbol -> a_, opts__Rule]] /; WLX`LimitQ[f, x, a, Direction /. {opts} /. Direction -> 0, Assumptions /. {opts} /. Assumptions -> True] := WLX`LimitGet[];
 Limit[f_, x_ -> a_, Direction -> "FromAbove"] := Limit[f, x -> a, Direction -> -1];
@@ -215,7 +226,7 @@ Refine[e_, as_] := WLX`SimplifyAssuming[e, as];
 
 Maximize[a__] /; !TrueQ[WLX`$inOpt] := Block[{WLX`$inOpt = True}, Maximize[a] /. {{v_, r : {___Rule}}} :> {v, r}];
 Minimize[a__] /; !TrueQ[WLX`$inOpt] := Block[{WLX`$inOpt = True}, Minimize[a] /. {{v_, r : {___Rule}}} :> {v, r}];
-FindMaximum[f_, v_List, o___] := With[{r = FindMinimum[-f, v, o]}, {-r[[1]], r[[2]]} /; ListQ[r]];
+Unprotect[Get]; Get[s_String] := Null /; StringMatchQ[s, "*`"]; Protect[Get];
 NMinimize[f_, v_, ___] := N[Minimize[f, v]] /. {{a_, b_List}} :> {a, b};
 NMaximize[f_, v_, ___] := N[Maximize[f, v]] /. {{a_, b_List}} :> {a, b};
 

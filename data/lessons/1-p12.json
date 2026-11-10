@@ -597,7 +597,7 @@
     ],
     "check": {
      "type": "expr",
-     "expected": "{{C[1] -> 2, C[2] -> 1}}",
+     "expected": "Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]",
      "compare": "set"
     }
    },

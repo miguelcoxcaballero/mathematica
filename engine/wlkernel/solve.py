@@ -390,6 +390,27 @@ def solve_single(expr, x, floats, info):
     """All solutions (list of sympy exprs) of expr == 0 for the symbol x; None if we cannot."""
     if not expr.has(x):
         return [] if expr != 0 else None
+    num0 = sp.fraction(sp.together(expr))[0]
+    if isinstance(num0, (sp.Mul, sp.Pow)) and not floats:
+        # a product: solve factor by factor (keeps Sqrt[1 - 2 I] instead of expanded radicals of the product)
+        facs = []
+        for fac in sp.Mul.make_args(num0):
+            if isinstance(fac, sp.Pow) and fac.exp.is_Integer and fac.exp > 0:
+                facs.append((fac.base, int(fac.exp)))
+            else:
+                facs.append((fac, 1))
+        dep = [(b_, m_) for b_, m_ in facs if b_.has(x)]
+        if len(dep) > 1 or (dep and dep[0][1] > 1):
+            out = []
+            den0 = sp.fraction(sp.together(expr))[1]
+            for b_, m_ in dep:
+                r_ = solve_single(b_, x, floats, info)
+                if r_ is None:
+                    out = None
+                    break
+                out.extend([q for q in r_ if not _zero_at(den0, x, q)] * m_)
+            if out is not None:
+                return out
     r = poly_roots(expr, x, floats)
     if r is not None:
         return r

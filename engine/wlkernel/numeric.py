@@ -102,18 +102,21 @@ def _transform(f, a, b):
     inf = float("inf")
     if a == -inf and b == inf:
         def g(t):
-            x = t / (1 - t * t)
-            return f(x) * (1 + t * t) / (1 - t * t) ** 2
+            with np.errstate(all="ignore"):
+                x = t / (1 - t * t)
+                return f(x) * (1 + t * t) / (1 - t * t) ** 2
         return g, -1.0, 1.0
     if b == inf:
         def g(t):
-            x = a + t / (1 - t)
-            return f(x) / (1 - t) ** 2
+            with np.errstate(all="ignore"):
+                x = a + t / (1 - t)
+                return f(x) / (1 - t) ** 2
         return g, 0.0, 1.0
     if a == -inf:
         def g(t):
-            x = b - t / (1 - t)
-            return f(x) / (1 - t) ** 2
+            with np.errstate(all="ignore"):
+                x = b - t / (1 - t)
+                return f(x) / (1 - t) ** 2
         return g, 0.0, 1.0
     return f, a, b
 
@@ -618,6 +621,53 @@ def _mp_to_m(x):
     return Real(float(x))
 
 
+def _brent(f, a, b, fa, fb, tol, maxit):
+    import mpmath
+
+    if abs(fa) < abs(fb):
+        a, b, fa, fb = b, a, fb, fa
+    c, fc = a, fa
+    d = e = b - a
+    for _ in range(maxit):
+        if fb == 0:
+            return b
+        if fa * fb > 0:
+            a, fa = c, fc
+            d = e = b - c
+        if abs(fa) < abs(fb):
+            c, fc = b, fb
+            b, fb = a, fa
+            a, fa = c, fc
+        m = (a - b) / 2
+        t = 2 * mpmath.eps * abs(b) + tol / 2
+        if abs(m) <= t or fb == 0:
+            return b
+        if abs(e) >= t and abs(fc) > abs(fb):
+            s_ = fb / fc
+            if a == c:
+                p = 2 * m * s_
+                q = 1 - s_
+            else:
+                q_ = fc / fa
+                r = fb / fa
+                p = s_ * (2 * m * q_ * (q_ - r) - (b - c) * (r - 1))
+                q = (q_ - 1) * (r - 1) * (s_ - 1)
+            if p > 0:
+                q = -q
+            else:
+                p = -p
+            if 2 * p < min(3 * m * q - abs(t * q), abs(e * q)):
+                e, d = d, p / q
+            else:
+                d = e = m
+        else:
+            d = e = m
+        c, fc = b, fb
+        b = b + d if abs(d) > t else b + (t if m > 0 else -t)
+        fb = f(b)
+    return b
+
+
 def _newton(fns, x0, second, maxit, dps):
     """Damped Newton with a finite-difference Jacobian (secant in 1-D when two starting points are given)."""
     import mpmath
@@ -633,9 +683,17 @@ def _newton(fns, x0, second, maxit, dps):
 
     x = list(x0)
     if n == 1 and second[0] is not None:
-        # secant
         a, b = x[0], mpmath.mpmathify(second[0])
         fa, fb = fns[0](a), fns[0](b)
+        if isinstance(fa, mpmath.mpf) and isinstance(fb, mpmath.mpf) and fa * fb < 0:
+            # the two starting values bracket a root: Brent's method (never leaves the bracket), as Mathematica
+            r = _brent(fns[0], a, b, fa, fb, tol, maxit * 3)
+            return [r], True
+        if fa == 0:
+            return [a], True
+        if fb == 0:
+            return [b], True
+        # secant
         for _ in range(maxit):
             if fb == fa:
                 break
@@ -690,5 +748,176 @@ def _newton(fns, x0, second, maxit, dps):
     return x, norm(fx) < mpmath.mpf(10) ** (-8)
 
 
+class FindMinimum(XB):
+    attributes = A_HOLD_ALL | A_PROTECTED
+    options = {"WorkingPrecision": "MachinePrecision", "MaxIterations": "500", "Method": "Automatic",
+               "AccuracyGoal": "Automatic", "PrecisionGoal": "Automatic", "Gradient": "Automatic",
+               "StepMonitor": "None", "EvaluationMonitor": "None"}
+    messages = {"cvmit": "Failed to converge to the requested accuracy or precision within `1` iterations.",
+                "nrnum": "The function value is not a real number at the starting point."}
+    summary_text = "local numerical minimisation"
+    sign = 1.0
+
+    def eval(self, f, specs, evaluation, options):
+        "%(name)s[f_, specs__List, OptionsPattern[%(name)s]]"
+        specs = [s_.evaluate(evaluation) if not s_.has_form("List", None) else s_ for s_ in specs.get_sequence()]
+        try:
+            return self._go(f, specs, evaluation)
+        except Exception:
+            _dbg()
+            return None
+
+    def _go(self, f, specs, ev):
+        var_specs = []
+        for s_ in specs:
+            if s_.elements and all(q.has_form("List", None) for q in s_.elements):
+                var_specs.extend(list(s_.elements))
+            else:
+                var_specs.append(s_)
+        vars_, x0 = [], []
+        for vs in var_specs:
+            els = vs.elements
+            if not els or not isinstance(els[0], Symbol):
+                return None
+            vars_.append(els[0])
+            v0 = pyval(E("N", els[1]), ev) if len(els) > 1 else 1.0
+            if v0 is None or isinstance(v0, complex):
+                return None
+            x0.append(float(v0))
+        fe = E("Block", L(*vars_), f).evaluate(ev)
+        if fe.has_form("List", None):
+            return None                     # constrained form: not supported here
+        sgn = self.sign
+        fn = None
+        try:
+            c = Conv(real=[v.get_name() for v in vars_])
+            se = c.to(fe)
+            syms = [c.sym(v.get_name()) for v in vars_]
+            if not (se.free_symbols - set(syms)) and not se.atoms(sp.core.function.AppliedUndef) \
+                    and not se.has(sp.Derivative, sp.Integral):
+                lam = sp.lambdify(syms, se, modules=["math"])
+
+                def fn(xs):
+                    try:
+                        v = lam(*xs)
+                        v = float(v.real) if isinstance(v, complex) else float(v)
+                        return sgn * v if v == v else float("inf")
+                    except Exception:
+                        return float("inf")
+        except Exception:
+            fn = None
+        if fn is None:
+            def fn(xs):
+                rules = L(*[Rule(v, Real(float(x))) for v, x in zip(vars_, xs)])
+                val = pyval(E("ReplaceAll", fe, rules), ev)
+                if val is None or isinstance(val, complex):
+                    return float("inf")
+                return sgn * float(val)
+        with budget(15.0):
+            xs, fv, ok = _bfgs(fn, x0)
+        if xs is None:
+            ev.message(self.get_name().split("`")[-1], "nrnum")
+            return None
+        rules = L(*[Rule(v, Real(_clean(x))) for v, x in zip(vars_, xs)])
+        return L(Real(_clean(sgn * fv)), rules)
+
+
+class FindMaximum(FindMinimum):
+    sign = -1.0
+    summary_text = "local numerical maximisation"
+
+
+def _clean(v):
+    return 0.0 if abs(v) < 1e-13 else float(v)
+
+
+def _bfgs(f, x0, tol=1e-10, maxit=500):
+    """Quasi-Newton minimisation with central-difference gradients and a backtracking line search."""
+    n = len(x0)
+    x = list(x0)
+    fx = f(x)
+    if fx == float("inf") or fx != fx:
+        return None, None, False
+
+    def grad(x, fx):
+        g = []
+        for i in range(n):
+            h = 1e-6 * (1.0 + abs(x[i]))
+            xp = list(x)
+            xp[i] += h
+            xm = list(x)
+            xm[i] -= h
+            fp, fm = f(xp), f(xm)
+            if fp == float("inf") or fm == float("inf"):
+                g.append((fp - fx) / h if fp != float("inf") else (fx - fm) / h if fm != float("inf") else 0.0)
+            else:
+                g.append((fp - fm) / (2 * h))
+        return g
+
+    H = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    g = grad(x, fx)
+    for it in range(maxit):
+        gn = math.sqrt(sum(v * v for v in g))
+        if gn < 1e-9 * (1.0 + abs(fx)):
+            break
+        d = [-sum(H[i][j] * g[j] for j in range(n)) for i in range(n)]
+        slope = sum(d[i] * g[i] for i in range(n))
+        if slope >= 0:
+            H = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+            d = [-v for v in g]
+            slope = -gn * gn
+        t = 1.0
+        ok = False
+        for _ in range(60):
+            xn = [x[i] + t * d[i] for i in range(n)]
+            fn_ = f(xn)
+            if fn_ <= fx + 1e-4 * t * slope:
+                ok = True
+                break
+            t *= 0.5
+        if not ok:
+            break
+        gnew = grad(xn, fn_)
+        sv = [xn[i] - x[i] for i in range(n)]
+        yv = [gnew[i] - g[i] for i in range(n)]
+        sy = sum(sv[i] * yv[i] for i in range(n))
+        step = math.sqrt(sum(v * v for v in sv))
+        dfx = abs(fx - fn_)
+        x, fx, g = xn, fn_, gnew
+        if sy > 1e-14:
+            Hy = [sum(H[i][j] * yv[j] for j in range(n)) for i in range(n)]
+            yHy = sum(yv[i] * Hy[i] for i in range(n))
+            for i in range(n):
+                for j in range(n):
+                    H[i][j] += (1.0 + yHy / sy) * sv[i] * sv[j] / sy - (Hy[i] * sv[j] + sv[i] * Hy[j]) / sy
+        if step < tol * (1.0 + math.sqrt(sum(v * v for v in x))) and dfx < tol * (1.0 + abs(fx)):
+            break
+        ext._tick_check()
+    # polish with a few Newton-like tiny steps is unnecessary for 6-digit answers
+    return x, fx, True
+
+
 def install(kernel):
-    ext.contribute(kernel, [NIntegrate, FindRoot])
+    ext.contribute(kernel, [NIntegrate, FindRoot, FindMinimum, FindMaximum])
+
+
+def quick_numeric(expr, x, lo, hi):
+    """Numeric value of a 1-D definite integral of a SymPy expression without parameters (complex ok); None on failure."""
+    import numpy as np
+
+    try:
+        if expr.free_symbols - {x}:
+            return None
+        fn = compile_numpy(expr, [x])
+        cplx = expr.has(sp.I)
+
+        def f(xv):
+            return fn(np.asarray(xv, dtype=complex) if cplx else xv)
+        a = float("inf") if hi == sp.oo else float(sp.N(hi))
+        b0 = float("-inf") if lo == -sp.oo else float(sp.N(lo))
+        v, e, ok = integrate_1d(f, b0, a)
+        if not ok:
+            return None
+        return complex(v)
+    except Exception:
+        return None

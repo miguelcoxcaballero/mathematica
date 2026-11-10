@@ -254,10 +254,12 @@ class XSumQ(XB):
         "WLX`SumQ[f_, {i_Symbol, a_, b_}]"
         try:
             c = Conv(integer=[i.get_name()])
+            f0 = f
+            f = E("Block", L(i), f).evaluate(evaluation)        # Sum holds its body: a[n] must become its definition
             fs = c.to(f)
             if fs.atoms(sp.core.function.AppliedUndef):
                 # unknown sequence a[k]: nothing to sum in closed form (and Mathics' attempt is slow and ugly)
-                ext.SKIP_ONCE["System`Sum"] = E("Sum", f, L(i, a, b))
+                ext.SKIP_ONCE["System`Sum"] = E("Sum", f0, L(i, a, b))
                 return SymbolFalse
             isym = c.sym(i.get_name())
             av, bv = c.to(a), c.to(b)
@@ -266,7 +268,7 @@ class XSumQ(XB):
                     conv_ = sp.Sum(fs, (isym, av, sp.oo)).is_convergent()
                     if conv_ is sp.false or conv_ is False:
                         evaluation.message("Sum", "div")
-                        return _stash("sum", E("HoldForm", E("Sum", f, L(i, a, b))))
+                        return _stash("sum", E("HoldForm", E("Sum", f0, L(i, a, b))))
                 r = sp.summation(fs, (isym, av, bv))
             if r.has(sp.Sum) or r is sp.nan:
                 return SymbolFalse
@@ -667,7 +669,45 @@ class ComplexExpand(XB):
             return None
 
 
-BUILTINS = SPECIALS + [XNAbs, XNArg, ComplexExpand, KroneckerDelta, Surd, TrigExpand, FunctionExpand,
+class Eliminate(XB):
+    def eval(self, eqs, vars, evaluation):
+        "Eliminate[eqs_, vars_]"
+        from .solve import flatten_equations
+
+        try:
+            eqlist, conds, status = flatten_equations(eqs)
+            vl = list(vars.elements) if vars.has_form("List", None) else [vars]
+            if status or len(eqlist) <= len(vl):
+                return None
+            c = Conv()
+            xs = [c.sym(v.get_name()) for v in vl]
+            ex = [c.to(a) - c.to(b) for a, b in eqlist]
+            with budget(8.0):
+                # use the equations where the variables are easiest to isolate
+                order = sorted(range(len(ex)), key=lambda i: ex[i].count_ops())
+                pick = order[:len(xs)]
+                sol = sp.solve([ex[i] for i in pick], xs, dict=True)
+                if not sol:
+                    return None
+                rest = [sp.numer(sp.together(sp.simplify(ex[i].subs(sol[0])))) for i in order[len(xs):]]
+            outs = []
+            for r in rest:
+                r = sp.expand(r)
+                if r == 0:
+                    continue
+                pos = [t for t in sp.Add.make_args(r) if not t.could_extract_minus_sign()]
+                neg = [-t for t in sp.Add.make_args(r) if t.could_extract_minus_sign()]
+                outs.append(E("Equal", c.back(sp.Add(*pos)), c.back(sp.Add(*neg))))
+            if not outs:
+                return SymbolTrue
+            res = outs[0] if len(outs) == 1 else E("And", *outs)
+            return res.evaluate(evaluation)
+        except Exception:
+            _dbg()
+            return None
+
+
+BUILTINS = SPECIALS + [Eliminate, XNAbs, XNArg, ComplexExpand, KroneckerDelta, Surd, TrigExpand, FunctionExpand,
                        PolynomialGCD, PolynomialLCM, NSum, XSumQ, XSumGet, RSolve, RecurrenceTable] + STASHED
 
 

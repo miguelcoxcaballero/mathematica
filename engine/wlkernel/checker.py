@@ -57,8 +57,16 @@ def is_num(v):
 
 
 def close(a, b, tol):
+    """Relative tolerance (SPEC: "tolerancia relativa"); near zero an absolute floor absorbs rounding noise,
+    but genuinely tiny values (1e-30 ...) are still compared relatively."""
     try:
-        return abs(a - b) <= tol * (1.0 + abs(b))
+        d = abs(a - b)
+        m = max(abs(a), abs(b))
+        if d <= tol * m:
+            return True
+        if b == 0 or a == 0:
+            return d <= tol
+        return m >= 1e-20 and d <= 1e-15
     except Exception:
         return False
 
