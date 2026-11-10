@@ -6,7 +6,7 @@
  "order": 8,
  "title": "Ecuaciones y sistemas: Solve, NSolve y FindRoot",
  "summary": "Resuelve ecuaciones y sistemas de forma exacta (Solve), numérica (NSolve) o partiendo de un punto cercano (FindRoot), y aprende a usar las reglas x -> valor que devuelven con el operador /.",
- "minutes": 45,
+ "minutes": 50,
  "commands": [
   "Solve",
   "NSolve",
@@ -21,40 +21,37 @@
   "Plot",
   "ContourPlot",
   "Part",
-  "Flatten",
   "Abs",
   "Log",
   "Exp"
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Solve: soluciones exactas",
-   "title": "Tres herramientas para resolver",
-   "md": "Casi cualquier problema de ingeniería acaba en una ecuación: ¿en qué instante se cruzan dos trayectorias?, ¿para qué valor se anula una fuerza?, ¿dónde se cortan dos curvas? Mathematica tiene tres herramientas, y esta lección trata de saber **cuál usar y cómo leer lo que devuelve**:\n\n- `Solve`: soluciones **exactas** (ecuaciones polinómicas y poco más).\n- `NSolve`: todas las soluciones **numéricas** de un polinomio.\n- `FindRoot`: **una** solución numérica cerca de un punto que tú le das. Sirve para cualquier ecuación.\n\nIremos una por una, y al final harás la prueba de la Práctica 8.",
-   "cells": []
-  },
-  {
    "type": "build",
+   "section": "Solve: soluciones exactas",
    "title": "Resolver una ecuación",
-   "md": "`Solve` necesita la ecuación y la incógnita. Vamos a resolver `x^2 - 5x + 6 = 0`.",
+   "md": "Resuelve `x^2 - 5x + 6 = 0` con `Solve`.",
    "target": "Solve[x^2 - 5 x + 6 == 0, x]",
    "parts": [
     {
      "code": "x^2 - 5 x + 6 == 0",
-     "md": "La ecuación, con **doble igual**. Un solo `=` es asignar un valor, no plantear una ecuación."
+     "md": "La ecuación, con doble igual."
+    },
+    {
+     "code": "Solve[x^2 - 5 x + 6 = 0, x]",
+     "md": "Prueba con un solo `=`: eso es asignar, y `Solve` se queda sin ecuación.",
+     "run": true
     },
     {
      "code": "Solve[x^2 - 5 x + 6 == 0, x]",
-     "md": "Ecuación, coma, incógnita. La respuesta es una lista de soluciones y cada una es una lista de **reglas** `x -> valor`: por eso las dobles llaves.",
+     "md": "Ahora bien: ecuación con `==`, coma e incógnita.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: resuelve `x^2 - 5 x + 6 == 0`.",
+    "prompt": "Sin mirar: resuelve `x^2 - 5 x + 6 == 0`.",
     "hints": [
-     "El comando es `Solve[ecuación, incógnita]`.",
-     "La ecuación lleva `==`.",
+     "El comando es `Solve[ecuación, incógnita]`, y la ecuación lleva `==`.",
      "`Solve[x^2 - 5 x + 6 == 0, x]`"
     ],
     "check": {
@@ -65,7 +62,8 @@
    },
    "cmds": [
     "Solve"
-   ]
+   ],
+   "more": "La respuesta es una lista de soluciones, y cada solución es una lista de reglas `x -> valor`: por eso hay dobles llaves. Mathematica tiene tres herramientas para ecuaciones: `Solve` (exacto), `NSolve` (numérico, polinomios) y `FindRoot` (una solución cerca de un punto)."
   },
   {
    "type": "exercise",
@@ -94,7 +92,7 @@
      "La ecuación lleva doble igual: `3 x + 2 == 11`.",
      "`Solve[3 x + 2 == 11, x]`"
     ],
-    "explain": "Doble igual para la ecuación, coma, y la incógnita. Con un solo `=` Mathematica intentaría *asignar* 11 a la expresión `3 x + 2`."
+    "explain": "Doble igual para la ecuación, coma, y la incógnita."
    }
   },
   {
@@ -123,16 +121,45 @@
      "`Solve[ecuación, x]`, con `==`.",
      "`Solve[x^3 - 6 x^2 + 11 x - 6 == 0, x]`"
     ],
-    "explain": "Tres soluciones = tres listas con una regla cada una: `{{x -> 1}, {x -> 2}, {x -> 3}}`."
+    "explain": "Tres soluciones = tres listas con una regla cada una."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p08-e03",
+    "kind": "code",
+    "title": "Con letras",
+    "prompt": "Resuelve `a x^2 + b x + c == 0` en la incógnita `x`.",
+    "difficulty": 1,
+    "cmds": [
+     "Solve"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "Solve[a x^2 + b x + c == 0, x]",
+    "check": {
+     "type": "expr",
+     "expected": "Solve[a x^2 + b x + c == 0, x]",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "Deja un espacio entre las letras que se multiplican: `a x^2`, `b x`.",
+     "`Solve[a x^2 + b x + c == 0, x]`"
+    ],
+    "explain": "`Solve` trabaja en exacto, también con letras: sale la fórmula de la ecuación de segundo grado."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p08-e04",
     "kind": "fix",
     "title": "Tres fallos en una línea",
-    "prompt": "Esta celda quería resolver `x^2 - 4 x - 5 = 0`. Tiene tres errores típicos. Corrígela.",
+    "prompt": "Esta celda quería resolver `x^2 - 4 x - 5 = 0`. Tiene tres errores típicos: escríbela bien.",
     "difficulty": 1,
     "cmds": [
      "Solve"
@@ -150,51 +177,56 @@
      "Solve"
     ],
     "hints": [
-     "`Solve` va con mayúscula.",
-     "La ecuación lleva `==`.",
-     "Mathematica distingue mayúsculas: `X` y `x` son variables distintas."
+     "`Solve` con mayúscula, `==` en la ecuación y la misma `x` minúscula como incógnita.",
+     "`Solve[x^2 - 4 x - 5 == 0, x]`"
     ],
-    "explain": "`Solve` con mayúscula, `==` para la ecuación y la misma letra en la ecuación y en la incógnita. Si pones `X`, Mathematica busca una variable que ni aparece en la ecuación."
+    "explain": "Mathematica distingue mayúsculas: `X` y `x` son variables distintas. Si pones `X`, busca una variable que ni aparece en la ecuación."
    }
   },
   {
    "type": "build",
    "section": "Reglas y el operador /.",
    "title": "De las reglas a los valores",
-   "md": "Lo que devuelve `Solve` **no son números**, son reglas. Una regla es una instrucción de sustitución que se aplica con `/.` (se lee «sustituyendo»).",
+   "md": "`Solve` devuelve reglas, no números. Aprende a usarlas con `/.`.",
    "target": "sol = Solve[x^2 - 5 x + 6 == 0, x];\nx /. sol",
    "parts": [
     {
-     "code": "x -> 3",
-     "md": "Una regla: «`x` pasa a valer 3». La flecha es guion y mayor que. No cambia el valor de `x`: solo queda preparada."
+     "code": "x^2 /. x -> 3",
+     "md": "Aplica la regla `x -> 3` a `x^2`.",
+     "run": true,
+     "hint": "`/.` se lee «sustituyendo». La flecha es un guion y un mayor que."
     },
     {
-     "code": "x^2 /. x -> 3",
-     "md": "`expresión /. regla` calcula la expresión aplicando la regla. Después, `x` sigue sin tener valor.",
+     "code": "x",
+     "md": "Mira `x`: sigue sin valor. Sustituir no es asignar.",
      "run": true
     },
     {
      "code": "sol = Solve[x^2 - 5 x + 6 == 0, x]",
-     "md": "Costumbre sana: guardar siempre la salida de `Solve` con un nombre.",
+     "md": "Guarda las soluciones con un nombre.",
      "run": true
     },
     {
      "code": "x /. sol",
-     "md": "Aplicar las soluciones a la propia `x` da la **lista de valores**, ya sin flechas. Con `x /. sol[[1]]` tendrías solo la primera.",
+     "md": "Aplica las reglas a `x`: los valores, sin flechas.",
+     "run": true
+    },
+    {
+     "code": "x^2 + 1 /. sol",
+     "md": "O a cualquier otra expresión.",
      "run": true
     },
     {
      "code": "sol = Solve[x^2 - 5 x + 6 == 0, x];\nx /. sol",
-     "md": "Las dos líneas juntas: resolver (con `;` para no ver las reglas) y extraer los valores.",
+     "md": "Las dos líneas juntas, con `;` en la primera.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: resuelve `x^2 - 5 x + 6 == 0` guardando la salida en `sol` y obtén la lista de valores de `x`.",
+    "prompt": "Sin mirar, en dos líneas: resuelve `x^2 - 5 x + 6 == 0` en `sol` y saca los valores de `x`.",
     "hints": [
-     "Primera línea: `sol = Solve[...];`",
-     "Segunda línea: la incógnita, `/.` y `sol`.",
-     "`x /. sol`"
+     "Primera línea: `sol = Solve[x^2 - 5 x + 6 == 0, x];`",
+     "Segunda línea: `x /. sol`"
     ],
     "check": {
      "type": "expr",
@@ -204,16 +236,49 @@
    },
    "cmds": [
     "Solve",
-    "ReplaceAll"
+    "ReplaceAll",
+    "Rule"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e04",
+    "id": "1-p08-e05",
     "kind": "code",
-    "title": "De las reglas a los números",
-    "prompt": "Resuelve `x^2 - 7 x + 10 == 0` guardando la salida en `sol`, guarda en `raices` la lista de valores (sin flechas) y calcula su suma con `Total[raices]`.",
+    "title": "Solo la primera",
+    "prompt": "`sol` guarda las soluciones de `x^2 - 5 x + 6 == 0`. Obtén el valor de `x` en la primera: usa `sol[[1]]`.",
+    "difficulty": 1,
+    "cmds": [
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "sol = Solve[x^2 - 5 x + 6 == 0, x];",
+    "solution": "x /. sol[[1]]",
+    "check": {
+     "type": "expr",
+     "expected": "2",
+     "compare": "equal"
+    },
+    "requires": [
+     "ReplaceAll",
+     "Part"
+    ],
+    "hints": [
+     "`sol[[1]]` es la primera solución, `{x -> 2}`.",
+     "`x /. sol[[1]]`"
+    ],
+    "explain": "`sol[[1]]` es una lista con una regla; `x /. sol[[1]]` la aplica y da el número."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p08-e06",
+    "kind": "code",
+    "title": "De reglas a números",
+    "prompt": "Resuelve `x^2 - 7 x + 10 == 0` en `sol`, guarda en `raices` los valores (`x /. sol`) y calcula `Total[raices]`.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -243,20 +308,20 @@
      "ReplaceAll"
     ],
     "hints": [
+     "Tres líneas: `sol = Solve[...];`, `raices = x /. sol;` y `Total[raices]`.",
      "`sol = Solve[x^2 - 7 x + 10 == 0, x];`",
-     "`raices = x /. sol;` convierte las reglas en valores.",
-     "Última línea: `Total[raices]`."
+     "`raices = x /. sol;` y debajo `Total[raices]`."
     ],
-    "explain": "Primero se resuelve y se guarda (`sol`), luego se convierten las reglas en valores (`x /. sol`) y por último se opera con ellos. La suma de las raíces es 7."
+    "explain": "Primero se resuelve y se guarda, luego se convierten las reglas en valores y por último se opera con ellos. La suma de las raíces es 7."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e05",
+    "id": "1-p08-e07",
     "kind": "code",
     "title": "Evaluar en las soluciones",
-    "prompt": "Resuelve `x^2 - 2 x - 8 == 0`, guarda la salida en `sol` y obtén la lista con el valor de `x^3` en cada solución.",
+    "prompt": "Resuelve `x^2 - 2 x - 8 == 0` guardando en `sol` y obtén el valor de `x^3` en cada solución.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -275,8 +340,8 @@
      "ReplaceAll"
     ],
     "hints": [
-     "Primera línea: `sol = Solve[x^2 - 2 x - 8 == 0, x];`",
-     "Segunda: aplica las reglas a la expresión: `x^3 /. sol`."
+     "`sol = Solve[x^2 - 2 x - 8 == 0, x];` y después aplica las reglas a `x^3`.",
+     "Segunda línea: `x^3 /. sol`"
     ],
     "explain": "Las raíces son −2 y 4; `x^3 /. sol` las sustituye una a una y devuelve `{-8, 64}`."
    }
@@ -285,25 +350,22 @@
    "type": "build",
    "section": "Sistemas con Solve",
    "title": "Un sistema y sus puntos",
-   "md": "Para un sistema, `Solve` recibe **listas**: la de ecuaciones y la de incógnitas. Vamos a cortar la circunferencia `x^2 + y^2 = 5` con la recta `x + y = 3`.",
+   "md": "Para un sistema, `Solve` recibe listas. Corta una circunferencia con una recta.",
    "target": "sol = Solve[{x^2 + y^2 == 5, x + y == 3}, {x, y}];\n{x, y} /. sol",
    "parts": [
     {
-     "code": "{x^2 + y^2 == 5, x + y == 3}",
-     "md": "Las ecuaciones, en una lista y cada una con su `==`."
-    },
-    {
-     "code": "{x, y}",
-     "md": "Las incógnitas, en otra lista."
+     "code": "Solve[{x + y == 3, x - y == 1}, {x, y}]",
+     "md": "Empieza por uno lineal: lista de ecuaciones y lista de incógnitas.",
+     "run": true
     },
     {
      "code": "sol = Solve[{x^2 + y^2 == 5, x + y == 3}, {x, y}]",
-     "md": "Cada solución trae ahora dos reglas. Hay dos soluciones: la recta corta a la circunferencia en dos puntos.",
+     "md": "Cambia la primera por una circunferencia: salen dos soluciones.",
      "run": true
     },
     {
      "code": "{x, y} /. sol",
-     "md": "Aplicar las reglas a la lista `{x, y}` convierte cada solución en un punto.",
+     "md": "Aplica las reglas a `{x, y}`: los dos puntos de corte.",
      "run": true
     },
     {
@@ -313,7 +375,7 @@
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: resuelve el sistema `x^2 + y^2 == 5`, `x + y == 3` guardándolo en `sol` y obtén los puntos de corte como lista de coordenadas.",
+    "prompt": "Sin mirar, en dos líneas: resuelve `x^2 + y^2 == 5`, `x + y == 3` en `sol` y da los puntos.",
     "hints": [
      "`sol = Solve[{ecuación1, ecuación2}, {x, y}];`",
      "Para los puntos: `{x, y} /. sol`."
@@ -332,7 +394,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e06",
+    "id": "1-p08-e08",
     "kind": "code",
     "title": "Un sistema lineal",
     "prompt": "Resuelve el sistema `2x + 3y = 7`, `x − y = 1`.",
@@ -352,7 +414,7 @@
      "Solve"
     ],
     "hints": [
-     "Las dos ecuaciones van en una lista y las dos incógnitas en otra.",
+     "Las dos ecuaciones en una lista y las dos incógnitas en otra.",
      "`Solve[{2 x + 3 y == 7, x - y == 1}, {x, y}]`"
     ],
     "explain": "Una única solución con dos reglas: `{{x -> 2, y -> 1}}`."
@@ -361,10 +423,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e07",
+    "id": "1-p08-e09",
     "kind": "code",
     "title": "Recta contra circunferencia",
-    "prompt": "Halla los puntos de corte de la circunferencia `x^2 + y^2 == 25` con la recta `y == x + 1`. El resultado debe ser la lista de puntos (coordenadas, no reglas).",
+    "prompt": "Halla los puntos de corte de `x^2 + y^2 == 25` con `y == x + 1`, como lista de coordenadas.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -383,8 +445,9 @@
      "ReplaceAll"
     ],
     "hints": [
-     "Resuelve el sistema y guárdalo: `sol = Solve[{...}, {x, y}];`",
-     "Convierte las reglas en puntos: `{x, y} /. sol`."
+     "Resuelve el sistema en `sol` y después `{x, y} /. sol`.",
+     "`sol = Solve[{x^2 + y^2 == 25, y == x + 1}, {x, y}];`",
+     "Segunda línea: `{x, y} /. sol`"
     ],
     "explain": "`{x, y} /. sol` da `{{-4, -3}, {3, 4}}`: los dos puntos donde la recta atraviesa la circunferencia."
    }
@@ -393,22 +456,27 @@
    "type": "build",
    "section": "Con decimales: N y NSolve",
    "title": "Aproximar lo que da Solve",
-   "md": "`Solve` trabaja en exacto: con raíces, no con decimales. `N` convierte cualquier resultado exacto en números.",
+   "md": "`Solve` responde en exacto. Pásalo a decimales con `N`.",
    "target": "N[Solve[x^2 == 2, x], 20]",
    "parts": [
     {
      "code": "Solve[x^2 == 2, x]",
-     "md": "Las soluciones exactas: `-Sqrt[2]` y `Sqrt[2]`.",
+     "md": "Exacto: con raíces.",
+     "run": true
+    },
+    {
+     "code": "Solve[x^2 == 2, x] // N",
+     "md": "Añade `// N` al final: decimales.",
      "run": true
     },
     {
      "code": "N[Solve[x^2 == 2, x], 20]",
-     "md": "`N[algo, 20]` lo aproxima con 20 cifras significativas. Sin el segundo argumento (o con `// N` al final) da las 6 habituales.",
+     "md": "Con `N[..., 20]` eliges las cifras: 20.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: resuelve `x^2 == 2` y da las soluciones con 20 cifras.",
+    "prompt": "Sin mirar: resuelve `x^2 == 2` y da las soluciones con 20 cifras.",
     "hints": [
      "Envuelve el `Solve` en `N[..., 20]`.",
      "`N[Solve[x^2 == 2, x], 20]`"
@@ -427,26 +495,30 @@
   },
   {
    "type": "build",
-   "title": "Raíces numéricas de un polinomio",
-   "md": "Para polinomios de grado alto la solución exacta es ilegible (o no existe). `NSolve` calcula directamente con decimales.",
+   "title": "Raíces numéricas: NSolve",
+   "md": "Para polinomios de grado alto, `NSolve` calcula directamente con decimales.",
    "target": "NSolve[x^3 - 2 x - 5 == 0, x, Reals]",
    "parts": [
     {
+     "code": "Solve[x^3 - 2 x - 5 == 0, x]",
+     "md": "La respuesta exacta existe… pero no hay quien la lea.",
+     "run": true
+    },
+    {
      "code": "NSolve[x^3 - 2 x - 5 == 0, x]",
-     "md": "Misma forma que `Solve`. Un polinomio de grado 3 tiene 3 raíces **contando las complejas**: por eso aparecen números con `I`.",
+     "md": "Cambia `Solve` por `NSolve`: tres raíces, dos de ellas complejas.",
      "run": true
     },
     {
      "code": "NSolve[x^3 - 2 x - 5 == 0, x, Reals]",
-     "md": "Un tercer argumento, `Reals`, se queda solo con las raíces reales.",
+     "md": "Añade `Reals` para quedarte con las reales.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula numéricamente las raíces **reales** de `x^3 - 2 x - 5 == 0`.",
+    "prompt": "Sin mirar: calcula numéricamente las raíces reales de `x^3 - 2 x - 5 == 0`.",
     "hints": [
-     "Es `NSolve` con tres argumentos.",
-     "El tercero es `Reals`.",
+     "Es `NSolve` con un tercer argumento: `Reals`.",
      "`NSolve[x^3 - 2 x - 5 == 0, x, Reals]`"
     ],
     "check": {
@@ -463,7 +535,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e08",
+    "id": "1-p08-e10",
     "kind": "code",
     "title": "Solo las raíces reales",
     "prompt": "Calcula numéricamente las raíces **reales** del polinomio `x^4 - 3 x^3 + x - 1`.",
@@ -484,8 +556,7 @@
      "NSolve"
     ],
     "hints": [
-     "La ecuación es el polinomio igualado a cero, con `==`.",
-     "El tercer argumento `Reals` descarta las complejas.",
+     "La ecuación es el polinomio igualado a cero, con `==`; el tercer argumento, `Reals`.",
      "`NSolve[x^4 - 3 x^3 + x - 1 == 0, x, Reals]`"
     ],
     "explain": "De las cuatro raíces, dos son reales (≈ −0.778 y ≈ 2.923) y dos complejas conjugadas, que `Reals` elimina."
@@ -494,10 +565,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e09",
+    "id": "1-p08-e11",
     "kind": "code",
-    "title": "Raíces cúbicas de un complejo",
-    "prompt": "Halla, con decimales, las tres raíces cúbicas del número complejo `8 I` resolviendo la ecuación `z^3 == 8 I`.",
+    "title": "Raíces de un complejo",
+    "prompt": "Halla, con decimales, las tres raíces cúbicas de `8 I`: resuelve `z^3 == 8 I`.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -513,31 +584,32 @@
      "tol": 1e-06
     },
     "hints": [
-     "La unidad imaginaria es `I` mayúscula.",
+     "La unidad imaginaria es `I` mayúscula; la incógnita es `z`.",
      "`Solve[z^3 == 8 I, z] // N` (o `NSolve[z^3 == 8 I, z]`)."
     ],
-    "explain": "Tres raíces repartidas a 120° sobre una circunferencia de radio 2: `-2 I` y `±1.732 + I`. Es la técnica de la Pregunta 3 de la práctica."
+    "explain": "Tres raíces repartidas a 120° sobre una circunferencia de radio 2. Es la técnica de la Pregunta 3 de la práctica."
    }
   },
   {
    "type": "build",
-   "section": "FindRoot: cuando Solve no puede",
-   "title": "Una solución cerca de un punto",
-   "md": "Las ecuaciones que mezclan polinomios con senos, exponenciales o logaritmos casi nunca tienen fórmula exacta: `Solve` no puede con `Cos[x] == x`. `FindRoot` busca **una** solución numérica cerca de donde tú le digas.",
+   "section": "FindRoot: una solución cercana",
+   "title": "Cuando Solve no puede",
+   "md": "`Cos[x] == x` no tiene fórmula. Búscale una solución numérica.",
    "target": "x /. FindRoot[Cos[x] == x, {x, 0.7}]",
    "parts": [
     {
-     "code": "Plot[{Cos[x], x}, {x, -2, 2}]",
-     "md": "Primero se dibuja: las dos curvas se cortan cerca de `x = 0.7`.",
+     "code": "Solve[Cos[x] == x, x]",
+     "md": "`Solve` se rinde: te devuelve la celda tal cual.",
      "run": true
     },
     {
-     "code": "{x, 0.7}",
-     "md": "La incógnita y el **punto de partida**. No es un intervalo: es por dónde empezar a buscar."
+     "code": "Plot[{Cos[x], x}, {x, -2, 2}]",
+     "md": "Dibuja los dos miembros: se cortan cerca de 0.7.",
+     "run": true
     },
     {
      "code": "FindRoot[Cos[x] == x, {x, 0.7}]",
-     "md": "Devuelve **una sola** lista de reglas, con llaves simples. Si hay varias soluciones, da la más cercana al punto de partida.",
+     "md": "`FindRoot` busca desde ese punto de partida.",
      "run": true
     },
     {
@@ -547,10 +619,9 @@
     }
    ],
    "recall": {
-    "prompt": "De memoria: obtén como número la solución de `Cos[x] == x` cercana a `0.7`.",
+    "prompt": "Sin mirar: obtén como número la solución de `Cos[x] == x` cercana a 0.7.",
     "hints": [
-     "`FindRoot[ecuación, {x, punto de partida}]`",
-     "Para quitar la flecha, `x /.` delante.",
+     "`FindRoot[ecuación, {x, punto de partida}]`, con `x /.` delante.",
      "`x /. FindRoot[Cos[x] == x, {x, 0.7}]`"
     ],
     "check": {
@@ -563,25 +634,66 @@
    "cmds": [
     "FindRoot",
     "ReplaceAll"
+   ],
+   "more": "`{x, 0.7}` no es un intervalo: es la incógnita y por dónde empezar. `FindRoot` devuelve una sola lista de reglas (llaves simples). En Mathematica, la opción `WorkingPrecision -> 10` hace el cálculo con 10 cifras."
+  },
+  {
+   "type": "build",
+   "title": "El punto de partida decide",
+   "md": "`Exp[x] == 3 x` tiene dos soluciones. Encuentra las dos.",
+   "target": "FindRoot[Exp[x] == 3 x, {x, 1.5}]",
+   "parts": [
+    {
+     "code": "Plot[{Exp[x], 3 x}, {x, 0, 2}]",
+     "md": "Dibuja: dos cortes, cerca de 0.6 y de 1.5.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[Exp[x] == 3 x, {x, 0.5}]",
+     "md": "Partiendo de 0.5 llega a la pequeña.",
+     "run": true
+    },
+    {
+     "code": "FindRoot[Exp[x] == 3 x, {x, 1.5}]",
+     "md": "Cambia solo el punto de partida: la grande.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: halla con `FindRoot` la solución de `Exp[x] == 3 x` cercana a 1.5.",
+    "hints": [
+     "`FindRoot[ecuación, {x, 1.5}]`",
+     "`FindRoot[Exp[x] == 3 x, {x, 1.5}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{x -> 1.5121345516578424}",
+     "compare": "set",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "FindRoot",
+    "Plot"
    ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e10",
+    "id": "1-p08-e12",
     "kind": "code",
-    "title": "Elegir el punto de partida",
-    "prompt": "La ecuación `Exp[x] == 3 x` tiene dos soluciones, una cerca de 0.6 y otra cerca de 1.5 (dibuja `Plot[{Exp[x], 3 x}, {x, 0, 2}]` en el cuaderno si quieres verlo). Obtén con `FindRoot` **la mayor**.",
+    "title": "Otra ecuación sin fórmula",
+    "prompt": "Halla con `FindRoot` la solución de `x == 2 Sin[x]` que está cerca de `x = 2`.",
     "difficulty": 2,
     "cmds": [
      "FindRoot"
     ],
     "real": false,
     "source": null,
-    "solution": "FindRoot[Exp[x] == 3 x, {x, 1.5}]",
+    "solution": "FindRoot[x == 2 Sin[x], {x, 2}]",
     "check": {
      "type": "expr",
-     "expected": "{x -> 1.5121345516578424}",
+     "expected": "{x -> 1.8954942670339809}",
      "compare": "set",
      "tol": 1e-06
     },
@@ -589,19 +701,19 @@
      "FindRoot"
     ],
     "hints": [
-     "El segundo argumento es `{incógnita, punto de partida}`.",
-     "Para la solución mayor, parte de un valor cercano a ella: `FindRoot[Exp[x] == 3 x, {x, 1.5}]`."
+     "`FindRoot[ecuación, {x, punto de partida}]`",
+     "`FindRoot[x == 2 Sin[x], {x, 2}]`"
     ],
-    "explain": "Con `{x, 1.5}` llega a 1.51213; con `{x, 0.5}` habría ido a la otra solución, 0.619061. El punto de partida decide."
+    "explain": "Sale `x ≈ 1.89549`. Partiendo de 0 habría encontrado la otra solución, `x = 0`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e11",
+    "id": "1-p08-e13",
     "kind": "fix",
     "title": "FindRoot mal escrito",
-    "prompt": "Queremos la solución de `x^3 + x == 5 Cos[x]` que está cerca de `x = 1`. La celda tiene dos errores. Corrígela.",
+    "prompt": "Queremos la solución de `x^3 + x == 5 Cos[x]` cercana a 1. La celda tiene dos errores: escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "FindRoot"
@@ -620,8 +732,8 @@
      "FindRoot"
     ],
     "hints": [
-     "Es una ecuación: `==`.",
-     "La incógnita y el punto inicial van juntos entre llaves: `{x, 1}`."
+     "Es una ecuación (`==`), y la incógnita y el punto inicial van juntos entre llaves.",
+     "`FindRoot[x^3 + x == 5 Cos[x], {x, 1}]`"
     ],
     "explain": "`==` y `{x, 1}`. `FindRoot` devuelve `{x -> 1.0819}`."
    }
@@ -630,39 +742,39 @@
    "type": "build",
    "section": "Cortes de dos curvas",
    "title": "Mirar la gráfica y afinar",
-   "md": "Para hallar dónde se cortan dos curvas: se dibujan, se lee en la gráfica por dónde cae el corte y se afina con `FindRoot`. Aquí, la circunferencia `x^2 + y^2 = 4` y la curva `y = Exp[x] - 1`.",
+   "md": "Halla dónde se cortan `x^2 + y^2 = 4` e `y = Exp[x] - 1`.",
    "target": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];\n{xc, Exp[xc] - 1}",
    "parts": [
     {
      "code": "ContourPlot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {x, -3, 3}, {y, -3, 3}, Axes -> True]",
-     "md": "Dos cortes: uno cerca de `(1, 1.7)` y otro cerca de `(-2, -1)`. Con `GridLines -> Automatic` tendrías además una rejilla para leer mejor.",
+     "md": "Dibuja las dos curvas: un corte cerca de (1, 1.7) y otro de (−2, −1).",
      "run": true
     },
     {
      "code": "x^2 + (Exp[x] - 1)^2 == 4",
-     "md": "**Sustitución**: como la segunda ecuación ya da la `y` despejada, se cambia `y` por `Exp[x] - 1` en la primera. Queda una ecuación con una incógnita."
+     "md": "Sustituye la `y` de la segunda ecuación en la primera: una sola incógnita."
     },
     {
      "code": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}]",
-     "md": "`FindRoot` partiendo del valor leído en la gráfica, `x = 1`. Guardamos el número en `xc`.",
+     "md": "Afina con `FindRoot` desde `x = 1` y guarda el número.",
      "run": true
     },
     {
      "code": "{xc, Exp[xc] - 1}",
-     "md": "El punto: la `x` hallada y su `y`. En Mathematica también puedes dar el sistema entero, `FindRoot[{ec1, ec2}, {{x, 1}, {y, 1.7}}]`, y extraer el punto con `{x, y} /. solución`: así se hizo en la prueba real.",
+     "md": "El punto: la `x` hallada y su `y`.",
      "run": true
     },
     {
      "code": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];\n{xc, Exp[xc] - 1}",
-     "md": "Las dos líneas juntas. `FindRoot` da un corte cada vez: para el otro, otro punto de partida.",
+     "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria, en dos líneas: halla el corte del primer cuadrante de `x^2 + y^2 == 4` con `y == Exp[x] - 1` (está cerca de `x = 1`) y devuelve el punto `{x, y}`.",
+    "prompt": "Sin mirar: corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1` cerca de `x = 1`, como `{x, y}`.",
     "hints": [
-     "Sustituye la `y`: la ecuación es `x^2 + (Exp[x] - 1)^2 == 4`.",
-     "`xc = x /. FindRoot[..., {x, 1}];`",
+     "La ecuación con la `y` sustituida: `x^2 + (Exp[x] - 1)^2 == 4`.",
+     "`xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];`",
      "Segunda línea: `{xc, Exp[xc] - 1}`."
     ],
     "check": {
@@ -676,15 +788,16 @@
     "FindRoot",
     "ContourPlot",
     "ReplaceAll"
-   ]
+   ],
+   "more": "En Mathematica también puedes darle a `FindRoot` el sistema entero, `FindRoot[{ec1, ec2}, {{x, 1}, {y, 1.7}}]`, y extraer el punto con `{x, y} /. solución`: así se hizo en la prueba real. Con `GridLines -> Automatic` la gráfica lleva rejilla para leer mejor los cortes."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e12",
+    "id": "1-p08-e14",
     "kind": "code",
     "title": "El otro corte",
-    "prompt": "Las curvas `x^2 + y^2 == 4` e `y == Exp[x] - 1` se cortan también en un punto del tercer cuadrante, cerca de `(-2, -1)`. Calcúlalo con `FindRoot` y devuelve el punto como lista `{x, y}`.",
+    "prompt": "Calcula el otro corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1`, el que está cerca de `x = -2`, como `{x, y}`.",
     "difficulty": 3,
     "cmds": [
      "FindRoot",
@@ -703,9 +816,9 @@
      "FindRoot"
     ],
     "hints": [
-     "Sustituye `y` por `Exp[x] - 1` en la circunferencia: `x^2 + (Exp[x] - 1)^2 == 4`.",
+     "Misma ecuación sustituida, `x^2 + (Exp[x] - 1)^2 == 4`, con otro punto de partida.",
      "`xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, -2}];`",
-     "Última línea: `{xc, Exp[xc] - 1}`."
+     "Segunda línea: `{xc, Exp[xc] - 1}`."
     ],
     "explain": "Misma ecuación, otro punto de partida, otro corte: aproximadamente `(-1.81626, -0.837368)`."
    }
@@ -714,15 +827,14 @@
    "type": "exercise",
    "section": "Práctica real · Preguntas 2 y 3",
    "ex": {
-    "id": "1-p08-e13",
+    "id": "1-p08-e15",
     "kind": "code",
-    "title": "Real · P2: ecuación con logaritmo, 11 cifras",
-    "prompt": "Resuelve la siguiente ecuación con **11 cifras significativas**:\n\n`2 x Log[Pi x/3] == 1`\n\n(`Log` es el logaritmo neperiano.) Usa `Solve` y aproxima el resultado con `N[..., 11]`.",
+    "title": "Real P2 · Con logaritmo",
+    "prompt": "Resuelve `2 x Log[Pi x/3] == 1` con 11 cifras significativas (`Solve` y `N[..., 11]`).",
     "difficulty": 3,
     "cmds": [
      "Solve",
-     "N",
-     "FindRoot"
+     "N"
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 2",
@@ -751,20 +863,19 @@
      ]
     },
     "hints": [
-     "Con `Solve`: `Solve[2 x Log[Pi x/3] == 1, x]` da una solución exacta rara; envuélvela en `N[..., 11]`.",
-     "También vale `FindRoot[2 x Log[Pi x/3] == 1, {x, 1}]`, aunque así no eliges el número de cifras.",
+     "`Solve[2 x Log[Pi x/3] == 1, x]`, envuelto en `N[..., 11]`.",
      "`N[Solve[2 x Log[Pi x/3] == 1, x], 11]`"
     ],
-    "explain": "La solución es `x = 1.3740576532`. En Mathematica, `Solve` avisa aquí con `Solve::ifun` (ha usado funciones inversas y podría haberse dejado alguna solución): es un aviso, no un error."
+    "explain": "La solución es `x = 1.3740576532` (`Log` es el logaritmo neperiano). En Mathematica, `Solve` avisa aquí con `Solve::ifun`: ha usado funciones inversas y podría haberse dejado alguna solución. Es un aviso, no un error."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e14",
+    "id": "1-p08-e16",
     "kind": "code",
-    "title": "Real · P3: raíces quintas de 1 − π i",
-    "prompt": "Halla todos los números complejos que son raíces quintas de `1 - Pi I`, en forma decimal.",
+    "title": "Real P3 · Raíces quintas",
+    "prompt": "Halla, en decimales, las raíces quintas de `1 - Pi I`: resuelve `z^5 == 1 - Pi I`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -789,10 +900,10 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e15",
+    "id": "1-p08-e17",
     "kind": "code",
-    "title": "Real · P3: la del tercer cuadrante",
-    "prompt": "Las cinco raíces quintas de `1 - Pi I` ya están calculadas y guardadas en `sol` (la salida de `Solve[...] // N`).\n\nEjecuta `z /. sol` para verlas como lista de números y devuelve **la que está en el tercer cuadrante**. Puedes extraerla de la lista con `[[ ]]` o teclearla con 6 cifras significativas.",
+    "title": "Real P3 · Tercer cuadrante",
+    "prompt": "`sol` guarda esas cinco raíces. Mira `z /. sol` y devuelve la del tercer cuadrante (con `[[ ]]` o tecleándola).",
     "difficulty": 2,
     "cmds": [
      "ReplaceAll",
@@ -809,21 +920,21 @@
      "tol": 1e-05
     },
     "hints": [
-     "Tercer cuadrante = parte real negativa **y** parte imaginaria negativa.",
-     "`z /. sol` da la lista; si la raíz buscada es, por ejemplo, la cuarta: `(z /. sol)[[4]]`.",
-     "También puedes escribirla directamente: `-1.18088 - 0.465908 I`."
+     "Tercer cuadrante: parte real negativa y parte imaginaria negativa.",
+     "Si es, por ejemplo, la cuarta de la lista: `(z /. sol)[[4]]`.",
+     "También vale teclearla: `-1.18088 - 0.465908 I`."
     ],
-    "explain": "La respuesta de la prueba es `-1.18088 - 0.465908 I`: la única con las dos partes negativas. (El orden en que salen las raíces puede cambiar de un programa a otro: mira siempre los signos.)"
+    "explain": "La respuesta de la prueba es `-1.18088 - 0.465908 I`: la única con las dos partes negativas. El orden en que salen las raíces puede cambiar de un programa a otro: mira siempre los signos."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica real · Pregunta 4: elipse y curva",
+   "section": "Práctica real · Pregunta 4",
    "ex": {
-    "id": "1-p08-e16",
+    "id": "1-p08-e18",
     "kind": "code",
-    "title": "Real · P4 (1/3): dibujar la elipse y la curva",
-    "prompt": "La elipse `(x - 2)^2/3 + (y - 3)^2 == 4` y la curva `y == 1 + x Sin[3 x]` se cortan en ocho puntos.\n\nDibuja las dos curvas en el rectángulo `[-1, 5] × [0, 6]`, con ejes y rejilla (`GridLines -> Automatic`), para poder leer las coordenadas aproximadas de los cortes.",
+    "title": "Real P4 (1/3) · La gráfica",
+    "prompt": "Dibuja juntas `(x - 2)^2/3 + (y - 3)^2 == 4` e `y == 1 + x Sin[3 x]` en `[-1, 5] × [0, 6]`, con ejes y `GridLines -> Automatic`.",
     "difficulty": 3,
     "cmds": [
      "ContourPlot",
@@ -844,20 +955,19 @@
      "Axes"
     ],
     "hints": [
-     "Las dos ecuaciones van en una lista, con `==`.",
-     "Dos intervalos: `{x, -1, 5}, {y, 0, 6}`.",
-     "Opciones: `GridLines -> Automatic, Axes -> True`."
+     "Las dos ecuaciones en una lista, dos intervalos y las opciones `GridLines -> Automatic, Axes -> True`.",
+     "`ContourPlot[{(x - 2)^2/3 + (y - 3)^2 == 4, y == 1 + x Sin[3 x]}, {x, -1, 5}, {y, 0, 6}, GridLines -> Automatic, Axes -> True]`"
     ],
-    "explain": "En la gráfica se ven los ocho cortes. El más bajo está cerca de `(2, 1)` y el más alto cerca de `(4.5, 4.4)`: esos serán los puntos iniciales de `FindRoot`."
+    "explain": "La elipse y la curva se cortan en ocho puntos. El más bajo está cerca de `(2, 1)` y el más alto cerca de `(4.5, 4.4)`: esos serán los puntos de partida de `FindRoot`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e17",
+    "id": "1-p08-e19",
     "kind": "code",
-    "title": "Real · P4 (2/3): el corte más bajo, P3",
-    "prompt": "De los ocho cortes de la elipse `(x - 2)^2/3 + (y - 3)^2 == 4` con la curva `y == 1 + x Sin[3 x]`, el de **menor ordenada** está cerca de `(2, 1)`.\n\nHállalo y guárdalo en `P3` como lista `{x, y}` (sin `;`). La función `yc[x_] := 1 + x Sin[3 x]` (la `y` de la curva) ya está definida, para resolver por sustitución.",
+    "title": "Real P4 (2/3) · El corte P3",
+    "prompt": "`yc[x_] := 1 + x Sin[3 x]` ya existe. Resuelve `(x - 2)^2/3 + (yc[x] - 3)^2 == 4` cerca de `x = 2` y guarda en `P3` el punto `{x, yc[x]}`.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
@@ -878,20 +988,20 @@
      "FindRoot"
     ],
     "hints": [
-     "En la elipse, cambia `y` por `yc[x]`: `(x - 2)^2/3 + (yc[x] - 3)^2 == 4`.",
      "`x3 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 2}];`",
-     "`P3 = {x3, yc[x3]}`. En Mathematica también: `P3 = {x, y} /. FindRoot[{ec1, ec2}, {{x, 2}, {y, 1}}, WorkingPrecision -> 10]`."
+     "Segunda línea: `P3 = {x3, yc[x3]}`.",
+     "En Mathematica también: `P3 = {x, y} /. FindRoot[{ec1, ec2}, {{x, 2}, {y, 1}}, WorkingPrecision -> 10]`."
     ],
-    "explain": "`P3 = (2.094513593, 1.000744540)`. En la prueba se pedían 10 cifras significativas: en Mathematica se consigue añadiendo la opción `WorkingPrecision -> 10` a `FindRoot`."
+    "explain": "`P3 = (2.094513593, 1.000744540)`: el corte de menor ordenada. En la prueba se pedían 10 cifras significativas: en Mathematica se consigue añadiendo `WorkingPrecision -> 10` a `FindRoot`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e18",
+    "id": "1-p08-e20",
     "kind": "code",
-    "title": "Real · P4 (3/3): el corte más alto, P6",
-    "prompt": "El corte de **mayor ordenada** está cerca de `(4.5, 4)`. Hállalo igual que el anterior y guárdalo en `P6` como lista `{x, y}` (sin `;`). `yc[x_]` sigue definida.",
+    "title": "Real P4 (3/3) · El corte P6",
+    "prompt": "Igual que antes, pero cerca de `x = 4.5`: guarda en `P6` el punto `{x, yc[x]}` del corte más alto.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
@@ -912,9 +1022,9 @@
      "FindRoot"
     ],
     "hints": [
-     "Misma ecuación que antes; solo cambia el punto de partida: `{x, 4.5}`.",
+     "Misma ecuación, `(x - 2)^2/3 + (yc[x] - 3)^2 == 4`; solo cambia el punto de partida: `{x, 4.5}`.",
      "`x6 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 4.5}];`",
-     "`P6 = {x6, yc[x6]}`"
+     "Segunda línea: `P6 = {x6, yc[x6]}`."
     ],
     "explain": "`P6 = (4.476186631, 4.398630255)`. Gráfica para estimar y `FindRoot` para afinar, una vez por cada corte: el patrón completo de la práctica."
    }
@@ -923,10 +1033,10 @@
    "type": "exercise",
    "section": "Práctica real · Pregunta extra",
    "ex": {
-    "id": "1-p08-e19",
+    "id": "1-p08-e21",
     "kind": "code",
-    "title": "Real · P. extra a): sistema de tres ecuaciones",
-    "prompt": "Considera el sistema\n\n`y == Exp[x - 2]`, `y^2 == x + z`, `x == z - y`.\n\nResuélvelo numéricamente empezando cerca de `(0, 0, 1)` y devuelve la solución como lista `{x, y, z}`.\n\nPista para hacerlo por sustitución: de la tercera ecuación, `z = x + y`; con eso la segunda queda `y^2 == 2 x + y`; y la primera te da `y` en función de `x`. Queda una sola ecuación en `x`.",
+    "title": "Real extra (1/3) · Reducir",
+    "prompt": "Sistema: `y == Exp[x - 2]`, `y^2 == x + z`, `x == z - y`. Reducido a `x`: resuelve `Exp[x - 2]^2 == 2 x + Exp[x - 2]` cerca de 0, en `sx`.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
@@ -934,31 +1044,59 @@
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta extra, apartado a)",
-    "solution": "sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}];\nsy = Exp[sx - 2];\nsz = sx + sy;\n{sx, sy, sz}",
+    "solution": "sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}]",
+    "check": {
+     "type": "value",
+     "expr": "sx",
+     "expected": "-0.0558042283",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "FindRoot"
+    ],
+    "hints": [
+     "`sx = x /. FindRoot[ecuación, {x, 0}]`",
+     "`sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}]`"
+    ],
+    "explain": "De la tercera ecuación, `z = x + y`; con eso la segunda queda `y^2 == 2 x + y`, y la primera da `y` en función de `x`. En Mathematica también sale directamente con `FindRoot[{ec1, ec2, ec3}, {{x, 0}, {y, 0}, {z, 1}}]`, como pedía el enunciado."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p08-e22",
+    "kind": "code",
+    "title": "Real extra (2/3) · La solución",
+    "prompt": "`sx` ya está calculado. Con `sy = Exp[sx - 2]` y `sz = sx + sy`, devuelve la solución `{sx, sy, sz}`.",
+    "difficulty": 3,
+    "cmds": [
+     "Exp"
+    ],
+    "real": true,
+    "source": "Práctica 8 · Pregunta extra, apartado a)",
+    "setup": "sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}];",
+    "solution": "sy = Exp[sx - 2];\nsz = sx + sy;\n{sx, sy, sz}",
     "check": {
      "type": "expr",
      "expected": "{-0.0558042283, 0.1279898611, 0.0721856328}",
      "compare": "numeric",
      "tol": 1e-05
     },
-    "requires": [
-     "FindRoot"
-    ],
     "hints": [
-     "La ecuación en `x`: `Exp[x - 2]^2 == 2 x + Exp[x - 2]`.",
-     "`sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}];`",
-     "Después `sy = Exp[sx - 2];`, `sz = sx + sy;` y la lista `{sx, sy, sz}`."
+     "Dos asignaciones y la lista final.",
+     "`sy = Exp[sx - 2];`, `sz = sx + sy;` y `{sx, sy, sz}`."
     ],
-    "explain": "La solución es `(x, y, z) ≈ (-0.0558042, 0.12799, 0.0721856)`, como en la prueba. En Mathematica también sale directamente con `FindRoot[{ec1, ec2, ec3}, {{x, 0}, {y, 0}, {z, 1}}]`."
+    "explain": "La solución es `(x, y, z) ≈ (-0.0558042, 0.12799, 0.0721856)`, como en la prueba."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p08-e20",
+    "id": "1-p08-e23",
     "kind": "code",
-    "title": "Real · P. extra b): ¿cuánto se equivoca?",
-    "prompt": "La solución del apartado anterior está guardada como lista de reglas en `s`:\n\n`s = {x -> -0.05580422828135819, y -> 0.1279898611095611, z -> 0.07218563282820292}`\n\nCalcula el valor absoluto de la diferencia entre los dos miembros de cada una de las tres ecuaciones (`y == Exp[x - 2]`, `y^2 == x + z`, `x == z - y`) para esos valores. El resultado debe ser una lista de tres números.",
+    "title": "Real extra (3/3) · El residuo",
+    "prompt": "`s` guarda la solución como reglas. Calcula `Abs` de `{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}` sustituyendo con `/. s`.",
     "difficulty": 3,
     "cmds": [
      "ReplaceAll",
@@ -978,10 +1116,10 @@
      "Abs"
     ],
     "hints": [
-     "Cada diferencia es `miembro izquierdo - miembro derecho`: `y - Exp[x - 2]`, `y^2 - (x + z)`, `x - (z - y)`.",
-     "Ponlas en una lista, aplica `Abs` y sustituye con `/. s`."
+     "`Abs[lista] /. s`",
+     "`Abs[{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}] /. s`"
     ],
-    "explain": "Salen ceros o números del orden de 10^-17: la solución es correcta hasta donde llegan las 16 cifras con las que trabaja la máquina. Trabajando solo con 10 cifras, el residuo sería del orden de 10^-11."
+    "explain": "Son las diferencias entre los dos miembros de cada ecuación. Salen ceros o números del orden de 10^-17: la solución es correcta hasta donde llegan las 16 cifras de la máquina. Trabajando con 10 cifras, el residuo sería del orden de 10^-11."
    }
   }
  ]

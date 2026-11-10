@@ -1,6 +1,6 @@
 // Vista: cuaderno libre (#/cuaderno) — una hoja en blanco que se guarda sola en este navegador.
 // Con ?code=… el código NO se inyecta (SPEC §11: todo se teclea): se muestra como referencia para escribirlo.
-import { h, wlPre, toast } from '../fx.js';
+import { h, wlPre, toast } from '../fx.js?v=1794351414';
 
 const KEY = 'wolframlab-aero-cuaderno';
 let nb = null;
@@ -50,7 +50,7 @@ export default {
     el.appendChild(page);
 
     let mod = null;
-    try { mod = await import('../notebook.js'); } catch (e) { console.warn('[cuaderno] notebook.js no disponible:', e?.message || e); }
+    try { mod = await import('../notebook.js?v=1794351414'); } catch (e) { console.warn('[cuaderno] notebook.js no disponible:', e?.message || e); }
     if (!alive) return;
 
     const make = (list) => mod.createNotebook(host, { cells: list.map((code) => ({ code })), onResult: () => save(), onChange: () => save() });

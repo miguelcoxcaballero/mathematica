@@ -3,18 +3,18 @@
 //  #/  #/indice  #/registro  #/esquema  #/comandos  #/comandos/<Nombre>
 //  #/leccion/<lessonId>[/<paso>]  #/practica  #/practica/comando/<Nombre>  #/practica/tema/<lessonId>  #/practica/aleatoria
 //  #/simulacros  #/simulacro/<examId>  #/cuaderno
-import { emptyState, h, icon } from './fx.js';
+import { emptyState, h, icon } from './fx.js?v=1794351414';
 
 const LOADERS = {
-  home: () => import('./views/home.js'),
-  indice: () => import('./views/indice.js'),
-  registro: () => import('./views/registro.js'),
-  esquema: () => import('./views/esquema.js'),
-  comandos: () => import('./views/comandos.js'),
-  cuaderno: () => import('./views/cuaderno.js'),
-  leccion: () => import('./views/leccion.js'),
-  practica: () => import('./views/practica.js'),
-  simulacro: () => import('./views/simulacro.js'),
+  home: () => import('./views/home.js?v=1794351414'),
+  indice: () => import('./views/indice.js?v=1794351414'),
+  registro: () => import('./views/registro.js?v=1794351414'),
+  esquema: () => import('./views/esquema.js?v=1794351414'),
+  comandos: () => import('./views/comandos.js?v=1794351414'),
+  cuaderno: () => import('./views/cuaderno.js?v=1794351414'),
+  leccion: () => import('./views/leccion.js?v=1794351414'),
+  practica: () => import('./views/practica.js?v=1794351414'),
+  simulacro: () => import('./views/simulacro.js?v=1794351414'),
 };
 
 // re → vista; keys = nombres de los grupos capturados; extra = params fijos. `nav` = entrada del menú que se ilumina.
@@ -190,7 +190,7 @@ export const router = {
   },
   /** vuelve a montar la vista actual */
   refresh() { if (current) current.key = null, current.view = null; return render(); },
-  /** registra o sustituye el cargador de una vista: register('leccion', () => import('./views/leccion.js')) */
+  /** registra o sustituye el cargador de una vista: register('leccion', () => import('./views/leccion.js?v=1794351414')) */
   register(name, loader) { LOADERS[name] = loader; },
   /** cb({path, view, nav, params, title}) en cada cambio de ruta */
   onChange(cb) { listeners.add(cb); return () => listeners.delete(cb); },

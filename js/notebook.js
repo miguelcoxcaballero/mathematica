@@ -9,8 +9,8 @@
 // Editing: Shift+Enter / Ctrl+Enter evaluate · Enter = newline with auto-indent · Tab/Shift+Tab indent ·
 // brackets and quotes auto-close · live Mathematica colouring (wl-highlight.js) · autocomplete of System symbols ·
 // F1 or ?Name shows the command card from data/commands.json.
-import { kernel } from './kernel-client.js';
-import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js';
+import { kernel } from './kernel-client.js?v=1794351414';
+import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js?v=1794351414';
 
 // ------------------------------------------------------------------------------------------------ helpers
 function h(tag, attrs, ...kids) {
@@ -31,8 +31,8 @@ const RUN_ICON = '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="t
 
 // Graphics modules belong to the GFX agent: load them lazily and survive their absence.
 let gfx = null; let manip = null;
-const gfxP = import('./gfx2d.js').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
-const manipP = import('./manipulate.js').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
+const gfxP = import('./gfx2d.js?v=1794351414').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
+const manipP = import('./manipulate.js?v=1794351414').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
 
 // ------------------------------------------------------------------------------------------------ catalogue
 let catalog = null; let catalogP = null;

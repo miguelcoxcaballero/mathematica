@@ -315,7 +315,7 @@ def hold_eval(body, vars, ev, limit=1.6):
     key = None
     try:
         key = str(body)[:600]
-        if key in _HE["bodies"]:
+        if key in _HE["bodies"] and _t.time() - _HE["bodies"][key] < 120:
             _HE["timeout_at"] = _t.time()
             return body
     except Exception:
@@ -337,7 +337,7 @@ def hold_eval(body, vars, ev, limit=1.6):
         if key is not None:
             if len(_HE["bodies"]) > 40:
                 _HE["bodies"].clear()
-            _HE["bodies"][key] = True
+            _HE["bodies"][key] = _t.time()
     except Exception:
         pass
     finally:

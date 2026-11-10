@@ -5,7 +5,7 @@
  "block": "Cálculo I",
  "order": 2,
  "title": "Variables y listas",
- "summary": "Guardar valores con nombre (= y :=), borrarlos con Clear, sustituir con /. y trabajar con listas: crearlas con Table, operar con todos sus elementos a la vez y sumarlas con Total.",
+ "summary": "Guardar con = y :=, borrar con Clear, sustituir con /. y manejar listas con Table y Total.",
  "minutes": 45,
  "commands": [
   "Set",
@@ -22,53 +22,103 @@
   "N",
   "Sqrt",
   "Pi",
-  "Out"
+  "Out",
+  "Equal"
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Guardar valores con =",
-   "title": "Dar nombre a las cosas",
-   "md": "En un problema real no tecleas los datos cada vez: los guardas con un nombre. Una **variable** guarda un valor; una **lista** guarda muchos (las medidas de un ensayo, las componentes de un vector).\n\nEsta práctica es la base de todas las demás. Vas a aprender a guardar (`=`), a borrar (`Clear`), a sustituir sin guardar (`/.`) y a manejar listas (`Table`, `Total`).\n\nEmpezamos por lo más simple: guardar un número.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "Asignar con =",
-   "md": "Vamos a calcular el peso de un avión ligero guardando primero los datos.",
-   "target": "masa = 1200;\ng = 9.81;\npeso = masa g",
+   "section": "Guardar con =",
+   "title": "Guardar un valor",
+   "md": "El signo = guarda un valor con nombre.",
+   "more": "Nombres: empiezan por letra, sin espacios ni guion bajo, y mejor en minúscula (`N`, `D`, `E`, `I`, `C` ya son de Mathematica).",
+   "target": "masa / 2",
    "parts": [
     {
      "code": "masa = 1200",
-     "md": "`=` significa «guarda»: a partir de ahora, `masa` vale 1200 en cualquier celda.",
+     "md": "Guarda 1200 con el nombre masa.",
      "run": true
     },
     {
-     "code": "masa/2",
-     "md": "Cada vez que aparece `masa`, Mathematica la cambia por su valor.",
+     "code": "masa",
+     "md": "Pregunta cuánto vale masa.",
      "run": true
     },
     {
-     "code": "g = 9.81;",
-     "md": "Otra variable. El `;` del final guarda sin mostrar la salida.",
+     "code": "masa / 2",
+     "md": "Úsala en una operación.",
      "run": true
     },
     {
-     "code": "peso = masa g",
-     "md": "Una variable puede guardar el resultado de operar con otras. El espacio entre `masa` y `g` es el producto.",
+     "code": "masa = 1500",
+     "md": "Cámbiale el valor.",
      "run": true
     },
     {
-     "code": "masa = 1200;\ng = 9.81;\npeso = masa g",
-     "md": "Todo junto: tres asignaciones, una por línea.",
+     "code": "masa / 2",
+     "md": "Repite la operación de antes.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en tres líneas: guarda 1200 en `masa`, guarda 9.81 en `g` y guarda en `peso` el producto de las dos.",
+    "prompt": "Sin mirar, en dos líneas: guarda 1500 en `masa` y calcula `masa / 2`.",
     "hints": [
-     "Una asignación por línea: `nombre = valor`.",
-     "Las dos primeras pueden acabar en `;` para no mostrar salida.",
+     "Primera línea: `masa = 1500`",
+     "`masa = 1500` y debajo `masa / 2`"
+    ],
+    "solution": "masa = 1500;\nmasa / 2",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "masa",
+       "expected": "1500",
+       "msg": "Guarda el valor con `masa = 1500`."
+      },
+      {
+       "type": "expr",
+       "expected": "750"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Set"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Varias variables",
+   "md": "Guarda dos datos y opera con ellos.",
+   "target": "masa = 1200;\ng = 9.81;\npeso = masa g",
+   "parts": [
+    {
+     "code": "g = 9.81;",
+     "md": "Un dato; el punto y coma oculta la salida.",
+     "run": true
+    },
+    {
+     "code": "masa = 1200;",
+     "md": "Otro dato, también en silencio.",
+     "run": true
+    },
+    {
+     "code": "peso = masa g",
+     "md": "Guarda en peso el producto de los dos.",
+     "run": true
+    },
+    {
+     "code": "masa = 1200;\ng = 9.81;\npeso = masa g",
+     "md": "Las tres líneas en una sola celda.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar, en tres líneas: masa = 1200, g = 9.81 y peso, su producto.",
+    "hints": [
+     "Una asignación por línea.",
+     "El producto es un espacio: `masa g`.",
      "`masa = 1200;`, `g = 9.81;` y `peso = masa g`"
     ],
     "check": {
@@ -80,7 +130,7 @@
        "expected": "{1200, 9.81}",
        "compare": "numeric",
        "tol": 1e-09,
-       "msg": "Revisa los datos: `masa` debe valer 1200 y `g` debe valer 9.81."
+       "msg": "`masa` debe valer 1200 y `g` debe valer 9.81."
       },
       {
        "type": "value",
@@ -98,10 +148,66 @@
    ]
   },
   {
-   "type": "explain",
-   "title": "Cómo llamar a tus variables",
-   "md": "Normas para los nombres:\n- Empiezan por letra y pueden llevar números: `x1`, `velocidad`, `areaTotal`.\n- Sin espacios y **sin guion bajo**: `area_total` no es un nombre (el `_` significa otra cosa; lo verás en la práctica 3).\n- Distinguen mayúsculas: `a` y `A` son variables distintas.\n- Mejor empezar en **minúscula**: así no chocas con los nombres propios de Mathematica. `N`, `D`, `E`, `I` y `C` ya están cogidos; si intentas asignarles algo, Mathematica contesta `Symbol D is Protected`.\n\nY no confundas `=` con `==`: uno solo **guarda**; dos **preguntan** si son iguales.",
-   "cells": []
+   "type": "build",
+   "title": "= no es ==",
+   "md": "Un igual guarda; dos iguales preguntan.",
+   "target": "a == 4",
+   "parts": [
+    {
+     "code": "a = 3",
+     "md": "Guarda 3 en a.",
+     "run": true
+    },
+    {
+     "code": "a == 3",
+     "md": "Ahora pregunta si a vale 3.",
+     "run": true
+    },
+    {
+     "code": "a == 4",
+     "md": "Pregunta si vale 4.",
+     "run": true
+    },
+    {
+     "code": "a = 4",
+     "md": "Guárdale un 4.",
+     "run": true
+    },
+    {
+     "code": "a == 4",
+     "md": "Y pregunta otra vez.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar, en dos líneas: guarda 4 en `a` y pregunta si `a` es igual a 4.",
+    "hints": [
+     "Guardar: un `=`. Preguntar: `==`.",
+     "`a = 4` y debajo `a == 4`"
+    ],
+    "solution": "a = 4;\na == 4",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "a",
+       "expected": "4",
+       "msg": "Primero guarda el valor: `a = 4`."
+      },
+      {
+       "type": "expr",
+       "expected": "True",
+       "compare": "same",
+       "msg": "La última línea debe preguntar: `a == 4`."
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "Set",
+    "Equal"
+   ]
   },
   {
    "type": "exercise",
@@ -109,7 +215,7 @@
     "id": "1-p02-e01",
     "kind": "code",
     "title": "Dos variables encadenadas",
-    "prompt": "Tres líneas en la misma celda:\n\n1. Guarda el valor 3 en `a`.\n2. Guarda en `b` el valor de `a` más 1 (escribe la operación, no el resultado).\n3. Multiplica `a` por `b`.",
+    "prompt": "En tres líneas: guarda 3 en `a`, guarda `a + 1` en `b` y multiplica `a` por `b`.",
     "difficulty": 1,
     "cmds": [
      "Set"
@@ -124,7 +230,7 @@
        "type": "value",
        "expr": "{a, b}",
        "expected": "{3, 4}",
-       "msg": "Tras ejecutar la celda, `a` debe valer 3 y `b` debe valer 4."
+       "msg": "`a` debe valer 3 y `b` debe valer 4."
       },
       {
        "type": "expr",
@@ -133,10 +239,10 @@
      ]
     },
     "hints": [
-     "Una asignación por línea: `a = 3;` y `b = a + 1;`",
-     "Última línea: `a b` (el espacio es el producto)."
+     "`a = 3;` y `b = a + 1;`",
+     "Última línea: `a b`"
     ],
-    "explain": "`a` vale 3, `b` vale 3 + 1 = 4 y `a b` es su producto: 12. Los `;` solo ocultan las salidas intermedias."
+    "explain": "`a` vale 3, `b` vale 4 y su producto es 12."
    }
   },
   {
@@ -145,7 +251,7 @@
     "id": "1-p02-e02",
     "kind": "code",
     "title": "Área de un círculo",
-    "prompt": "Guarda el valor `2.5` en una variable llamada `radio`. En otra línea, calcula el área del círculo: π·radio².",
+    "prompt": "Guarda 2.5 en `radio` y, en otra línea, calcula el área del círculo: π·radio².",
     "difficulty": 1,
     "cmds": [
      "Set",
@@ -178,44 +284,45 @@
     ],
     "hints": [
      "Primera línea: `radio = 2.5;`",
-     "Segunda línea: `Pi radio^2`."
+     "Segunda línea: `Pi radio^2`"
     ],
-    "explain": "Como `radio` es un decimal, el resultado sale ya en decimales: 19.635. Con `radio = 5/2` habría salido `25 Pi/4`."
+    "explain": "Como `radio` es decimal, sale 19.635. Con `radio = 5/2` saldría `25 Pi/4`."
    }
   },
   {
    "type": "build",
    "section": "Clear: borrar variables",
    "title": "Clear: quitar un valor",
-   "md": "Una variable conserva su valor hasta que la borras, aunque borres la celda donde la definiste. Es la causa más habitual de resultados raros.",
-   "target": "Clear[x]\nx^2 + 2 x",
+   "md": "Una variable guarda su valor hasta que la borras.",
+   "more": "Los valores olvidados son la causa más habitual de resultados raros. Si una expresión con letras devuelve un número, sospecha de una variable con valor.",
+   "target": "x^2 + 2 x",
    "parts": [
     {
      "code": "x = 3;",
-     "md": "Le damos un valor a `x`… y nos olvidamos de ello.",
+     "md": "Dale un valor a x y olvídate de él.",
      "run": true
     },
     {
      "code": "x^2 + 2 x",
-     "md": "Queríamos un polinomio y sale un número: `x` valía 3.",
-     "run": true
+     "md": "Escribe un polinomio en x.",
+     "run": true,
+     "hint": "Sale un número: x valía 3."
     },
     {
      "code": "Clear[x]",
-     "md": "`Clear[x]` le quita el valor. Se pueden borrar varias a la vez: `Clear[x, y]`.",
+     "md": "Borra el valor de x.",
      "run": true
     },
     {
-     "code": "Clear[x]\nx^2 + 2 x",
-     "md": "Con `x` libre, la expresión se queda con sus letras.",
+     "code": "x^2 + 2 x",
+     "md": "El mismo polinomio, otra vez.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en tres líneas: asigna 3 a `x` (terminando en punto y coma), después libera `x` y por último escribe `x^2 + 2 x` para comprobar que sale el polinomio.",
+    "prompt": "Sin mirar, en tres líneas: `x = 3;`, borra x y escribe `x^2 + 2 x`.",
     "hints": [
      "La segunda línea es `Clear[x]`.",
-     "Tres líneas: asignar, borrar, escribir la expresión.",
      "`x = 3;`, `Clear[x]` y `x^2 + 2 x`"
     ],
     "solution": "x = 3;\nClear[x]\nx^2 + 2 x",
@@ -242,26 +349,39 @@
   {
    "type": "build",
    "title": "Borrarlo todo",
-   "md": "La línea con la que empiezan casi todos los ejercicios resueltos: borra **todas** tus variables de golpe.",
-   "target": "Clear[\"Global`*\"]",
+   "md": "Una sola línea borra todas tus variables.",
+   "more": "Casi todos los ejercicios resueltos empiezan con esta línea. Es buena costumbre empezar así cada problema.",
+   "target": "Clear[\"Global`*\"]\n{x, y}",
    "parts": [
     {
+     "code": "x = 3; y = 4;",
+     "md": "Dos variables con valor.",
+     "run": true
+    },
+    {
      "code": "Clear[x, y]",
-     "md": "Varias variables, separadas por comas.",
+     "md": "Borra las dos a la vez, separadas por coma.",
      "run": true
     },
     {
-     "code": "\"Global`*\"",
-     "md": "Un texto entre comillas: Global, acento grave y asterisco. Significa «todo lo que has definido tú»."
+     "code": "{x, y}",
+     "md": "Comprueba que están libres.",
+     "run": true
     },
     {
-     "code": "Clear[\"Global`*\"]",
-     "md": "Ese texto dentro de `Clear`. Es buena costumbre empezar así cada problema.",
+     "code": "x = 3; y = 4;",
+     "md": "Dales valor otra vez.",
      "run": true
+    },
+    {
+     "code": "Clear[\"Global`*\"]\n{x, y}",
+     "md": "Ahora bórralo todo de golpe y compruébalo.",
+     "run": true,
+     "hint": "Entre comillas: Global, acento grave y asterisco."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en tres líneas: asigna `x = 3;`, borra **todas** las variables con la línea que acabas de ver y evalúa `x` para comprobar que está libre.",
+    "prompt": "Sin mirar, en tres líneas: `x = 3;`, la línea que lo borra todo, y `x`.",
     "hints": [
      "Es `Clear[...]` con un texto entre comillas dentro.",
      "El texto es: Global, acento grave, asterisco.",
@@ -280,7 +400,7 @@
        "type": "expr",
        "expected": "x",
        "compare": "same",
-       "msg": "La última línea debe ser `x` sola, para comprobar que ha quedado libre."
+       "msg": "La última línea debe ser `x` sola, para ver que ha quedado libre."
       }
      ]
     }
@@ -294,8 +414,8 @@
    "ex": {
     "id": "1-p02-e03",
     "kind": "fix",
-    "title": "Una variable con valor antiguo",
-    "prompt": "Queremos desarrollar `(t + 1)^2` y obtener el polinomio `1 + 2 t + t^2` (`Expand` desarrolla productos y potencias). Pero en una celda anterior alguien evaluó `t = 4`, y por eso ahora sale un número.\n\nEscribe la celda añadiendo lo que falta para que salga el polinomio.",
+    "title": "Un valor antiguo",
+    "prompt": "`t` vale 4 de una celda anterior y por eso sale 25. Escribe la celda para que salga el polinomio.",
     "difficulty": 2,
     "cmds": [
      "Clear"
@@ -321,45 +441,52 @@
     },
     "hints": [
      "El código está bien; el problema es que `t` vale 4.",
-     "Añade una primera línea `Clear[t]`."
+     "Primera línea: `Clear[t]`"
     ],
-    "explain": "`Clear[t]` devuelve a `t` su condición de símbolo. Siempre que una expresión con letras te devuelva un número inesperado, sospecha de una variable con valor antiguo."
+    "explain": "`Expand` desarrolla la potencia; con `t` libre sale `1 + 2 t + t^2`."
    }
   },
   {
    "type": "build",
    "section": "= frente a :=",
-   "title": "Inmediata (=) y diferida (:=)",
-   "md": "Hay dos formas de asignar, y la práctica 2 empieza justo por aquí. Vamos a definir lo mismo de las dos maneras y a ver qué pasa cuando cambia un dato.",
-   "target": "x = 4.36;\n{A, B}",
+   "title": "Inmediata y diferida",
+   "md": "= guarda el resultado; := guarda la receta.",
+   "more": "`=` calcula el lado derecho ahora y guarda el número (una foto). `:=` guarda la fórmula y la recalcula cada vez que se usa.",
+   "target": "{A, B}",
    "parts": [
     {
      "code": "x = 5.12; y = 4.37;",
-     "md": "Dos datos, en la misma línea, separados por `;`.",
+     "md": "Dos datos en una línea.",
      "run": true
     },
     {
      "code": "A = x/y",
-     "md": "`=` es **inmediata**: calcula `x/y` ahora y guarda el número. Es una foto.",
+     "md": "Define A con =.",
      "run": true
     },
     {
      "code": "B := x/y",
-     "md": "`:=` es **diferida**: guarda la receta sin calcularla. Por eso no da salida.",
+     "md": "Define B con := (no da salida).",
      "run": true
     },
     {
-     "code": "x = 4.36;\n{A, B}",
-     "md": "Cambiamos `x`. `A` no se entera: guardó el número viejo. `B` se recalcula con el `x` nuevo.",
+     "code": "x = 4.36;",
+     "md": "Cambia x.",
      "run": true
+    },
+    {
+     "code": "{A, B}",
+     "md": "Mira las dos.",
+     "run": true,
+     "hint": "A guardó el número viejo; B se recalcula con el x nuevo."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en cinco líneas: asigna `x = 5.12` e `y = 4.37`; define `A` con `=` como `x/y`; define `B` con `:=` como `x/y`; cambia `x` a 4.36; muestra la lista `{A, B}`.",
+    "prompt": "Sin mirar: x = 5.12, y = 4.37; A con =, B con :=, ambas x/y; x = 4.36; muestra {A, B}.",
     "hints": [
-     "`A = x/y` (inmediata) y `B := x/y` (diferida).",
+     "`A = x/y` y `B := x/y`.",
      "Después `x = 4.36;` y por último `{A, B}`.",
-     "`x = 5.12; y = 4.37;`, `A = x/y;`, `B := x/y`, `x = 4.36;` y `{A, B}`"
+     "`x = 5.12; y = 4.37;`, `A = x/y;`, `B := x/y`, `x = 4.36;`, `{A, B}`"
     ],
     "solution": "x = 5.12; y = 4.37;\nA = x/y;\nB := x/y\nx = 4.36;\n{A, B}",
     "check": {
@@ -367,7 +494,7 @@
      "expected": "{5.12/4.37, 4.36/4.37}",
      "compare": "numeric",
      "tol": 1e-06,
-     "msg": "No coincide. `A` (con `=`) debe seguir valiendo 5.12/4.37 y `B` (con `:=`) debe valer 4.36/4.37."
+     "msg": "`A` (con `=`) debe seguir valiendo 5.12/4.37 y `B` (con `:=`) debe valer 4.36/4.37."
     }
    },
    "cmds": [
@@ -381,7 +508,7 @@
     "id": "1-p02-e04",
     "kind": "code",
     "title": "¿Foto o receta?",
-    "prompt": "Cuatro líneas en la misma celda:\n\n1. Asigna `p = 2`.\n2. Define `q` con asignación **diferida** como `p^2`.\n3. Cambia `p` a 10.\n4. Evalúa `q`.\n\nAntes de ejecutar, piensa qué va a salir: ¿4 o 100?",
+    "prompt": "En cuatro líneas: `p = 2`; `q` diferida como `p^2`; cambia `p` a 10; evalúa `q`. ¿Saldrá 4 o 100?",
     "difficulty": 2,
     "cmds": [
      "SetDelayed",
@@ -397,12 +524,12 @@
        "type": "value",
        "expr": "p",
        "expected": "10",
-       "msg": "Falta el paso 3: `p` debe acabar valiendo 10."
+       "msg": "`p` debe acabar valiendo 10."
       },
       {
        "type": "expr",
        "expected": "100",
-       "msg": "Con `:=`, `q` debe recalcularse con el `p` nuevo y dar 100. ¿Has usado `=` en vez de `:=`?"
+       "msg": "Con `:=`, `q` debe dar 100. ¿Has usado `=` en vez de `:=`?"
       }
      ]
     },
@@ -410,44 +537,50 @@
      "SetDelayed"
     ],
     "hints": [
-     "La asignación diferida se escribe `q := p^2` y no produce salida.",
-     "`p = 2;`, `q := p^2`, `p = 10;` y `q`, cada una en su línea."
+     "La diferida se escribe `q := p^2`.",
+     "`p = 2;`, `q := p^2`, `p = 10;` y `q`"
     ],
-    "explain": "`q` guarda la receta `p^2`. Cuando la pides, `p` vale 10, así que da 100. Con `q = p^2` habría guardado un 4 para siempre. Para guardar datos y resultados se usa `=`; la diferida será imprescindible para definir funciones (práctica 3)."
+    "explain": "`q` guarda la receta `p^2`: al pedirla, `p` vale 10 y da 100. Con `=` habría guardado un 4."
    }
   },
   {
    "type": "build",
    "section": "Sustituir con /.",
-   "title": "Sustituir con /. y ->",
-   "md": "A menudo quieres saber cuánto vale una expresión para un valor de `x` **sin** dejar `x` asignada para siempre. Para eso está la sustitución.",
+   "title": "Sustituir con /.",
+   "md": "Evalúa una expresión sin asignar nada.",
    "target": "x^2 + y /. {x -> 2, y -> 3}",
    "parts": [
     {
-     "code": "x -> 3",
-     "md": "Una **regla**: «x pasa a ser 3». La flecha se escribe con un guion y un mayor que. Sola no hace nada.",
-     "run": true
-    },
-    {
      "code": "x^2 + 1 /. x -> 3",
-     "md": "`/.` aplica la regla a lo que tiene a su izquierda. Se lee «x² + 1, donde x vale 3».",
-     "run": true
+     "md": "Expresión, barra-punto y la regla x -> 3.",
+     "run": true,
+     "hint": "Se lee «x² + 1, donde x vale 3». La flecha es un guion y un mayor que."
     },
     {
      "code": "x",
-     "md": "`x` sigue libre: sustituir no es asignar. Es la gran ventaja frente a `x = 3`.",
+     "md": "Comprueba que x sigue libre.",
+     "run": true
+    },
+    {
+     "code": "x^2 + 1 /. x -> 10",
+     "md": "Cambia el 3 por un 10.",
+     "run": true
+    },
+    {
+     "code": "x^2 + y /. x -> 2",
+     "md": "Con dos letras: sustituye solo x.",
      "run": true
     },
     {
      "code": "x^2 + y /. {x -> 2, y -> 3}",
-     "md": "Varias sustituciones a la vez: una lista de reglas entre llaves.",
+     "md": "Las dos a la vez: una lista de reglas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: evalúa `x^2 + y` para x = 2 e y = 3 con una sola sustitución, sin asignar nada.",
+    "prompt": "Sin mirar: evalúa `x^2 + y` en x = 2, y = 3 con una sola sustitución.",
     "hints": [
-     "La forma es: expresión, `/.`, lista de reglas.",
+     "Expresión, `/.` y una lista de reglas.",
      "Cada regla es `variable -> valor`.",
      "`x^2 + y /. {x -> 2, y -> 3}`"
     ],
@@ -472,12 +605,68 @@
    ]
   },
   {
+   "type": "build",
+   "title": "Sustituir no es asignar",
+   "md": "La sustitución necesita que la variable esté libre.",
+   "target": "x^2 + 1 /. x -> 10",
+   "parts": [
+    {
+     "code": "x = 3;",
+     "md": "Guarda 3 en x.",
+     "run": true
+    },
+    {
+     "code": "x^2 + 1 /. x -> 10",
+     "md": "Intenta sustituir x por 10.",
+     "run": true,
+     "hint": "Sale 10: x ya valía 3 y no queda ninguna x que sustituir."
+    },
+    {
+     "code": "Clear[x]",
+     "md": "Libera x.",
+     "run": true
+    },
+    {
+     "code": "x^2 + 1 /. x -> 10",
+     "md": "Repite la sustitución.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar, en dos líneas: libera `x` y evalúa `x^2 + 1` en x = 10 con `/.`.",
+    "hints": [
+     "Primera línea: `Clear[x]`",
+     "`Clear[x]` y debajo `x^2 + 1 /. x -> 10`"
+    ],
+    "solution": "Clear[x]\nx^2 + 1 /. x -> 10",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "satisfies",
+       "test": "Head[x] === Symbol",
+       "msg": "`x` no debe quedar con valor."
+      },
+      {
+       "type": "expr",
+       "expected": "101"
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "ReplaceAll",
+    "Rule",
+    "Clear"
+   ]
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "1-p02-e05",
     "kind": "code",
     "title": "Tu primera sustitución",
-    "prompt": "Evalúa la expresión `x^3 - 2 x` en x = 5 usando una sustitución, sin asignar ningún valor a `x`.",
+    "prompt": "Evalúa `x^3 - 2 x` en x = 5 con una sustitución, sin asignar valor a `x`.",
     "difficulty": 1,
     "cmds": [
      "ReplaceAll",
@@ -492,7 +681,7 @@
       {
        "type": "satisfies",
        "test": "Head[x] === Symbol",
-       "msg": "No asignes `x = 5`: usa `/. x -> 5` para que `x` siga libre."
+       "msg": "No asignes `x = 5`: usa `/. x -> 5`."
       },
       {
        "type": "expr",
@@ -505,39 +694,44 @@
      "Rule"
     ],
     "hints": [
-     "Escribe primero la expresión y después `/. x -> 5`.",
+     "La expresión y después `/. x -> 5`.",
      "`x^3 - 2 x /. x -> 5`"
     ],
-    "explain": "`x^3 - 2 x /. x -> 5` da 125 − 10 = 115, y `x` sigue sin valor. Este patrón es de los más usados de Mathematica: las soluciones de las ecuaciones llegan como reglas `x -> …`."
+    "explain": "125 − 10 = 115, y `x` sigue libre."
    }
   },
   {
    "type": "build",
-   "title": "Guardar una expresión y evaluarla",
-   "md": "Una variable también puede guardar una expresión con letras. Combinado con `/.`, es la forma cómoda de evaluar un polinomio en varios puntos.",
+   "title": "Guardar una expresión",
+   "md": "Una variable también guarda expresiones con letras.",
    "target": "pol = 2 x^2 - 3 x + 1;\npol /. x -> 2",
    "parts": [
     {
      "code": "pol = 2 x^2 - 3 x + 1",
-     "md": "El polinomio queda guardado en `pol`. Condición: `x` tiene que estar libre.",
+     "md": "Guarda el polinomio en pol.",
      "run": true
     },
     {
      "code": "pol /. x -> 2",
-     "md": "El valor del polinomio en x = 2, sin tocar `pol` ni `x`.",
+     "md": "Evalúalo en x = 2.",
+     "run": true
+    },
+    {
+     "code": "pol /. x -> 5",
+     "md": "Ahora en x = 5.",
      "run": true
     },
     {
      "code": "pol = 2 x^2 - 3 x + 1;\npol /. x -> 2",
-     "md": "Las dos líneas juntas: guardar y evaluar.",
+     "md": "Guardar y evaluar, en dos líneas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en dos líneas: guarda en `pol` el polinomio `2 x^2 - 3 x + 1` y evalúalo en x = 2 con una sustitución.",
+    "prompt": "Sin mirar, en dos líneas: guarda `2 x^2 - 3 x + 1` en `pol` y evalúalo en x = 2.",
     "hints": [
      "Primera línea: `pol = ...;`",
-     "Segunda línea: `pol /. x -> 2`.",
+     "Segunda: `pol /. x -> 2`",
      "`pol = 2 x^2 - 3 x + 1;` y `pol /. x -> 2`"
     ],
     "check": {
@@ -547,7 +741,7 @@
        "type": "value",
        "expr": "pol",
        "expected": "2 x^2 - 3 x + 1",
-       "msg": "Guarda el polinomio con `pol = 2 x^2 - 3 x + 1` (y no asignes valor a `x`)."
+       "msg": "Guarda el polinomio con `pol = 2 x^2 - 3 x + 1` (con `x` libre)."
       },
       {
        "type": "expr",
@@ -568,7 +762,7 @@
     "id": "1-p02-e06",
     "kind": "code",
     "title": "Otro polinomio",
-    "prompt": "Guarda en la variable `pol` el polinomio `3 t^2 - 5 t + 2`. En otra línea, evalúalo en t = 4 usando `/.` (sin asignar valor a `t`).",
+    "prompt": "Guarda `3 t^2 - 5 t + 2` en `pol` y, en otra línea, evalúalo en t = 4 con `/.`.",
     "difficulty": 2,
     "cmds": [
      "Set",
@@ -584,7 +778,7 @@
       {
        "type": "satisfies",
        "test": "Head[t] === Symbol",
-       "msg": "No asignes `t = 4`: sustituye con `pol /. t -> 4` para que `t` siga libre."
+       "msg": "No asignes `t = 4`: usa `pol /. t -> 4`."
       },
       {
        "type": "value",
@@ -602,44 +796,49 @@
      "ReplaceAll"
     ],
     "hints": [
-     "Primera línea: `pol = 3 t^2 - 5 t + 2;`",
-     "Segunda línea: `pol /. t -> 4`."
+     "`pol = 3 t^2 - 5 t + 2;`",
+     "`pol /. t -> 4`"
     ],
-    "explain": "3·16 − 20 + 2 = 30. El polinomio queda guardado en `pol` y lo puedes evaluar en tantos puntos como quieras."
+    "explain": "3·16 − 20 + 2 = 30."
    }
   },
   {
    "type": "build",
    "section": "Listas",
-   "title": "Una lista y operar con ella",
-   "md": "Una lista es una colección ordenada de cosas. Lo mejor: las operaciones se aplican **a todos los elementos a la vez**.",
+   "title": "Una lista",
+   "md": "Llaves y comas; las operaciones van a todos los elementos.",
    "target": "Sqrt[datos]",
    "parts": [
     {
-     "code": "{4, 9, 16, 25}",
-     "md": "Una lista: elementos entre **llaves**, separados por comas."
-    },
-    {
      "code": "datos = {4, 9, 16, 25}",
-     "md": "Guardada con nombre, como cualquier valor.",
+     "md": "Guarda una lista: llaves y comas.",
      "run": true
     },
     {
-     "code": "2 datos + 1",
-     "md": "Las operaciones se reparten solas: el doble de cada elemento, más uno. Sin bucles.",
+     "code": "datos + 1",
+     "md": "Súmale 1.",
+     "run": true
+    },
+    {
+     "code": "2 datos",
+     "md": "Multiplícala por 2.",
+     "run": true
+    },
+    {
+     "code": "datos^2",
+     "md": "Elévala al cuadrado.",
      "run": true
     },
     {
      "code": "Sqrt[datos]",
-     "md": "Las funciones también: la raíz de cada elemento.",
+     "md": "Aplícale una función.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en dos líneas: guarda en `datos` la lista 4, 9, 16, 25 y calcula la raíz cuadrada de todos sus elementos.",
+    "prompt": "Sin mirar, en dos líneas: guarda 4, 9, 16, 25 en `datos` y calcula su raíz.",
     "hints": [
-     "La lista va entre llaves: `{4, 9, 16, 25}`.",
-     "`Sqrt` se aplica a la lista entera: `Sqrt[datos]`.",
+     "La lista va entre llaves.",
      "`datos = {4, 9, 16, 25};` y `Sqrt[datos]`"
     ],
     "solution": "datos = {4, 9, 16, 25};\nSqrt[datos]",
@@ -671,7 +870,7 @@
     "id": "1-p02-e07",
     "kind": "code",
     "title": "Operar con una lista",
-    "prompt": "Guarda en `v` la lista `{1, 2, 3}`. En otra línea, calcula con una sola operación la lista formada por el cuadrado de cada elemento menos uno.",
+    "prompt": "Guarda `{1, 2, 3}` en `v` y calcula, con una sola operación, el cuadrado de cada elemento menos 1.",
     "difficulty": 1,
     "cmds": [
      "List",
@@ -696,49 +895,55 @@
      ]
     },
     "hints": [
-     "Las listas van entre llaves: `v = {1, 2, 3};`",
-     "Opera con `v` como si fuera un número: `v^2 - 1`."
+     "`v = {1, 2, 3};`",
+     "Opera con `v` como con un número: `v^2 - 1`"
     ],
-    "explain": "`v^2` da `{1, 4, 9}` y al restar 1 se resta a cada elemento: `{0, 3, 8}`."
+    "explain": "`v^2` da `{1, 4, 9}` y se resta 1 a cada elemento."
    }
   },
   {
    "type": "build",
-   "title": "Sacar un elemento de una lista",
-   "md": "Para extraer elementos se usan **dobles corchetes**.",
+   "title": "Sacar un elemento",
+   "md": "Dobles corchetes para extraer un elemento.",
    "target": "{datos[[2]], datos[[-1]], Length[datos]}",
    "parts": [
     {
      "code": "datos = {4, 9, 16, 25};",
-     "md": "La lista de antes, otra vez.",
+     "md": "La lista de antes.",
      "run": true
     },
     {
      "code": "datos[[2]]",
-     "md": "Dobles corchetes: el segundo elemento. Con corchete simple, `datos[2]` sería «la función datos aplicada a 2».",
+     "md": "El segundo elemento: dobles corchetes.",
      "run": true
     },
     {
+     "code": "datos[2]",
+     "md": "Mal a propósito: corchete simple.",
+     "run": true,
+     "hint": "Lo toma por una función aplicada a 2: no da el elemento."
+    },
+    {
      "code": "datos[[-1]]",
-     "md": "Con índice negativo se cuenta desde el final: el último.",
+     "md": "Con -1: el último.",
      "run": true
     },
     {
      "code": "Length[datos]",
-     "md": "`Length` dice cuántos elementos hay.",
+     "md": "Cuántos elementos tiene.",
      "run": true
     },
     {
      "code": "{datos[[2]], datos[[-1]], Length[datos]}",
-     "md": "Los tres resultados juntos, en una lista.",
+     "md": "Los tres resultados, en una lista.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en dos líneas: guarda en `datos` la lista 4, 9, 16, 25 y devuelve una lista con su segundo elemento, su último elemento y su longitud.",
+    "prompt": "Sin mirar: con `datos` = 4, 9, 16, 25, devuelve {segundo, último, longitud}.",
     "hints": [
-     "Un elemento se extrae con dobles corchetes: `datos[[2]]`.",
-     "El último es `datos[[-1]]` y la longitud `Length[datos]`.",
+     "Un elemento: `datos[[2]]`. El último: `datos[[-1]]`.",
+     "La longitud: `Length[datos]`.",
      "`datos = {4, 9, 16, 25};` y `{datos[[2]], datos[[-1]], Length[datos]}`"
     ],
     "solution": "datos = {4, 9, 16, 25};\n{datos[[2]], datos[[-1]], Length[datos]}",
@@ -758,7 +963,7 @@
     "id": "1-p02-e08",
     "kind": "fix",
     "title": "Llaves y dobles corchetes",
-    "prompt": "Queremos el tercer elemento de la lista (debe salir 16). Hay dos errores de paréntesis. Escríbela bien.",
+    "prompt": "Queremos el tercer elemento de la lista (16). Escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "Part",
@@ -776,38 +981,50 @@
      "Part"
     ],
     "hints": [
-     "Una lista se escribe con llaves `{ }`, no con paréntesis.",
-     "Un elemento se extrae con dobles corchetes: `datos[[3]]`."
+     "La lista, con llaves; el elemento, con dobles corchetes.",
+     "`datos = {4, 9, 16, 25};` y `datos[[3]]`"
     ],
-    "explain": "Llaves para crear la lista y dobles corchetes para extraer. Los paréntesis solo agrupan operaciones."
+    "explain": "Llaves para crear y dobles corchetes para extraer."
    }
   },
   {
    "type": "build",
    "section": "Table y Total",
-   "title": "Table: fabricar una lista con una fórmula",
-   "md": "Cuando los elementos siguen una fórmula, no se teclean uno a uno: se le pide a `Table`.",
+   "title": "Table: listas con fórmula",
+   "md": "Table fabrica una lista a partir de una fórmula.",
    "target": "Table[n^2, {n, 1, 5}]",
    "parts": [
     {
-     "code": "n^2",
-     "md": "La fórmula de cada elemento, en función de una variable `n`."
+     "code": "Table[n, {n, 1, 5}]",
+     "md": "La variable n va de 1 a 5.",
+     "run": true,
+     "hint": "Entre llaves: variable, desde, hasta."
     },
     {
-     "code": "{n, 1, 5}",
-     "md": "El **iterador**, entre llaves: variable, desde, hasta. De uno en uno."
+     "code": "Table[n, {n, 1, 10}]",
+     "md": "Ahora hasta 10.",
+     "run": true
+    },
+    {
+     "code": "Table[n, {n, 0, 10, 5}]",
+     "md": "Un cuarto número: el paso.",
+     "run": true
+    },
+    {
+     "code": "Table[2 n, {n, 1, 5}]",
+     "md": "Cambia la fórmula: 2 n.",
+     "run": true
     },
     {
      "code": "Table[n^2, {n, 1, 5}]",
-     "md": "`Table[fórmula, iterador]`: la lista de los valores de `n^2` para n = 1, 2, 3, 4, 5.",
+     "md": "Otra fórmula: n al cuadrado.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: genera con `Table` la lista de los cuadrados de los números del 1 al 5.",
+    "prompt": "Sin mirar: la lista de los cuadrados de 1 a 5, con `Table`.",
     "hints": [
-     "Empieza por el comando: `Table[`",
-     "Primero la fórmula `n^2`; después, entre llaves, variable, desde, hasta.",
+     "`Table[fórmula, {n, desde, hasta}]`",
      "`Table[n^2, {n, 1, 5}]`"
     ]
    },
@@ -821,7 +1038,7 @@
     "id": "1-p02-e09",
     "kind": "code",
     "title": "Múltiplos de 7",
-    "prompt": "Con `Table`, genera la lista de los 6 primeros múltiplos de 7: `{7, 14, 21, 28, 35, 42}`.",
+    "prompt": "Con `Table`, genera los 6 primeros múltiplos de 7: `{7, 14, 21, 28, 35, 42}`.",
     "difficulty": 1,
     "cmds": [
      "Table"
@@ -837,61 +1054,104 @@
      "Table"
     ],
     "hints": [
-     "La fórmula de cada elemento, en función de `k`, es `7 k`.",
+     "La fórmula es `7 k`, con k de 1 a 6.",
      "`Table[7 k, {k, 1, 6}]`"
     ],
-    "explain": "`Table[7 k, {k, 1, 6}]`: la fórmula es `7 k` y el iterador `{k, 1, 6}` recorre k = 1, 2, …, 6. Con un cuarto número cambias el paso: `{k, 0, 10, 5}` da 0, 5, 10."
+    "explain": "La fórmula `7 k` y el iterador `{k, 1, 6}`."
    }
   },
   {
    "type": "build",
-   "title": "Dar nombre a la lista y sumarla",
-   "md": "Con `Table` y `Total` calculas cualquier suma finita.",
-   "target": "cuad = Table[n^2, {n, 1, 5}];\nTotal[cuad]",
+   "title": "Total: sumar una lista",
+   "md": "Total suma los elementos de una lista.",
+   "target": "Total[Table[n^2, {n, 1, 5}]]",
    "parts": [
     {
+     "code": "Total[{1, 2, 3}]",
+     "md": "Suma una lista pequeña.",
+     "run": true
+    },
+    {
      "code": "cuad = Table[n^2, {n, 1, 5}]",
-     "md": "La lista, guardada con nombre para seguir trabajando con ella. (Si ya la tienes en pantalla, también vale `cuad = %`.)",
+     "md": "Guarda la lista de cuadrados.",
      "run": true
     },
     {
      "code": "Total[cuad]",
-     "md": "`Total` suma todos los elementos de una lista.",
+     "md": "Súmala.",
      "run": true
     },
     {
-     "code": "cuad = Table[n^2, {n, 1, 5}];\nTotal[cuad]",
-     "md": "Las dos líneas juntas: crear en silencio y sumar.",
+     "code": "Total[Table[n^2, {n, 1, 5}]]",
+     "md": "Lo mismo de una vez: Table dentro de Total.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en dos líneas: guarda en `cuad` la lista de los cuadrados del 1 al 5 y calcula su suma.",
+    "prompt": "Sin mirar: la suma de los cuadrados de 1 a 5, con `Table` dentro de `Total`.",
     "hints": [
-     "Primera línea: `cuad = Table[...];`",
-     "La suma es `Total[cuad]`.",
-     "`cuad = Table[n^2, {n, 1, 5}];` y `Total[cuad]`"
+     "Primero la lista: `Table[n^2, {n, 1, 5}]`.",
+     "`Total[Table[n^2, {n, 1, 5}]]`"
     ],
+    "check": {
+     "type": "expr",
+     "expected": "55"
+    }
+   },
+   "cmds": [
+    "Total",
+    "Table"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Dar nombre con %",
+   "md": "Si la lista ya está en pantalla, dale nombre con %.",
+   "target": "Total[inv]",
+   "parts": [
+    {
+     "code": "Table[1/n, {n, 1, 4}]",
+     "md": "Una lista, sin guardar.",
+     "run": true
+    },
+    {
+     "code": "inv = %",
+     "md": "Dale nombre a esa salida.",
+     "run": true
+    },
+    {
+     "code": "Total[inv]",
+     "md": "Y súmala.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar, tres líneas: la lista 1/n de 1 a 4; `inv = %`; `Total[inv]`.",
+    "hints": [
+     "`Table[1/n, {n, 1, 4}]`",
+     "Después `inv = %` y `Total[inv]`"
+    ],
+    "solution": "Table[1/n, {n, 1, 4}]\ninv = %\nTotal[inv]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "value",
-       "expr": "cuad",
-       "expected": "{1, 4, 9, 16, 25}",
-       "msg": "Guarda la lista con `cuad = Table[n^2, {n, 1, 5}]`."
+       "expr": "inv",
+       "expected": "{1, 1/2, 1/3, 1/4}",
+       "msg": "`inv` debe ser la lista: `Table[1/n, {n, 1, 4}]` y luego `inv = %`."
       },
       {
        "type": "expr",
-       "expected": "55"
+       "expected": "25/12"
       }
      ]
     }
    },
    "cmds": [
-    "Table",
-    "Total",
-    "Set"
+    "Out",
+    "Set",
+    "Total"
    ]
   },
   {
@@ -900,7 +1160,7 @@
     "id": "1-p02-e10",
     "kind": "code",
     "title": "Suma de cubos",
-    "prompt": "Calcula la suma de los cubos de los 20 primeros números naturales: 1³ + 2³ + … + 20³. Usa `Table` y `Total`.",
+    "prompt": "Calcula 1³ + 2³ + … + 20³ con `Table` y `Total`.",
     "difficulty": 2,
     "cmds": [
      "Table",
@@ -918,10 +1178,10 @@
      "Total"
     ],
     "hints": [
-     "Primero la lista: `Table[n^3, {n, 1, 20}]`.",
-     "Envuélvela en `Total[...]`."
+     "La lista: `Table[n^3, {n, 1, 20}]`.",
+     "`Total[Table[n^3, {n, 1, 20}]]`"
     ],
-    "explain": "`Table` fabrica los 20 cubos y `Total` los suma: 44100."
+    "explain": "Sale 44100."
    }
   },
   {
@@ -929,8 +1189,8 @@
    "ex": {
     "id": "1-p02-e11",
     "kind": "code",
-    "title": "Evaluar un polinomio en varios puntos",
-    "prompt": "Combina todo lo anterior en tres líneas:\n\n1. Guarda en `pol` el polinomio `x^2 - 4 x + 1`.\n2. Guarda en `vals` la lista de sus valores en x = 0, 1, 2 y 3: un `Table` cuya fórmula es la sustitución `pol /. x -> k`.\n3. Suma los cuatro valores con `Total`.",
+    "title": "Un polinomio en varios puntos",
+    "prompt": "Guarda `x^2 - 4 x + 1` en `pol`; guarda en `vals` sus valores en x = 0, 1, 2, 3 (un `Table` de `pol /. x -> k`); suma `vals`.",
     "difficulty": 3,
     "cmds": [
      "Set",
@@ -948,7 +1208,7 @@
        "type": "value",
        "expr": "vals",
        "expected": "{1, -2, -3, -2}",
-       "msg": "`vals` debe ser la lista de valores del polinomio en 0, 1, 2 y 3: `Table[pol /. x -> k, {k, 0, 3}]`."
+       "msg": "`vals` debe ser `Table[pol /. x -> k, {k, 0, 3}]`."
       },
       {
        "type": "expr",
@@ -961,11 +1221,10 @@
      "ReplaceAll"
     ],
     "hints": [
-     "`pol = x^2 - 4 x + 1;`",
-     "`vals = Table[pol /. x -> k, {k, 0, 3}]`",
-     "`Total[vals]`"
+     "`pol = x^2 - 4 x + 1;` y `vals = Table[pol /. x -> k, {k, 0, 3}]`",
+     "Última línea: `Total[vals]`"
     ],
-    "explain": "Se guarda el polinomio, se evalúa en cada k con `/.` dentro de `Table` y al final se suma: 1 − 2 − 3 − 2 = −6. Ni un solo valor tecleado a mano."
+    "explain": "1 − 2 − 3 − 2 = −6, sin teclear ningún valor a mano."
    }
   },
   {
@@ -974,7 +1233,7 @@
     "id": "1-p02-e12",
     "kind": "code",
     "title": "Media de una lista",
-    "prompt": "Guarda en `cuad` la lista de los cuadrados de los 50 primeros números naturales. Después calcula su **media**: la suma de los elementos dividida entre el número de elementos.",
+    "prompt": "Guarda en `cuad` los cuadrados de 1 a 50 y calcula su media: `Total` entre `Length`.",
     "difficulty": 3,
     "cmds": [
      "Table",
@@ -991,7 +1250,7 @@
        "type": "value",
        "expr": "cuad",
        "expected": "Table[n^2, {n, 1, 50}]",
-       "msg": "Guarda la lista en `cuad` con `Table[n^2, {n, 1, 50}]`."
+       "msg": "Guarda la lista con `cuad = Table[n^2, {n, 1, 50}]`."
       },
       {
        "type": "expr",
@@ -1004,19 +1263,19 @@
     ],
     "hints": [
      "`cuad = Table[n^2, {n, 1, 50}];`",
-     "La media es `Total[cuad]/Length[cuad]`."
+     "`Total[cuad]/Length[cuad]`"
     ],
-    "explain": "La suma es 42925 y hay 50 elementos: la media es 1717/2 = 858.5. Como todo es exacto, sale una fracción; con `// N` la verías en decimales."
+    "explain": "42925/50 = 1717/2 = 858.5."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica 2 · los ejercicios reales",
+   "section": "Práctica 2 · reales",
    "ex": {
     "id": "1-p02-e13",
     "kind": "code",
-    "title": "Práctica 2 · asignación con =",
-    "prompt": "Ejercicio real. Comprueba qué pasa al cambiar un dato después de asignar con `=`:\n\n1. Asigna `x = 5.12` e `y = 4.37`.\n2. Define `A = x/y`.\n3. Reasigna `x = 4.36`.\n4. En la última línea, evalúa `A`.\n\n¿Ha cambiado `A`?",
+    "title": "Práctica 2 · 2a",
+    "prompt": "Ejercicio real. `x = 5.12`, `y = 4.37`; define `A = x/y`; cambia `x` a 4.36; evalúa `A`. ¿Ha cambiado?",
     "difficulty": 3,
     "cmds": [
      "Set"
@@ -1033,14 +1292,14 @@
        "expected": "4.36",
        "compare": "numeric",
        "tol": 1e-09,
-       "msg": "Falta el paso 3: reasigna `x = 4.36` antes de evaluar `A`."
+       "msg": "Falta reasignar `x = 4.36` antes de evaluar `A`."
       },
       {
        "type": "expr",
        "expected": "5.12/4.37",
        "compare": "numeric",
        "tol": 1e-06,
-       "msg": "Con `=` el valor de `A` no debe cambiar: tiene que seguir siendo 5.12/4.37."
+       "msg": "Con `=`, `A` debe seguir valiendo 5.12/4.37."
       }
      ]
     },
@@ -1048,10 +1307,10 @@
      "SetDelayed"
     ],
     "hints": [
-     "Varias asignaciones en una línea se separan con `;`: `x = 5.12; y = 4.37;`",
-     "Después `A = x/y`, luego `x = 4.36;` y por último `A` sola en una línea."
+     "`x = 5.12; y = 4.37;` y `A = x/y`",
+     "Después `x = 4.36;` y `A`"
     ],
-    "explain": "`A` vale 1.17162 las dos veces (respuesta oficial: 1.17162). Con `=` se guardó el número calculado con x = 5.12, no la fórmula; cambiar `x` después no le afecta."
+    "explain": "Respuesta oficial: 1.17162 las dos veces. Con `=` se guardó el número, no la fórmula."
    }
   },
   {
@@ -1059,8 +1318,8 @@
    "ex": {
     "id": "1-p02-e14",
     "kind": "code",
-    "title": "Práctica 2 · asignación con :=",
-    "prompt": "Repite el experimento, pero ahora con asignación **diferida**:\n\n1. Asigna `x = 5.12` e `y = 4.37`.\n2. Define `A := x/y`.\n3. Reasigna `x = 4.36`.\n4. En la última línea, evalúa `A`.",
+    "title": "Práctica 2 · 2b",
+    "prompt": "Lo mismo con diferida: `x = 5.12`, `y = 4.37`; `A := x/y`; cambia `x` a 4.36; evalúa `A`.",
     "difficulty": 3,
     "cmds": [
      "SetDelayed"
@@ -1077,14 +1336,14 @@
        "expected": "4.36",
        "compare": "numeric",
        "tol": 1e-09,
-       "msg": "Falta el paso 3: reasigna `x = 4.36` antes de evaluar `A`."
+       "msg": "Falta reasignar `x = 4.36` antes de evaluar `A`."
       },
       {
        "type": "expr",
        "expected": "4.36/4.37",
        "compare": "numeric",
        "tol": 1e-06,
-       "msg": "Con `:=`, `A` debe recalcularse con el nuevo `x`: 4.36/4.37."
+       "msg": "Con `:=`, `A` debe recalcularse: 4.36/4.37."
       }
      ]
     },
@@ -1092,9 +1351,10 @@
      "SetDelayed"
     ],
     "hints": [
-     "Es el mismo código de antes cambiando `A = x/y` por `A := x/y`."
+     "El código anterior, cambiando `A = x/y` por `A := x/y`.",
+     "`x = 5.12; y = 4.37;`, `A := x/y`, `x = 4.36;`, `A`"
     ],
-    "explain": "Ahora `A` vale 0.997712 (respuesta oficial). Con `:=` se guardó la receta `x/y`, y al pedir `A` se calcula con el `x` de ese momento."
+    "explain": "Respuesta oficial: 0.997712. Con `:=`, `A` se calcula con el `x` del momento."
    }
   },
   {
@@ -1102,8 +1362,8 @@
    "ex": {
     "id": "1-p02-e15",
     "kind": "code",
-    "title": "Práctica 2 · liberar las variables",
-    "prompt": "Último apartado del ejercicio: `x`, `y` y `A` siguen definidas como en el apartado anterior. Libéralas para que no estropeen los ejercicios siguientes.",
+    "title": "Práctica 2 · 2c",
+    "prompt": "`x`, `y` y `A` siguen definidas. Libéralas para que no estropeen los ejercicios siguientes.",
     "difficulty": 2,
     "cmds": [
      "Clear"
@@ -1115,13 +1375,13 @@
     "check": {
      "type": "satisfies",
      "test": "Head[x] === Symbol && Head[y] === Symbol && Head[A] === Symbol",
-     "msg": "Alguna de las tres variables sigue teniendo valor. Bórralas con `Clear[x, y, A]`."
+     "msg": "Alguna de las tres sigue teniendo valor: `Clear[x, y, A]`."
     },
     "hints": [
      "`Clear` admite varias variables separadas por comas.",
      "`Clear[x, y, A]`"
     ],
-    "explain": "`Clear[x, y, A]` borra las tres, valga cada una un número o una receta. El enunciado lo avisa: si no lo haces, puedes obtener resultados no deseados más adelante."
+    "explain": "Borra las tres, valgan un número o una receta."
    }
   },
   {
@@ -1129,8 +1389,8 @@
    "ex": {
     "id": "1-p02-e16",
     "kind": "code",
-    "title": "Práctica 2 · valor de un polinomio",
-    "prompt": "Dado el polinomio\n\n594·x⁴ − 186·x³ − 2120·x² + 1390·x + 1500\n\nguárdalo en la variable `polin` y calcula su valor en x = −2 con una sustitución.",
+    "title": "Práctica 2 · 3",
+    "prompt": "Guarda en `polin` el polinomio 594x⁴ − 186x³ − 2120x² + 1390x + 1500 y calcula su valor en x = −2.",
     "difficulty": 3,
     "cmds": [
      "Set",
@@ -1146,13 +1406,13 @@
       {
        "type": "satisfies",
        "test": "Head[x] === Symbol",
-       "msg": "No asignes valor a `x`: usa la sustitución `polin /. x -> -2`."
+       "msg": "No asignes valor a `x`: usa `polin /. x -> -2`."
       },
       {
        "type": "value",
        "expr": "polin",
        "expected": "594 x^4 - 186 x^3 - 2120 x^2 + 1390 x + 1500",
-       "msg": "Revisa el polinomio guardado en `polin`: algún coeficiente o exponente no coincide."
+       "msg": "Revisa el polinomio: algún coeficiente o exponente no coincide."
       },
       {
        "type": "expr",
@@ -1164,10 +1424,10 @@
      "ReplaceAll"
     ],
     "hints": [
-     "Primera línea: `polin = 594 x^4 - 186 x^3 - 2120 x^2 + 1390 x + 1500;`",
-     "Segunda línea, la sustitución: `polin /. x -> -2`"
+     "`polin = 594 x^4 - 186 x^3 - 2120 x^2 + 1390 x + 1500;`",
+     "`polin /. x -> -2`"
     ],
-    "explain": "Sale 1232 (respuesta oficial). Con `/.` el polinomio sigue disponible en `polin` y `x` queda libre para lo que venga después."
+    "explain": "Respuesta oficial: 1232."
    }
   },
   {
@@ -1175,8 +1435,8 @@
    "ex": {
     "id": "1-p02-e17",
     "kind": "code",
-    "title": "Práctica 2 · cubos de múltiplos de 8",
-    "prompt": "Construye una lista con los **cubos de los 36 primeros múltiplos de 8** (8³, 16³, 24³, …) y guárdala en `listaA`. En la última línea, calcula la suma de todos sus elementos.",
+    "title": "Práctica 2 · 4a",
+    "prompt": "Guarda en `listaA` los cubos de los 36 primeros múltiplos de 8 (8³, 16³, …) y calcula su suma.",
     "difficulty": 4,
     "cmds": [
      "Table",
@@ -1193,7 +1453,7 @@
        "type": "value",
        "expr": "{Length[listaA], listaA[[1]], listaA[[36]]}",
        "expected": "{36, 512, 23887872}",
-       "msg": "`listaA` debe tener 36 elementos: desde 8³ = 512 hasta 288³."
+       "msg": "`listaA` debe tener 36 elementos, desde 8³ = 512 hasta 288³."
       },
       {
        "type": "expr",
@@ -1205,11 +1465,10 @@
      "Table"
     ],
     "hints": [
-     "El múltiplo n-ésimo de 8 es `8 n`; su cubo, `(8 n)^3`. Los paréntesis importan.",
-     "`listaA = Table[(8 n)^3, {n, 1, 36}];`",
-     "Última línea: `Total[listaA]`."
+     "El cubo del múltiplo n-ésimo es `(8 n)^3`, con paréntesis.",
+     "`listaA = Table[(8 n)^3, {n, 1, 36}];` y `Total[listaA]`"
     ],
-    "explain": "La suma es 227100672 (respuesta oficial). Sin los paréntesis, `8 n^3` sería 8 por el cubo de n, que es otra lista."
+    "explain": "Respuesta oficial: 227100672. Sin paréntesis, `8 n^3` sería otra lista."
    }
   },
   {
@@ -1217,8 +1476,8 @@
    "ex": {
     "id": "1-p02-e18",
     "kind": "code",
-    "title": "Práctica 2 · raíces de la lista",
-    "prompt": "`listaA` ya contiene los cubos de los 36 primeros múltiplos de 8. Aplica la raíz cuadrada a todos sus elementos y guarda el resultado en `listaB` (sin punto y coma, para ver la salida).\n\nMira la salida: ¿qué elementos son números enteros?",
+    "title": "Práctica 2 · 4b",
+    "prompt": "`listaA` ya está definida. Guarda en `listaB` la raíz cuadrada de todos sus elementos. ¿Cuáles son enteros?",
     "difficulty": 3,
     "cmds": [
      "Sqrt",
@@ -1231,7 +1490,7 @@
     "check": {
      "type": "satisfies",
      "test": "Length[listaB] == 36 && listaB[[2]] == 64 && listaB[[1]] == 16 Sqrt[2]",
-     "msg": "`listaB` debe ser la raíz de cada elemento de `listaA`: `listaB = Sqrt[listaA]`."
+     "msg": "`listaB` debe ser `Sqrt[listaA]`."
     },
     "requires": [
      "Sqrt"
@@ -1240,7 +1499,7 @@
      "`Sqrt` se aplica a toda la lista de una vez.",
      "`listaB = Sqrt[listaA]`"
     ],
-    "explain": "Los únicos enteros son 64, 512, 1728 y 4096 (respuesta oficial): los cubos que además son cuadrados perfectos. El resto queda exacto, con su raíz: `16 Sqrt[2]`, `48 Sqrt[6]`… Para encontrarlos sin mirar: `Select[listaB, IntegerQ]`."
+    "explain": "Respuesta oficial: los únicos enteros son 64, 512, 1728 y 4096. Sin mirar: `Select[listaB, IntegerQ]`."
    }
   },
   {
@@ -1248,8 +1507,8 @@
    "ex": {
     "id": "1-p02-e19",
     "kind": "code",
-    "title": "Práctica 2 · suma con 11 cifras",
-    "prompt": "`listaA` y `listaB` (las raíces) ya están definidas. Calcula la suma de todos los elementos de `listaB` con 11 cifras significativas.",
+    "title": "Práctica 2 · 4c",
+    "prompt": "`listaB` ya está definida. Calcula la suma de sus elementos con 11 cifras significativas.",
     "difficulty": 3,
     "cmds": [
      "Total",
@@ -1271,7 +1530,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 11 || Precision[Out[$Line]] == 11",
-       "msg": "El valor es correcto, pero no tiene exactamente 11 cifras significativas. Pídelas con el segundo argumento: `N[expr, 11]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 11 cifras: usa `N[expr, 11]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -1281,9 +1540,9 @@
     ],
     "hints": [
      "La suma exacta es `Total[listaB]`.",
-     "Con 11 cifras: `N[Total[listaB], 11]`."
+     "`N[Total[listaB], 11]`"
     ],
-    "explain": "La suma es 72840.472819 (respuesta oficial). Primero la suma exacta con `Total` y, por fuera, `N` con las cifras pedidas."
+    "explain": "Respuesta oficial: 72840.472819."
    }
   }
  ]

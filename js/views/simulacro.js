@@ -1,12 +1,12 @@
 // views/simulacro.js (LEARN) — exam simulator (SPEC §9).
 //   #/simulacros            list of mock exams (grouped by year, best score, attempts, countdown to the real exam)
 //   #/simulacro/<examId>    intro → timed run (questions with numeric boxes + free notebook) → grading → review
-import { store } from '../store.js';
-import * as data from '../data.js';
-import { kernel } from '../kernel-client.js';
-import { createNotebook } from '../notebook.js';
-import * as fx from '../fx.js';
-import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js';
+import { store } from '../store.js?v=1794351414';
+import * as data from '../data.js?v=1794351414';
+import { kernel } from '../kernel-client.js?v=1794351414';
+import { createNotebook } from '../notebook.js?v=1794351414';
+import * as fx from '../fx.js?v=1794351414';
+import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794351414';
 
 const KEY = (id) => `wolframlab-aero-exam-${id}`;
 const WARN_AT = [600, 300, 60]; // seconds left → warning

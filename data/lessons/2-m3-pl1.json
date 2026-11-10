@@ -5,7 +5,7 @@
  "block": "Variable compleja",
  "order": 1,
  "title": "Variable Compleja I: complejos, Cauchy-Riemann e integrales de camino",
- "summary": "Números y funciones complejas en Mathematica: raíces, parte real e imaginaria, Cauchy-Riemann, determinaciones del logaritmo, perfil de Joukowski, integrales de camino y fórmula integral de Cauchy.",
+ "summary": "Complejos y raíces, Cauchy-Riemann, determinaciones del logaritmo, perfil de Joukowski, integrales de camino y fórmula integral de Cauchy.",
  "minutes": 90,
  "commands": [
   "Through",
@@ -38,44 +38,79 @@
  ],
  "steps": [
   {
-   "type": "explain",
-   "section": "Números complejos",
-   "title": "Para qué sirve esta práctica",
-   "md": "Con funciones de variable compleja se diseñaron los primeros perfiles de ala (transformación de **Joukowski**) y con ellas se calculan integrales, series y transformadas que usarás en fluidos y en control.\n\nEsta es la PL1 de Matemáticas III. Al acabar sabrás operar con complejos, sacar raíces, comprobar Cauchy-Riemann, elegir la rama del logaritmo, dibujar un perfil alar e integrar a lo largo de un camino. Va por tramos cortos: en cada uno construyes una receta pieza a pieza y luego la escribes de memoria.",
-   "cells": []
-  },
-  {
    "type": "build",
-   "title": "La ficha de un número complejo",
-   "md": "Vamos a definir un complejo y sacar de golpe su parte real, su parte imaginaria, su módulo y su argumento.",
-   "target": "z0 = 3 + 2 I;\n{Re[z0], Im[z0], Abs[z0], Arg[z0]}",
+   "section": "Números complejos",
+   "title": "La unidad imaginaria",
+   "md": "La unidad imaginaria se escribe con I mayúscula.",
+   "target": "(2 + 3 I)/(1 - I)",
    "parts": [
     {
-     "code": "z0 = 3 + 2 I;",
-     "md": "La unidad imaginaria es `I` **mayúscula**; `i` minúscula sería una variable sin valor. El `;` final guarda el número sin mostrarlo.",
+     "code": "i^2",
+     "md": "Prueba con i minúscula: es solo un símbolo.",
      "run": true
     },
     {
-     "code": "Abs[z0]",
-     "md": "`Abs` es el módulo: la distancia al origen, √(3² + 2²).",
+     "code": "I^2",
+     "md": "Ahora con I mayúscula.",
      "run": true
     },
     {
-     "code": "Arg[z0]",
-     "md": "`Arg` es el argumento **principal**: el ángulo en radianes, siempre entre −π y π.",
-     "run": true
-    },
-    {
-     "code": "z0 = 3 + 2 I;\n{Re[z0], Im[z0], Abs[z0], Arg[z0]}",
-     "md": "Todo junto en una lista, entre llaves: parte real, imaginaria, módulo y argumento.",
+     "code": "(2 + 3 I)/(1 - I)",
+     "md": "Divide dos complejos: sale ya como a + b I.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define `z0 = 3 + 2 I` y devuelve la lista con su parte real, parte imaginaria, módulo y argumento (en ese orden).",
+    "prompt": "Divide 2 + 3i entre 1 − i.",
     "hints": [
-     "Primera línea: `z0 = 3 + 2 I;`",
-     "Las cuatro funciones son `Re`, `Im`, `Abs` y `Arg`, con corchetes.",
+     "La unidad imaginaria es `I`.",
+     "`(2 + 3 I)/(1 - I)`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-1/2 + 5 I/2"
+    }
+   },
+   "cmds": [
+    "I"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Ficha de un complejo",
+   "md": "Parte real, imaginaria, módulo y argumento de 3 + 2i.",
+   "target": "{Re[z0], Im[z0], Abs[z0], Arg[z0]}",
+   "parts": [
+    {
+     "code": "z0 = 3 + 2 I;",
+     "md": "Guarda el complejo en z0.",
+     "run": true
+    },
+    {
+     "code": "{Re[z0], Im[z0]}",
+     "md": "Pide su parte real y su parte imaginaria.",
+     "run": true
+    },
+    {
+     "code": "Abs[z0]",
+     "md": "Pide el módulo.",
+     "run": true
+    },
+    {
+     "code": "Arg[z0]",
+     "md": "Pide el argumento principal (radianes, entre −π y π).",
+     "run": true
+    },
+    {
+     "code": "{Re[z0], Im[z0], Abs[z0], Arg[z0]}",
+     "md": "Júntalo todo en una lista.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`z0` ya vale 3 + 2i. Devuelve la lista: parte real, imaginaria, módulo y argumento.",
+    "hints": [
+     "Las funciones son `Re`, `Im`, `Abs` y `Arg`.",
      "`{Re[z0], Im[z0], Abs[z0], Arg[z0]}`"
     ],
     "check": {
@@ -90,7 +125,8 @@
     "Im",
     "Abs",
     "Arg"
-   ]
+   ],
+   "setup": "z0 = 3 + 2 I;"
   },
   {
    "type": "exercise",
@@ -98,7 +134,7 @@
     "id": "2-m3-pl1-e01",
     "kind": "fix",
     "title": "La i va en mayúscula",
-    "prompt": "Se quiere el **módulo** de `(1 + 2i)^3`, pero la celda tiene tres errores típicos. Escribe la versión correcta.",
+    "prompt": "Se quiere el módulo de (1 + 2i)³. Corrige los tres errores.",
     "difficulty": 1,
     "cmds": [
      "Abs"
@@ -115,19 +151,59 @@
      "Abs"
     ],
     "hints": [
-     "Las funciones de Mathematica empiezan por mayúscula y llevan corchetes: `Abs[...]`.",
-     "La unidad imaginaria es `I`, no `i`: `Abs[(1 + 2 I)^3]`."
+     "Mayúscula inicial, corchetes y la unidad imaginaria `I`.",
+     "`Abs[(1 + 2 I)^3]`"
     ],
-    "explain": "`abs` no existe (es `Abs`), los argumentos van entre corchetes y `2i` sería «2 por la variable i». El módulo es |1+2i|³ = (√5)³ = 5√5."
+    "explain": "`abs` no existe (es `Abs`), los argumentos van entre corchetes y `2i` sería «2 por la variable i»."
    }
+  },
+  {
+   "type": "build",
+   "title": "Argumento en grados",
+   "md": "Del argumento exacto a decimales y a grados.",
+   "target": "N[Arg[-1 - I]] 180/Pi",
+   "parts": [
+    {
+     "code": "Arg[-1 - I]",
+     "md": "Argumento exacto de −1 − i.",
+     "run": true
+    },
+    {
+     "code": "N[Arg[-1 - I]]",
+     "md": "Pásalo a decimales con N.",
+     "run": true
+    },
+    {
+     "code": "N[Arg[-1 - I]] 180/Pi",
+     "md": "Conviértelo a grados: multiplica por 180/π.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Calcula en grados (decimal) el argumento de −1 − i.",
+    "hints": [
+     "Radianes a grados: por `180/Pi`.",
+     "`N[Arg[-1 - I]] 180/Pi`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-135",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Arg",
+    "N"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e02",
     "kind": "code",
-    "title": "Ficha completa de otro complejo",
-    "prompt": "Define `z = (1 + I)^10/(1 - I)^4` y devuelve la lista `{Re[z], Im[z], Abs[z], Arg[z]}` (exacta, sin `N`).",
+    "title": "Ficha de otro complejo",
+    "prompt": "Define `z = (1 + I)^10/(1 - I)^4` y devuelve `{Re[z], Im[z], Abs[z], Arg[z]}`.",
     "difficulty": 2,
     "cmds": [
      "Re",
@@ -147,45 +223,41 @@
      "Arg"
     ],
     "hints": [
-     "Primero `z = ...;` y en otra línea la lista entre llaves.",
+     "Primero `z = ...;` y en otra línea la lista.",
      "`{Re[z], Im[z], Abs[z], Arg[z]}`"
     ],
-    "explain": "(1+i)^10 = 32i y (1−i)^4 = −4, así que z = −8i: imaginario puro, módulo 8 y argumento −π/2 (apunta hacia abajo)."
+    "explain": "z = −8i: imaginario puro, módulo 8 y argumento −π/2."
    }
   },
   {
    "type": "build",
    "section": "Raíces n-ésimas",
-   "title": "Las raíces quintas de i",
-   "md": "Las raíces n-ésimas de un complejo son las n soluciones de una ecuación. Las sacamos con `Solve` y las dejamos como lista de decimales.",
+   "title": "Raíces con Solve",
+   "md": "Las raíces quintas de i son las soluciones de z⁵ = i.",
    "target": "N[z /. Solve[z^5 == I, z]]",
    "parts": [
     {
-     "code": "z^5 == I",
-     "md": "La ecuación: las raíces quintas de i cumplen z⁵ = i. En una ecuación el igual es **doble**, `==`."
-    },
-    {
      "code": "Solve[z^5 == I, z]",
-     "md": "`Solve[ecuación, incógnita]` devuelve las soluciones como **reglas** `{{z -> ...}, ...}`.",
+     "md": "Resuelve la ecuación (doble igual). Salen reglas z -> …",
      "run": true
     },
     {
      "code": "z /. Solve[z^5 == I, z]",
-     "md": "`/.` aplica esas reglas a `z`: ahora es una **lista** normal con las cinco raíces.",
+     "md": "Aplica las reglas a z con /. para tener una lista.",
      "run": true
     },
     {
      "code": "N[z /. Solve[z^5 == I, z]]",
-     "md": "`N` las pasa a decimales. Todas tienen módulo 1 y están separadas 72°.",
+     "md": "Pásala a decimales.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula las cinco raíces quintas de i como lista de números decimales.",
+    "prompt": "Calcula las cinco raíces quintas de i como lista de decimales.",
     "hints": [
      "Son las soluciones de `z^5 == I`.",
-     "`Solve[...]` da reglas; conviértelas en lista con `z /. Solve[...]`.",
-     "Esqueleto: `N[z /. Solve[ , z]]`"
+     "`z /. Solve[...]` convierte las reglas en lista.",
+     "`N[z /. Solve[z^5 == I, z]]`"
     ],
     "check": {
      "type": "expr",
@@ -199,12 +271,46 @@
    ]
   },
   {
+   "type": "build",
+   "title": "Forma binómica exacta",
+   "md": "ComplexExpand escribe cada raíz como a + b i.",
+   "target": "ComplexExpand[z /. Solve[z^3 == -8, z]]",
+   "parts": [
+    {
+     "code": "z /. Solve[z^3 == -8, z]",
+     "md": "Raíces cúbicas de −8, tal como las da Solve.",
+     "run": true
+    },
+    {
+     "code": "ComplexExpand[z /. Solve[z^3 == -8, z]]",
+     "md": "Envuélvelo en ComplexExpand: forma a + b i exacta.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Calcula las raíces cúbicas de −8 en forma a + b i exacta.",
+    "hints": [
+     "`z /. Solve[z^3 == -8, z]` y por fuera `ComplexExpand`.",
+     "`ComplexExpand[z /. Solve[z^3 == -8, z]]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{-2, 1 + I Sqrt[3], 1 - I Sqrt[3]}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "Solve",
+    "ComplexExpand"
+   ]
+  },
+  {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e03",
     "kind": "code",
-    "title": "Raíces cúbicas de −8 en forma binómica",
-    "prompt": "Guarda en `raices` la lista con las **tres raíces cúbicas de −8**. Envuélvelo en `ComplexExpand[...]`, que escribe cada raíz en la forma exacta a + b i.",
+    "title": "Raíces cuartas de −16",
+    "prompt": "Guarda en `raices` las cuatro raíces cuartas de −16 en forma a + b i exacta.",
     "difficulty": 2,
     "cmds": [
      "Solve",
@@ -212,11 +318,11 @@
     ],
     "real": false,
     "source": null,
-    "solution": "raices = ComplexExpand[z /. Solve[z^3 == -8, z]]",
+    "solution": "raices = ComplexExpand[z /. Solve[z^4 == -16, z]]",
     "check": {
      "type": "value",
      "expr": "raices",
-     "expected": "{-2, 1 + I Sqrt[3], 1 - I Sqrt[3]}",
+     "expected": "{Sqrt[2] (1 + I), Sqrt[2] (1 - I), Sqrt[2] (-1 + I), Sqrt[2] (-1 - I)}",
      "compare": "set"
     },
     "requires": [
@@ -224,43 +330,43 @@
      "ReplaceAll"
     ],
     "hints": [
-     "La ecuación es `z^3 == -8`.",
-     "`raices = ComplexExpand[z /. Solve[z^3 == -8, z]]`"
+     "La ecuación es `z^4 == -16`.",
+     "`raices = ComplexExpand[z /. Solve[z^4 == -16, z]]`"
     ],
-    "explain": "Una es real (−2) y las otras dos son conjugadas: 1 ± √3 i. Todas tienen módulo 2 = 8^(1/3)."
+    "explain": "Son ±√2 ± √2 i: módulo 2 y argumentos ±45° y ±135°, los vértices de un cuadrado."
    }
   },
   {
    "type": "build",
-   "title": "Dibujar las raíces como flechas",
-   "md": "El guion dibuja cada raíz como una flecha desde el origen. La lista `raices` con las raíces quintas de i ya está definida.",
+   "title": "Raíces como flechas",
+   "md": "Cada raíz, una flecha desde el origen.",
    "target": "Graphics[Table[Arrow[{{0, 0}, {Re[r], Im[r]}}], {r, raices}], Axes -> True]",
    "parts": [
     {
-     "code": "Arrow[{{0, 0}, {1, 2}}]",
-     "md": "`Arrow[{{x1, y1}, {x2, y2}}]` es una flecha de un punto a otro. Por sí sola no se dibuja: es una primitiva gráfica."
+     "code": "Graphics[Arrow[{{0, 0}, {1, 2}}]]",
+     "md": "Dibuja una flecha del origen al punto (1, 2).",
+     "run": true
     },
     {
-     "code": "Graphics[Arrow[{{0, 0}, {1, 2}}]]",
-     "md": "`Graphics[...]` es quien dibuja las primitivas.",
+     "code": "Graphics[Arrow[{{0, 0}, {1, 2}}], Axes -> True]",
+     "md": "Añade los ejes.",
      "run": true
     },
     {
      "code": "Table[Arrow[{{0, 0}, {Re[r], Im[r]}}], {r, raices}]",
-     "md": "`Table[..., {r, raices}]` repite la flecha para cada raíz `r` de la lista; su punta es el punto (Re, Im)."
+     "md": "Haz una flecha por cada raíz r de la lista raices."
     },
     {
      "code": "Graphics[Table[Arrow[{{0, 0}, {Re[r], Im[r]}}], {r, raices}], Axes -> True]",
-     "md": "Todo dentro de `Graphics`, con ejes. Las cinco flechas forman un pentágono regular.",
+     "md": "Mete la tabla de flechas en Graphics.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: dibuja con flechas desde el origen las raíces guardadas en `raices`, con ejes.",
+    "prompt": "`raices` ya tiene las raíces quintas de i. Dibújalas como flechas desde el origen, con ejes.",
     "hints": [
-     "Una flecha es `Arrow[{{0, 0}, {Re[r], Im[r]}}]`.",
-     "Repítela con `Table[..., {r, raices}]` y métela en `Graphics[...]`.",
-     "Esqueleto: `Graphics[Table[Arrow[{{ , }, { , }}], {r, raices}], Axes -> True]`"
+     "Una flecha: `Arrow[{{0, 0}, {Re[r], Im[r]}}]`.",
+     "Repítela con `Table[..., {r, raices}]` dentro de `Graphics[..., Axes -> True]`."
     ],
     "check": {
      "type": "graphics",
@@ -277,42 +383,80 @@
   },
   {
    "type": "build",
-   "section": "Parte real, imaginaria y Cauchy-Riemann",
-   "title": "Comprobar Cauchy-Riemann",
-   "md": "Una función compleja se separa en f = u(x, y) + i v(x, y). Es derivable (holomorfa) si cumple las ecuaciones de Cauchy-Riemann: u_x = v_y y u_y = −v_x. Lo comprobamos para f(z) = z³.",
-   "target": "zz = x + I y;\nu = ComplexExpand[Re[zz^3]];\nv = ComplexExpand[Im[zz^3]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+   "section": "Cauchy-Riemann",
+   "title": "Parte real e imaginaria",
+   "md": "Para separar u y v hace falta ComplexExpand.",
+   "target": "ComplexExpand[Im[(x + I y)^2]]",
    "parts": [
     {
-     "code": "zz = x + I y;",
-     "md": "Variable auxiliar. No uses `z = x + I y`: `z` dejaría de servir como variable en `Solve`, `D` o `f[z_]`.",
+     "code": "Re[(x + I y)^2]",
+     "md": "Pide la parte real de (x + i y)²: no se simplifica.",
      "run": true
     },
     {
-     "code": "u = ComplexExpand[Re[zz^3]]",
-     "md": "`ComplexExpand` supone que x e y son reales; sin él, `Re[...]` no se simplifica. Esto es u.",
+     "code": "ComplexExpand[Re[(x + I y)^2]]",
+     "md": "Con ComplexExpand, x e y se tratan como reales.",
      "run": true
     },
     {
-     "code": "v = ComplexExpand[Im[zz^3]]",
-     "md": "Lo mismo con `Im`: la parte imaginaria v.",
-     "run": true
-    },
-    {
-     "code": "{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
-     "md": "Las dos ecuaciones pasadas a un lado. Si sale `{0, 0}`, se cumplen.",
-     "run": true
-    },
-    {
-     "code": "zz = x + I y;\nu = ComplexExpand[Re[zz^3]];\nv = ComplexExpand[Im[zz^3]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
-     "md": "La receta completa, de las cuatro líneas.",
+     "code": "ComplexExpand[Im[(x + I y)^2]]",
+     "md": "Ahora la parte imaginaria.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: comprueba las ecuaciones de Cauchy-Riemann para f(z) = z³ (debe salir `{0, 0}`).",
+    "prompt": "Calcula la parte imaginaria de (x + i y)², con x e y reales.",
     "hints": [
-     "Cuatro líneas: `zz`, `u`, `v` y la lista con las dos ecuaciones.",
-     "`u = ComplexExpand[Re[zz^3]];` y `v = ComplexExpand[Im[zz^3]];`",
+     "`Im[...]` dentro de `ComplexExpand[...]`.",
+     "`ComplexExpand[Im[(x + I y)^2]]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "2 x y"
+    }
+   },
+   "cmds": [
+    "ComplexExpand",
+    "Re",
+    "Im"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Comprobar Cauchy-Riemann",
+   "md": "¿Es derivable f(z) = z³? Se comprueba con u y v.",
+   "target": "zz = x + I y;\nu = ComplexExpand[Re[zz^3]];\nv = ComplexExpand[Im[zz^3]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+   "parts": [
+    {
+     "code": "zz = x + I y;",
+     "md": "Guarda x + i y en zz (no en z, que debe quedar libre).",
+     "run": true
+    },
+    {
+     "code": "u = ComplexExpand[Re[zz^3]]",
+     "md": "u: la parte real de zz³.",
+     "run": true
+    },
+    {
+     "code": "v = ComplexExpand[Im[zz^3]]",
+     "md": "v: la parte imaginaria.",
+     "run": true
+    },
+    {
+     "code": "{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+     "md": "Las dos ecuaciones: si sale {0, 0}, se cumplen.",
+     "run": true
+    },
+    {
+     "code": "zz = x + I y;\nu = ComplexExpand[Re[zz^3]];\nv = ComplexExpand[Im[zz^3]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+     "md": "Ahora las cuatro líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Comprueba Cauchy-Riemann para f(z) = z³ (define `zz`, `u`, `v`; debe salir `{0, 0}`).",
+    "hints": [
+     "`u = ComplexExpand[Re[zz^3]];` y lo mismo con `Im` para `v`.",
      "Última línea: `{D[u, x] - D[v, y], D[u, y] + D[v, x]}`"
     ],
     "check": {
@@ -332,18 +476,17 @@
    },
    "cmds": [
     "ComplexExpand",
-    "D",
-    "Re",
-    "Im"
-   ]
+    "D"
+   ],
+   "more": "Cauchy-Riemann: u_x = v_y y u_y = −v_x. Si se cumplen, f es holomorfa y f' = u_x + i v_x."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e04",
     "kind": "code",
-    "title": "Cauchy-Riemann de una función con conjugado",
-    "prompt": "Repite la comprobación para f(z) = (conjugado de z)², es decir `Conjugate[zz]^2`. Devuelve la lista `{D[u, x] - D[v, y], D[u, y] + D[v, x]}`.",
+    "title": "Con el conjugado",
+    "prompt": "Repite la comprobación con `Conjugate[zz]^2`. Devuelve `{D[u, x] - D[v, y], D[u, y] + D[v, x]}`.",
     "difficulty": 2,
     "cmds": [
      "ComplexExpand",
@@ -361,19 +504,51 @@
      "D"
     ],
     "hints": [
-     "Es la misma receta cambiando `zz^3` por `Conjugate[zz]^2`.",
-     "La última línea, sin punto y coma: `{D[u, x] - D[v, y], D[u, y] + D[v, x]}`."
+     "La misma receta cambiando `zz^3` por `Conjugate[zz]^2`.",
+     "Última línea sin punto y coma: `{D[u, x] - D[v, y], D[u, y] + D[v, x]}`."
     ],
-    "explain": "Sale {4x, −4y}, no {0, 0}: f no es holomorfa. Pasa casi siempre que la fórmula lleva `Conjugate`, `Re`, `Im` o `Abs`. Consecuencia: no tiene primitiva y su integral entre dos puntos depende del camino (pregunta 2 del examen)."
+    "explain": "Sale {4x, −4y}, no {0, 0}: no es holomorfa. Pasa casi siempre con `Conjugate`, `Re`, `Im` o `Abs`, y entonces la integral depende del camino (pregunta 2 del examen)."
    }
+  },
+  {
+   "type": "build",
+   "title": "Derivada en un punto",
+   "md": "Una función holomorfa se deriva con D, como siempre.",
+   "target": "D[z^3, z] /. z -> 1 + 2 I",
+   "parts": [
+    {
+     "code": "D[z^3, z]",
+     "md": "Deriva z³ respecto de z.",
+     "run": true
+    },
+    {
+     "code": "D[z^3, z] /. z -> 1 + 2 I",
+     "md": "Sustituye z por 1 + 2i con /.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Calcula la derivada de z³ en el punto z = 1 + 2i.",
+    "hints": [
+     "Deriva y luego sustituye con `/. z -> 1 + 2 I`.",
+     "`D[z^3, z] /. z -> 1 + 2 I`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-9 + 12 I"
+    }
+   },
+   "cmds": [
+    "D"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e05",
     "kind": "code",
-    "title": "Derivada compleja en un punto",
-    "prompt": "f(z) = z e^(2z) sí es holomorfa, así que se deriva como siempre. Calcula f'(i): deriva con `D` respecto de `z`, sustituye `z -> I` con `/.` y pásalo a forma binómica con `ComplexExpand`.",
+    "title": "Derivada de z e^(2z)",
+    "prompt": "Calcula f'(i) para f(z) = z e^(2z) y pásalo a forma a + b i con `ComplexExpand`.",
     "difficulty": 2,
     "cmds": [
      "D",
@@ -393,36 +568,37 @@
      "`D[z Exp[2 z], z] /. z -> I`",
      "`ComplexExpand[D[z Exp[2 z], z] /. z -> I]`"
     ],
-    "explain": "f'(z) = (1 + 2z) e^(2z); en z = i vale (1 + 2i)(cos 2 + i sin 2) ≈ −2.235 + 0.077 i."
+    "explain": "f'(z) = (1 + 2z) e^(2z); en z = i vale ≈ −2.235 + 0.077 i."
    }
   },
   {
    "type": "build",
-   "section": "Determinaciones del argumento y del logaritmo",
-   "title": "FixedPoint: repetir hasta que no cambie",
-   "md": "`Arg` y `Log` solo dan el valor principal. Para elegir otra rama el guion usa `FixedPoint`, que aplica una función una y otra vez hasta que el resultado se repite. Primero, el mecanismo con números.",
+   "section": "Ramas de arg y log",
+   "title": "FixedPoint",
+   "md": "FixedPoint repite una función hasta que el resultado no cambia.",
    "target": "FixedPoint[If[# > 10, #, # + 3] &, 0]",
    "parts": [
     {
-     "code": "# + 3 &",
-     "md": "Una función pura: `#` es «lo que me den» y `&` cierra la función. Esta suma 3."
+     "code": "If[5 > 10, 5, 5 + 3]",
+     "md": "If[condición, sí, no]: 5 no pasa de 10, así que suma 3.",
+     "run": true
     },
     {
-     "code": "If[# > 10, #, # + 3] &",
-     "md": "`If[condición, si, no]`: si el número ya pasa de 10 lo devuelve tal cual; si no, le suma 3."
+     "code": "If[# > 10, #, # + 3] &[5]",
+     "md": "Lo mismo como función pura: # es el dato y & la cierra.",
+     "run": true
     },
     {
      "code": "FixedPoint[If[# > 10, #, # + 3] &, 0]",
-     "md": "Empieza en 0 y aplica la función: 0 → 3 → 6 → 9 → 12 → 12. Al repetirse el 12, se para.",
+     "md": "Aplícala desde 0 una y otra vez hasta que se repita.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: con `FixedPoint`, empieza en 0 y suma 3 mientras el número no pase de 10.",
+    "prompt": "Con `FixedPoint`: empieza en 0 y suma 3 mientras el número no pase de 10.",
     "hints": [
      "La función pura es `If[# > 10, #, # + 3] &`.",
-     "`FixedPoint[función, valor inicial]`",
-     "Esqueleto: `FixedPoint[If[ , , ] &, 0]`"
+     "`FixedPoint[If[# > 10, #, # + 3] &, 0]`"
     ],
     "check": {
      "type": "expr",
@@ -439,8 +615,8 @@
    "ex": {
     "id": "2-m3-pl1-e06",
     "kind": "code",
-    "title": "Practica FixedPoint",
-    "prompt": "Usa `FixedPoint` con una función pura: empieza en 3 y **duplica** el número mientras sea menor que 20; cuando sea 20 o más, déjalo como está.",
+    "title": "Duplicar hasta 20",
+    "prompt": "Con `FixedPoint`: empieza en 3 y duplica el número mientras sea menor que 20.",
     "difficulty": 2,
     "cmds": [
      "FixedPoint",
@@ -457,86 +633,120 @@
      "FixedPoint"
     ],
     "hints": [
-     "La función pura es `If[# >= 20, #, 2 #] &`.",
+     "La función pura: `If[# >= 20, #, 2 #] &`.",
      "`FixedPoint[If[# >= 20, #, 2 #] &, 3]`"
     ],
-    "explain": "3 → 6 → 12 → 24 → 24. Es el mismo mecanismo que usa `rotations` para contar vueltas."
+    "explain": "3 → 6 → 12 → 24 → 24. Es el mecanismo con el que `rotations` cuenta vueltas."
    }
   },
   {
    "type": "build",
-   "title": "Las tres funciones del guion: rotations, myarg, mylog",
-   "md": "La **determinación a** del argumento es el único valor del ángulo que cae en (a − π, a + π]. Estas tres líneas del guion la calculan; hay que saber teclearlas porque se usan en la prueba de la práctica.",
-   "target": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
+   "title": "Contar vueltas: rotations",
+   "md": "Arg solo da el ángulo principal; rotations cuenta las vueltas que faltan.",
+   "target": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
    "parts": [
     {
+     "code": "Arg[1 - I]",
+     "md": "Argumento principal de 1 − i.",
+     "run": true
+    },
+    {
      "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]",
-     "md": "Cuenta las vueltas. `#` es el número de vueltas: si el ángulo `Arg[z] + 2 Pi #` ya está entre a − π y a + π, se queda; si no, suma una vuelta en el sentido de `a` (`Sign[a]` es 1 o −1). En el guion verás `2#Pi`: es lo mismo que `2 Pi #`.",
+     "md": "Teclea la función del guion que cuenta vueltas.",
+     "run": true,
+     "hint": "Si el ángulo `Arg[z] + 2 Pi #` está entre a − π y a + π, se queda; si no, suma una vuelta hacia `a`."
+    },
+    {
+     "code": "rotations[8 Pi, 1 - I]",
+     "md": "Vueltas para llevar el ángulo a la ventana de a = 8π.",
      "run": true
     },
     {
-     "code": "myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]",
-     "md": "El argumento en la determinación a: el principal más 2π por el número de vueltas.",
-     "run": true
-    },
-    {
-     "code": "mylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
-     "md": "El logaritmo en la determinación a: ln|z| + i · argumento.",
-     "run": true
-    },
-    {
-     "code": "{rotations[8 Pi, 1 - I], myarg[8 Pi, 1 - I]}",
-     "md": "Prueba: para z = 1 − i y a = 8π hacen falta 4 vueltas, y −π/4 + 8π = 31π/4.",
-     "run": true
-    },
-    {
-     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
-     "md": "Las tres definiciones seguidas. Con `:=` no devuelven nada al evaluarlas: es normal.",
+     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
+     "md": "Otra vez, las dos líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: escribe las tres definiciones del guion, `rotations[a_, z_]`, `myarg[a_, z_]` y `mylog[a_, z_]`.",
+    "prompt": "Escribe `rotations[a_, z_]` del guion y calcula `rotations[8 Pi, 1 - I]`.",
     "hints": [
-     "`rotations[a_, z_] := FixedPoint[If[ventana, #, # + Sign[a]] &, 0]`, con la ventana `a - Pi < Arg[z] + 2 Pi # <= a + Pi`.",
-     "`myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]`",
-     "`mylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]`"
+     "`FixedPoint[If[ventana, #, # + Sign[a]] &, 0]`",
+     "La ventana: `a - Pi < Arg[z] + 2 Pi # <= a + Pi`.",
+     "`rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]`"
     ],
     "check": {
-     "type": "all",
-     "checks": [
-      {
-       "type": "value",
-       "expr": "rotations[8 Pi, 1 - I]",
-       "expected": "4"
-      },
-      {
-       "type": "value",
-       "expr": "mylog[-20, 1 - I]",
-       "expected": "Log[2]/2 - 25 I Pi/4",
-       "compare": "numeric",
-       "tol": 1e-06
-      }
-     ]
+     "type": "expr",
+     "expected": "4"
     }
    },
    "cmds": [
     "FixedPoint",
     "Arg",
-    "Log",
     "Sign"
-   ]
+   ],
+   "more": "La determinación a del argumento es el único valor del ángulo en (a − π, a + π]. En el guion verás `2#Pi`: es lo mismo que `2 Pi #`."
+  },
+  {
+   "type": "build",
+   "title": "myarg y mylog",
+   "md": "Con las vueltas se construyen el argumento y el logaritmo de cada rama.",
+   "target": "myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]\n{mylog[8 Pi, 1 - I], Log[1 - I]}",
+   "parts": [
+    {
+     "code": "myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]",
+     "md": "Argumento en la determinación a: principal + 2π·vueltas.",
+     "run": true
+    },
+    {
+     "code": "myarg[8 Pi, 1 - I]",
+     "md": "Pruébala con z = 1 − i y a = 8π.",
+     "run": true
+    },
+    {
+     "code": "mylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
+     "md": "Logaritmo en la determinación a: ln|z| + i·argumento.",
+     "run": true
+    },
+    {
+     "code": "{mylog[8 Pi, 1 - I], Log[1 - I]}",
+     "md": "Compara con Log, que solo da la rama principal.",
+     "run": true
+    },
+    {
+     "code": "myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]\n{mylog[8 Pi, 1 - I], Log[1 - I]}",
+     "md": "Las tres líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`rotations` ya existe. Define `myarg` y `mylog` y devuelve `{mylog[8 Pi, 1 - I], Log[1 - I]}`.",
+    "hints": [
+     "`myarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]`",
+     "`mylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "mylog[-20, 1 - I]",
+     "expected": "Log[2]/2 - 25 I Pi/4",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Arg",
+    "Log"
+   ],
+   "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]"
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e07",
     "kind": "code",
-    "title": "Una determinación del argumento",
-    "prompt": "Las funciones `rotations`, `myarg` y `mylog` **ya están definidas**. Calcula la determinación `a = 20` del argumento de `z = -1 + I` (resultado exacto).",
+    "title": "Una rama del argumento",
+    "prompt": "`myarg` ya está definida. Calcula la determinación a = 20 del argumento de −1 + i.",
     "difficulty": 2,
     "cmds": [
-     "FixedPoint",
      "Arg"
     ],
     "real": false,
@@ -554,7 +764,7 @@
      "La sintaxis es `myarg[a, z]`.",
      "`myarg[20, -1 + I]`"
     ],
-    "explain": "El principal es 3π/4 ≈ 2.36. Sumando 3 vueltas da 27π/4 ≈ 21.2, el único valor en (20 − π, 20 + π]."
+    "explain": "El principal es 3π/4; sumando 3 vueltas da 27π/4 ≈ 21.2, el único valor en (20 − π, 20 + π]."
    }
   },
   {
@@ -562,15 +772,15 @@
    "ex": {
     "id": "2-m3-pl1-e08",
     "kind": "code",
-    "title": "Determinaciones del logaritmo",
-    "prompt": "Sea z = 1 + √3 i. Con las funciones del guion (**ya definidas**) devuelve la lista numérica con las determinaciones **principal (a = 0), −125 y 125** de ln z.\n\n(El Ejercicio 2 del guion es idéntico con z = (2+3i)^5/(π−2i)^7 y determinaciones −745 y 745.)",
+    "title": "Ramas del logaritmo",
+    "prompt": "`mylog` ya está definida. Para z = 1 + √3 i devuelve `N` de la lista de determinaciones a = 0, −125 y 125 de ln z.",
     "difficulty": 3,
     "cmds": [
-     "FixedPoint",
-     "Log"
+     "Log",
+     "N"
     ],
     "real": true,
-    "source": "Prueba de la PL1 (2021) · ej. 2 (como el Ejercicio 2 del guion)",
+    "source": "Prueba de la PL1 (2021) · ej. 2 (el Ejercicio 2 del guion es igual, con ±745)",
     "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
     "solution": "z = 1 + Sqrt[3] I;\nN[{mylog[0, z], mylog[-125, z], mylog[125, z]}]",
     "check": {
@@ -583,44 +793,41 @@
      "mylog"
     ],
     "hints": [
-     "Define `z = 1 + Sqrt[3] I;` y llama a `mylog[a, z]` con a = 0, −125 y 125.",
+     "Define `z = 1 + Sqrt[3] I;` y llama a `mylog[a, z]` tres veces.",
      "`N[{mylog[0, z], mylog[-125, z], mylog[125, z]}]`"
     ],
-    "explain": "La parte real es siempre ln 2 ≈ 0.693. La imaginaria es π/3 más las vueltas: −20 vueltas para a = −125 (−124.617) y +20 para a = 125 (126.711)."
+    "explain": "La parte real es siempre ln 2. La imaginaria es π/3 más las vueltas: −20 vueltas para a = −125 y +20 para a = 125."
    }
   },
   {
    "type": "build",
-   "section": "Transformar regiones y perfil de Joukowski",
-   "title": "La imagen de una región",
-   "md": "¿En qué convierte g(z) = z² el cuadrado 0 ≤ x ≤ 1, 0 ≤ y ≤ 1? Se dibuja con `ParametricPlot` y dos parámetros.",
+   "section": "Regiones y Joukowski",
+   "title": "Imagen de una región",
+   "md": "¿En qué convierte z² un cuadrado?",
    "target": "ParametricPlot[Through[{Re, Im}[(x + I y)^2]], {x, 0, 1}, {y, 0, 1}]",
    "parts": [
     {
      "code": "Through[{Re, Im}[3 + 4 I]]",
-     "md": "`Through` aplica las dos funciones de la lista a la vez: da `{Re[3 + 4 I], Im[3 + 4 I]}`, o sea el punto (3, 4).",
+     "md": "Through aplica Re e Im a la vez: da el punto (3, 4).",
      "run": true
     },
     {
-     "code": "Through[{Re, Im}[(x + I y)^2]]",
-     "md": "Lo mismo con la imagen de z = x + i y por z²: el punto del plano que hay que pintar."
-    },
-    {
-     "code": "{x, 0, 1}, {y, 0, 1}",
-     "md": "Dos parámetros, cada uno con su llave: recorren todo el cuadrado."
+     "code": "ParametricPlot[Through[{Re, Im}[x + I y]], {x, 0, 1}, {y, 0, 1}]",
+     "md": "Pinta el cuadrado tal cual: dos parámetros, una región.",
+     "run": true
     },
     {
      "code": "ParametricPlot[Through[{Re, Im}[(x + I y)^2]], {x, 0, 1}, {y, 0, 1}]",
-     "md": "Con dos parámetros, `ParametricPlot` pinta una región: la imagen del cuadrado.",
+     "md": "Ahora su imagen por z².",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: dibuja la imagen del cuadrado [0,1]×[0,1] por g(z) = z².",
+    "prompt": "Dibuja la imagen del cuadrado [0,1]×[0,1] por la función z².",
     "hints": [
-     "El punto a pintar es `Through[{Re, Im}[(x + I y)^2]]`.",
+     "El punto a pintar: `Through[{Re, Im}[(x + I y)^2]]`.",
      "Dos intervalos: `{x, 0, 1}, {y, 0, 1}`.",
-     "Esqueleto: `ParametricPlot[Through[{Re, Im}[ ]], {x, , }, {y, , }]`"
+     "`ParametricPlot[Through[{Re, Im}[(x + I y)^2]], {x, 0, 1}, {y, 0, 1}]`"
     ],
     "check": {
      "type": "graphics",
@@ -635,41 +842,41 @@
   },
   {
    "type": "build",
-   "title": "El perfil de Joukowski",
-   "md": "J(z) = z + λ²/z transforma una circunferencia de centro (xc, yc) y radio R en un perfil de ala, con λ = −xc + √(R² − yc²). Lo montamos línea a línea con los datos del guion.",
+   "title": "Perfil de Joukowski",
+   "md": "J(z) = z + λ²/z convierte una circunferencia en un perfil de ala.",
    "target": "xc = 0.05; yc = 0.2; R = 2;\nzz = xc + R Cos[t] + I (yc + R Sin[t]);\nlam2 = (-xc + Sqrt[R^2 - yc^2])^2;\nParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}]",
    "parts": [
     {
      "code": "xc = 0.05; yc = 0.2; R = 2;",
-     "md": "Centro y radio de la circunferencia. Varias asignaciones en una línea, separadas por `;`.",
+     "md": "Centro (xc, yc) y radio R de la circunferencia.",
      "run": true
     },
     {
      "code": "zz = xc + R Cos[t] + I (yc + R Sin[t]);",
-     "md": "La circunferencia como complejo que depende de t: centro + radio·(cos t + i sen t).",
+     "md": "La circunferencia como complejo que depende de t.",
      "run": true
     },
     {
      "code": "lam2 = (-xc + Sqrt[R^2 - yc^2])^2;",
-     "md": "λ al cuadrado (el guion guarda este valor en una variable llamada λ).",
+     "md": "El valor de λ² (el guion llama λ a esta variable).",
      "run": true
     },
     {
      "code": "ParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}]",
-     "md": "La imagen J(zz) = zz + λ²/zz, con un solo parámetro t: una curva, el perfil.",
+     "md": "Dibuja la imagen J(zz): un parámetro, una curva.",
      "run": true
     },
     {
      "code": "xc = 0.05; yc = 0.2; R = 2;\nzz = xc + R Cos[t] + I (yc + R Sin[t]);\nlam2 = (-xc + Sqrt[R^2 - yc^2])^2;\nParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}]",
-     "md": "El bloque completo. El guion añade un giro `Exp[I α]` y enseña circunferencia y perfil juntos con `GraphicsRow[{g1, g2}]`.",
+     "md": "Ahora el bloque completo.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: dibuja el perfil de Joukowski con xc = 0.05, yc = 0.2 y R = 2.",
+    "prompt": "Dibuja el perfil de Joukowski con xc = 0.05, yc = 0.2, R = 2 (`zz`, `lam2`, `ParametricPlot`).",
     "hints": [
-     "Cuatro líneas: datos, `zz`, `lam2` y el `ParametricPlot`.",
-     "`zz = xc + R Cos[t] + I (yc + R Sin[t]);` y `lam2 = (-xc + Sqrt[R^2 - yc^2])^2;`",
+     "`zz = xc + R Cos[t] + I (yc + R Sin[t]);`",
+     "`lam2 = (-xc + Sqrt[R^2 - yc^2])^2;`",
      "`ParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}]`"
     ],
     "check": {
@@ -683,15 +890,16 @@
    "cmds": [
     "ParametricPlot",
     "Through"
-   ]
+   ],
+   "more": "El guion añade un giro `Exp[I α]` (ángulo de ataque) y enseña circunferencia y perfil juntos con `GraphicsRow[{g1, g2}]`."
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl1-e09",
     "kind": "code",
-    "title": "Tu propio perfil de Joukowski",
-    "prompt": "El guion pide dibujar alas variando los parámetros. Dibuja el perfil para **xc = 0.3, yc = 0.4, R = 2**.",
+    "title": "Tu propio perfil",
+    "prompt": "Dibuja el perfil de Joukowski con xc = 0.3, yc = 0.4, R = 2.",
     "difficulty": 3,
     "cmds": [
      "ParametricPlot",
@@ -711,46 +919,51 @@
      "ParametricPlot"
     ],
     "hints": [
-     "Son las mismas cuatro líneas cambiando los números de la primera.",
+     "Las mismas cuatro líneas, cambiando los números de la primera.",
      "`xc = 0.3; yc = 0.4; R = 2;` y después `zz`, `lam2` y el `ParametricPlot`."
     ],
-    "explain": "Al subir `yc` el perfil se curva más (más comba) y al subir `xc` se hace más grueso. Para girarlo un ángulo, multiplica por `Exp[I alfa]`: es el ángulo de ataque."
+    "explain": "Al subir `yc` el perfil se curva más y al subir `xc` se hace más grueso."
    }
   },
   {
    "type": "build",
    "section": "Integrales de camino",
-   "title": "Integrar a lo largo de un camino",
-   "md": "∫ f(z) dz sobre un camino se calcula parametrizándolo: ∫ f(z(t)) · z'(t) dt. Ejemplo del guion: f(z) = z² sobre el arco z = 3e^(it), t de 0 a 3π/4.",
+   "title": "Integral sobre un arco",
+   "md": "∫ f(z) dz se calcula parametrizando: f(z(t))·z'(t) dt.",
    "target": "zt[t_] = 3 Exp[I t];\nNIntegrate[zt[t]^2 zt'[t], {t, 0, 3 Pi/4}]",
    "parts": [
     {
      "code": "zt[t_] = 3 Exp[I t];",
-     "md": "El camino como función de t. Circunferencia de centro c y radio r: `c + r Exp[I t]`. Segmento de p a q: `p + t (q - p)` con t de 0 a 1.",
+     "md": "El camino: arco de circunferencia de radio 3.",
+     "run": true
+    },
+    {
+     "code": "zt'[t]",
+     "md": "Su derivada respecto de t.",
      "run": true
     },
     {
      "code": "zt[t]^2 zt'[t]",
-     "md": "El integrando: la función evaluada en el camino por la derivada del camino, `zt'[t]`.",
+     "md": "El integrando para f(z) = z²: f en el camino por la derivada.",
      "run": true
     },
     {
      "code": "NIntegrate[zt[t]^2 zt'[t], {t, 0, 3 Pi/4}]",
-     "md": "Integral numérica en t entre los extremos del arco. `Integrate` daría el valor exacto.",
+     "md": "Integra en t, de 0 a 3π/4.",
      "run": true
     },
     {
      "code": "zt[t_] = 3 Exp[I t];\nNIntegrate[zt[t]^2 zt'[t], {t, 0, 3 Pi/4}]",
-     "md": "La receta completa en dos líneas. El guion la escribe en más pasos (`x[t_]`, `y[t_]`, `dz = D[zt, t]`, `ComplexExpand`), pero es lo mismo.",
+     "md": "La receta entera en dos líneas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula numéricamente la integral de z² sobre el arco z = 3e^(it), t de 0 a 3π/4.",
+    "prompt": "Integra numéricamente z² sobre el arco z = 3e^(it), t de 0 a 3π/4.",
     "hints": [
      "Primero el camino: `zt[t_] = 3 Exp[I t];`",
      "El integrando es `zt[t]^2 zt'[t]`.",
-     "Esqueleto: `NIntegrate[ , {t, 0, 3 Pi/4}]`"
+     "`NIntegrate[zt[t]^2 zt'[t], {t, 0, 3 Pi/4}]`"
     ],
     "check": {
      "type": "expr",
@@ -762,6 +975,50 @@
    "cmds": [
     "NIntegrate",
     "Exp"
+   ],
+   "more": "Circunferencia de centro c y radio r: `c + r Exp[I t]` (antihorario; horario: de 0 a −2π). El guion lo escribe con `x[t_]`, `y[t_]`, `dz = D[zt, t]` y `ComplexExpand`: es lo mismo."
+  },
+  {
+   "type": "build",
+   "title": "Sobre un segmento",
+   "md": "Segmento de p a q: p + t (q − p), con t de 0 a 1.",
+   "target": "zt[t_] = t (2 + I);\nIntegrate[Im[zt[t]] zt'[t], {t, 0, 1}]",
+   "parts": [
+    {
+     "code": "zt[t_] = t (2 + I);",
+     "md": "El segmento de 0 a 2 + i.",
+     "run": true
+    },
+    {
+     "code": "Integrate[zt[t] zt'[t], {t, 0, 1}]",
+     "md": "Integra f(z) = z (holomorfa), exacto con Integrate.",
+     "run": true
+    },
+    {
+     "code": "Integrate[Im[zt[t]] zt'[t], {t, 0, 1}]",
+     "md": "Ahora f(z) = Im(z), que no es holomorfa.",
+     "run": true
+    },
+    {
+     "code": "zt[t_] = t (2 + I);\nIntegrate[Im[zt[t]] zt'[t], {t, 0, 1}]",
+     "md": "Las dos líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Integra (exacto) Im(z) sobre el segmento de 0 a 2 + i.",
+    "hints": [
+     "El camino: `zt[t_] = t (2 + I);`",
+     "`Integrate[Im[zt[t]] zt'[t], {t, 0, 1}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1 + I/2"
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Im"
    ]
   },
   {
@@ -769,8 +1026,37 @@
    "ex": {
     "id": "2-m3-pl1-e10",
     "kind": "code",
-    "title": "Integral de una función no holomorfa",
-    "prompt": "Calcula la integral del **conjugado de z** sobre la circunferencia |z| = 2 recorrida una vez en sentido antihorario (t de 0 a 2π). Usa `Integrate` para tener el valor exacto.",
+    "title": "Otro camino, otro resultado",
+    "prompt": "Integra Im(z) de 0 a 2 + i por la poligonal 0 → 2 → 2 + i: suma las integrales de los dos segmentos.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Im"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "z1[t_] = 2 t; z2[t_] = 2 + I t;\nIntegrate[Im[z1[t]] z1'[t], {t, 0, 1}] + Integrate[Im[z2[t]] z2'[t], {t, 0, 1}]",
+    "check": {
+     "type": "expr",
+     "expected": "I/2"
+    },
+    "requires": [
+     "Im"
+    ],
+    "hints": [
+     "Dos caminos: `z1[t_] = 2 t` (de 0 a 2) y `z2[t_] = 2 + I t` (de 2 a 2 + i).",
+     "Suma `Integrate[Im[z1[t]] z1'[t], {t, 0, 1}]` y lo mismo con `z2`."
+    ],
+    "explain": "Sale i/2, distinto del 1 + i/2 del segmento directo: como Im(z) no es holomorfa, la integral depende del camino."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl1-e11",
+    "kind": "code",
+    "title": "Conjugado sobre una circunferencia",
+    "prompt": "Integra (exacto) el conjugado de z sobre |z| = 2, una vuelta antihoraria.",
     "difficulty": 2,
     "cmds": [
      "Integrate",
@@ -787,39 +1073,10 @@
      "Conjugate"
     ],
     "hints": [
-     "Camino: `zt[t_] = 2 Exp[I t];`",
+     "Camino: `zt[t_] = 2 Exp[I t];`, con t de 0 a `2 Pi`.",
      "`Integrate[Conjugate[zt[t]] zt'[t], {t, 0, 2 Pi}]`"
     ],
-    "explain": "Sale 8πi, no 0: el conjugado no es holomorfo, así que su integral sobre una curva cerrada no tiene por qué anularse."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m3-pl1-e11",
-    "kind": "code",
-    "title": "Integral sobre un segmento",
-    "prompt": "Calcula la integral de f(z) = Im(z) a lo largo del **segmento** que va de 0 a 2 + i. El camino es `zt[t_] = t (2 + I)`, con t de 0 a 1.",
-    "difficulty": 3,
-    "cmds": [
-     "Integrate",
-     "Im"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "zt[t_] = t (2 + I);\nIntegrate[Im[zt[t]] zt'[t], {t, 0, 1}]",
-    "check": {
-     "type": "expr",
-     "expected": "1 + I/2"
-    },
-    "requires": [
-     "Im"
-    ],
-    "hints": [
-     "El integrando es `Im[zt[t]] zt'[t]`.",
-     "`Integrate[Im[zt[t]] zt'[t], {t, 0, 1}]` (también vale `NIntegrate`)."
-    ],
-    "explain": "Sobre el segmento Im(z) = t y z'(t) = 2 + i, así que queda (2 + i)·∫ t dt = 1 + i/2."
+    "explain": "Sale 8πi, no 0: el conjugado no es holomorfo y su integral sobre una curva cerrada no se anula."
    }
   },
   {
@@ -827,8 +1084,8 @@
    "ex": {
     "id": "2-m3-pl1-e12",
     "kind": "code",
-    "title": "Arco entre dos rectas: la integral",
-    "prompt": "Calcula la integral de z³/(z² + 20) sobre el arco de la circunferencia de centro 0 y radio 2 comprendido entre las rectas y = x e y = −x con **y ≥ 0** (es decir, t de π/4 a 3π/4). Resultado numérico.\n\n(El Ejercicio 4 del guion es igual con z⁴/(z³ − 10) sobre otro arco; su resultado es 0.7427 − 1.1184 i.)",
+    "title": "Arco entre dos rectas",
+    "prompt": "Integra z³/(z² + 20) sobre el arco de |z| = 2 que va de t = π/4 a t = 3π/4 (numérico).",
     "difficulty": 3,
     "cmds": [
      "NIntegrate"
@@ -843,10 +1100,10 @@
      "tol": 1e-05
     },
     "hints": [
-     "Camino: `zt[t_] = 2 Exp[I t];`. Integrando: `zt[t]^3/(zt[t]^2 + 20) zt'[t]`.",
+     "Camino `zt[t_] = 2 Exp[I t];` e integrando `zt[t]^3/(zt[t]^2 + 20) zt'[t]`.",
      "`NIntegrate[zt[t]^3/(zt[t]^2 + 20) zt'[t], {t, Pi/4, 3 Pi/4}]`"
     ],
-    "explain": "≈ −0.0521 i. La parte real sale 0 (o un número del orden de 10⁻¹⁶: es ruido numérico, se lee como cero)."
+    "explain": "≈ −0.0521 i. Es el arco entre las rectas y = x e y = −x con y ≥ 0. Una parte real del orden de 10⁻¹⁶ es ruido numérico."
    }
   },
   {
@@ -854,8 +1111,8 @@
    "ex": {
     "id": "2-m3-pl1-e13",
     "kind": "code",
-    "title": "Arco entre dos rectas: los límites",
-    "prompt": "En el Ejercicio 4 del guion el arco es el de la circunferencia de **centro 1 + i y radio 3** entre las rectas y = x e y = −x, con **y ≤ 0**. Calcula los ángulos inicial y final (parametrización z = 1 + i + 3e^(it)) y guárdalos, numéricos, en `tini` y `tfin`.\n\nMétodo: los puntos de corte de la circunferencia con cada recta salen con `Solve`; el ángulo de un punto P visto desde el centro c es `Arg[P - c]`.",
+    "title": "Los ángulos del arco",
+    "prompt": "Circunferencia de centro 1 + i y radio 3; arco entre y = x e y = −x con y ≤ 0. Guarda sus ángulos (numéricos) en `tini` y `tfin`.",
     "difficulty": 4,
     "cmds": [
      "Solve",
@@ -887,56 +1144,85 @@
      "Solve"
     ],
     "hints": [
-     "`N[Solve[{(x - 1)^2 + (y - 1)^2 == 9, y == x}, {x, y}]]` da dos puntos; te interesa el que tiene y negativa. Haz lo mismo con `y == -x`.",
-     "Los puntos son (−1.1213, −1.1213) y (1.8708, −1.8708). Conviértelos en complejos con `x + I y /. regla` y calcula `Arg[P - (1 + I)]`."
+     "Corta la circunferencia con cada recta usando `Solve`; el ángulo de P visto desde el centro c es `Arg[P - c]`.",
+     "`N[Solve[{(x - 1)^2 + (y - 1)^2 == 9, y == x}, {x, y}]]` da dos puntos: quédate con el de y negativa. Igual con `y == -x`.",
+     "Pasa cada punto a complejo con `x + I y /. regla` y calcula `Arg[P - (1 + I)]`."
     ],
-    "explain": "tini = −3π/4 ≈ −2.356 y tfin ≈ −1.276. En el guion se obtienen con `Solve[{x[t] == y[t], y[t] <= 0}, t]`; sumar 2π a los dos (3.927 y 5.007) describe el mismo arco."
+    "explain": "tini = −3π/4 ≈ −2.356 y tfin ≈ −1.276. En el guion salen de `Solve[{x[t] == y[t], y[t] <= 0}, t]`. Con esos límites, ∫ z⁴/(z³ − 10) dz = 0.7427 − 1.1184 i."
    }
   },
   {
-   "type": "explain",
-   "section": "Fórmula integral de Cauchy",
-   "title": "Singularidad sobre el camino: valor principal",
-   "md": "Si el integrando tiene una singularidad **sobre** el camino, la integral es impropia y puede no converger. Aun así puede existir su **valor principal**: se quita un trocito simétrico (−r, r) alrededor de la singularidad y se hace r → 0.\n\nEn Mathematica se pide con la opción `PrincipalValue -> True` de `Integrate`: `Integrate[1/t, {t, -1, 2}, PrincipalValue -> True]` da `Log[2]`. La celda hace lo mismo a mano, con `Limit`: es lo que hay detrás de la opción.",
-   "cells": [
-    {
-     "code": "Limit[Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}], r -> 0, Direction -> -1]",
-     "note": "valor principal de ∫ 1/t entre −1 y 2"
-    }
-   ]
-  },
-  {
    "type": "build",
-   "title": "Cauchy con un polo simple",
-   "md": "Si la singularidad z1 está **dentro** de una curva cerrada C (antihorario) y g es holomorfa: ∫ g(z)/(z − z1) dz = 2πi · g(z1). Fuera, la integral vale 0; en sentido horario cambia el signo. Ejemplo del guion: ∫ (z + 5)/(z² + z − 2) dz sobre |z| = 3/2.",
-   "target": "Factor[z^2 + z - 2]\ng[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
+   "section": "Fórmula de Cauchy",
+   "title": "Valor principal",
+   "md": "Con una singularidad sobre el camino se quita un trocito simétrico.",
+   "target": "Limit[Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}], r -> 0, Direction -> -1]",
    "parts": [
     {
-     "code": "Factor[z^2 + z - 2]",
-     "md": "Los ceros del denominador: z = 1 (dentro de |z| = 3/2) y z = −2 (fuera).",
+     "code": "Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}]",
+     "md": "Integra 1/t de −1 a 2 saltándote el trozo (−r, r).",
      "run": true
     },
     {
-     "code": "g[z_] = (z + 5)/(z + 2);",
-     "md": "g es el integrando sin el factor (z − 1) del polo interior.",
-     "run": true
-    },
-    {
-     "code": "2 Pi I g[1]",
-     "md": "La fórmula: 2πi por g evaluada en el polo.",
-     "run": true
-    },
-    {
-     "code": "Factor[z^2 + z - 2]\ng[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
-     "md": "Los tres pasos seguidos. Sale 4πi, lo mismo que da `NIntegrate` parametrizando con `zt[t_] = 3/2 Exp[I t]`.",
+     "code": "Limit[Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}], r -> 0, Direction -> -1]",
+     "md": "Haz r → 0 por la derecha: es el valor principal.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula ∫ (z + 5)/(z² + z − 2) dz sobre |z| = 3/2 con la fórmula de Cauchy (factoriza, define g y aplica la fórmula).",
+    "prompt": "Calcula el valor principal de ∫ 1/t dt entre −1 y 2 con `Limit`.",
     "hints": [
-     "`Factor[z^2 + z - 2]` da (z − 1)(z + 2): el polo interior es z = 1.",
-     "`g[z_] = (z + 5)/(z + 2);`",
+     "Suma las integrales de −1 a −r y de r a 2.",
+     "`Limit[..., r -> 0, Direction -> -1]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "Log[2]"
+    }
+   },
+   "cmds": [
+    "Limit",
+    "Integrate"
+   ],
+   "more": "En Mathematica también sale directamente con la opción `PrincipalValue -> True`: `Integrate[1/t, {t, -1, 2}, PrincipalValue -> True]`."
+  },
+  {
+   "type": "build",
+   "title": "Cauchy: polo simple",
+   "md": "∫ g(z)/(z − z1) dz = 2πi·g(z1) si z1 está dentro de la curva.",
+   "target": "g[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
+   "parts": [
+    {
+     "code": "Factor[z^2 + z - 2]",
+     "md": "Factoriza el denominador de (z + 5)/(z² + z − 2).",
+     "run": true,
+     "hint": "Polos en 1 y −2. En |z| = 3/2 solo entra z = 1."
+    },
+    {
+     "code": "g[z_] = (z + 5)/(z + 2);",
+     "md": "g: el integrando sin el factor (z − 1) del polo interior.",
+     "run": true
+    },
+    {
+     "code": "2 Pi I g[1]",
+     "md": "La fórmula: 2πi por g en el polo.",
+     "run": true
+    },
+    {
+     "code": "zt[t_] = 3/2 Exp[I t];\nNIntegrate[(zt[t] + 5)/(zt[t]^2 + zt[t] - 2) zt'[t], {t, 0, 2 Pi}]",
+     "md": "Compruébalo parametrizando |z| = 3/2.",
+     "run": true
+    },
+    {
+     "code": "g[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
+     "md": "Otra vez la fórmula, en dos líneas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Calcula ∫ (z + 5)/(z² + z − 2) dz sobre |z| = 3/2 con la fórmula de Cauchy.",
+    "hints": [
+     "El polo interior es z = 1: `g[z_] = (z + 5)/(z + 2);`",
      "`2 Pi I g[1]`"
     ],
     "check": {
@@ -946,36 +1232,36 @@
    },
    "cmds": [
     "Factor"
-   ]
+   ],
+   "more": "Si el polo queda fuera de la curva, la integral vale 0. En sentido horario cambia el signo."
   },
   {
    "type": "build",
-   "title": "Cauchy con derivada (polo múltiple)",
-   "md": "Con el polo elevado a n + 1: ∫ g(z)/(z − z1)^(n+1) dz = 2πi · g⁽ⁿ⁾(z1)/n!. Segundo ejemplo del guion: ∫ (z + 5)/(z² + z − 2)³ dz sobre |z| = 3/2, con (z − 1)³ en el denominador (n = 2).",
+   "title": "Cauchy con derivada",
+   "md": "Con (z − z1)^(n+1): 2πi·g⁽ⁿ⁾(z1)/n!.",
    "target": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!",
    "parts": [
     {
      "code": "h[z_] = (z + 5)/(z + 2)^3;",
-     "md": "Otra vez, el integrando sin el factor del polo interior, que ahora es (z − 1)³.",
+     "md": "∫ (z + 5)/(z² + z − 2)³ dz: quita (z − 1)³ y queda h.",
      "run": true
     },
     {
      "code": "D[h[z], {z, 2}] /. z -> 1",
-     "md": "Derivada **segunda** (`{z, 2}`) y después se sustituye z por 1. El guion la escribe `h''[1]`.",
+     "md": "n = 2: derivada segunda, evaluada en el polo.",
      "run": true
     },
     {
      "code": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!",
-     "md": "La fórmula completa: 2πi por la derivada n-ésima entre n!.",
+     "md": "La fórmula completa: 2πi por la derivada entre 2!.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: calcula ∫ (z + 5)/(z² + z − 2)³ dz sobre |z| = 3/2 con la fórmula de Cauchy para derivadas.",
+    "prompt": "Calcula ∫ (z + 5)/(z² + z − 2)³ dz sobre |z| = 3/2 (polo triple en z = 1).",
     "hints": [
-     "`h[z_] = (z + 5)/(z + 2)^3;`",
-     "Hace falta la derivada segunda en z = 1: `D[h[z], {z, 2}] /. z -> 1`.",
-     "Esqueleto: `2 Pi I (D[h[z], { , }] /. z -> )/2!`"
+     "`h[z_] = (z + 5)/(z + 2)^3;` y derivada segunda en z = 1.",
+     "`2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!`"
     ],
     "check": {
      "type": "expr",
@@ -984,7 +1270,8 @@
    },
    "cmds": [
     "D"
-   ]
+   ],
+   "more": "El guion escribe la derivada como `h''[1]`."
   },
   {
    "type": "exercise",
@@ -992,7 +1279,7 @@
     "id": "2-m3-pl1-e14",
     "kind": "code",
     "title": "Cauchy con e^z",
-    "prompt": "Calcula ∫ e^z/(z − 2) dz sobre la circunferencia |z| = 3 (antihorario) con la fórmula integral de Cauchy. Resultado exacto.",
+    "prompt": "Calcula ∫ e^z/(z − 2) dz sobre |z| = 3 con la fórmula de Cauchy (exacto).",
     "difficulty": 2,
     "cmds": [
      "Exp"
@@ -1005,10 +1292,10 @@
      "expected": "2 Pi I Exp[2]"
     },
     "hints": [
-     "El polo z = 2 está dentro de |z| = 3 y g(z) = e^z.",
+     "El polo z = 2 está dentro y g(z) = e^z.",
      "`g[z_] = Exp[z];` y `2 Pi I g[2]`"
     ],
-    "explain": "2πi·g(2) = 2πi e². Si la circunferencia fuera |z| = 1, el polo quedaría fuera y la integral valdría 0."
+    "explain": "2πi e². Con |z| = 1 el polo quedaría fuera y la integral valdría 0."
    }
   },
   {
@@ -1016,8 +1303,8 @@
    "ex": {
     "id": "2-m3-pl1-e15",
     "kind": "code",
-    "title": "Cauchy con derivada, de la prueba",
-    "prompt": "Calcula la integral de `Sin[z]^6/(z - Pi/6)^3` sobre la circunferencia de centro 1 + i y radio 2 (antihorario). El polo está dentro: `Abs[Pi/6 - (1 + I)] // N` da 1.108 < 2. Da el resultado numérico.",
+    "title": "Polo triple de la prueba",
+    "prompt": "Calcula (numérico) ∫ sin⁶z/(z − π/6)³ dz sobre la circunferencia de centro 1 + i y radio 2.",
     "difficulty": 3,
     "cmds": [
      "D",
@@ -1036,10 +1323,10 @@
      "D"
     ],
     "hints": [
-     "El denominador es (z − π/6)³, así que n + 1 = 3: necesitas la derivada **segunda** de g(z) = sin⁶z.",
+     "El polo π/6 está dentro (`Abs[Pi/6 - (1 + I)]` ≈ 1.108 < 2). Con g(z) = sin⁶z, n = 2.",
      "`N[2 Pi I (D[g[z], {z, 2}] /. z -> Pi/6)/2!]`"
     ],
-    "explain": "2πi·g''(π/6)/2! ≈ 4.1233 i. En el apartado b de la prueba la circunferencia tenía radio 1: el polo quedaba fuera (1.108 > 1) y la integral era 0."
+    "explain": "≈ 4.1233 i. En el apartado b de la prueba el radio era 1: el polo quedaba fuera y la integral era 0."
    }
   },
   {
@@ -1048,8 +1335,8 @@
    "ex": {
     "id": "2-m3-pl1-e16",
     "kind": "code",
-    "title": "Forma binómica, módulo y argumento",
-    "prompt": "Sea z = (2 + 3i)^5 / (π − 2i)^7. Devuelve la lista **numérica** `{Re[z], Im[z], Abs[z], Arg[z], argumento en grados}`. Define `z = N[...]` desde el principio.",
+    "title": "Binómica, módulo y argumento",
+    "prompt": "z = (2 + 3i)^5/(π − 2i)^7. Con `z = N[...]`, devuelve `{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}`.",
     "difficulty": 3,
     "cmds": [
      "Abs",
@@ -1071,9 +1358,9 @@
     ],
     "hints": [
      "`z = N[(2 + 3 I)^5/(Pi - 2 I)^7];`",
-     "Grados = radianes × 180/π: `Arg[z] 180/Pi`."
+     "`{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}`"
     ],
-    "explain": "z ≈ −0.0525 + 0.0317 i (segundo cuadrante): módulo 0.0613, argumento 2.599 rad = 148.92°."
+    "explain": "z ≈ −0.0525 + 0.0317 i: módulo 0.0613, argumento 2.599 rad = 148.92°."
    }
   },
   {
@@ -1082,14 +1369,14 @@
     "id": "2-m3-pl1-e17",
     "kind": "code",
     "title": "Cauchy en sentido horario",
-    "prompt": "Sea f(z) = e^(−z)/(i − 3z). Calcula ∫ f(z) dz sobre\n\n- a) la circunferencia de centro i y radio 1/2, sentido **horario**;\n- b) la circunferencia de centro i y radio 1, sentido **horario**.\n\nDevuelve la lista `{Ia, Ib}`. La singularidad es z = i/3 (solución de `I - 3 z == 0`); su distancia al centro es `Abs[I/3 - I]` = 2/3.",
+    "prompt": "f(z) = e^(−z)/(i − 3z), polo en i/3. Integra en sentido horario sobre |z − i| = 1/2 y sobre |z − i| = 1. Devuelve `{Ia, Ib}`.",
     "difficulty": 4,
     "cmds": [
      "Abs"
     ],
     "real": true,
     "source": "PL1 · Ejercicio 5 a) y b)",
-    "solution": "g[z_] = -Exp[-z]/3;\n{0, -2 Pi I g[I/3]}",
+    "solution": "Abs[I/3 - I]\ng[z_] = -Exp[-z]/3;\n{0, -2 Pi I g[I/3]}",
     "check": {
      "type": "expr",
      "expected": "{0, 2/3 Pi I Exp[-I/3]}",
@@ -1097,10 +1384,10 @@
      "tol": 1e-06
     },
     "hints": [
-     "A distancia 2/3 del centro: fuera del radio 1/2 (integral 0) y dentro del radio 1.",
-     "i − 3z = −3 (z − i/3), así que f = g(z)/(z − i/3) con `g[z_] = -Exp[-z]/3`. Antihorario sería `2 Pi I g[I/3]`; horario, con signo menos."
+     "`Abs[I/3 - I]` = 2/3: el polo está fuera del radio 1/2 (integral 0) y dentro del radio 1.",
+     "i − 3z = −3 (z − i/3): `g[z_] = -Exp[-z]/3`. Horario: signo menos, `-2 Pi I g[I/3]`."
     ],
-    "explain": "a) 0, porque no hay singularidades dentro. b) −2πi·g(i/3) = (2/3)πi e^(−i/3) ≈ 0.685 + 1.979 i. Uno de los alumnos de 2021 se equivocó justo en el signo del sentido horario."
+    "explain": "a) 0. b) (2/3)πi e^(−i/3) ≈ 0.685 + 1.979 i. Uno de los alumnos de 2021 falló justo en el signo del sentido horario."
    }
   },
   {
@@ -1108,8 +1395,8 @@
    "ex": {
     "id": "2-m3-pl1-e18",
     "kind": "code",
-    "title": "Cauchy con polo de orden 6",
-    "prompt": "Ahora f(z) = e^(−z)/(i − 3z)^6 sobre la circunferencia de centro i y radio 1 en sentido **horario**. Calcula la integral con la fórmula de Cauchy para derivadas.",
+    "title": "Polo de orden 6",
+    "prompt": "Calcula ∫ e^(−z)/(i − 3z)^6 dz sobre |z − i| = 1 en sentido horario, con Cauchy para derivadas.",
     "difficulty": 4,
     "cmds": [
      "D"
@@ -1127,10 +1414,10 @@
      "D"
     ],
     "hints": [
-     "(i − 3z)^6 = 3^6 (z − i/3)^6: toma `g[z_] = Exp[-z]/3^6` y n + 1 = 6, es decir, derivada **quinta**.",
-     "`-2 Pi I (D[g[z], {z, 5}] /. z -> I/3)/5!` (el menos es por el sentido horario)."
+     "(i − 3z)^6 = 3^6 (z − i/3)^6: `g[z_] = Exp[-z]/3^6` y derivada quinta.",
+     "`-2 Pi I (D[g[z], {z, 5}] /. z -> I/3)/5!` (el menos, por el sentido horario)."
     ],
-    "explain": "Resultado: πi e^(−i/3)/43740 ≈ 2.35·10⁻⁵ + 6.79·10⁻⁵ i. `D[g[z], {z, 5}]` es la derivada quinta; el guion la escribe `g'''''[I/3]`."
+    "explain": "πi e^(−i/3)/43740 ≈ 2.35·10⁻⁵ + 6.79·10⁻⁵ i. El guion escribe la derivada quinta como `g'''''[I/3]`."
    }
   },
   {
@@ -1138,8 +1425,8 @@
    "ex": {
     "id": "2-m3-pl1-e19",
     "kind": "code",
-    "title": "Tres polos (1): el polo triple",
-    "prompt": "Ejercicio 6 del guion: ∫ cosh((2 + i) z)/(z³ (z² + 1)) dz. Los polos son z = 0 (triple), i y −i. Por el teorema de deformación, la integral es la suma de las contribuciones de los polos interiores, y cada una sale con Cauchy.\n\nEmpieza por z = 0: quita el factor z³, `g0[z_] = Cosh[(2 + I) z]/(z^2 + 1)`, y guarda en `c0` su contribución (n = 2).",
+    "title": "Tres polos: el triple",
+    "prompt": "∫ cosh((2+i)z)/(z³(z²+1)) dz. Guarda en `c0` la contribución del polo triple z = 0 (Cauchy con n = 2).",
     "difficulty": 4,
     "cmds": [
      "D",
@@ -1159,10 +1446,10 @@
      "D"
     ],
     "hints": [
-     "Polo triple: n + 1 = 3, así que derivada segunda entre 2!.",
+     "Quita el factor z³: `g0[z_] = Cosh[(2 + I) z]/(z^2 + 1);`",
      "`c0 = 2 Pi I (D[g0[z], {z, 2}] /. z -> 0)/2!`"
     ],
-    "explain": "c0 = −4π + πi ≈ −12.566 + 3.142 i."
+    "explain": "c0 = −4π + πi. La integral sobre una curva es la suma de las contribuciones de los polos interiores (teorema de deformación)."
    }
   },
   {
@@ -1170,8 +1457,8 @@
    "ex": {
     "id": "2-m3-pl1-e20",
     "kind": "code",
-    "title": "Tres polos (2): las dos circunferencias",
-    "prompt": "Sigue el Ejercicio 6. La contribución del polo 0 **ya está guardada en `c0`**. Calcula las de los polos simples, `c1` (z = i) y `c2` (z = −i), y devuelve la lista numérica `{Ia, Ib}`:\n\n- a) circunferencia de centro 0 y radio 2: entran los tres polos;\n- b) circunferencia de centro −i/2 y radio 1: el polo i queda fuera (está a distancia 1.5 del centro).",
+    "title": "Tres polos: dos circunferencias",
+    "prompt": "`c0` ya está. Añade los polos i y −i y devuelve `N[{Ia, Ib}]`: a) |z| = 2 (los tres polos); b) |z + i/2| = 1 (sin el polo i).",
     "difficulty": 5,
     "cmds": [
      "Cosh",
@@ -1188,10 +1475,10 @@
      "tol": 1e-05
     },
     "hints": [
-     "Para el polo i quita el factor (z − i): `g1[z_] = Cosh[(2 + I) z]/(z^3 (z + I))`, y `c1 = 2 Pi I g1[I]`. Para −i: `g2[z_] = Cosh[(2 + I) z]/(z^3 (z - I))`, `c2 = 2 Pi I g2[-I]`.",
+     "Polo i: `g1[z_] = Cosh[(2 + I) z]/(z^3 (z + I))`, `c1 = 2 Pi I g1[I]`. Polo −i: cambia los signos.",
      "`N[{c0 + c1 + c2, c0 + c2}]`"
     ],
-    "explain": "a) −5.852 − 0.893 i. b) −9.209 + 1.124 i. Los alumnos de 2021 lo hicieron parametrizando con `NIntegrate[f[zt[t]] zt'[t], {t, 0, 2 Pi}]`, que da lo mismo. En la PL2 lo repetirás en una línea con `Residue`."
+    "explain": "a) −5.852 − 0.893 i. b) −9.209 + 1.124 i. En 2021 lo resolvieron con `NIntegrate[f[zt[t]] zt'[t], {t, 0, 2 Pi}]`; en la PL2 saldrá en una línea con `Residue`."
    }
   }
  ]
