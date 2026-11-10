@@ -1,12 +1,12 @@
 // views/simulacro.js (LEARN) — exam simulator (SPEC §9).
 //   #/simulacros            list of mock exams (grouped by year, best score, attempts, countdown to the real exam)
 //   #/simulacro/<examId>    intro → timed run (questions with numeric boxes + free notebook) → grading → review
-import { store } from '../store.js?v=1794353407';
-import * as data from '../data.js?v=1794353407';
-import { kernel } from '../kernel-client.js?v=1794353407';
-import { createNotebook } from '../notebook.js?v=1794353407';
-import * as fx from '../fx.js?v=1794353407';
-import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794353407';
+import { store } from '../store.js?v=1794353703';
+import * as data from '../data.js?v=1794353703';
+import { kernel } from '../kernel-client.js?v=1794353703';
+import { createNotebook } from '../notebook.js?v=1794353703';
+import * as fx from '../fx.js?v=1794353703';
+import { ensureCss, h, md, mdInline, yearBadge, safe, play, exclusive, kernelReady, startKernel, kernelPill, codeBlock, mountGhost } from '../exercise.js?v=1794353703';
 
 const KEY = (id) => `wolframlab-aero-exam-${id}`;
 const WARN_AT = [600, 300, 60]; // seconds left → warning
@@ -178,6 +178,7 @@ async function mountList(me) {
     root.replaceChildren(...nodes);
     return;
   }
+  const timed = []; // running attempts: their remaining time is shown live
   const groups = new Map();
   for (const e of exams) { const y = Number(e.year) || 0; if (!groups.has(y)) groups.set(y, []); groups.get(y).push(e); }
   const soon = (list) => Math.min(...list.map((e) => { const d = daysTo(e.date); return d != null && d >= 0 ? d : 1e9; }));
@@ -189,12 +190,16 @@ async function mountList(me) {
       const att = attempts(e.id);
       const best = att.reduce((b, a) => (b == null || (a.max ? a.score / a.max : 0) > (b.max ? b.score / b.max : 0) ? a : b), null);
       const st = load(e.id);
-      const running = st && st.phase === 'run' && (st.mode === 'study' || leftOf(st) > 0);
+      const open = !!st && st.phase === 'run';                       // an attempt that has not been handed in
+      const running = open && (st.mode === 'study' || leftOf(st) > 0);
+      const expired = open && !running;                              // the clock ran out while he was away: it is graded on entering
+      const live = h('span', { class: 'badge real sm-live' }, running ? (st.mode === 'study' ? 'modo estudio en curso' : `en curso · quedan ${fmtClock(leftOf(st))}`) : 'tiempo agotado');
+      if (running && st.mode !== 'study') timed.push({ st, live });
       const d = daysTo(e.date);
       const nQ = exam ? (exam.questions || []).length : 0;
       const bestPct = best ? (best.max ? best.score / best.max : 0) : 0;
       const card = h('article', { class: `sm-card${exam ? '' : ' is-off'}${running ? ' is-running' : ''}`, dataset: { year: y } },
-        h('div', { class: 'sm-card-top' }, yearBadge(y), h('span', { class: 'sm-card-sub' }, e.subject || ''), running ? h('span', { class: 'badge real' }, 'en curso') : null, !exam ? h('span', { class: 'badge muted' }, 'en preparación') : null),
+        h('div', { class: 'sm-card-top' }, yearBadge(y), h('span', { class: 'sm-card-sub' }, e.subject || ''), open ? live : null, !exam ? h('span', { class: 'badge muted' }, 'en preparación') : null),
         h('h3', { class: 'sm-card-t' }, e.title || e.id),
         e.description ? h('p', { class: 'sm-card-d muted' }, e.description) : null,
         h('div', { class: 'sm-card-meta' },
@@ -204,12 +209,21 @@ async function mountList(me) {
         h('div', { class: 'sm-card-foot' },
           best ? h('div', { class: `sm-best${bestPct >= 0.5 ? ' is-pass' : ''}` }, h('b', null, fmtScore(best.max ? (10 * best.score) / best.max : best.score)), h('span', null, `mejor nota · ${att.length} ${att.length === 1 ? 'intento' : 'intentos'}`))
             : h('div', { class: 'sm-best is-none' }, h('b', null, '—'), h('span', null, 'sin intentos')),
-          exam ? h('a', { class: 'btn primary', href: `#/simulacro/${encodeURIComponent(e.id)}` }, running ? 'Continuar →' : best ? 'Repetir →' : 'Empezar →') : h('span', { class: 'btn', 'aria-disabled': 'true' }, 'Pronto')));
+          exam ? h('a', { class: 'btn primary', href: `#/simulacro/${encodeURIComponent(e.id)}` }, running ? 'Continuar →' : expired ? 'Ver corrección →' : best ? 'Repetir →' : 'Empezar →') : h('span', { class: 'btn', 'aria-disabled': 'true' }, 'Pronto')));
       grid.appendChild(card);
     }
     nodes.push(h('section', { class: 'pr-sec' }, h('h3', { class: 'pr-year' }, y ? `${y}º curso` : 'General'), grid));
   }
   root.replaceChildren(...nodes);
+  if (timed.length) {
+    const iv = setInterval(() => {
+      if (V !== me) return;
+      let over = false;
+      for (const t of timed) { const left = leftOf(t.st); if (left <= 0) over = true; else t.live.textContent = `en curso · quedan ${fmtClock(left)}`; }
+      if (over) { clearInterval(iv); mountList(me); } // the card now offers the correction
+    }, 1000);
+    me.cleanup.push(() => clearInterval(iv));
+  }
 }
 
 /* ============================================================ exam */

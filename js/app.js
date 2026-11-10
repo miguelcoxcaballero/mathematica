@@ -1,7 +1,7 @@
 // app.js (SHELL) — arranque: barra superior (navegación, nivel/XP, racha, motor, sonido), ajustes y atajos.
-import { store, dayKey } from './store.js?v=1794353407';
-import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794353407';
-import { router } from './router.js?v=1794353407';
+import { store, dayKey } from './store.js?v=1794353703';
+import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794353703';
+import { router } from './router.js?v=1794353703';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -180,7 +180,7 @@ const kernelUI = (() => {
   async function load() {
     if (kernel) return kernel;
     try {
-      const mod = await import('./kernel-client.js?v=1794353407');
+      const mod = await import('./kernel-client.js?v=1794353703');
       kernel = mod.kernel || mod.default;
       if (!kernel || typeof kernel.start !== 'function') throw new Error('kernel-client sin kernel.start');
       missing = false;

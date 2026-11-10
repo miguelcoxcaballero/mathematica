@@ -177,7 +177,7 @@ Unprotect[Derivative];
 HoldPattern[Derivative[n_Integer][f_Symbol]] /; WLX`DerivQ[f, n] := WLX`DerivGet[];
 
 Unprotect[Normal];
-Normal[HoldPattern[SeriesData[x_, DirectedInfinity[1], c_List, nmin_, nmax_, den_]]] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)/den), {WLX`k, Length[c]}]];
+HoldPattern[Normal[SeriesData[x_, DirectedInfinity[1], c_List, nmin_, nmax_, den_]]] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)/den), {WLX`k, Length[c]}]];
 Normal[e_] := (e /. s_SeriesData :> Normal[s]) /; Head[e] =!= SeriesData && !FreeQ[e, SeriesData[_, DirectedInfinity[1], __]];
 Protect[Normal];
 

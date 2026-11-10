@@ -1,6 +1,6 @@
 // WolframLab Aero — renderer 3D (WebGL compartido + lienzo 2D por gráfico; respaldo con algoritmo del pintor).
 // Pinta la especificación JSON de gfx.py (SPEC §3): surf, iso, line3, pts3, poly3, arrow3, text3.
-import { lut, niceTicks, fmtTick, hexRgb, textW } from './gfx2d.js?v=1794353407';
+import { lut, niceTicks, fmtTick, hexRgb, textW } from './gfx2d.js?v=1794353703';
 
 const FONT = '"Source Sans 3","Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
 const SURF = ['#E19C24', '#5E81B5', '#8FB032', '#EB6235', '#8778B3', '#C56E1A', '#5D9EC7', '#FFBF00', '#A5609D', '#929600'];

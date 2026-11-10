@@ -3132,8 +3132,14 @@ class SeriesQ(XB):
             else:
                 nmin = min(coeffs)
                 lst = [sp.simplify(coeffs.get(k, 0)) for k in range(nmin, order + 1)]
-            data = E("SeriesData", x, c.back(p) if p not in (sp.oo, -sp.oo, sp.zoo) else x0,
-                     L(*[c.back(v) for v in lst]), Integer(nmin), Integer(order + 1), Integer(1))
+            if p in (sp.oo, -sp.oo, sp.zoo):
+                # a series at Infinity is stored as a series in 1/x about 0: Mathics then displays, Normal-izes and
+                # extracts coefficients correctly (its own Infinity series print as (x + -Infinity)^k)
+                data = E("SeriesData", E("Power", x, Integer(-1)), Integer(0),
+                         L(*[c.back(v) for v in lst]), Integer(nmin), Integer(order + 1), Integer(1))
+            else:
+                data = E("SeriesData", x, c.back(p), L(*[c.back(v) for v in lst]), Integer(nmin), Integer(order + 1),
+                         Integer(1))
             if pref is not None:
                 # essential singularity at Infinity: exponential factor times the (finite) expansion of the rest
                 tot = sum(v * xs ** (-(nmin + k_)) for k_, v in enumerate(lst))
