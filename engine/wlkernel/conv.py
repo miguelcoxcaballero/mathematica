@@ -50,11 +50,12 @@ REV_FUNCS[sp.Heaviside] = "HeavisideTheta"
 class Conv:
     """Converter bound to assumptions for particular symbols."""
 
-    def __init__(self, funcs=(), real=(), positive=(), integer=(), heaviside="HeavisideTheta"):
+    def __init__(self, funcs=(), real=(), positive=(), integer=(), heaviside="HeavisideTheta", negative=()):
         self.funcs = set(funcs)      # full names of symbols to be treated as undetermined functions
         self.real = set(real)
         self.positive = set(positive)
         self.integer = set(integer)
+        self.negative = set(negative)
         self.syms = {}
         self.heaviside = heaviside
         self._unitstep = False
@@ -64,7 +65,9 @@ class Conv:
     def sym(self, name):
         if name not in self.syms:
             kw = {}
-            if name in self.positive:
+            if name in self.negative:
+                kw["negative"] = True
+            elif name in self.positive:
                 kw["positive"] = True
             elif name in self.real:
                 kw["real"] = True

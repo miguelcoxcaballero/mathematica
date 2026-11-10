@@ -221,7 +221,8 @@ _PW_TYPES = (sp.Heaviside, sp.Piecewise, sp.Abs, sp.sign, sp.Max, sp.Min)
 
 
 def has_piecewise(expr, x):
-    return any(q.has(x) for q in expr.atoms(sp.Heaviside, sp.Abs, sp.sign, sp.Max, sp.Min)) or expr.has(sp.Piecewise)
+    return any(q.has(x) for q in expr.atoms(sp.Heaviside, sp.Abs, sp.sign, sp.Max, sp.Min, sp.floor, sp.ceiling, sp.Mod)) \
+        or expr.has(sp.Piecewise)
 
 
 def _scan_roots(arg, x, flo, fhi):
@@ -320,6 +321,22 @@ def _breakpoints(expr, x, flo=None, fhi=None):
     for h in expr.atoms(sp.Heaviside, sp.Abs, sp.sign):
         if not roots_of(h.args[0]):
             return None
+    for fl in expr.atoms(sp.floor, sp.ceiling, sp.Mod):
+        if not fl.has(x):
+            continue
+        u = fl.args[0] / fl.args[1] if isinstance(fl, sp.Mod) else fl.args[0]
+        lc = _linear_coeff(u, x)
+        if lc is None or lc[0].free_symbols or lc[1].free_symbols or flo is None or fhi is None \
+                or flo == float("-inf") or fhi == float("inf"):
+            return None
+        k1, k0 = lc
+        import math as _m
+
+        v1, v2 = sorted((float(k1 * flo + k0), float(k1 * fhi + k0)))
+        if v2 - v1 > 4000:
+            return None
+        for kk in range(int(_m.floor(v1)), int(_m.ceil(v2)) + 1):
+            pts.add((kk - k0) / k1)
     for m in expr.atoms(sp.Max, sp.Min):
         args = m.args
         for i in range(len(args)):
@@ -352,6 +369,19 @@ def _at_sample(expr, x, mid):
             return inner if val(e.args[0]) >= 0 else -inner
         if isinstance(e, sp.sign) and e.args[0].has(x):
             return sp.Integer(1) if val(e.args[0]) > 0 else sp.Integer(-1)
+        if isinstance(e, sp.floor) and e.has(x):
+            import math as _m
+
+            return sp.Integer(int(_m.floor(val(e.args[0]))))
+        if isinstance(e, sp.ceiling) and e.has(x):
+            import math as _m
+
+            return sp.Integer(int(_m.ceil(val(e.args[0]))))
+        if isinstance(e, sp.Mod) and e.has(x):
+            import math as _m
+
+            a_, m_ = conv(e.args[0]), e.args[1]
+            return a_ - m_ * sp.Integer(int(_m.floor(val(e.args[0] / e.args[1]))))
         if isinstance(e, (sp.Max, sp.Min)) and e.has(x):
             vals = [(val(a), a) for a in e.args]
             pick = max(vals, key=lambda t: t[0]) if isinstance(e, sp.Max) else min(vals, key=lambda t: t[0])
@@ -699,3 +729,94 @@ def half_angle_radicals(expr, x):
         return expr.replace(lambda p: isinstance(p, sp.Pow), fix)
     except Exception:
         return expr
+
+
+def near_point(expr, x, a, side):
+    """The smooth expression that a piecewise expr equals just to the right (side=+1) / left (-1) of x = a."""
+    fa = float(sp.N(a))
+    pts = _breakpoints(expr, x, fa - 1.0, fa + 1.0)
+    if pts is None:
+        return None
+    d = 0.5
+    for p_ in pts:
+        fp = float(sp.N(p_))
+        if side > 0 and fp > fa + 1e-12:
+            d = min(d, 0.5 * (fp - fa))
+        if side < 0 and fp < fa - 1e-12:
+            d = min(d, 0.5 * (fa - fp))
+    return _at_sample(expr, x, sp.Float(fa + side * d))
+
+
+# ------------------------------------------------------- Fourier transforms
+def fourier_core(fs, t, W, sgn):
+    """G(W) = Integral_{-oo}^{oo} f(t) e^(i sgn W t) dt for real W (None if we cannot)."""
+    I = sp.I
+    if not fs.has(t):
+        return 2 * sp.pi * fs * sp.DiracDelta(W)
+    K = I * sgn * W
+    if fs.is_rational_function(t) and not has_piecewise(fs, t):
+        num, den = sp.fraction(sp.cancel(sp.together(fs)))
+        pn, pd = sp.Poly(num, t), sp.Poly(den, t)
+        if pn.degree() >= pd.degree():
+            return None
+        roots = sp.roots(pd, t)
+        if sum(roots.values()) != pd.degree():
+            return None
+        up, lowr = 0, 0
+        Kp = sp.Symbol("WLX`K")
+        for r, m in roots.items():
+            im = sp.im(r)
+            try:
+                imv = float(sp.N(im))
+            except Exception:
+                return None
+            if abs(imv) < 1e-14:
+                return None             # pole on the real axis: not an ordinary function
+            res = _residue_term(pn, pd, t, Kp, r, m).subs(Kp, K)
+            if imv > 0:
+                up += res
+            else:
+                lowr += res
+        U = sp.simplify(2 * sp.pi * I * up)          # valid for sgn W > 0
+        Lw = sp.simplify(-2 * sp.pi * I * lowr)      # valid for sgn W < 0
+        V = sgn * W
+        if U != 0 and Lw != 0 and sp.simplify(Lw - U.subs(W, -W)) == 0:
+            return U.subs(W, sgn * sp.Abs(W)) if sgn == 1 else U.subs(W, -sp.Abs(W))
+        return sp.Heaviside(V) * U + sp.Heaviside(-V) * Lw
+    pieces = split_pieces(fs, t, -sp.oo, sp.oo)
+    if pieces is None:
+        return None
+    total = 0
+    for a, b, g in pieces:
+        if g == 0:
+            continue
+        terms = exp_poly_terms(g, t)
+        if terms is None:
+            return None
+        for al, d in terms.items():
+            for n, c in d.items():
+                if c == 0:
+                    continue
+                F = _term_antiderivative(c, n, al + K, t)
+                rea = sp.re(al)
+                if b == sp.oo:
+                    if not (rea.is_negative or (rea.is_number and rea < 0)):
+                        return None
+                    up_ = 0
+                else:
+                    up_ = F.subs(t, b)
+                if a == -sp.oo:
+                    if not (rea.is_positive or (rea.is_number and rea > 0)):
+                        return None
+                    lo_ = 0
+                else:
+                    lo_ = F.subs(t, a)
+                total += up_ - lo_
+    r = real_form(total, real=False)
+    try:
+        r2 = sp.simplify(r) if r.count_ops() < 400 else r
+        return r2
+    except SympyTimeout:
+        raise
+    except Exception:
+        return r

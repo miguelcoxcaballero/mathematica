@@ -1,0 +1,1206 @@
+{
+ "id": "2-m2-pl4",
+ "year": 2,
+ "subject": "Matemáticas II",
+ "block": "Ecuaciones diferenciales",
+ "order": 4,
+ "title": "Repaso de EDOs: recetas completas y problemas de examen",
+ "summary": "Sesión de repaso de PL1–PL3: vuelves a escribir de memoria las recetas clave y resuelves problemas tipo examen (examen de 2021, examen de 2014, pruebas de clase y hojas de ejercicios antiguas), con respuesta numérica como en PoliformaT.",
+ "minutes": 110,
+ "commands": [],
+ "uses": [
+  "DSolve",
+  "Solve",
+  "FindRoot",
+  "D",
+  "Integrate",
+  "Simplify",
+  "ReplaceAll",
+  "Flatten",
+  "Exp",
+  "Log",
+  "N",
+  "Det",
+  "CoefficientList",
+  "Plot",
+  "Sin",
+  "Cos"
+ ],
+ "steps": [
+  {
+   "type": "build",
+   "section": "Resolver y evaluar",
+   "title": "De la EDO al número",
+   "md": "El examen pide números. La receta: resolver, convertir en función, evaluar.",
+   "target": "ys[3] // N",
+   "parts": [
+    {
+     "code": "resul = DSolve[{y'[x] + y[x]/x == x^2, y[1] == 2}, y[x], x];",
+     "md": "Resuelve `y' + y/x = x²` con `y(1) = 2` y guarda.",
+     "run": true
+    },
+    {
+     "code": "ys[x_] = y[x] /. Flatten[resul];",
+     "md": "De regla a función.",
+     "run": true
+    },
+    {
+     "code": "ys[3] // N",
+     "md": "Evalúa en x = 3, en decimal: eso es lo que se teclea en el examen.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`y' + y/x = x²`, `y(1) = 2`: resuelve en `resul`, define `ys[x_]` y termina con `ys[3] // N`.",
+    "hints": [
+     "`resul = DSolve[{y'[x] + y[x]/x == x^2, y[1] == 2}, y[x], x];`",
+     "`ys[x_] = y[x] /. Flatten[resul];`",
+     "`ys[3] // N`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w'[x] + w[x]/x == x^2",
+       "func": "w",
+       "var": "x",
+       "ics": [
+        "w[1]==2"
+       ],
+       "expr": "ys[x]",
+       "msg": "`ys[x]` no cumple la ecuación o `y(1) = 2`."
+      },
+      {
+       "type": "expr",
+       "expected": "22/3",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "solution": "resul = DSolve[{y'[x] + y[x]/x == x^2, y[1] == 2}, y[x], x];\nys[x_] = y[x] /. Flatten[resul];\nys[3] // N"
+   },
+   "cmds": [
+    "DSolve",
+    "Flatten",
+    "ReplaceAll",
+    "N"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e01",
+    "kind": "code",
+    "title": "Con orden 2",
+    "prompt": "`y'' + 4y = sen t`, `y(0) = 0`, `y'(0) = 1`: resuelve, define `ys[t_]` y termina con `ys[2] // N`.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "Flatten",
+     "ReplaceAll",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y''[t] + 4 y[t] == Sin[t], y[0] == 0, y'[0] == 1}, y[t], t];\nys[t_] = y[t] /. Flatten[resul];\nys[2] // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[t] + 4 w[t] == Sin[t]",
+       "func": "w",
+       "var": "t",
+       "ics": [
+        "w[0]==0",
+        "w'[0]==1"
+       ],
+       "expr": "ys[t]",
+       "msg": "`ys[t]` no cumple la ecuación o las condiciones."
+      },
+      {
+       "type": "expr",
+       "expected": "(Sin[2] + Sin[4])/3",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "hints": [
+     "La lista lleva la ecuación y las dos condiciones.",
+     "`resul = DSolve[{y''[t] + 4 y[t] == Sin[t], y[0] == 0, y'[0] == 1}, y[t], t];`",
+     "`ys[t_] = y[t] /. Flatten[resul];` y `ys[2] // N`"
+    ],
+    "explain": "Sale 0.0508.",
+    "requires": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e02",
+    "kind": "fix",
+    "title": "Tres errores",
+    "prompt": "Esta celda quiere resolver `y' = −y`, `y(0) = 2` y calcular `y(1)`. Escríbela bien.",
+    "difficulty": 2,
+    "cmds": [
+     "DSolve",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y'[t] == -y[t], y[0] == 2}, y[t], t];\nys[t_] = y[t] /. Flatten[resul];\nys[1] // N",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w'[t] == -w[t]",
+       "func": "w",
+       "var": "t",
+       "ics": [
+        "w[0]==2"
+       ],
+       "expr": "ys[t]",
+       "msg": "`ys[t]` no está bien definida."
+      },
+      {
+       "type": "expr",
+       "expected": "2/E",
+       "compare": "numeric",
+       "tol": 1e-05
+      }
+     ]
+    },
+    "hints": [
+     "La condición es `y[0] == 2`, con corchetes.",
+     "La función se define con guion bajo: `ys[t_] = ...`.",
+     "Decimal: `// N`, con mayúscula."
+    ],
+    "explain": "Corchetes en `y[0]`, guion bajo en `ys[t_]` y `N` en mayúscula.",
+    "broken": "resul = DSolve[{y'[t] == -y[t], y(0) == 2}, y[t], t];\nys[t] = y[t] /. Flatten[resul];\nys[1] // n"
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Reducibles y factor integrante",
+   "ex": {
+    "id": "2-m2-pl4-e03",
+    "kind": "code",
+    "title": "Reducible: trasladar",
+    "prompt": "`y' = (x − y + 1)/(x + y − 3)`: define `f1`, halla el corte de las rectas y define `f2[X_, Y_]` trasladada.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "Simplify"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "f1[x_, y_] = (x - y + 1)/(x + y - 3);\nSolve[{x - y + 1 == 0, x + y - 3 == 0}, {x, y}]\nf2[X_, Y_] = f1[X + 1, Y + 2] // Simplify",
+    "check": {
+     "type": "value",
+     "expr": "f2[X, Y]",
+     "expected": "(X - Y)/(X + Y)",
+     "compare": "equal",
+     "msg": "`f2` debe ser `f1` trasladada al corte (1, 2): `f1[X + 1, Y + 2] // Simplify`."
+    },
+    "hints": [
+     "`Solve[{x - y + 1 == 0, x + y - 3 == 0}, {x, y}]` da el corte (1, 2).",
+     "`f2[X_, Y_] = f1[X + 1, Y + 2] // Simplify`"
+    ],
+    "explain": "Queda `(X − Y)/(X + Y)`: homogénea.",
+    "requires": [
+     "Solve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e04",
+    "kind": "code",
+    "title": "Reducible: resolver",
+    "prompt": "`f2[X_, Y_] = (X − Y)/(X + Y)` ya está definida (corte en (1, 2)). Receta con `Log[X] + Log[C1]`, deshaz cambios, guarda en `sol`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "sol = Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1] /. {X -> x - 1, z -> (y - 2)/(x - 1)}",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*((x - y + 1)/(x + y - 3))) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*((x - y + 1)/(x + y - 3))) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "hints": [
+     "La receta: `Integrate[1/(f2[1, z] - z), z] == Log[X] + Log[C1]`.",
+     "Cambios: `{X -> x - 1, z -> (y - 2)/(x - 1)}`."
+    ],
+    "explain": "Como `x = X + 1`, se deshace con `X -> x − 1`.",
+    "setup": "f2[X_, Y_] = (X - Y)/(X + Y);",
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e05",
+    "kind": "code",
+    "title": "Factor integrante",
+    "prompt": "`(2y² + 3x) dx + 2xy dy = 0`: `P`, `Q`, `Py`, `Qx`, `mu` (de x), `P1`, `Q1` y el potencial `U` (`x0 = 0`, `y0 = 0`).",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "Simplify",
+     "Exp",
+     "Integrate"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "P[x_, y_] = 2 y^2 + 3 x; Q[x_, y_] = 2 x y;\nPy = D[P[x, y], y]; Qx = D[Q[x, y], x];\nmu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]\nP1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];\nx0 = 0; y0 = 0;\nU = Integrate[P1[s, y], {s, x0, x}] + Integrate[Q1[x0, s], {s, y0, y}]",
+    "check": {
+     "type": "satisfies",
+     "test": "With[{F = If[Head[U] === Equal, First[U] - Last[U], U]}, Abs[(D[F, x]*(2 x y) - D[F, y]*(2 y^2 + 3 x)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[F, x]*(2 x y) - D[F, y]*(2 y^2 + 3 x)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[F, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`U` no es un potencial de la ecuación (o no está definido): debe cumplirse `D[U, x] = μ P` y `D[U, y] = μ Q`. Revisa P, Q, el factor integrante y la fórmula, y guarda el resultado en `U`."
+    },
+    "hints": [
+     "`P[x_, y_] = 2 y^2 + 3 x; Q[x_, y_] = 2 x y;` y `Py = D[P[x, y], y]; Qx = D[Q[x, y], x];`",
+     "`mu = Exp[Integrate[(Py - Qx)/Q[x, y] // Simplify, x]]` (sale `x`).",
+     "`P1[x_, y_] = mu P[x, y]; Q1[x_, y_] = mu Q[x, y];`, `x0 = 0; y0 = 0;` y la fórmula de `U`."
+    ],
+    "explain": "`(Py − Qx)/Q = 1/x`, `μ = x`, `U = x² y² + x³`.",
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Bernoulli, Riccati y envolvente",
+   "ex": {
+    "id": "2-m2-pl4-e06",
+    "kind": "code",
+    "title": "Bernoulli",
+    "prompt": "Resuelve `y' − y = x y²` como Bernoulli: `P`, `Q`, `n`; `P1`, `Q1`; relación en `sol` (constante `C1`).",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Exp",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "P[x_] = -1; Q[x_] = x; n = 2;\nP1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(y + x y^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(y + x y^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "hints": [
+     "`P[x_] = -1; Q[x_] = x; n = 2;`",
+     "`P1[x_] = (1 - n) P[x]; Q1[x_] = (1 - n) Q[x];`",
+     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/y^(n - 1) // Simplify`"
+    ],
+    "explain": "`1/y == 1 − x + C1 E^(-x)`.",
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e07",
+    "kind": "code",
+    "title": "Riccati: dos parámetros",
+    "prompt": "**Prueba de clase.** `y' = (−x² + 2x + 4) + (2x − 2) y − y²` (`P`, `Q`, `R` ya definidas), particular `y = a x + b`. Halla `a`, `b`.",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "CoefficientList",
+     "Solve"
+    ],
+    "real": true,
+    "source": "PL2 · prueba de sesión 2020-21",
+    "solution": "ys[x_] = a x + b;\nres = D[ys[x], x] - (P[x] + Q[x] ys[x] + R[x] ys[x]^2);\nSolve[CoefficientList[res, x] == {0, 0, 0}, {a, b}]",
+    "check": {
+     "type": "expr",
+     "expected": "{{a -> 1, b -> -3}, {a -> 1, b -> 1}}",
+     "compare": "set"
+    },
+    "hints": [
+     "`ys[x_] = a x + b;` y el residuo `res = D[ys[x], x] - (P[x] + Q[x] ys[x] + R[x] ys[x]^2);`",
+     "Polinomio en x: `Solve[CoefficientList[res, x] == {0, 0, 0}, {a, b}]`"
+    ],
+    "explain": "Dos soluciones: `a = 1, b = 1` y `a = 1, b = −3`. Con dos parámetros no basta `Solve[edo, a]`: se anulan los coeficientes.",
+    "setup": "P[x_] = -x^2 + 2 x + 4; Q[x_] = 2 x - 2; R[x_] = -1;",
+    "requires": [
+     "Solve",
+     "D"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e08",
+    "kind": "code",
+    "title": "Riccati: la general",
+    "prompt": "**Prueba de clase.** Ya definidas `P`, `Q`, `R` y `yp[x_] = x + 1`. Define `P1`, `Q1` y guarda la relación en `sol`.",
+    "difficulty": 4,
+    "cmds": [
+     "Integrate",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "PL2 · prueba de sesión 2020-21",
+    "solution": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x])",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(-x^2 + 2 x + 4 + (2 x - 2) y - y^2)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(-x^2 + 2 x + 4 + (2 x - 2) y - y^2)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
+     "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
+    },
+    "hints": [
+     "`P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];`",
+     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x])`"
+    ],
+    "explain": "`1/(y − x − 1) == E^(4x) (C1 − E^(-4x)/4)`.",
+    "setup": "P[x_] = -x^2 + 2 x + 4; Q[x_] = 2 x - 2; R[x_] = -1;\nyp[x_] = x + 1;",
+    "requires": [
+     "Integrate"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e09",
+    "kind": "code",
+    "title": "Solución singular",
+    "prompt": "**Prueba de clase.** Define `f2[x_] = 3 (x^2/2)^(1/3)` y comprueba `y = x y' + 2/(y')²`: residuo `x y' + 2/y'^2 - y`, simplificado.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "PL2 · prueba de sesión 2020-21",
+    "solution": "f2[x_] = 3 (x^2/2)^(1/3);\nx D[f2[x], x] + 2/D[f2[x], x]^2 - f2[x] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f2[2]",
+       "expected": "3 2^(1/3)",
+       "compare": "numeric",
+       "tol": 1e-06,
+       "msg": "Define `f2[x_] = 3 (x^2/2)^(1/3)`."
+      },
+      {
+       "type": "expr",
+       "expected": "0",
+       "compare": "equal"
+      }
+     ]
+    },
+    "hints": [
+     "La derivada `D[f2[x], x]` aparece dos veces.",
+     "`x D[f2[x], x] + 2/D[f2[x], x]^2 - f2[x] // Simplify`"
+    ],
+    "explain": "0: es la envolvente de la familia `y = C x + 2/C²`, solución singular de esa ecuación.",
+    "requires": [
+     "D"
+    ]
+   }
+  },
+  {
+   "type": "build",
+   "section": "La receta del tanque",
+   "title": "Seis líneas",
+   "md": "300 l de agua pura; entran 3 l/min con 20 g/l; salen 2 l/min. Gramos de sal `ys[t]`.",
+   "target": "ys[t_] = y[t, C1] /. Flatten[resC1]",
+   "parts": [
+    {
+     "code": "c0 = 300; pe = 20; fe = 3; fs = 2;",
+     "md": "Los datos.",
+     "run": true
+    },
+    {
+     "code": "v[t_] = c0 + (fe - fs) t;",
+     "md": "El volumen en cada instante.",
+     "run": true
+    },
+    {
+     "code": "P[t_] = fs/v[t]; Q[t_] = fe pe;",
+     "md": "`P` = salida entre volumen; `Q` = gramos que entran por minuto.",
+     "run": true
+    },
+    {
+     "code": "y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
+     "md": "La fórmula de la lineal.",
+     "run": true
+    },
+    {
+     "code": "resC1 = Solve[y[0, C1] == 0, C1];",
+     "md": "Agua pura al inicio: `y(0) = 0`.",
+     "run": true
+    },
+    {
+     "code": "ys[t_] = y[t, C1] /. Flatten[resC1]",
+     "md": "La cantidad de sal en cada instante.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Tanque: `c0 = 300`, `pe = 20` g/l, `fe = 3`, `fs = 2`, agua pura al inicio. Escribe la receta hasta `ys[t_]`.",
+    "hints": [
+     "Datos, `v[t_]`, `P` y `Q`, fórmula, `resC1`, `ys[t_]`.",
+     "`v[t_] = c0 + (fe - fs) t;` y `P[t_] = fs/v[t]; Q[t_] = fe pe;`",
+     "`y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "w'[t] == 60 - 2 w[t]/(300 + t)",
+     "func": "w",
+     "var": "t",
+     "ics": [
+      "w[0]==0"
+     ],
+     "expr": "ys[t]",
+     "msg": "`ys[t]` no cumple `y' = 60 − 2y/(300 + t)`, `y(0) = 0`."
+    },
+    "solution": "c0 = 300; pe = 20; fe = 3; fs = 2;\nv[t_] = c0 + (fe - fs) t;\nP[t_] = fs/v[t]; Q[t_] = fe pe;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify;\nresC1 = Solve[y[0, C1] == 0, C1];\nys[t_] = y[t, C1] /. Flatten[resC1]"
+   },
+   "cmds": [
+    "Integrate",
+    "Exp",
+    "Solve",
+    "ReplaceAll",
+    "Flatten"
+   ]
+  },
+  {
+   "type": "exercise",
+   "section": "Examen 2021: el depósito",
+   "ex": {
+    "id": "2-m2-pl4-e10",
+    "kind": "code",
+    "title": "Examen 2021, P2: plantear",
+    "prompt": "**Examen 2021, P2.** Datos y `v[t]` ya definidos (250 l, entra 4 l/min con 0.5 g/l, salen 2). Define `P[t_]`, `Q[t_]` y `y[t_, C1_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Exp"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P2",
+    "solution": "P[t_] = fs/v[t]; Q[t_] = fe pe;\ny[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w'[t] == 2 - 2 w[t]/(250 + 2 t)",
+       "func": "w",
+       "var": "t",
+       "expr": "y[t, C1]",
+       "msg": "`y[t, C1]` no cumple `y' = 2 − 2y/(250 + 2t)`."
+      },
+      {
+       "type": "satisfies",
+       "test": "!FreeQ[y[t, C1], C1]",
+       "msg": "Falta la constante `C1`."
+      }
+     ]
+    },
+    "hints": [
+     "`P[t_] = fs/v[t]; Q[t_] = fe pe;`",
+     "`y[t_, C1_] = Exp[Integrate[-P[t], t]] (C1 + Integrate[Exp[Integrate[P[t], t]] Q[t], t]) // Simplify`"
+    ],
+    "explain": "`y = (C1 + (125 + t)²)/(125 + t)`. En el examen original una errata en la fórmula (`Q` dentro de `Exp`) dio 18 kg en un depósito de 500 l.",
+    "setup": "Vmax = 500; V0 = 250; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs) t;",
+    "requires": [
+     "Integrate"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e11",
+    "kind": "code",
+    "title": "Examen 2021, P2: la constante",
+    "prompt": "**Examen 2021, P2.** Ya definida `y[t, C1]`. La cantidad inicial de soluto es `c0 = 0.4`: define `yf[t_]`.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Flatten"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P2",
+    "solution": "solC1 = Solve[y[0, C1] == c0, C1];\nyf[t_] = y[t, C1] /. Flatten[solC1]",
+    "check": {
+     "type": "ode",
+     "eq": "w'[t] == 2 - 2 w[t]/(250 + 2 t)",
+     "func": "w",
+     "var": "t",
+     "ics": [
+      "w[0]==0.4"
+     ],
+     "expr": "yf[t]",
+     "msg": "`yf[t]` no cumple el balance o `y(0) = 0.4`."
+    },
+    "hints": [
+     "`solC1 = Solve[y[0, C1] == c0, C1];`",
+     "`yf[t_] = y[t, C1] /. Flatten[solC1]`"
+    ],
+    "explain": "Aquí `y(0)` no es 0: el depósito ya tenía 0.4 g.",
+    "setup": "Vmax = 500; V0 = 250; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs) t;\ny[t_, C1_] = (C1 + t (250 + t))/(125 + t);",
+    "requires": [
+     "Solve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e12",
+    "kind": "code",
+    "title": "Examen 2021, P2: llenado",
+    "prompt": "**Examen 2021, P2.** Con `v[t]` y `yf[t]` definidos: ¿cuándo se llena (`Vmax = 500`)? Termina con la cantidad de soluto entonces.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P2",
+    "solution": "tv = Solve[v[t] == Vmax, t]\nyf[t] /. Flatten[tv] // N",
+    "check": {
+     "type": "expr",
+     "expected": "187.7",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "`tv = Solve[v[t] == Vmax, t]`",
+     "`yf[t] /. Flatten[tv] // N`"
+    ],
+    "explain": "Se llena a los 125 min con 187.7 g.",
+    "setup": "Vmax = 500; V0 = 250; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs) t;\nyf[t_] = (50 + t (250 + t))/(125 + t);",
+    "requires": [
+     "Solve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e13",
+    "kind": "code",
+    "title": "Examen 2021, P2: concentración",
+    "prompt": "**Examen 2021, P2.** Con `v[t]`, `yf[t]`: instante con 110 g (`FindRoot` desde t = 50, en `r`); termina con la concentración entonces.",
+    "difficulty": 4,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Examen 2021 · P2",
+    "solution": "r = FindRoot[yf[t] == 110, {t, 50}]\n110/v[t] /. r",
+    "check": {
+     "type": "expr",
+     "expected": "0.2873836233",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "`r = FindRoot[yf[t] == 110, {t, 50}]`",
+     "Concentración = cantidad/volumen: `110/v[t] /. r`"
+    ],
+    "explain": "t ≈ 66.38 min y 0.2874 g/l. Con `Solve` salen varias raíces: se elige la real positiva.",
+    "setup": "Vmax = 500; V0 = 250; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs) t;\nyf[t_] = (50 + t (250 + t))/(125 + t);",
+    "requires": [
+     "FindRoot"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Hoja antigua: tanque A",
+   "ex": {
+    "id": "2-m2-pl4-e14",
+    "kind": "code",
+    "title": "Tanque A: la cantidad",
+    "prompt": "**Hoja antigua.** 150 l al 0.5 % de ácido; entran 6 l/min al 20 %, salen 12. `y' = 6/5 − 12y/(150 − 6t)`, `y(0) = 3/4`. Define `ys[t_]`.",
+    "difficulty": 3,
+    "cmds": [
+     "DSolve",
+     "Flatten",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P3 (G825) · ej. 1",
+    "solution": "resul = DSolve[{y'[t] == 6/5 - 12 y[t]/(150 - 6 t), y[0] == 3/4}, y[t], t];\nys[t_] = y[t] /. Flatten[resul]",
+    "check": {
+     "type": "ode",
+     "eq": "w'[t] == 6/5 - 12 w[t]/(150 - 6 t)",
+     "func": "w",
+     "var": "t",
+     "ics": [
+      "w[0]==3/4"
+     ],
+     "expr": "ys[t]",
+     "msg": "`ys[t]` no cumple la ecuación o `y(0) = 3/4`."
+    },
+    "hints": [
+     "`resul = DSolve[{y'[t] == 6/5 - 12 y[t]/(150 - 6 t), y[0] == 3/4}, y[t], t];`",
+     "`ys[t_] = y[t] /. Flatten[resul]`"
+    ],
+    "explain": "Sale un polinomio: `3/4 + 57 t/50 − 117 t²/2500`. Aquí el volumen DISMINUYE: `150 − 6t`.",
+    "requires": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e15",
+    "kind": "code",
+    "title": "Tanque A: el 10 %",
+    "prompt": "**Hoja antigua.** Con `ys[t]` definida (volumen `150 − 6t`): ¿cuándo el ácido es el 10 %? `FindRoot` desde t = 5; termina con `t`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot",
+     "ReplaceAll"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P3 (G825) · ej. 1",
+    "solution": "r = FindRoot[ys[t]/(150 - 6 t) == 1/10, {t, 5}]\nt /. r",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "12.17948718",
+       "compare": "numeric",
+       "tol": 0.0001
+      },
+      {
+       "type": "expr",
+       "expected": "{t -> 12.17948718}",
+       "compare": "set",
+       "tol": 0.0001,
+       "msg": "Resuelve `ys[t]/(150 - 6 t) == 1/10` con `FindRoot` desde t = 5."
+      }
+     ]
+    },
+    "hints": [
+     "Porcentaje 10 %: cantidad entre volumen igual a 1/10.",
+     "`r = FindRoot[ys[t]/(150 - 6 t) == 1/10, {t, 5}]` y `t /. r`"
+    ],
+    "explain": "t ≈ 12.18 min.",
+    "setup": "ys[t_] = 3/4 + 57 t/50 - 117 t^2/2500;",
+    "requires": [
+     "FindRoot"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e16",
+    "kind": "code",
+    "title": "Tanque A: el tanque B",
+    "prompt": "**Hoja antigua.** Lo extraído hasta `tA = 12.1795` va a un tanque B vacío. % de ácido en B: `100 (3/4 + 6/5 tA − ys[tA])/(12 tA)`.",
+    "difficulty": 3,
+    "cmds": [
+     "N"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P3 (G825) · ej. 1",
+    "solution": "tA = 12.1795;\n100 (3/4 + 6/5 tA - ys[tA])/(12 tA)",
+    "check": {
+     "type": "expr",
+     "expected": "5.25",
+     "compare": "numeric",
+     "tol": 0.001
+    },
+    "hints": [
+     "Ácido en B = inicial + entrado − lo que queda en A.",
+     "`tA = 12.1795;` y `100 (3/4 + 6/5 tA - ys[tA])/(12 tA)`"
+    ],
+    "explain": "5.25 %. El volumen de B es lo extraído: 12 l/min durante `tA` minutos.",
+    "setup": "ys[t_] = 3/4 + 57 t/50 - 117 t^2/2500;"
+   }
+  },
+  {
+   "type": "build",
+   "section": "Raíces y familias",
+   "title": "Raíces y condiciones",
+   "md": "`y'' − 4y' + 4y = 0`, `y(0) = 1`, `y'(0) = 0`, sin `DSolve`.",
+   "target": "ysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
+   "parts": [
+    {
+     "code": "Solve[r^2 - 4 r + 4 == 0, r]",
+     "md": "Raíces características: 2, doble.",
+     "run": true
+    },
+    {
+     "code": "ys[x_, C1_, C2_] = C1 Exp[2 x] + C2 x Exp[2 x];",
+     "md": "Raíz doble: `e^(2x)` y `x e^(2x)`.",
+     "run": true
+    },
+    {
+     "code": "dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];",
+     "md": "La derivada, antes de sustituir.",
+     "run": true
+    },
+    {
+     "code": "sC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 0}, {C1, C2}];",
+     "md": "Las dos condiciones.",
+     "run": true
+    },
+    {
+     "code": "ysol[x_] = ys[x, C1, C2] /. Flatten[sC]",
+     "md": "La solución del problema.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`y'' − 4y' + 4y = 0`, `y(0) = 1`, `y'(0) = 0`: raíces, `ys[x_, C1_, C2_]`, `dys`, `sC` y `ysol[x_]`.",
+    "hints": [
+     "Raíz doble 2: `ys[x_, C1_, C2_] = C1 Exp[2 x] + C2 x Exp[2 x];`",
+     "`dys[x_, C1_, C2_] = D[ys[x, C1, C2], x];` y `sC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 0}, {C1, C2}];`",
+     "`ysol[x_] = ys[x, C1, C2] /. Flatten[sC]`"
+    ],
+    "check": {
+     "type": "ode",
+     "eq": "w''[x] - 4 w'[x] + 4 w[x] == 0",
+     "func": "w",
+     "var": "x",
+     "ics": [
+      "w[0]==1",
+      "w'[0]==0"
+     ],
+     "expr": "ysol[x]",
+     "msg": "`ysol[x]` no cumple la ecuación o las condiciones."
+    },
+    "solution": "Solve[r^2 - 4 r + 4 == 0, r]\nys[x_, C1_, C2_] = C1 Exp[2 x] + C2 x Exp[2 x];\ndys[x_, C1_, C2_] = D[ys[x, C1, C2], x];\nsC = Solve[{ys[0, C1, C2] == 1, dys[0, C1, C2] == 0}, {C1, C2}];\nysol[x_] = ys[x, C1, C2] /. Flatten[sC]"
+   },
+   "cmds": [
+    "Solve",
+    "D",
+    "ReplaceAll",
+    "Exp"
+   ]
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e17",
+    "kind": "code",
+    "title": "Familia trigonométrica",
+    "prompt": "**Hoja antigua.** EDO asociada a `y = C1 cos 3x + C2 sen 3x`: `ecu` (con `ys[x]`), `decu`, `ddecu`, `solC` y la ecuación final en `edo`.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Solve",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P2 (G822) · ej. 1",
+    "solution": "ecu = ys[x] == C1 Cos[3 x] + C2 Sin[3 x];\ndecu = D[ecu, x];\nddecu = D[ecu, {x, 2}];\nsolC = Solve[{ecu, decu}, {C1, C2}];\nedo = ddecu /. Flatten[solC] // Simplify",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[edo] === Equal && With[{F = First[edo] - Last[edo]}, FreeQ[F, C1] && FreeQ[F, C2] && !FreeQ[F, Derivative[2]] && Abs[F /. {ys -> Function[{x}, C1 Cos[3 x] + C2 Sin[3 x]], y -> Function[{x}, C1 Cos[3 x] + C2 Sin[3 x]]} /. {x -> 0.7, C1 -> 0.3, C2 -> 1.2}] < 10^-8]",
+     "msg": "`edo` debe ser una igualdad con `ys''[x]`, sin `C1` ni `C2`, que cumpla toda la familia."
+    },
+    "hints": [
+     "`ecu = ys[x] == C1 Cos[3 x] + C2 Sin[3 x];`, `decu = D[ecu, x];`, `ddecu = D[ecu, {x, 2}];`",
+     "`solC = Solve[{ecu, decu}, {C1, C2}];`",
+     "`edo = ddecu /. Flatten[solC] // Simplify`"
+    ],
+    "explain": "Sale `ys'' == -9 ys`: es `y'' + 9y = 0`.",
+    "requires": [
+     "Solve",
+     "D"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e18",
+    "kind": "code",
+    "title": "Familia exponencial",
+    "prompt": "**Hoja antigua.** EDO asociada a `y = C1 e^(−x) + C2 e^(−2x)`: `ecu` (con `ys[x]`), `decu`, `ddecu`, `solC` y la ecuación final en `edo`.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "Solve",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P2 · ej. 1",
+    "solution": "ecu = ys[x] == C1 Exp[-x] + C2 Exp[-2 x];\ndecu = D[ecu, x];\nddecu = D[ecu, {x, 2}];\nsolC = Solve[{ecu, decu}, {C1, C2}];\nedo = ddecu /. Flatten[solC] // Simplify",
+    "check": {
+     "type": "satisfies",
+     "test": "Head[edo] === Equal && With[{F = First[edo] - Last[edo]}, FreeQ[F, C1] && FreeQ[F, C2] && !FreeQ[F, Derivative[2]] && Abs[F /. {ys -> Function[{x}, C1 Exp[-x] + C2 Exp[-2 x]], y -> Function[{x}, C1 Exp[-x] + C2 Exp[-2 x]]} /. {x -> 0.7, C1 -> 0.3, C2 -> 1.2}] < 10^-8]",
+     "msg": "`edo` debe ser una igualdad con `ys''[x]`, sin `C1` ni `C2`, que cumpla toda la familia."
+    },
+    "hints": [
+     "`ecu = ys[x] == C1 Exp[-x] + C2 Exp[-2 x];`, `decu = D[ecu, x];`, `ddecu = D[ecu, {x, 2}];`",
+     "`solC = Solve[{ecu, decu}, {C1, C2}];`",
+     "`edo = ddecu /. Flatten[solC] // Simplify`"
+    ],
+    "explain": "Es `y'' + 3y' + 2y = 0`: raíces −1 y −2.",
+    "requires": [
+     "Solve",
+     "D"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Particulares y resonancia",
+   "ex": {
+    "id": "2-m2-pl4-e19",
+    "kind": "code",
+    "title": "Examen 2014, P2",
+    "prompt": "**Examen 2014, P2.** `yp[x]` (con `a`, `b`, `c`, `d`) ya definida. Hállalos para `y''' + y'' + 3y' + 2y = 5 e^x sen 3x`; termina con `// N`.",
+    "difficulty": 4,
+    "cmds": [
+     "D",
+     "Solve",
+     "ReplaceAll",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen 2014 · P2",
+    "solution": "res = D[yp[x], {x, 3}] + D[yp[x], {x, 2}] + 3 D[yp[x], x] + 2 yp[x] - 5 Exp[x] Sin[3 x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "{{a -> 3/170, b -> -29/170, c -> 0, d -> 0}}",
+     "compare": "set",
+     "tol": 1e-05
+    },
+    "hints": [
+     "`res = D[yp[x], {x, 3}] + D[yp[x], {x, 2}] + 3 D[yp[x], x] + 2 yp[x] - 5 Exp[x] Sin[3 x];`",
+     "Evalúa `res` en 0, π/6, π/3, π/2 e iguala a 0.",
+     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}] // N`"
+    ],
+    "explain": "`yp = a e^x cos 3x + b e^x sen 3x + c cos 3x + d sen 3x`. Solución oficial: a = 0.0176, b = −0.1706, c = d = 0.",
+    "setup": "yp[x_] = a Exp[x] Cos[3 x] + b Exp[x] Sin[3 x] + c Cos[3 x] + d Sin[3 x];",
+    "requires": [
+     "Solve",
+     "D"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e20",
+    "kind": "code",
+    "title": "Variación de constantes",
+    "prompt": "**Hoja antigua.** `y'' + 9y = 1/cos(3x)` con `yp = C1(x) cos 3x + C2(x) sen 3x`: `y1`, `y2`, `sK`, `C1x`, `C2x` y `ysol[x_]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Solve",
+     "Integrate",
+     "ReplaceAll",
+     "Simplify"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P3 (G825) · ej. 2",
+    "solution": "y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];\nsK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[3 x]}, {K1, K2}] // Simplify;\nC1x = Integrate[K1 /. Flatten[sK], x]\nC2x = Integrate[K2 /. Flatten[sK], x]\nysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "w''[x] + 9 w[x] == 1/Cos[3 x]",
+       "func": "w",
+       "var": "x",
+       "expr": "ysol[x]",
+       "msg": "`ysol[x]` no cumple `y'' + 9y = 1/cos 3x`."
+      },
+      {
+       "type": "satisfies",
+       "test": "With[{u = ysol[x]}, Abs[Det[{{D[u, C1], D[u, C2]}, {D[u, x, C1], D[u, x, C2]}}] /. {x -> 0.4, C1 -> 0.3, C2 -> 1.2}] > 10^-8]",
+       "msg": "`ysol[x]` debe incluir `C1` y `C2`."
+      }
+     ]
+    },
+    "hints": [
+     "`y1[x_] = Cos[3 x]; y2[x_] = Sin[3 x];` y el sistema de siempre con `1/Cos[3 x]` a la derecha, en `sK`.",
+     "`sK = Solve[{K1 y1[x] + K2 y2[x] == 0, K1 D[y1[x], x] + K2 D[y2[x], x] == 1/Cos[3 x]}, {K1, K2}] // Simplify;`",
+     "`C1x = Integrate[K1 /. Flatten[sK], x]`, `C2x = Integrate[K2 /. Flatten[sK], x]` y `ysol[x_] = (C1x + C1) y1[x] + (C2x + C2) y2[x] // Simplify`"
+    ],
+    "explain": "`C1(x) = Log[Cos[3x]]/9`, `C2(x) = x/3`.",
+    "requires": [
+     "Integrate",
+     "Solve"
+    ],
+    "forbids": [
+     "DSolve"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e21",
+    "kind": "code",
+    "title": "Oscilador con β = 3",
+    "prompt": "**Hoja antigua.** `y'' + 3y = (1/10) sen(w t)`, en reposo. Define `ys[t_, w_]` y dibuja w = 1.7 y w = 1.2 con las rectas ±1, t de 0 a 100.",
+    "difficulty": 3,
+    "cmds": [
+     "DSolve",
+     "Flatten",
+     "ReplaceAll",
+     "Plot"
+    ],
+    "real": true,
+    "source": "Hoja de ejercicios P3 (G825) · ej. 3",
+    "solution": "resul = DSolve[{y''[t] + 3 y[t] == 1/10 Sin[w t], y[0] == 0, y'[0] == 0}, y[t], t];\nys[t_, w_] = y[t] /. Flatten[resul];\nPlot[{ys[t, 1.7], ys[t, 1.2], 1, -1}, {t, 0, 100}]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "ode",
+       "eq": "u''[t] + 3 u[t] == Sin[w t]/10",
+       "func": "u",
+       "var": "t",
+       "ics": [
+        "u[0]==0",
+        "u'[0]==0"
+       ],
+       "expr": "ys[t, w]",
+       "msg": "`ys[t, w]` no cumple la ecuación o las condiciones."
+      },
+      {
+       "type": "graphics",
+       "dim": 2,
+       "min": 4,
+       "has": [
+        "line"
+       ],
+       "msg": "Termina con el `Plot` de las cuatro curvas."
+      }
+     ]
+    },
+    "hints": [
+     "`resul = DSolve[{y''[t] + 3 y[t] == 1/10 Sin[w t], y[0] == 0, y'[0] == 0}, y[t], t];`",
+     "`ys[t_, w_] = y[t] /. Flatten[resul];`",
+     "`Plot[{ys[t, 1.7], ys[t, 1.2], 1, -1}, {t, 0, 100}]`"
+    ],
+    "explain": "Solo w = 1.7 supera 1: la frecuencia propia es `Sqrt[3]` ≈ 1.73.",
+    "requires": [
+     "DSolve",
+     "Plot"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Mini simulacro",
+   "ex": {
+    "id": "2-m2-pl4-e22",
+    "kind": "code",
+    "title": "Simulacro 1",
+    "prompt": "`y' = (x + y)/x`, `y(1) = 2`. ¿Cuánto vale `y(e)`? Termina con el número en decimal.",
+    "difficulty": 3,
+    "cmds": [
+     "DSolve",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y'[x] == (x + y[x])/x, y[1] == 2}, y[x], x];\nys[x_] = y[x] /. Flatten[resul];\nys[E] // N",
+    "check": {
+     "type": "expr",
+     "expected": "3 E",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Receta: `DSolve` con condición, `ys[x_]`, y evaluar en `E`.",
+     "`resul = DSolve[{y'[x] == (x + y[x])/x, y[1] == 2}, y[x], x];`",
+     "`ys[x_] = y[x] /. Flatten[resul];` y `ys[E] // N`"
+    ],
+    "explain": "`y = x (2 + ln x)`; en x = e vale 3e ≈ 8.155."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e23",
+    "kind": "code",
+    "title": "Simulacro 2",
+    "prompt": "Wronskiano de `e^(2x)` y `x e^(2x)`, evaluado en x = 0.5. Termina con el número.",
+    "difficulty": 3,
+    "cmds": [
+     "Det",
+     "D",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "fila1 = {Exp[2 x], x Exp[2 x]};\nfila2 = D[fila1, x];\nDet[{fila1, fila2}] /. x -> 0.5",
+    "check": {
+     "type": "expr",
+     "expected": "E^2",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Dos filas: funciones y derivadas; `Det`.",
+     "`fila1 = {Exp[2 x], x Exp[2 x]}; fila2 = D[fila1, x];`",
+     "`Det[{fila1, fila2}] /. x -> 0.5`"
+    ],
+    "explain": "`W = E^(4x)`; en 0.5 vale e² ≈ 7.389.",
+    "requires": [
+     "Det"
+    ]
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e24",
+    "kind": "code",
+    "title": "Simulacro 3",
+    "prompt": "`y'' + 2y' + 5y = 0`, `y(0) = 1`, `y'(0) = 5`. ¿Cuánto vale `y(1)`? Termina con el número.",
+    "difficulty": 3,
+    "cmds": [
+     "DSolve",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y''[x] + 2 y'[x] + 5 y[x] == 0, y[0] == 1, y'[0] == 5}, y[x], x];\nys[x_] = y[x] /. Flatten[resul];\nys[1] // N",
+    "check": {
+     "type": "expr",
+     "expected": "Exp[-1] (Cos[2] + 3 Sin[2])",
+     "compare": "numeric",
+     "tol": 0.0001
+    },
+    "hints": [
+     "Con `DSolve` y las dos condiciones, o con raíces −1 ± 2i.",
+     "`resul = DSolve[{y''[x] + 2 y'[x] + 5 y[x] == 0, y[0] == 1, y'[0] == 5}, y[x], x];`",
+     "`ys[x_] = y[x] /. Flatten[resul];` y `ys[1] // N`"
+    ],
+    "explain": "`y = e^(-x) (cos 2x + 3 sen 2x)`; `y(1)` ≈ 0.8504."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e25",
+    "kind": "code",
+    "title": "Simulacro 4",
+    "prompt": "100 l de agua; entran 2 l/min de ácido al 10 % y salen 2 l/min. ¿En qué minuto hay 8 l de ácido? Termina con `t`.",
+    "difficulty": 4,
+    "cmds": [
+     "DSolve",
+     "FindRoot"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "resul = DSolve[{y'[t] == 2 10/100 - 2 y[t]/100, y[0] == 0}, y[t], t];\nys[t_] = y[t] /. Flatten[resul];\nt /. FindRoot[ys[t] == 8, {t, 50}]",
+    "check": {
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "50 Log[5]",
+       "compare": "numeric",
+       "tol": 0.0001
+      },
+      {
+       "type": "expr",
+       "expected": "{t -> 80.4718956}",
+       "compare": "set",
+       "tol": 0.0001,
+       "msg": "Resuelve `ys[t] == 8` con `FindRoot`."
+      }
+     ]
+    },
+    "hints": [
+     "Balance: `y' = 2·10/100 − 2y/100`, `y(0) = 0`.",
+     "`ys[t_]` con la receta de `DSolve`.",
+     "`t /. FindRoot[ys[t] == 8, {t, 50}]`"
+    ],
+    "explain": "`ys = 10 (1 − e^(-t/50))`; llega a 8 en t = 50 ln 5 ≈ 80.47 min."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m2-pl4-e26",
+    "kind": "code",
+    "title": "Simulacro 5",
+    "prompt": "Halla `a`, `b` para que `yp = a + b x` cumpla `y'' + 3y' + 2y = 4x`. Termina con `yp(1)` como número.",
+    "difficulty": 3,
+    "cmds": [
+     "D",
+     "CoefficientList",
+     "Solve",
+     "ReplaceAll"
+    ],
+    "real": false,
+    "source": null,
+    "solution": "yp[x_] = a + b x;\nres = D[yp[x], {x, 2}] + 3 D[yp[x], x] + 2 yp[x] - 4 x;\ns = Solve[CoefficientList[res, x] == {0, 0}, {a, b}];\nyp[1] /. Flatten[s]",
+    "check": {
+     "type": "expr",
+     "expected": "-1",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "Residuo y `CoefficientList` igualado a `{0, 0}`.",
+     "`s = Solve[CoefficientList[res, x] == {0, 0}, {a, b}];`",
+     "`yp[1] /. Flatten[s]`"
+    ],
+    "explain": "`b = 2`, `a = −3`: `yp(1) = −1`.",
+    "requires": [
+     "Solve"
+    ]
+   }
+  }
+ ]
+}

@@ -983,7 +983,7 @@
    "ex": {
     "id": "2-m2-pl1-e12",
     "kind": "code",
-    "title": "Receta con otra ecuación",
+    "title": "Familia y campo, otra vez",
     "prompt": "`y' = x - y` tiene soluciones `w[x, C1]` (ya definida). Familia (C1 −3 a 3) en `p1`, campo en `p2` (x de −1 a 3, y de −2 a 3) y `Show`.",
     "difficulty": 3,
     "cmds": [
@@ -1749,7 +1749,7 @@
    "ex": {
     "id": "2-m2-pl1-e26",
     "kind": "code",
-    "title": "Una que no lo es",
+    "title": "Una no exacta",
     "prompt": "¿Es exacta `y dx - x dy = 0`? Define `P`, `Q`, `Py`, `Qx` y termina con `Py - Qx`.",
     "difficulty": 2,
     "cmds": [

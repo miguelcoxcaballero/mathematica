@@ -494,8 +494,17 @@ class DSolve(XB):
             sols = sol if isinstance(sol, list) else [sol]
             sols = [[s] for s in sols]
         else:
-            with budget(16.0):
-                sol = sp.dsolve(odes, funcs, ics=ics or None)
+            sol = None
+            if not ics and len(odes) == len(funcs):
+                try:
+                    with budget(8.0):
+                        sol = _mma_linear_system(odes, funcs, xs)
+                except Exception:
+                    _dbg()
+                    sol = None
+            if sol is None:
+                with budget(16.0):
+                    sol = sp.dsolve(odes, funcs, ics=ics or None)
             if sol and isinstance(sol[0], (list, tuple)):
                 sols = [list(s) for s in sol]
             else:
@@ -565,13 +574,20 @@ class DSolve(XB):
                     expr += v ** k * sp.Function("WLXC%d" % (k + 1))(*others)
                 sol = expr
         if sol is None:
+            sol = _pde_extra(eq, f, syms)
+        if sol is None:
             res = sp.pdsolve(sp.Eq(eq, 0), f)
             rhs = res.rhs
             for fn in rhs.atoms(sp.core.function.AppliedUndef):
                 if fn.func.__name__ == "F":
                     rhs = rhs.subs(fn, sp.Function("WLXC1")(*fn.args))
             sol = rhs
-        body = c.back(sp.simplify(sol)).evaluate(ev)
+        try:
+            with budget(4.0):
+                sol = sp.simplify(sol)
+        except Exception:
+            pass
+        body = c.back(sol).evaluate(ev)
         if pure:
             return L(L(Rule(y, E("Function", L(*vars_), body))))
         return L(L(Rule(y, body)))
@@ -613,6 +629,14 @@ class DSolve(XB):
                 else:
                     expl.append(g)
             if not ics:
+                if len(expl) == 1 and expl[0].lhs == func:
+                    try:
+                        with budget(4.0):
+                            alt = _mma_constants(ode, func, expl[0].rhs)
+                        if alt is not None:
+                            return [sp.Eq(func, alt)]
+                    except Exception:
+                        _dbg()
                 return expl
             res = []
             x = func.args[0]
@@ -664,6 +688,65 @@ class DSolve(XB):
         if pure[idx]:
             return Rule(ys[idx], E("Function", L(x), body))
         return Rule(ys[idx], body)
+
+
+def _pde_extra(eq, f, syms):
+    """Cases SymPy's pdsolve does not do: f_xy = g, constant-coefficient 2nd order homogeneous,
+    a f_x + b f_y = G(f)."""
+    if len(syms) != 2:
+        return None
+    v1, v2 = syms
+    C1, C2 = sp.Function("WLXC1"), sp.Function("WLXC2")
+    eq = sp.expand(eq)
+    d11, d12, d22 = sp.Derivative(f, (v1, 2)), sp.Derivative(f, v1, v2), sp.Derivative(f, (v2, 2))
+    d1, d2 = sp.Derivative(f, v1), sp.Derivative(f, v2)
+    derivs = eq.atoms(sp.Derivative)
+    second = [d for d in derivs if sum(n for _, n in d.variable_count) == 2]
+    if second and all(sum(n for _, n in d.variable_count) == 2 for d in derivs):
+        A, B, Cc = eq.coeff(d11), eq.coeff(d12), eq.coeff(d22)
+        rest = sp.simplify(eq - A * d11 - B * d12 - Cc * d22)
+        if rest.has(f) or any(q.has(v1, v2) for q in (A, B, Cc)):
+            return None
+        if A == 0 and Cc == 0 and B != 0:
+            g = -rest / B
+            part = sp.integrate(sp.integrate(g, v1), v2) if g != 0 else 0
+            return part + C1(v1) + C2(v2)
+        if rest != 0:
+            return None
+        m = sp.Symbol("WLX`m")
+        if A != 0:
+            # f = phi(v2 + m v1):  A m^2 + B m + C = 0
+            rts = sp.roots(sp.Poly(A * m ** 2 + B * m + Cc, m))
+            lst = [r_ for r_, k in rts.items() for _ in range(k)]
+            if len(lst) != 2:
+                return None
+            try:
+                lst.sort(key=lambda r_: (complex(sp.N(r_.subs({q: 0.7 for q in r_.free_symbols}))).real,
+                                         complex(sp.N(r_.subs({q: 0.7 for q in r_.free_symbols}))).imag))
+            except Exception:
+                pass
+            if lst[0] == lst[1]:
+                return C1(v2 + lst[0] * v1) + v1 * C2(v2 + lst[0] * v1)
+            return C1(v2 + lst[0] * v1) + C2(v2 + lst[1] * v1)
+        # A == 0: B f_12 + C f_22 = 0 -> f = C1(v1) + C2(v2 - (C/B) v1) ... use phi(v1 + m v2): C m^2 + B m = 0
+        if Cc != 0:
+            return C1(v1) + C2(v1 - (B / Cc) * v2) if B != 0 else C1(v1) + v2 * C2(v1)
+        return None
+    if derivs and all(d in (d1, d2) for d in derivs):
+        a, b = eq.coeff(d1), eq.coeff(d2)
+        G = sp.simplify(-(eq - a * d1 - b * d2))
+        if a == 0 or b == 0 or a.has(v1, v2, f) or b.has(v1, v2, f) or G.has(v1, v2) or not G.has(f):
+            return None
+        zz = sp.Dummy("z")
+        Gz = G.subs(f, zz)
+        if sp.diff(Gz, zz, 2) == 0:
+            return None                 # linear in f: pdsolve gives the usual form
+        I1 = sp.integrate(1 / Gz, zz)
+        if I1.has(sp.Integral):
+            return None
+        inv = _peel_invert(I1, v1 / a + C1(v2 - b * v1 / a), zz)
+        return inv
+    return None
 
 
 _HINT_SKIP = ("_Integral", "power_series")
@@ -824,9 +907,125 @@ def _own_homogeneous(ode, func):
     return out if len(out) > 1 else out[0]
 
 
+def _own_clairaut(ode, func):
+    """y = x y' + f(y')  ->  y = C x + f(C)."""
+    x = func.args[0]
+    expr = ode.lhs - ode.rhs if isinstance(ode, sp.Equality) else ode
+    p, Y = sp.Dummy("p"), sp.Dummy("Y")
+    e = expr.subs(sp.Derivative(func, x), p)
+    if e.has(sp.Derivative):
+        return None
+    e = e.subs(func, Y)
+    if not e.has(Y) or not e.has(p):
+        return None
+    hs = sp.solve(e, Y)
+    if len(hs) != 1:
+        return None
+    g = sp.simplify(hs[0] - x * p)
+    if g.has(x) or sp.diff(g, p, 2) == 0:
+        return None
+    C1 = sp.Symbol("C1")
+    return sp.Eq(func, C1 * x + g.subs(p, C1))
+
+
+def _mma_constants(ode, func, rhs):
+    """Linear constant-coefficient ODE: number the constants as Mathematica does
+    (real roots ascending; a +- b i gives e^(a x)(C[2] Cos[b x] + C[1] Sin[b x]), or C[1] Cos + C[2] Sin if a = 0)."""
+    x = func.args[0]
+    expr = ode.lhs - ode.rhs if isinstance(ode, sp.Equality) else ode
+    order = sp.ode_order(expr, func)
+    if order < 2:
+        return None
+    lc = _linear_coeffs(ode, func, order)
+    if lc is None:
+        return None
+    ps, q = lc
+    if any(p_.has(x) for p_ in ps):
+        return None
+    consts = _ode_consts(rhs)
+    if len(consts) != order or any(sp.diff(rhs, c_, 2) != 0 for c_ in consts):
+        return None
+    yp = rhs.subs({c_: 0 for c_ in consts})
+    r = sp.Symbol("WLX`r")
+    roots = sp.roots(sp.Poly(sum(p_ * r ** k for k, p_ in enumerate(ps)), r))
+    if sum(roots.values()) != order:
+        return None
+    probe = {s_: sp.Float(0.731 + 0.217 * i) for i, s_ in enumerate(sorted(expr.free_symbols - {x}, key=str))}
+    reals, cplx = [], []
+    for rt, m in roots.items():
+        try:
+            nv = complex(sp.N(rt.subs(probe)))
+        except Exception:
+            return None
+        if abs(nv.imag) < 1e-12:
+            reals.append((nv.real, rt, m))
+        elif nv.imag > 0:
+            cplx.append((nv.real, nv.imag, rt, m))
+    if 2 * sum(m for *_, m in cplx) + sum(m for *_, m in reals) != order:
+        return None
+    basis = []
+    for _, rt, m in sorted(reals, key=lambda t: t[0]):
+        for j in range(m):
+            basis.append(x ** j * sp.exp(rt * x))
+    for _, _, rt, m in sorted(cplx, key=lambda t: (t[0], t[1])):
+        a_, b_ = sp.re(rt), sp.im(rt)
+        if a_.has(sp.re, sp.im) or b_.has(sp.re, sp.im):
+            a_, b_ = sp.simplify((rt + sp.conjugate(rt)) / 2), sp.simplify((rt - sp.conjugate(rt)) / (2 * sp.I))
+            if a_.has(sp.conjugate) or b_.has(sp.conjugate):
+                return None
+        for j in range(m):
+            if a_ == 0:
+                basis += [x ** j * sp.cos(b_ * x), x ** j * sp.sin(b_ * x)]
+            else:
+                basis += [x ** j * sp.exp(a_ * x) * sp.sin(b_ * x), x ** j * sp.exp(a_ * x) * sp.cos(b_ * x)]
+    cs = sp.symbols("C1:%d" % (order + 1))
+    return sum(c_ * b_ for c_, b_ in zip(cs, basis)) + yp
+
+
+def _mma_linear_system(odes, funcs, x):
+    """X' = A X with constant A: X = MatrixExp[A x].{C1, ..., Cn} (Mathematica's choice: C[i] = x_i(0))."""
+    n = len(funcs)
+    ders = [sp.Derivative(f, x) for f in funcs]
+    exprs = [o.lhs - o.rhs for o in odes]
+    if any(sp.ode_order(e, f) > 1 for e in exprs for f in funcs):
+        return None
+    sol = sp.solve(exprs, ders, dict=True)
+    if not sol:
+        return None
+    A = sp.zeros(n, n)
+    for i, d in enumerate(ders):
+        e = sp.expand(sol[0][d])
+        for j, f in enumerate(funcs):
+            A[i, j] = e.coeff(f)
+            e = e - A[i, j] * f
+        if sp.simplify(e) != 0:
+            return None             # not homogeneous
+    if A.has(x) or A.atoms(sp.core.function.AppliedUndef):
+        return None
+    from . import calc
+
+    M = (A * x).exp()
+    M = M.applyfunc(lambda v: calc.real_form(sp.simplify(v)) if v.has(sp.I) else sp.simplify(v))
+    if M.has(sp.I):
+        M = M.applyfunc(lambda v: sp.simplify(v.rewrite(sp.cos)) if v.has(sp.I) else v)
+        if M.has(sp.I):
+            return None
+    cs = sp.Matrix(sp.symbols("C1:%d" % (n + 1)))
+    X = M * cs
+    return [sp.Eq(f, sp.expand(X[i])) for i, f in enumerate(funcs)]
+
+
 def _dsolve_general(ode, func):
     """General solution of a single ODE choosing SymPy hints ourselves (the default order can be very slow)."""
     x = func.args[0]
+    try:
+        if sp.ode_order(ode.lhs - ode.rhs if isinstance(ode, sp.Equality) else ode, func) == 1:
+            with budget(3.0):
+                r = _own_clairaut(ode, func)
+            if r is not None:
+                return r
+    except Exception:
+        pass
     try:
         with budget(5.0):
             info = sp.classify_ode(ode, func)
@@ -1387,31 +1586,61 @@ class InverseFourierTransform(XB):
 
 def _ft(f, t, w, a, b, sign, ev):
     """WL convention: sqrt(|b|/(2 pi)^(1-a)) Int f(t) e^{i b w t} dt ; inverse: sqrt(|b|/(2pi)^(1+a)) Int F e^{-i b w t} dw"""
-    c = Conv(real=[t.get_name()])
+    from . import calc
+
+    tn = t.get_name()
+    c = Conv(real=[tn] + [nm for nm in _user_symbols(f) if nm != tn])
     try:
         fs = _heaviside_fix(c.to(f))
-        ts = c.sym(t.get_name())
+        if fs.atoms(sp.core.function.AppliedUndef):
+            return None
+        ts = c.sym(tn)
         wr = sp.Symbol("WLX`wr", real=True)
-        k = sp.Symbol("WLX`k", real=True)
-        # sympy: F(k) = Int f(x) exp(-2 pi i x k) dx
-        Fk = sp.fourier_transform(fs, ts, k)
-        if Fk.has(sp.FourierTransform) or Fk.has(sp.Integral):
-            # direct integral attempt
-            Fk = None
-            integrand = fs * sp.exp(sign * sp.I * b * wr * ts)
-            val = sp.integrate(integrand, (ts, -sp.oo, sp.oo), conds="none")
-            if val.has(sp.Integral):
-                return None
-            res = val
-        else:
-            res = Fk.subs(k, -sign * b * wr / (2 * sp.pi))
         expo = (1 - a) if sign > 0 else (1 + a)
-        res = sp.sqrt(sp.Abs(b) / (2 * sp.pi) ** expo) * res
-        res = simp(res)
+        pref = sp.sqrt(sp.Abs(b) / (2 * sp.pi) ** expo)
+        res = None
+        try:
+            with budget(10.0):
+                # G(W) = Int f e^{i sgn W t} dt with W = b w  (b may be negative: handled by the substitution)
+                W = sp.Symbol("WLX`W", real=True)
+                G = calc.fourier_core(fs, ts, W, sign)
+                if G is not None:
+                    res = G.subs(W, b * wr)
+                    if res.has(sp.DiracDelta):
+                        res = res.replace(lambda e: isinstance(e, sp.DiracDelta) and len(e.args) == 1 and
+                                          sp.simplify(e.args[0] / wr).is_number,
+                                          lambda e: sp.DiracDelta(wr) / sp.Abs(sp.simplify(e.args[0] / wr)))
+                    res = res.replace(lambda e: isinstance(e, sp.Heaviside) and sp.simplify(e.args[0] / wr).is_number
+                                      and e.args[0] != wr and e.args[0] != -wr,
+                                      lambda e: sp.Heaviside(wr if sp.simplify(e.args[0] / wr) > 0 else -wr))
+                    res = res.replace(lambda e: isinstance(e, sp.Abs) and sp.simplify(e.args[0] / wr).is_number,
+                                      lambda e: sp.Abs(sp.simplify(e.args[0] / wr)) * sp.Abs(wr))
+        except Exception:
+            _dbg()
+            res = None
+        if res is None:
+            with budget(8.0):
+                k = sp.Symbol("WLX`k", real=True)
+                Fk = sp.fourier_transform(fs, ts, k)
+                if Fk.has(sp.FourierTransform) or Fk.has(sp.Integral):
+                    val = sp.integrate(fs * sp.exp(sign * sp.I * b * wr * ts), (ts, -sp.oo, sp.oo), conds="none")
+                    if val.has(sp.Integral):
+                        return None
+                    res = val
+                else:
+                    res = Fk.subs(k, -sign * b * wr / (2 * sp.pi))
+                res = simp(res)
+        res = pref * res
+        try:
+            if res.count_ops() < 300:
+                res = sp.simplify(res)
+        except Exception:
+            pass
         res = res.subs(wr, c.to(w))
         res = _heaviside_fix(res)
         return c.back(res).evaluate(ev)
     except Exception:
+        _dbg()
         return None
 
 
@@ -1610,22 +1839,43 @@ class FourierCosSeries(XB):
 class ZTransform(XB):
     def eval(self, f, n, z, evaluation):
         "ZTransform[f_, n_Symbol, z_]"
-        c = Conv(integer=[n.get_name()])
+        from . import calc
+
+        nn = n.get_name()
+        c = Conv(integer=[nn], real=[nm for nm in _user_symbols(f) if nm != nn])
         try:
             if not is_free_of(f, "System`DiscreteDelta") or not is_free_of(f, "System`KroneckerDelta"):
                 return None
             fs = c.to(f)
+            if fs.atoms(sp.core.function.AppliedUndef):
+                return None
             ns = c.to(n)
             zp = sp.Symbol("WLX`z", positive=True)
-            # shift theorem for unknown sequences is handled by WL rules; here explicit ones
-            val = sp.summation(fs * zp ** (-ns), (ns, 0, sp.oo))
-            if isinstance(val, sp.Piecewise):
-                val = val.args[0][0]
-            if val.has(sp.Sum):
-                return None
-            val = sp.factor(sp.simplify(val))
+            with budget(8.0):
+                val = None
+                terms = calc.exp_poly_terms(fs, ns)
+                if terms is not None:
+                    # sum_n c n^k (e^a)^n z^-n  with  sum n^k q^n = (q d/dq)^k 1/(1-q)
+                    q = sp.Symbol("WLX`q")
+                    val = 0
+                    for al, d in terms.items():
+                        for k, cf in d.items():
+                            g = 1 / (1 - q)
+                            for _ in range(k):
+                                g = sp.together(q * sp.diff(g, q))
+                            val += cf * g.subs(q, sp.exp(al) / zp)
+                    val = calc.real_form(val, real=not fs.has(sp.I))
+                    val = sp.factor(sp.cancel(sp.together(val)))
+                if val is None:
+                    val = sp.summation(fs * zp ** (-ns), (ns, 0, sp.oo))
+                    if isinstance(val, sp.Piecewise):
+                        val = val.args[0][0]
+                    if val.has(sp.Sum):
+                        return None
+                    val = sp.factor(sp.simplify(val))
             return c.back(val.subs(zp, c.to(z))).evaluate(evaluation)
         except Exception:
+            _dbg()
             return None
 
 
@@ -1888,7 +2138,7 @@ class XSympySimplify(XB):
         "WLX`SimplifyAssuming[expr_, assum_]"
         try:
             pos, real, integer = current_assumptions(evaluation, assum)
-            c = Conv(positive=pos, real=real, integer=integer)
+            c = Conv(positive=pos, real=real, integer=integer, negative=set(_LAST_NEG))
             s = c.to(expr)
             r = sp.simplify(s)
             try:
@@ -2024,17 +2274,21 @@ def _user_symbols(e, acc=None):
     return acc
 
 
+_LAST_NEG = set()
+
+
 def current_assumptions(ev, extra=None):
-    """($Assumptions && extra) as sets (positive, real, integer)."""
+    """($Assumptions && extra) as sets (positive, real, integer); negatives are left in _LAST_NEG."""
     pos, real, integer = set(), set(), set()
+    _LAST_NEG.clear()
     try:
         a = S("$Assumptions").evaluate(ev)
         if a is not SymbolTrue:
-            collect_assumptions(a, pos, real, integer)
+            collect_assumptions(a, pos, real, integer, _LAST_NEG)
     except Exception:
         pass
     if extra is not None and extra is not SymbolTrue:
-        collect_assumptions(extra, pos, real, integer)
+        collect_assumptions(extra, pos, real, integer, _LAST_NEG)
     return pos, real, integer
 
 
@@ -2259,7 +2513,10 @@ class IntQ(XB):
                 return E("ConditionalExpression", c.back(val), c.back(_nice_cond(cond))).evaluate(ev)
             else:
                 return None
-        if r in (sp.nan,):
+        if r in (sp.nan, sp.oo, -sp.oo, sp.zoo) or r.has(sp.oo, sp.zoo, sp.nan):
+            if not fs.free_symbols - {xs} or r in (sp.oo, -sp.oo, sp.zoo):
+                ev.message("Integrate", "idiv", f, L(*spec.elements[1:]))
+                SKIP_ONCE["System`Integrate"] = E("Integrate", f, spec)
             return None
         r = _generic_branch(r, xs)
         r = calc.no_stray_complex(r, fs, a, b)
@@ -2375,6 +2632,123 @@ def _tidy_antiderivative(r, xs):
     return r
 
 
+class IntPVQ(XB):
+    """WLX`IntPVQ[f, {x, a, b}]: Cauchy principal value."""
+    name = "IntPVQ"
+    context = "WLX`"
+
+    def eval(self, f, x, a, b, evaluation):
+        "WLX`IntPVQ[f_, {x_Symbol, a_, b_}]"
+        try:
+            c = Conv(real=[x.get_name()])
+            with budget(8.0):
+                fs = c.to(f)
+                r = sp.Integral(fs, (c.sym(x.get_name()), c.to(a), c.to(b))).principal_value()
+                if r.has(sp.Integral) or r.has(sp.nan, sp.zoo, sp.oo):
+                    return SymbolFalse
+                r = sp.simplify(r)
+            return _stash("int", c.back(r).evaluate(evaluation))
+        except Exception:
+            _dbg()
+            return SymbolFalse
+
+
+class LimitQ(XB):
+    """WLX`LimitQ[f, x, a, dir, assum]: limit through SymPy (two-sided limits with different laterals give
+    Indeterminate, piecewise/Mod/Abs are resolved next to the point, decimals stay decimals)."""
+    name = "LimitQ"
+    context = "WLX`"
+
+    def eval(self, f, x, a, d, assum, evaluation):
+        "WLX`LimitQ[f_, x_Symbol, a_, d_, assum_]"
+        from . import calc
+
+        try:
+            if f.has_form("List", None):
+                return SymbolFalse
+            xn = x.get_name()
+            pos, real, integer = current_assumptions(evaluation, assum)
+            pos.discard(xn)
+            c = Conv(real=set(real) | {xn}, positive=pos, integer=integer, negative=set(_LAST_NEG) - {xn})
+            fs = c.to(f)
+            xs = c.sym(xn)
+            if fs.atoms(sp.core.function.AppliedUndef) or fs.has(sp.Derivative, sp.Subs, sp.Integral):
+                return SymbolFalse
+            p = c.to(a)
+            inexact = bool(fs.atoms(sp.Float)) or bool(p.atoms(sp.Float)) if isinstance(p, sp.Basic) else False
+            if inexact:
+                from .solve import rationalize
+
+                fs, p = rationalize(fs), rationalize(p)
+            dv = d.get_string_value() if isinstance(d, String) else pyval(d, evaluation)
+            side = 0
+            if dv in ("FromAbove", -1.0):
+                side = 1
+            elif dv in ("FromBelow", 1.0):
+                side = -1
+
+            def one(sd):
+                g = fs
+                if calc.has_piecewise(fs, xs) and p not in (sp.oo, -sp.oo) and not p.free_symbols:
+                    g2 = calc.near_point(fs, xs, p, sd)
+                    if g2 is not None:
+                        g = g2
+                return sp.limit(g, xs, p, "+" if sd > 0 else "-")
+
+            with budget(7.0):
+                if p in (sp.oo, -sp.oo):
+                    if calc.has_piecewise(fs, xs):
+                        return SymbolFalse
+                    r = sp.limit(fs, xs, p)
+                elif side:
+                    r = one(side)
+                else:
+                    r1, r2 = one(1), one(-1)
+                    if r1 == r2 or sp.simplify(r1 - r2) == 0:
+                        r = r1
+                    elif r1.has(sp.Limit) or r2.has(sp.Limit):
+                        return SymbolFalse
+                    else:
+                        return _stash("limit", S("Indeterminate"))
+            if r.has(sp.Limit) or r.has(sp.AccumBounds) or r is sp.nan:
+                if r.has(sp.AccumBounds):
+                    return _stash("limit", S("Indeterminate"))
+                return SymbolFalse
+            res = c.back(sp.simplify(r) if r.count_ops() < 150 else r)
+            if inexact:
+                res = E("N", res)
+            return _stash("limit", res.evaluate(evaluation))
+        except Exception:
+            _dbg()
+            return SymbolFalse
+
+
+class LimitGet(XB):
+    name = "LimitGet"
+    context = "WLX`"
+
+    def eval(self, evaluation):
+        "WLX`LimitGet[]"
+        return _RESULT.pop("limit", None)
+
+
+class XNRank(XB):
+    name = "NRank"
+    context = "WLX`"
+
+    def eval(self, m, evaluation):
+        "WLX`NRank[m_]"
+        import numpy as np
+
+        try:
+            arr = np.array(E("N", m).evaluate(evaluation).to_python(), dtype=complex)
+            sv = np.linalg.svd(arr, compute_uv=False)
+            tol = max(arr.shape) * (sv[0] if len(sv) else 0.0) * 1e-12
+            return Integer(int((sv > tol).sum()))
+        except Exception:
+            return S("$Failed")
+
+
 class IntGet(XB):
     name = "IntGet"
     context = "WLX`"
@@ -2385,58 +2759,115 @@ class IntGet(XB):
 
 
 class Dt(XB):
+    """Total derivative. Dt[f, x], Dt[f, {x, n}], Dt[f] with the option Constants."""
     options = {"Constants": "{}"}
 
     def eval_total(self, f, evaluation, options):
         "Dt[f_, OptionsPattern[Dt]]"
-        return self._go(f, None, evaluation, options)
+        return self._top(f, None, 1, evaluation, options)
 
     def eval_var(self, f, x, evaluation, options):
         "Dt[f_, x_Symbol, OptionsPattern[Dt]]"
-        return self._go(f, x, evaluation, options)
+        return self._top(f, x, 1, evaluation, options)
 
-    def _go(self, f, x, ev, options):
-        if isinstance(f, Symbol):
-            if x is not None and f.get_name() == x.get_name():
-                return Integer(1)
+    def eval_n(self, f, x, n, evaluation, options):
+        "Dt[f_, {x_Symbol, n_Integer}, OptionsPattern[Dt]]"
+        if n.value < 0:
             return None
-        if not isinstance(f, Expression):
-            return Integer(0)
-        consts = set()
+        if n.value == 0:
+            return f
+        if isinstance(f, Symbol) and f.get_name() != x.get_name() and not self._const(f, self._consts(options), evaluation):
+            return None
+        return self._top(f, x, n.value, evaluation, options)
+
+    @staticmethod
+    def _consts(options):
         co = options.get("System`Constants")
+        out = []
         if co is not None:
             for cc in (co.elements if co.has_form("List", None) else [co]):
-                consts.add(cc.get_name())
-        if f.get_head_name() in ("System`Equal", "System`List"):
-            args = [self._go(e, x, ev, options) for e in f.elements]
-            return E(f.get_head(), *args)
-        syms = []
-        self._symbols(f, syms)
-        terms = []
-        for sname in syms:
-            sym = Symbol(sname)
-            d = E("D", f, sym).evaluate(ev)
-            if x is not None and sname == x.get_name():
-                terms.append(d)
-            elif sname in consts or E("NumericQ", sym).evaluate(ev) is SymbolTrue:
-                continue
-            else:
-                dt = E("Dt", sym, x) if x is not None else E("Dt", sym)
-                terms.append(E("Times", d, dt))
-        if not terms:
-            return Integer(0)
-        return E("Plus", *terms).evaluate(ev)
+                if isinstance(cc, Symbol):
+                    out.append(cc.get_name())
+        return out
 
-    def _symbols(self, e, acc):
+    @staticmethod
+    def _const(sym, consts, ev):
+        n = sym.get_name()
+        return n in consts or n.startswith("System`") and E("NumericQ", sym).evaluate(ev) is SymbolTrue
+
+    def _top(self, f, x, n, ev, options):
+        consts = self._consts(options)
+        co = options.get("System`Constants")
+        raw_list = co is not None and co.has_form("List", None)
+        opt = [Rule(S("Constants"), L(*[Symbol(c_) for c_ in consts]))] if consts else []
+        if isinstance(f, Symbol):
+            if x is not None and f.get_name() == x.get_name():
+                return Integer(1) if n == 1 else Integer(0)
+            if self._const(f, consts, ev):
+                return Integer(0)
+            if consts and not raw_list:
+                # normalise Constants -> y to Constants -> {y} (so that patterns/Solve variables match)
+                return E("Dt", f, x, *opt) if x is not None else E("Dt", f, *opt)
+            return None
+        r = f
+        for _ in range(n):
+            r = self._dt(r, x, consts, opt, ev)
+            if r is None:
+                return None
+            r = r.evaluate(ev)
+        return r
+
+    def _unknown(self, e, x, opt):
+        return E("Dt", e, x, *opt) if x is not None else E("Dt", e, *opt)
+
+    def _dt(self, e, x, consts, opt, ev):
+        from .solve import replace_expr
+
         if isinstance(e, Symbol):
-            n = e.get_name()
-            if not n.startswith("System`") and n not in acc:
-                acc.append(n)
-        elif isinstance(e, Expression):
-            if e.get_head_name() == "System`Dt":
-                return
-            for x in e.elements:
-                self._symbols(x, acc)
+            if x is not None and e.get_name() == x.get_name():
+                return Integer(1)
+            if self._const(e, consts, ev):
+                return Integer(0)
+            return self._unknown(e, x, opt)
+        if not isinstance(e, Expression):
+            return Integer(0)
+        hn = e.get_head_name()
+        el = e.elements
+        if hn in ("System`Equal", "System`List", "System`Rule", "System`Plus"):
+            return E(e.get_head(), *[self._dt(q, x, consts, opt, ev) for q in el])
+        if hn == "System`Times":
+            terms = []
+            for i, q in enumerate(el):
+                d = self._dt(q, x, consts, opt, ev)
+                terms.append(E("Times", *(list(el[:i]) + [d] + list(el[i + 1:]))))
+            return E("Plus", *terms)
+        if hn == "System`Power" and len(el) == 2:
+            base, ex = el
+            db, de = self._dt(base, x, consts, opt, ev), self._dt(ex, x, consts, opt, ev)
+            t1 = E("Times", ex, E("Power", base, E("Plus", ex, Integer(-1))), db)
+            t2 = E("Times", E("Power", base, ex), E("Log", base), de)
+            return E("Plus", t1, t2)
+        if hn == "System`Dt":
+            # derivative of an unknown total derivative: raise the order
+            inner = [q for q in el if q.get_head_name() != "System`Rule"]
+            if x is not None and len(inner) == 2:
+                if isinstance(inner[1], Symbol) and inner[1].get_name() == x.get_name():
+                    return E("Dt", inner[0], L(x, Integer(2)), *opt)
+                if inner[1].has_form("List", 2) and inner[1].elements[0].sameQ(x):
+                    return E("Dt", inner[0], L(x, E("Plus", inner[1].elements[1], Integer(1))), *opt)
+            return self._unknown(e, x, opt)
+        # f[a1, ..., an]: chain rule with the partial derivatives of f
+        dummies = [Symbol("WLX`dt%d" % i) for i in range(len(el))]
+        proto = Expression(e.get_head(), *dummies)
+        pairs = list(zip(dummies, el))
+        terms = []
+        for i, q in enumerate(el):
+            dq = self._dt(q, x, consts, opt, ev)
+            if isinstance(dq, Integer) and dq.value == 0:
+                continue
+            part = E("D", proto, dummies[i]).evaluate(ev)
+            terms.append(E("Times", replace_expr(part, pairs), dq))
+        return E("Plus", *terms) if terms else Integer(0)
 
 
 _SERIES_CACHE = {}
@@ -2479,6 +2910,11 @@ class SeriesQ(XB):
             else:
                 nmin = min(coeffs)
                 lst = [sp.simplify(coeffs.get(k, 0)) for k in range(nmin, order + 1)]
+            if p in (sp.oo, -sp.oo, sp.zoo):
+                # Mathics cannot display/Normal a SeriesData at Infinity: give the finite sum in powers of 1/x
+                tot = sum(v * xs ** (-(nmin + k)) for k, v in enumerate(lst))
+                _SERIES_CACHE["last"] = c.back(tot).evaluate(evaluation)
+                return SymbolTrue
             data = E("SeriesData", x, c.back(p) if p not in (sp.oo, -sp.oo, sp.zoo) else x0,
                      L(*[c.back(v) for v in lst]), Integer(nmin), Integer(order + 1), Integer(1))
             _SERIES_CACHE["last"] = data
@@ -2561,7 +2997,7 @@ BUILTINS = [LaplaceTransform, InverseLaplaceTransform, SeriesQ, SeriesGet, DSolv
             FourierCoefficient, FourierSinCoefficient, FourierCosCoefficient, FourierSinSeries, FourierCosSeries,
             ZTransform, InverseZTransform, SumConvergence, TrigReduce, TrigFactor, JordanDecomposition, Fit,
             InterpolatingPolynomial, PolynomialQuotient, PolynomialRemainder, Reduce, XSympySimplify, Dt,
-            IntQ, IntGet, XConvolveCausal, XConvolveGet,
+            IntQ, IntGet, IntPVQ, LimitQ, LimitGet, XNRank, XConvolveCausal, XConvolveGet,
             XTimingNote]
 
 

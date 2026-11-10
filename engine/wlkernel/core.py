@@ -186,6 +186,20 @@ def _patch_symbol_iteration():
     Symbol.evaluate = evaluate
 
 
+_SLOT_RE = re.compile(r'("(?:[^"\\]|\\.)*")|#(?=[A-Za-z])')
+
+
+def _pre_scan(code):
+    """`2#Pi` means 2*#*Pi in the course notebooks (Mathics would read the named slot #Pi)."""
+    if "#" not in code:
+        return code
+    return _SLOT_RE.sub(lambda m: m.group(1) if m.group(1) else "# ", code)
+
+
+_FORM_HEADS = ("System`TableForm", "System`MatrixForm", "System`NumberForm", "System`ScientificForm",
+               "System`EngineeringForm", "System`TraditionalForm", "System`StandardForm", "System`OutputForm")
+
+
 class Kernel:
     def __init__(self, time_limit=25.0):
         _ensure_loaded()
@@ -287,7 +301,12 @@ class Kernel:
             return special
         out = {"type": "expr"}
         try:
-            out["text"] = self.to_text(expr, "InputForm")
+            if hasattr(expr, "get_head_name") and expr.get_head_name() in _FORM_HEADS and expr.elements:
+                # ToString[TableForm[...], InputForm] leaks internal PrecedenceForm/Superscript wrappers
+                parts = [self.to_text(q, "InputForm") for q in expr.elements]
+                out["text"] = "%s[%s]" % (expr.get_head_name().split("`")[-1], ", ".join(parts))
+            else:
+                out["text"] = self.to_text(expr, "InputForm")
         except Exception:
             out["text"] = str(expr)
         try:
@@ -357,7 +376,7 @@ class Kernel:
 
         items = []
         t0 = time.time()
-        feeder = MathicsMultiLineFeeder(code.replace("\r", ""), "<cell>")
+        feeder = MathicsMultiLineFeeder(_pre_scan(code.replace("\r", "")), "<cell>")
         first_line = None
         last_line = None
         while not feeder.empty():

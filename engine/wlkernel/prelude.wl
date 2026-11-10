@@ -1,7 +1,7 @@
 (* Wolfram-level definitions completing Mathics3 for the course material *)
 
-(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData Erfi SinIntegral CosIntegral SinhIntegral CoshIntegral LogIntegral Sinc KroneckerDelta Surd TrigExpand FunctionExpand PolynomialGCD PolynomialLCM NSum RSolve RecurrenceTable DSolveValue NDSolveValue Wronskian SolveAlways AsymptoticDSolveValue ArrayFlatten Differences Clip Rescale UpperTriangularize LowerTriangularize RotationMatrix HilbertMatrix MinValue MaxValue ArgMin ArgMax NMinValue NMaxValue NArgMin NArgMax DiagonalMatrixQ Expand PowerExpand Collect Sum Join LinearSolve Needs Subscript D Mod Factorial2 Solve NSolve FindRoot NIntegrate Residue Eliminate *)
-Unprotect[Solve, LaplaceTransform, InverseLaplaceTransform, Grad, Div, Laplacian, CharacteristicPolynomial, Orthogonalize, Projection, Minors, NestWhileList, SetPrecision, HeavisideTheta, DiracDelta, UnitStep, DiscreteDelta, Integrate, Limit, Simplify, FullSimplify, Refine, Convolve, Ordering, ReIm, FromDMS, Hessian, Curl, Normalize, VectorAngle, EuclideanDistance, Cofactor, Adjugate, UnitVector, AbsArg, Assuming, ArcLength, MatrixPower, PositiveDefiniteMatrixQ, SymmetricMatrixQ, DiagonalizableMatrixQ, Accumulate, Variables, Maximize, Minimize, NMaximize, NMinimize, FindMaximum, UnitBox, UnitTriangle, Ramp, Subsets, ComplexExpand, ToPolarCoordinates, FromPolarCoordinates, CoordinateTransform, TrigToExp, ExpToTrig, Magnify, Style, Framed, Labeled, Rasterize, Quiet, Series];
+(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData Erfi SinIntegral CosIntegral SinhIntegral CoshIntegral LogIntegral Sinc KroneckerDelta Surd TrigExpand FunctionExpand PolynomialGCD PolynomialLCM NSum RSolve RecurrenceTable DSolveValue NDSolveValue Wronskian SolveAlways AsymptoticDSolveValue ArrayFlatten Differences Clip Rescale UpperTriangularize LowerTriangularize RotationMatrix HilbertMatrix MinValue MaxValue ArgMin ArgMax NMinValue NMaxValue NArgMin NArgMax DiagonalMatrixQ Expand PowerExpand Collect Sum Join LinearSolve Needs Subscript D Mod Factorial2 Solve NSolve FindRoot NIntegrate Residue Eliminate ZTransform InverseZTransform MatrixRank NullSpace Abs Arg Dt PrincipalValue *)
+Unprotect[Maximize, Minimize, Solve, LaplaceTransform, InverseLaplaceTransform, Grad, Div, Laplacian, CharacteristicPolynomial, Orthogonalize, Projection, Minors, NestWhileList, SetPrecision, HeavisideTheta, DiracDelta, UnitStep, DiscreteDelta, Integrate, Limit, Simplify, FullSimplify, Refine, Convolve, Ordering, ReIm, FromDMS, Hessian, Curl, Normalize, VectorAngle, EuclideanDistance, Cofactor, Adjugate, UnitVector, AbsArg, Assuming, ArcLength, MatrixPower, PositiveDefiniteMatrixQ, SymmetricMatrixQ, DiagonalizableMatrixQ, Accumulate, Variables, Maximize, Minimize, NMaximize, NMinimize, FindMaximum, UnitBox, UnitTriangle, Ramp, Subsets, ComplexExpand, ToPolarCoordinates, FromPolarCoordinates, CoordinateTransform, TrigToExp, ExpToTrig, Magnify, Style, Framed, Labeled, Rasterize, Quiet, Series];
 
 
 (* ---- step / delta functions ---- *)
@@ -43,8 +43,8 @@ InverseLaplaceTransform[f_, s_Symbol, t_] := InverseLaplaceTransform[Expand[f], 
 (* ---- vector calculus ---- *)
 Grad[f_, vars_List] := D[f, #] & /@ vars /; !ListQ[f];
 Grad[f_List, vars_List] := Outer[D, f, vars];
-Div[f_List, vars_List] := Sum[D[f[[i]], vars[[i]]], {i, Length[vars]}] /; Length[f] == Length[vars];
-Laplacian[f_, vars_List] := Sum[D[f, {vars[[i]], 2}], {i, Length[vars]}];
+Div[f_List, vars_List] := Total[MapThread[D, {f, vars}]] /; Length[f] == Length[vars];
+Laplacian[f_, vars_List] := Total[D[f, {#, 2}] & /@ vars];
 Curl[{f1_, f2_}, {x_, y_}] := D[f2, x] - D[f1, y];
 Curl[{f1_, f2_, f3_}, {x_, y_, z_}] := {D[f3, y] - D[f2, z], D[f1, z] - D[f3, x], D[f2, x] - D[f1, y]};
 Hessian[f_, vars_List] := Outer[D[f, #1, #2] &, vars, vars];
@@ -156,6 +156,21 @@ Abs[z_?NumericQ] := Abs[N[z]] /; !MatchQ[z, _Integer | _Rational | _Real | _Comp
 Arg[z_?NumericQ] := With[{r = WLX`NArg[z]}, If[r === $Failed, ArcTan[Re[z], Im[z]], r]] /; Precision[z] === Infinity && !MatchQ[z, _Integer | _Rational];
 Protect[Abs, Arg];
 
+Unprotect[MatrixRank, NullSpace, ZTransform, InverseZTransform];
+MatrixRank[m_?MatrixQ] := WLX`NRank[m] /; !FreeQ[m, _Real];
+NullSpace[m_?MatrixQ] /; !TrueQ[WLX`$inNS] && FreeQ[m, _Real] := Block[{WLX`$inNS = True}, (# (LCM @@ Denominator[#])) & /@ NullSpace[m]] /; MatrixQ[m, IntegerQ[#] || Head[#] === Rational &];
+ZTransform[a_ + b_, n_, z_] := ZTransform[a, n, z] + ZTransform[b, n, z] /; WLX`unk[{a, b}] || !FreeQ[{a, b}, _Subscript | _DiscreteDelta];
+ZTransform[c_ f_, n_, z_] := c ZTransform[f, n, z] /; FreeQ[c, n] && !FreeQ[f, n] && (WLX`unk[f] || !FreeQ[f, _Subscript | _DiscreteDelta]);
+ZTransform[eq_Equal, n_, z_] := ZTransform[#, n, z] & /@ eq;
+ZTransform[l_List, n_, z_] := ZTransform[#, n, z] & /@ l;
+ZTransform[DiscreteDelta[n_ + k_.], n_, z_] := z^k /; IntegerQ[k] && k <= 0;
+ZTransform[(y_Symbol /; Context[y] =!= "System`")[n_ + k_Integer], n_, z_] := z^k ZTransform[y[n], n, z] - Sum[z^(k - WLX`j) y[WLX`j], {WLX`j, 0, k - 1}] /; k > 0;
+ZTransform[Subscript[y_, n_ + k_Integer], n_, z_] := z^k ZTransform[Subscript[y, n], n, z] - Sum[z^(k - WLX`j) Subscript[y, WLX`j], {WLX`j, 0, k - 1}] /; k > 0;
+InverseZTransform[ZTransform[f_, n_, z_], z_, n2_] := f /. n -> n2;
+InverseZTransform[r_Rule, z_, n_] := InverseZTransform[#, z, n] & /@ r;
+InverseZTransform[l_List, z_, n_] := InverseZTransform[#, z, n] & /@ l;
+Protect[MatrixRank, NullSpace, ZTransform, InverseZTransform];
+
 (* ---- calculus fixes ---- *)
 SetAttributes[C, NHoldAll];
 Unprotect[D];
@@ -169,6 +184,9 @@ Protect[D];
 Series[f_, {x_Symbol, x0_, n_Integer}] /; WLX`SeriesQ[f, x, x0, n] := WLX`SeriesGet[];
 Integrate[f_, a_List, b__List] := Integrate[Integrate[f, b], a];
 Integrate[f_List, a__] := Integrate[#, a] & /@ f;
+Integrate::idiv = "Integral of `1` does not converge on `2`.";
+Sum::div = "Sum does not converge.";
+Integrate[f_, {x_Symbol, a_, b_}, o1___Rule, PrincipalValue -> True, o2___Rule] /; WLX`IntPVQ[f, {x, a, b}] := WLX`IntGet[];
 Integrate[f_, a__, opts__Rule] := With[{as = Assumptions /. {opts} /. Assumptions -> True},
    WLX`StripCond[Block[{$Assumptions = $Assumptions && as}, Integrate[f, a]], as,
      (GenerateConditions /. {opts} /. GenerateConditions -> Automatic) === False]];
@@ -177,6 +195,8 @@ WLX`StripCond[v_, as_, gc_] := v;
 N[HoldPattern[Integrate[f_, l__List]], ___] := NIntegrate[f, l];
 Integrate[f_, x_Symbol] /; WLX`IntQ[f, x, True] := WLX`IntGet[];
 Integrate[f_, {x_Symbol, a_, b_}] /; WLX`IntQ[f, {x, a, b}, True] := WLX`IntGet[];
+HoldPattern[Limit[f_, x_Symbol -> a_]] /; WLX`LimitQ[f, x, a, 0, True] := WLX`LimitGet[];
+HoldPattern[Limit[f_, x_Symbol -> a_, opts__Rule]] /; WLX`LimitQ[f, x, a, Direction /. {opts} /. Direction -> 0, Assumptions /. {opts} /. Assumptions -> True] := WLX`LimitGet[];
 Limit[f_, x_ -> a_, Direction -> "FromAbove"] := Limit[f, x -> a, Direction -> -1];
 Limit[f_, x_ -> a_, Direction -> "FromBelow"] := Limit[f, x -> a, Direction -> 1];
 Limit[f_, x_ -> a_, Direction -> "TwoSided"] := Limit[f, x -> a];
@@ -185,13 +205,16 @@ Limit[f_List, r_, o___] := Limit[#, r, o] & /@ f;
 Limit[f_, {r1_Rule, r2__Rule}] := Limit[Limit[f, r1], {r2}];
 Limit[f_, {r1_Rule}] := Limit[f, r1];
 
+Simplify[e_] := WLX`SimplifyAssuming[e, True] /; $Assumptions =!= True;
+FullSimplify[e_] := WLX`SimplifyAssuming[e, True] /; $Assumptions =!= True;
 Simplify[e_, as_] := WLX`SimplifyAssuming[e, as] /; FreeQ[as, Rule] && as =!= {};
 Simplify[e_, Assumptions -> as_] := WLX`SimplifyAssuming[e, as];
 FullSimplify[e_, as_] := WLX`SimplifyAssuming[e, as] /; FreeQ[as, Rule] && as =!= {};
 FullSimplify[e_, Assumptions -> as_] := WLX`SimplifyAssuming[e, as];
 Refine[e_, as_] := WLX`SimplifyAssuming[e, as];
 
-Maximize[{f_, c__}, v_] := WLX`Lagrange[f, {c}, v, 1] /; False;
+Maximize[a__] /; !TrueQ[WLX`$inOpt] := Block[{WLX`$inOpt = True}, Maximize[a] /. {{v_, r : {___Rule}}} :> {v, r}];
+Minimize[a__] /; !TrueQ[WLX`$inOpt] := Block[{WLX`$inOpt = True}, Minimize[a] /. {{v_, r : {___Rule}}} :> {v, r}];
 FindMaximum[f_, v_List, o___] := With[{r = FindMinimum[-f, v, o]}, {-r[[1]], r[[2]]} /; ListQ[r]];
 NMinimize[f_, v_, ___] := N[Minimize[f, v]] /. {{a_, b_List}} :> {a, b};
 NMaximize[f_, v_, ___] := N[Maximize[f, v]] /. {{a_, b_List}} :> {a, b};
