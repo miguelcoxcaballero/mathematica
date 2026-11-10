@@ -13,7 +13,6 @@
  "uses": [
   "Integrate",
   "NIntegrate",
-  "ContourPlot",
   "Solve",
   "Flatten",
   "ReplaceAll",
@@ -29,46 +28,50 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Integrales dobles: una dentro de otra",
-   "md": "Con una integral doble calculas el **área** de una región plana, la **masa** de una placa cuya densidad cambia de punto a punto o el **volumen** bajo una superficie. En la práctica 23 piden además decidir si una placa flota, comparando su densidad media con la del fluido.\n\nEn Mathematica es el mismo `Integrate` de siempre con **dos iteradores**. Un primer dato útil: integrar `1` sobre una región da su área.",
+   "title": "Área con una integral",
+   "md": "Integra `1` sobre un rectángulo: sale su área.",
    "cells": [
     {
      "code": "Integrate[1, {x, 0, 2}, {y, 0, 3}]",
-     "note": "área del rectángulo [0,2]×[0,3]: 2·3"
+     "note": "dos iteradores: uno por variable"
     }
    ],
+   "more": "Con integrales dobles se calculan áreas, masas de placas y volúmenes bajo una superficie. Es el `Integrate` de siempre con dos iteradores.",
    "section": "Integrales iteradas"
   },
   {
    "type": "build",
-   "title": "Integral doble sobre un rectángulo",
+   "title": "Integral doble",
    "md": "Un `Integrate` con dos iteradores: uno por variable.",
-   "target": "Integrate[x y, {x, 0, 2}, {y, 0, 3}]",
+   "target": "Integrate[x^2 + y, {x, 0, 1}, {y, 0, 2}]",
    "parts": [
     {
-     "code": "x y",
-     "md": "Lo que integras: una función de `x` e `y`."
-    },
-    {
-     "code": "{x, 0, 2}",
-     "md": "Primer iterador: la variable **exterior**, desde, hasta."
-    },
-    {
-     "code": "{y, 0, 3}",
-     "md": "Segundo iterador: la variable **interior**, la que se integra primero."
+     "code": "Integrate[x, {x, 0, 2}]",
+     "md": "Empieza con una integral simple, la de siempre.",
+     "run": true
     },
     {
      "code": "Integrate[x y, {x, 0, 2}, {y, 0, 3}]",
-     "md": "Función y los dos iteradores, separados por comas.",
+     "md": "Añade un segundo iterador para `y`: integral doble.",
+     "run": true
+    },
+    {
+     "code": "Integrate[x y, {y, 0, 3}, {x, 0, 2}]",
+     "md": "Cambia el orden: en un rectángulo da lo mismo.",
+     "run": true
+    },
+    {
+     "code": "Integrate[x^2 + y, {x, 0, 1}, {y, 0, 2}]",
+     "md": "Otra función, otro rectángulo: misma forma.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: integral doble de `x y` sobre el rectángulo `0 <= x <= 2`, `0 <= y <= 3`.",
+    "prompt": "De memoria: integral doble de `x^2 + y` sobre `0 <= x <= 1`, `0 <= y <= 2`.",
     "hints": [
      "`Integrate[función, iterador de x, iterador de y]`",
      "Cada iterador: `{variable, desde, hasta}`.",
-     "`Integrate[x y, {x, 0, 2}, {y, 0, 3}]`"
+     "`Integrate[x^2 + y, {x, 0, 1}, {y, 0, 2}]`"
     ]
    },
    "cmds": [
@@ -80,71 +83,69 @@
    "ex": {
     "id": "1-p23-e01",
     "kind": "code",
-    "title": "Tu primera integral doble",
-    "prompt": "Calcula la integral doble de `x^2 + y` sobre el rectángulo `0 <= x <= 1`, `0 <= y <= 2`.",
+    "title": "Masa de un rectángulo",
+    "prompt": "Integra la densidad `x + 2 y` sobre el rectángulo `0 <= x <= 3`, `0 <= y <= 1`.",
     "difficulty": 1,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "solution": "Integrate[x^2 + y, {x, 0, 1}, {y, 0, 2}]",
+    "solution": "Integrate[x + 2 y, {x, 0, 3}, {y, 0, 1}]",
     "check": {
      "type": "expr",
-     "expected": "8/3"
+     "expected": "15/2"
     },
     "requires": [
      "Integrate"
     ],
     "hints": [
-     "`Integrate[función, {x, 0, 1}, {y, 0, 2}]`",
-     "`Integrate[x^2 + y, {x, 0, 1}, {y, 0, 2}]`"
+     "`Integrate[x + 2 y, {x, 0, 3}, {y, 0, 1}]`"
     ],
-    "explain": "Cada variable lleva su iterador `{variable, desde, hasta}`. Resultado exacto: `8/3`."
+    "explain": "`15/2`. Integrar la densidad da la masa; integrar `1`, el área."
    }
   },
   {
    "type": "build",
-   "title": "Límites variables: el orden importa",
-   "md": "En un triángulo como `0 <= x <= 1`, `0 <= y <= x`, el límite de `y` depende de `x`. Regla:",
-   "target": "Integrate[x y, {x, 0, 1}, {y, 0, x}]",
+   "title": "Límites variables",
+   "md": "En un triángulo, el límite de `y` depende de `x`: el orden de los iteradores importa.",
+   "target": "Integrate[1, {x, 0, 1}, {y, x^2, x}]",
    "parts": [
     {
-     "code": "{x, 0, 1}",
-     "md": "La variable con límites **numéricos** va primero."
-    },
-    {
-     "code": "{y, 0, x}",
-     "md": "La que depende de `x` va después:",
-     "more": "un iterador solo puede usar variables de los que tiene a su izquierda."
-    },
-    {
      "code": "Integrate[x y, {x, 0, 1}, {y, 0, x}]",
-     "md": "Si los pusieras al revés, Mathematica no protesta:",
-     "more": "devuelve un resultado con una `x` suelta. Esa es la señal de error.",
+     "md": "Triángulo `0 <= y <= x`: el iterador que depende de `x` va el segundo.",
+     "run": true
+    },
+    {
+     "code": "Integrate[x y, {y, 0, x}, {x, 0, 1}]",
+     "md": "Ahora al revés, a propósito: queda una `x` suelta. Señal de error.",
+     "run": true
+    },
+    {
+     "code": "Integrate[1, {x, 0, 1}, {y, x^2, x}]",
+     "md": "Otra región: entre la parábola `x^2` y la recta `x`. Integrando 1: su área.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: integral de `x y` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`.",
+    "prompt": "De memoria: área de la región `0 <= x <= 1`, `x^2 <= y <= x` (integra `1`).",
     "hints": [
-     "¿Qué iterador va primero: el de límites numéricos o el que depende del otro?",
-     "`{x, 0, 1}` y después `{y, 0, x}`.",
-     "`Integrate[x y, {x, 0, 1}, {y, 0, x}]`"
+     "Primero el iterador de límites numéricos; después el que depende de él.",
+     "`{x, 0, 1}` y después `{y, x^2, x}`.",
+     "`Integrate[1, {x, 0, 1}, {y, x^2, x}]`"
     ]
    },
    "cmds": [
     "Integrate"
-   ],
-   "more": "primero el iterador con límites numéricos; después el que depende de él."
+   ]
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p23-e02",
     "kind": "code",
-    "title": "Límites variables",
-    "prompt": "Calcula la integral doble de `x + y` sobre la región `0 <= x <= 1`, `x^2 <= y <= x`. Cuidado con el orden de los iteradores.",
+    "title": "Sobre una región",
+    "prompt": "Calcula la integral doble de `x + y` sobre la región `0 <= x <= 1`, `x^2 <= y <= x`.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -160,66 +161,69 @@
      "Integrate"
     ],
     "hints": [
-     "Primero la variable con límites numéricos: `{x, 0, 1}`.",
-     "Después la que depende de ella: `{y, x^2, x}`."
+     "Primero `{x, 0, 1}`; después `{y, x^2, x}`.",
+     "`Integrate[x + y, {x, 0, 1}, {y, x^2, x}]`"
     ],
-    "explain": "`Integrate[x + y, {x, 0, 1}, {y, x^2, x}]` da `3/20`. Si el resultado tuviera una `x`, los iteradores estarían al revés."
+    "explain": "`3/20`. Si el resultado tuviera una `x`, los iteradores estarían al revés."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p23-e03",
-    "kind": "code",
-    "title": "Área entre una parábola y una recta",
-    "prompt": "Calcula el área de la región comprendida entre `y = x^2` y `y = x` (para `x` entre `0` y `1`).",
+    "kind": "fix",
+    "title": "Arregla la integral",
+    "prompt": "Corrige los tres errores: integral de `Exp[x + y]` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`.",
     "difficulty": 2,
     "cmds": [
-     "Integrate"
+     "Integrate",
+     "Exp"
     ],
     "real": false,
     "source": null,
-    "solution": "Integrate[1, {x, 0, 1}, {y, x^2, x}]",
+    "broken": "integrate[exp[x + y], {y, 0, x}, {x, 0, 1}]",
+    "solution": "Integrate[Exp[x + y], {x, 0, 1}, {y, 0, x}]",
     "check": {
      "type": "expr",
-     "expected": "1/6"
+     "expected": "(E - 1)^2/2"
     },
     "requires": [
-     "Integrate"
+     "Integrate",
+     "Exp"
     ],
     "hints": [
-     "Área = integral doble de `1`.",
-     "En `[0, 1]` la parábola queda por debajo de la recta: `y` va de `x^2` a `x`."
+     "`Integrate` y `Exp` empiezan por mayúscula.",
+     "El iterador con límites numéricos va primero: `{x, 0, 1}` y después `{y, 0, x}`."
     ],
-    "explain": "`Integrate[1, {x, 0, 1}, {y, x^2, x}]` da `1/6`. Integrar 1 es la forma más cómoda de sacar áreas."
+    "explain": "Dos mayúsculas y el orden de los iteradores."
    }
   },
   {
    "type": "build",
-   "title": "Dibujar la región con RegionPlot",
-   "md": "Casi todos los fallos vienen de unos límites mal puestos: primero se dibuja la región.",
+   "title": "Dibujar con RegionPlot",
+   "md": "Dibuja la región antes de poner límites:",
    "target": "RegionPlot[x^2 <= y <= x, {x, 0, 1}, {y, 0, 1}]",
    "parts": [
     {
-     "code": "x^2 <= y <= x",
-     "md": "La condición: `y` por encima de la parábola y por debajo de la recta.",
-     "more": "Se puede encadenar así o unir con `&&`."
+     "code": "RegionPlot[y <= x, {x, 0, 1}, {y, 0, 1}]",
+     "md": "Una desigualdad y la ventana del dibujo: la mitad bajo la recta.",
+     "run": true
     },
     {
-     "code": "{x, 0, 1}",
-     "md": "Ventana horizontal del dibujo (no son límites de integración)."
+     "code": "RegionPlot[y <= x && y >= x^2, {x, 0, 1}, {y, 0, 1}]",
+     "md": "Dos condiciones unidas con `&&` («y»).",
+     "run": true
     },
     {
      "code": "RegionPlot[x^2 <= y <= x, {x, 0, 1}, {y, 0, 1}]",
-     "md": "Condición y ventana en `x` y en `y`.",
-     "more": "Para dibujar solo los bordes (ecuaciones con `==`) se usa `ContourPlot`, como en los cuadernos de clase.",
+     "md": "Lo mismo, encadenando las desigualdades.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: dibuja la región entre la parábola `y = x^2` y la recta `y = x`, en la ventana `x` de `0` a `1`, `y` de `0` a `1`.",
+    "prompt": "De memoria: dibuja la región `x^2 <= y <= x` en la ventana `x` de `0` a `1`, `y` de `0` a `1`.",
     "hints": [
-     "El comando es `RegionPlot[condición, {x, ...}, {y, ...}]`.",
+     "`RegionPlot[condición, {x, ...}, {y, ...}]`",
      "Condición: `x^2 <= y <= x`.",
      "`RegionPlot[x^2 <= y <= x, {x, 0, 1}, {y, 0, 1}]`"
     ],
@@ -232,8 +236,8 @@
    "cmds": [
     "RegionPlot"
    ],
-   "more": "`RegionPlot` rellena los puntos que cumplen unas desigualdades.",
-   "section": "El recinto: dibujarlo y sacar los límites"
+   "more": "`RegionPlot` rellena donde se cumple la condición.",
+   "section": "Dibujar el recinto"
   },
   {
    "type": "exercise",
@@ -241,7 +245,7 @@
     "id": "1-p23-e04",
     "kind": "code",
     "title": "Dibuja la región",
-    "prompt": "Dibuja con `RegionPlot` la región que queda por encima de la parábola `y = x^2` y por debajo de la recta `y = 2 x`. Usa la ventana `x` de `0` a `2`, `y` de `0` a `4`.",
+    "prompt": "Dibuja con `RegionPlot` la región `x^2 <= y <= 2 x`, en la ventana `x` de `0` a `2`, `y` de `0` a `4`.",
     "difficulty": 2,
     "cmds": [
      "RegionPlot"
@@ -261,7 +265,6 @@
      "RegionPlot"
     ],
     "hints": [
-     "La condición es `x^2 <= y <= 2 x` (o `y >= x^2 && y <= 2 x`).",
      "`RegionPlot[x^2 <= y <= 2 x, {x, 0, 2}, {y, 0, 4}]`"
     ],
     "explain": "Viendo el dibujo los límites se leen solos: `x` de 0 a 2 y, para cada `x`, `y` desde `x^2` hasta `2 x`."
@@ -269,39 +272,38 @@
   },
   {
    "type": "build",
-   "title": "Sacar los límites con Solve",
-   "md": "Si la frontera es una curva (una elipse), los límites de `y` se obtienen despejando con `Solve`. Vas a calcular así el área de una elipse.",
+   "title": "Límites con Solve",
+   "md": "Si la frontera es una elipse, los límites de `y` se despejan con `Solve`.",
    "target": "sol = Solve[x^2/9 + y^2/4 == 1, y];\ny1 = y /. sol[[1]]; y2 = y /. sol[[2]];\nIntegrate[1, {x, -3, 3}, {y, y1, y2}]",
    "parts": [
     {
-     "code": "x^2/9 + y^2/4 == 1",
-     "md": "La frontera, como ecuación: doble igual `==`."
-    },
-    {
      "code": "sol = Solve[x^2/9 + y^2/4 == 1, y]",
-     "md": "Despejar `y`:",
-     "more": "salen dos ramas, la de abajo y la de arriba, como reglas entre dobles llaves.",
+     "md": "Despeja `y` de la elipse: salen dos ramas, abajo y arriba.",
      "run": true
     },
     {
      "code": "y /. sol[[1]]",
-     "md": "`sol[[1]]` es la primera solución y `/.` aplica la regla:",
-     "more": "queda la expresión de la rama inferior.",
+     "md": "`sol[[1]]` es la primera solución; `/.` aplica la regla.",
      "run": true
     },
     {
      "code": "y1 = y /. sol[[1]]; y2 = y /. sol[[2]];",
-     "md": "Guardas las dos ramas como límites.",
+     "md": "Guarda las dos ramas como límites.",
+     "run": true
+    },
+    {
+     "code": "Integrate[1, {x, -3, 3}, {y, y1, y2}]",
+     "md": "`x` entre −3 y 3; `y` entre las ramas. Integrando 1: el área.",
      "run": true
     },
     {
      "code": "sol = Solve[x^2/9 + y^2/4 == 1, y];\ny1 = y /. sol[[1]]; y2 = y /. sol[[2]];\nIntegrate[1, {x, -3, 3}, {y, y1, y2}]",
-     "md": "`x` entre los cortes con el eje (−3 y 3) e `y` entre las dos ramas. Integrar 1 da el área.",
+     "md": "Las tres líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: área de la elipse `x^2/9 + y^2/4 == 1`, sacando los límites de `y` con `Solve`.",
+    "prompt": "De memoria: área de la elipse `x^2/9 + y^2/4 == 1`, con los límites de `y` sacados con `Solve`.",
     "hints": [
      "Tres líneas: `sol = Solve[...]`, extraer `y1`, `y2`, integrar `1`.",
      "`y1 = y /. sol[[1]]; y2 = y /. sol[[2]];`",
@@ -324,8 +326,8 @@
    "ex": {
     "id": "1-p23-e05",
     "kind": "code",
-    "title": "Una integral sobre la elipse",
-    "prompt": "Calcula la integral doble de `x^2` sobre el interior de la elipse `x^2/9 + y^2/4 == 1`. Obtén los límites de `y` con `Solve`, como en la construcción anterior.",
+    "title": "Integral sobre la elipse",
+    "prompt": "Integra `x^2` sobre el interior de la elipse `x^2/9 + y^2/4 == 1`, sacando los límites de `y` con `Solve`.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -353,89 +355,47 @@
    }
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p23-e06",
-    "kind": "fix",
-    "title": "Arregla la integral",
-    "prompt": "Esta celda quiere integrar `Exp[x + y]` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`, pero tiene **tres errores**. Corrígela.",
-    "difficulty": 2,
-    "cmds": [
-     "Integrate",
-     "Exp"
-    ],
-    "real": false,
-    "source": null,
-    "broken": "integrate[exp[x + y], {y, 0, x}, {x, 0, 1}]",
-    "solution": "Integrate[Exp[x + y], {x, 0, 1}, {y, 0, x}]",
-    "check": {
-     "type": "expr",
-     "expected": "(E - 1)^2/2"
-    },
-    "requires": [
-     "Integrate",
-     "Exp"
-    ],
-    "hints": [
-     "`Integrate` y `Exp` empiezan por mayúscula.",
-     "El iterador con límites numéricos va primero: `{x, 0, 1}` y después `{y, 0, x}`."
-    ],
-    "explain": "Dos mayúsculas y el orden de los iteradores. Con el orden equivocado el resultado dependería de `x`: esa es la pista de que algo va mal."
-   }
-  },
-  {
    "type": "build",
-   "title": "Masa, área y densidad media",
-   "md": "Con densidad `d(x, y)`:",
-   "target": "d[x_, y_] := x + y\nM = Integrate[d[x, y], {x, 0, 1}, {y, 0, x^2}];\nA = Integrate[1, {x, 0, 1}, {y, 0, x^2}];\nM/A",
+   "title": "Masa y densidad media",
+   "md": "Masa = integral de la densidad; área = integral de 1; densidad media = masa/área.",
+   "target": "Integrate[x + y, {x, 0, 1}, {y, 0, x^2}]/Integrate[1, {x, 0, 1}, {y, 0, x^2}]",
    "parts": [
     {
-     "code": "d[x_, y_] := x + y",
-     "md": "La densidad, como función de dos variables.",
+     "code": "Integrate[x + y, {x, 0, 1}, {y, 0, x^2}]",
+     "md": "Masa de la región bajo `y = x^2` con densidad `x + y`.",
      "run": true
     },
     {
-     "code": "M = Integrate[d[x, y], {x, 0, 1}, {y, 0, x^2}]",
-     "md": "Masa de la región bajo la parábola `y = x^2`.",
-     "run": true
-    },
-    {
-     "code": "A = Integrate[1, {x, 0, 1}, {y, 0, x^2}]",
+     "code": "Integrate[1, {x, 0, 1}, {y, 0, x^2}]",
      "md": "Área: mismos límites, integrando 1.",
      "run": true
     },
     {
-     "code": "d[x_, y_] := x + y\nM = Integrate[d[x, y], {x, 0, 1}, {y, 0, x^2}];\nA = Integrate[1, {x, 0, 1}, {y, 0, x^2}];\nM/A",
-     "md": "Densidad media. Si es menor que la del fluido, la placa flota.",
-     "more": "Con `// N` al final de una integral la pasas a decimal.",
+     "code": "Integrate[x + y, {x, 0, 1}, {y, 0, x^2}]/Integrate[1, {x, 0, 1}, {y, 0, x^2}]",
+     "md": "Densidad media: masa entre área.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: densidad media de la placa `0 <= x <= 1`, `0 <= y <= x^2` con densidad `d(x, y) = x + y` (masa entre área).",
+    "prompt": "De memoria: densidad media (masa/área) de `0 <= x <= 1`, `0 <= y <= x^2` con densidad `x + y`.",
     "hints": [
-     "Cuatro líneas: `d[x_, y_]`, `M = ...;`, `A = ...;`, `M/A`.",
-     "Las dos integrales llevan los mismos iteradores: `{x, 0, 1}, {y, 0, x^2}`.",
-     "`M = Integrate[d[x, y], {x, 0, 1}, {y, 0, x^2}];` y `A = Integrate[1, {x, 0, 1}, {y, 0, x^2}];`"
-    ],
-    "check": {
-     "type": "expr",
-     "expected": "21/20"
-    }
+     "Un cociente de dos integrales con los mismos iteradores.",
+     "Arriba se integra `x + y`; abajo, `1`.",
+     "`Integrate[x + y, {x, 0, 1}, {y, 0, x^2}]/Integrate[1, {x, 0, 1}, {y, 0, x^2}]`"
+    ]
    },
    "cmds": [
     "Integrate"
    ],
-   "more": "masa = integral de la densidad; área = integral de 1; densidad media = masa/área.",
-   "section": "Masa y densidad media: la placa"
+   "section": "La placa: masa y densidad"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e07",
+    "id": "1-p23-e06",
     "kind": "code",
     "title": "Placa: área",
-    "prompt": "Una placa tiene la forma de la región plana limitada por el eje de abscisas y la curva `y = 3 - Log[Pi x]`, entre las abscisas `x = 1/(2 E)` y `x = E`.\n\na) Calcula el **área** de la placa con 6 cifras significativas.",
+    "prompt": "Área entre el eje X y `y = 3 - Log[Pi x]`, con `x` de `1/(2 E)` a `E`, en decimal.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -444,7 +404,8 @@
     ],
     "real": true,
     "source": "Práctica 23 · P2 a)",
-    "solution": "f[x_] := 3 - Log[Pi x]\nA = Integrate[f[x], {x, 1/(2 E), E}] // N",
+    "more": "Enunciado de la prueba: una placa tiene la forma de la región plana limitada por el eje de abscisas y la curva `y = 3 - ln(π x)`, entre las abscisas `1/(2e)` y `e`, y su densidad en cada punto es `e^(2x+y)/5`. a) Área de la placa (6 cifras). b) Masa. c) ¿Flota en un fluido de densidad 5?",
+    "solution": "A = Integrate[3 - Log[Pi x], {x, 1/(2 E), E}] // N",
     "check": {
      "type": "expr",
      "expected": "4.2065124319",
@@ -452,20 +413,19 @@
      "tol": 1e-05
     },
     "hints": [
-     "El área bajo una curva es una integral simple: `Integrate[f[x], {x, a, b}]` (o la doble de `1` con `y` de `0` a `f[x]`).",
-     "El número e es `E` (o `Exp[1]`); el logaritmo neperiano es `Log`.",
+     "Área bajo una curva: integral simple de la función. `E` es el número e y `Log` el logaritmo neperiano.",
      "`Integrate[3 - Log[Pi x], {x, 1/(2 E), E}] // N`"
     ],
-    "explain": "Área = 4.20651. Ojo con `Log[Pi x]`: `Log` es el neperiano y lleva corchetes."
+    "explain": "Área ≈ 4.20651. También vale la doble de `1` con `y` de `0` a la curva."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e08",
+    "id": "1-p23-e07",
     "kind": "code",
     "title": "Placa: masa",
-    "prompt": "La misma placa (región entre el eje X y `y = 3 - Log[Pi x]`, con `x` entre `1/(2 E)` y `E`) tiene densidad `d(x, y) = Exp[2 x + y]/5`.\n\nb) Calcula su **masa** en decimal: integral doble de la densidad, con `y` entre `0` y la curva. Guárdala en `M`.",
+    "prompt": "Integra la densidad `Exp[2 x + y]/5` con `x` de `1/(2 E)` a `E` e `y` de `0` a `3 - Log[Pi x]`, en decimal.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -475,7 +435,7 @@
     ],
     "real": true,
     "source": "Práctica 23 · P2 b)",
-    "solution": "d[x_, y_] := Exp[2 x + y]/5\nM = Integrate[d[x, y], {x, 1/(2 E), E}, {y, 0, 3 - Log[Pi x]}] // N",
+    "solution": "M = Integrate[Exp[2 x + y]/5, {x, 1/(2 E), E}, {y, 0, 3 - Log[Pi x]}] // N",
     "check": {
      "type": "expr",
      "expected": "48.4446330393",
@@ -483,47 +443,19 @@
      "tol": 1e-05
     },
     "hints": [
-     "`d[x_, y_] := Exp[2 x + y]/5`",
-     "Límites: `{x, 1/(2 E), E}` y `{y, 0, 3 - Log[Pi x]}` (el que depende de `x`, después).",
-     "`M = Integrate[d[x, y], {x, 1/(2 E), E}, {y, 0, 3 - Log[Pi x]}] // N`"
+     "Iteradores: `{x, 1/(2 E), E}` y después `{y, 0, 3 - Log[Pi x]}`.",
+     "`Integrate[Exp[2 x + y]/5, {x, 1/(2 E), E}, {y, 0, 3 - Log[Pi x]}] // N`"
     ],
-    "explain": "Masa ≈ 48.4446. El límite superior de `y` es la propia curva: por eso va en el segundo iterador. En el cuaderno de clase es `Integrate[...] // N`, igual que aquí."
+    "explain": "Masa ≈ 48.4446. El límite superior de `y` es la propia curva: por eso va en el segundo iterador."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e09",
+    "id": "1-p23-e08",
     "kind": "code",
-    "title": "Placa: densidad media",
-    "prompt": "Ya tienes el área `A = 4.20651` y la masa `M = 48.4446` de la placa (definidas como `A` y `M`). c) Calcula su **densidad media**.",
-    "difficulty": 1,
-    "cmds": [
-     "Integrate"
-    ],
-    "real": true,
-    "source": "Práctica 23 · P2 c)",
-    "setup": "M = 48.444633039339216; A = 4.206512431882395;",
-    "solution": "M/A",
-    "check": {
-     "type": "expr",
-     "expected": "11.5165790721",
-     "compare": "numeric",
-     "tol": 1e-06
-    },
-    "hints": [
-     "Densidad media = masa / área."
-    ],
-    "explain": "Densidad media ≈ 11.5166. Una división: lo difícil eran las dos integrales."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p23-e10",
-    "kind": "code",
-    "title": "¿Flota la placa?",
-    "prompt": "La placa anterior tiene masa `M = 48.4446` y área `A = 4.20651` (ya definidas como `M` y `A`). Se sumerge en un fluido de densidad 5.\n\nc) Escribe la comparación que dice si flota: densidad media **menor que** 5. Mathematica responderá `True` (flota) o `False` (no flota).",
+    "title": "Placa: ¿flota?",
+    "prompt": "`M` y `A` ya están definidas. Calcula la densidad media y, en otra línea, si es menor que 5.",
     "difficulty": 2,
     "cmds": [
      "Less"
@@ -531,101 +463,94 @@
     "real": true,
     "source": "Práctica 23 · P2 c)",
     "setup": "M = 48.444633039339216; A = 4.206512431882395;",
-    "solution": "M/A < 5",
+    "solution": "M/A\nM/A < 5",
     "check": {
      "type": "expr",
      "expected": "False",
      "compare": "same"
     },
     "hints": [
-     "La densidad media es `M/A`.",
-     "Una comparación con `<` o `>` devuelve `True` o `False`: `M/A < 5`."
+     "Primera línea `M/A`; segunda, la comparación `M/A < 5`."
     ],
-    "explain": "`False`: la densidad media (11.5166) es mayor que la del fluido, así que **no flota** (respuesta 0 en la prueba). En el cuaderno de clase se comprueba al revés, con `% > 5`, que da `True`."
+    "explain": "Densidad media ≈ 11.5166 y `False`: es mayor que la del fluido, **no flota** (casilla 0 en la prueba)."
    }
   },
   {
    "type": "build",
    "title": "Integral en polares",
-   "md": "En regiones circulares conviene `x = r Cos[a]`, `y = r Sin[a]`.",
-   "target": "Integrate[r^2 r, {a, 0, 2 Pi}, {r, 0, 2}]",
+   "md": "En círculos: `x = r Cos[a]`, `y = r Sin[a]`, y se multiplica por el jacobiano `r`.",
+   "target": "Integrate[Exp[-r^2] r, {a, 0, 2 Pi}, {r, 0, 1}]",
    "parts": [
     {
-     "code": "r^2",
-     "md": "La función `x^2 + y^2` escrita en polares."
+     "code": "Integrate[1, {a, 0, 2 Pi}, {r, 0, 2}]",
+     "md": "Sin jacobiano, a propósito: no sale el área del círculo de radio 2.",
+     "run": true
     },
     {
-     "code": "r^2 r",
-     "md": "Multiplicada por el jacobiano `r`. Olvidarlo es el error típico: nadie avisa."
-    },
-    {
-     "code": "{a, 0, 2 Pi}",
-     "md": "El ángulo: una vuelta completa."
-    },
-    {
-     "code": "{r, 0, 2}",
-     "md": "El radio: de 0 al borde del círculo."
+     "code": "Integrate[r, {a, 0, 2 Pi}, {r, 0, 2}]",
+     "md": "Con el jacobiano `r`: ahora sí, `4 Pi`.",
+     "run": true
     },
     {
      "code": "Integrate[r^2 r, {a, 0, 2 Pi}, {r, 0, 2}]",
-     "md": "Integral de `x^2 + y^2` sobre el círculo de radio 2.",
+     "md": "Integral de `x^2 + y^2`, que en polares es `r^2`, por el jacobiano.",
+     "run": true
+    },
+    {
+     "code": "Integrate[Exp[-r^2] r, {a, 0, 2 Pi}, {r, 0, 1}]",
+     "md": "Otra función: `Exp[-(x^2 + y^2)]` sobre el círculo unidad.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: integral de `x^2 + y^2` sobre el círculo de radio 2, en polares (variables `a` y `r`).",
+    "prompt": "De memoria: integral de `Exp[-(x^2 + y^2)]` sobre el círculo de radio 1, en polares (`a`, `r`).",
     "hints": [
-     "En polares la función es `r^2`. ¿Qué factor falta?",
-     "Integrando `r^2 r`; iteradores `{a, 0, 2 Pi}` y `{r, 0, 2}`.",
-     "`Integrate[r^2 r, {a, 0, 2 Pi}, {r, 0, 2}]`"
-    ],
-    "check": {
-     "type": "expr",
-     "expected": "8 Pi"
-    }
+     "En polares `x^2 + y^2` es `r^2`. ¿Qué factor falta?",
+     "Integrando `Exp[-r^2] r`; iteradores `{a, 0, 2 Pi}` y `{r, 0, 1}`.",
+     "`Integrate[Exp[-r^2] r, {a, 0, 2 Pi}, {r, 0, 1}]`"
+    ]
    },
    "cmds": [
-    "Integrate"
+    "Integrate",
+    "Exp"
    ],
-   "more": "Al cambiar de variables hay que multiplicar por el **jacobiano**, que en polares es `r`.",
    "section": "Coordenadas polares"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e11",
+    "id": "1-p23-e09",
     "kind": "code",
-    "title": "Una campana sobre un círculo",
-    "prompt": "Calcula la integral doble de `Exp[-(x^2 + y^2)]` sobre el círculo de radio 1 centrado en el origen, usando coordenadas polares (variables `r` y `a`).",
-    "difficulty": 3,
+    "title": "Un cuarto de círculo",
+    "prompt": "Integra `x^2 + y^2` sobre el cuarto de círculo de radio 3 del primer cuadrante, en polares (`a`, `r`).",
+    "difficulty": 2,
     "cmds": [
-     "Integrate",
-     "Exp"
+     "Integrate"
     ],
     "real": false,
     "source": null,
-    "solution": "Integrate[Exp[-r^2] r, {a, 0, 2 Pi}, {r, 0, 1}]",
+    "solution": "Integrate[r^2 r, {a, 0, Pi/2}, {r, 0, 3}]",
     "check": {
      "type": "expr",
-     "expected": "Pi (1 - 1/E)"
+     "expected": "81 Pi/8"
     },
     "requires": [
      "Integrate"
     ],
     "hints": [
-     "En polares `x^2 + y^2` es `r^2`, y hay que multiplicar por el jacobiano `r`.",
-     "`Integrate[Exp[-r^2] r, {a, 0, 2 Pi}, {r, 0, 1}]`"
+     "Primer cuadrante: el ángulo va de `0` a `Pi/2`.",
+     "`Integrate[r^2 r, {a, 0, Pi/2}, {r, 0, 3}]`"
     ],
-    "explain": "Da `Pi (1 - 1/E)`. En cartesianas esta integral no tiene primitiva elemental; en polares el jacobiano `r` la hace inmediata."
+    "explain": "`81 Pi/8`. El jacobiano `r` no se olvida."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e12",
+    "id": "1-p23-e10",
     "kind": "code",
-    "title": "La función de la prueba, en polares",
-    "prompt": "Sea `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` (ya definida como `f[x, y]`). Calcula numéricamente su integral sobre el sector circular `0 <= r <= 3`, `0 <= a <= Pi/6`, usando polares: sustituye `x` por `r Cos[a]`, `y` por `r Sin[a]` y multiplica por el jacobiano.\n\n(Adaptado: en la prueba el recinto es el triángulo `0 <= x <= 3`, `0 <= y <= x/Sqrt[3]`, donde el radio llega hasta `3/Cos[a]`.)",
+    "title": "La función de la prueba",
+    "prompt": "`f[x, y]` ya está definida. Integra numéricamente `f[r Cos[a], r Sin[a]] r` con `a` de `0` a `Pi/6` y `r` de `0` a `3`.",
     "difficulty": 3,
     "cmds": [
      "NIntegrate",
@@ -635,6 +560,7 @@
     "real": true,
     "source": "Práctica 23 · P3 a) (adaptado: sector circular)",
     "setup": "f[x_, y_] := (2 + x^2 + y^2 + x)^(-3/2)",
+    "more": "Enunciado de la prueba: sea `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` y la región `0 <= x <= 3`, `0 <= y <= x/√3`. Calcula la integral doble a) en polares y b) en cartesianas, y compara. Adaptado: aquí el recinto es el sector `r <= 3`; en la prueba el radio llega hasta `3/Cos[a]` y el resultado es 0.149809.",
     "solution": "NIntegrate[f[r Cos[a], r Sin[a]] r, {a, 0, Pi/6}, {r, 0, 3}]",
     "check": {
      "type": "expr",
@@ -647,20 +573,18 @@
      "Cos"
     ],
     "hints": [
-     "La función en polares es `f[r Cos[a], r Sin[a]]`.",
-     "Integrando: `f[r Cos[a], r Sin[a]] r`.",
      "`NIntegrate[f[r Cos[a], r Sin[a]] r, {a, 0, Pi/6}, {r, 0, 3}]`"
     ],
-    "explain": "≈ 0.145520. En la prueba, con el triángulo completo, el iterador del radio es `{r, 0, 3/Cos[a]}` y el resultado 0.149809, igual que en cartesianas con `{x, 0, 3}, {y, 0, x/Sqrt[3]}`: cambiar de coordenadas no cambia el valor."
+    "explain": "≈ 0.145520. En la prueba: `{r, 0, 3/Cos[a]}` en polares o `{x, 0, 3}, {y, 0, x/Sqrt[3]}` en cartesianas dan los dos 0.149809."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e13",
+    "id": "1-p23-e11",
     "kind": "code",
-    "title": "Un triángulo en cartesianas",
-    "prompt": "Calcula la integral doble de `(1 + x^2 + y^2)^(-3/2)` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`.",
+    "title": "Triángulo en cartesianas",
+    "prompt": "Integra `(1 + x^2 + y^2)^(-3/2)` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`.",
     "difficulty": 3,
     "cmds": [
      "Integrate"
@@ -676,16 +600,15 @@
      "Integrate"
     ],
     "hints": [
-     "Los límites ya están dados: `{x, 0, 1}` y `{y, 0, x}`.",
-     "El exponente negativo va entre paréntesis: `^(-3/2)`."
+     "Iteradores `{x, 0, 1}` y `{y, 0, x}`; el exponente negativo va entre paréntesis: `^(-3/2)`."
     ],
-    "explain": "`Pi/12`. Es el mismo tipo de integrando que el de la prueba; aquí `Integrate` encuentra el valor exacto."
+    "explain": "`Pi/12`. Es el mismo tipo de integrando que el de la prueba."
    }
   },
   {
    "type": "build",
-   "title": "Jacobiano de un cambio de variable",
-   "md": "El recinto `x - 3 <= y <= x + 1`, `-x/4 + 7/9 <= y <= -x/4 + 5` es un paralelogramo.",
+   "title": "Jacobiano de un cambio",
+   "md": "Con `u = y - x`, `v = y + x/4` el paralelogramo de la prueba pasa a ser un rectángulo.",
    "target": "Abs[Det[D[{y - x, y + x/4}, {{x, y}}]]]",
    "parts": [
     {
@@ -694,22 +617,22 @@
     },
     {
      "code": "D[{y - x, y + x/4}, {{x, y}}]",
-     "md": "Con dobles llaves, `D` deriva respecto de cada variable de la lista y devuelve la matriz jacobiana.",
+     "md": "Con dobles llaves, `D` devuelve la matriz de derivadas.",
      "run": true
     },
     {
      "code": "Det[D[{y - x, y + x/4}, {{x, y}}]]",
-     "md": "Su determinante: el jacobiano de `(u, v)` respecto de `(x, y)`.",
+     "md": "Su determinante: el jacobiano.",
      "run": true
     },
     {
      "code": "Abs[Det[D[{y - x, y + x/4}, {{x, y}}]]]",
-     "md": "En valor absoluto. Este es el apartado b) de la pregunta 4 de la prueba: 1.25.",
+     "md": "En valor absoluto: `5/4`, el apartado b) de la prueba.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: valor absoluto del jacobiano del cambio `u = y - x`, `v = y + x/4` respecto de `(x, y)`.",
+    "prompt": "De memoria: valor absoluto del jacobiano de `{y - x, y + x/4}` respecto de `{x, y}`.",
     "hints": [
      "Tres funciones anidadas: `Abs[Det[D[...]]]`.",
      "La matriz: `D[{y - x, y + x/4}, {{x, y}}]` (dobles llaves).",
@@ -721,16 +644,16 @@
     "Det",
     "Abs"
    ],
-   "more": "Con `u = y - x`, `v = y + x/4` se convierte en el rectángulo `-3 <= u <= 1`, `7/9 <= v <= 5`. Hace falta el jacobiano del cambio.",
-   "section": "Cambio de variable: el paralelogramo"
+   "more": "Recinto de la prueba: `x - 3 <= y <= x + 1`, `-x/4 + 7/9 <= y <= -x/4 + 5`. Con el cambio queda `-3 <= u <= 1`, `7/9 <= v <= 5`.",
+   "section": "El paralelogramo"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e14",
+    "id": "1-p23-e12",
     "kind": "code",
-    "title": "El jacobiano de las polares",
-    "prompt": "Comprueba que el jacobiano de las coordenadas polares es `r`: calcula el determinante de la matriz de derivadas de `{r Cos[a], r Sin[a]}` respecto de `{r, a}` y simplifícalo.",
+    "title": "Jacobiano de las polares",
+    "prompt": "Calcula `Det` de la matriz de derivadas de `{r Cos[a], r Sin[a]}` respecto de `{r, a}` y simplifica.",
     "difficulty": 2,
     "cmds": [
      "Det",
@@ -749,56 +672,71 @@
      "D"
     ],
     "hints": [
-     "`D[{r Cos[a], r Sin[a]}, {{r, a}}]` es la matriz.",
-     "`Det[...] // Simplify`"
+     "`D[{r Cos[a], r Sin[a]}, {{r, a}}]` es la matriz; después `Det[...] // Simplify`."
     ],
-    "explain": "Sale `r Cos[a]^2 + r Sin[a]^2`, que `Simplify` reduce a `r`. De ahí viene el factor `r` de todas las integrales en polares."
+    "explain": "Sale `r`: de ahí viene el factor de todas las integrales en polares."
    }
   },
   {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p23-e15",
-    "kind": "code",
-    "title": "Paralelogramo: transformación inversa",
-    "prompt": "Con `u = y - x`, `v = y + x/4`: despeja `x` e `y` en función de `u` y `v` con `Solve` y expresa `3 x + 2 y` en función de `u` y `v` (simplificado). Deja esa expresión como última salida.",
-    "difficulty": 4,
-    "cmds": [
-     "Solve",
-     "Flatten",
-     "Simplify",
-     "ReplaceAll"
+   "type": "build",
+   "title": "Transformación inversa",
+   "md": "Despeja `x`, `y` en función de `u`, `v` y reescribe el integrando `3 x + 2 y`.",
+   "target": "3 x + 2 y /. Flatten[Solve[{u == y - x, v == y + x/4}, {x, y}]] // Simplify",
+   "parts": [
+    {
+     "code": "Solve[{u == y - x, v == y + x/4}, {x, y}]",
+     "md": "Un sistema: lista de ecuaciones y lista de incógnitas.",
+     "run": true
+    },
+    {
+     "code": "Flatten[Solve[{u == y - x, v == y + x/4}, {x, y}]]",
+     "md": "`Flatten` quita un nivel de llaves: queda una lista de reglas.",
+     "run": true
+    },
+    {
+     "code": "3 x + 2 y /. Flatten[Solve[{u == y - x, v == y + x/4}, {x, y}]]",
+     "md": "Aplica las reglas al integrando con `/.`.",
+     "run": true
+    },
+    {
+     "code": "3 x + 2 y /. Flatten[Solve[{u == y - x, v == y + x/4}, {x, y}]] // Simplify",
+     "md": "Simplificado: `-2 u + 4 v`, el apartado c) de la prueba.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: expresa `3 x + 2 y` en función de `u = y - x`, `v = y + x/4` (Solve, Flatten, Simplify).",
+    "hints": [
+     "Empieza por `3 x + 2 y /.` y después las reglas.",
+     "Las reglas: `Flatten[Solve[{u == y - x, v == y + x/4}, {x, y}]]`.",
+     "Termina con `// Simplify`."
     ],
-    "real": true,
-    "source": "Práctica 23 · P4 c)",
-    "solution": "sol = Solve[{u == y - x, v == y + x/4}, {x, y}];\n3 x + 2 y /. Flatten[sol] // Simplify",
     "check": {
      "type": "expr",
      "expected": "-2 u + 4 v"
-    },
-    "requires": [
-     "Solve"
-    ],
-    "hints": [
-     "`Solve[{u == y - x, v == y + x/4}, {x, y}]` da `x` e `y` en función de `u`, `v`.",
-     "Aplica las reglas a `3 x + 2 y` con `/. Flatten[sol]` y termina con `// Simplify`."
-    ],
-    "explain": "`3 x + 2 y = -2 u + 4 v`. `Flatten` quita un nivel de llaves a la salida de `Solve` para que `/.` la acepte como lista de reglas."
-   }
+    }
+   },
+   "cmds": [
+    "Solve",
+    "Flatten",
+    "ReplaceAll",
+    "Simplify"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e16",
+    "id": "1-p23-e13",
     "kind": "code",
     "title": "Paralelogramo: la integral",
-    "prompt": "Usa los resultados anteriores (`|J| = 1.25`, `3 x + 2 y = -2 u + 4 v`, `-3 <= u <= 1`, `7/9 <= v <= 5`) para calcular con 6 cifras la integral doble de `3 x + 2 y` sobre el paralelogramo.",
+    "prompt": "Integra `(-2 u + 4 v)/1.25` con `u` de `-3` a `1` y `v` de `7/9` a `5`.",
     "difficulty": 3,
     "cmds": [
      "Integrate"
     ],
     "real": true,
     "source": "Práctica 23 · P4 d)",
+    "more": "Enunciado de la prueba: d) usa los resultados anteriores (`|J| = 1.25`, `3 x + 2 y = -2 u + 4 v`) para calcular con 6 cifras la integral doble de `3 x + 2 y` sobre el paralelogramo. Se **divide** por el jacobiano porque es el de las variables nuevas respecto de las antiguas.",
     "solution": "Integrate[(-2 u + 4 v)/1.25, {u, -3, 1}, {v, 7/9, 5}]",
     "check": {
      "type": "expr",
@@ -807,20 +745,18 @@
      "tol": 1e-06
     },
     "hints": [
-     "En las variables nuevas el recinto es un rectángulo.",
-     "Integrando: `(-2 u + 4 v)` **dividido** por el jacobiano 1.25.",
      "`Integrate[(-2 u + 4 v)/1.25, {u, -3, 1}, {v, 7/9, 5}]`"
     ],
-    "explain": "Resultado: 183.151. Si multiplicas por 1.25 en vez de dividir sale 286.17: es el error clásico de este ejercicio."
+    "explain": "183.151. Si multiplicas por 1.25 en vez de dividir sale 286.17: el error clásico de este ejercicio."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e17",
+    "id": "1-p23-e14",
     "kind": "code",
     "title": "Volumen bajo un paraboloide",
-    "prompt": "Calcula el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `5 z = 2 x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 8` y cuyos puntos verifican `y > 0`.\n\nEl volumen es la integral doble de la altura `z(x, y)` sobre el semicírculo.",
+    "prompt": "Integra la altura `(2 x^2 + y^2)/5` con `x` de `-Sqrt[8]` a `Sqrt[8]` e `y` de `0` a `Sqrt[8 - x^2]`, en decimal.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -829,6 +765,7 @@
     ],
     "real": true,
     "source": "Práctica 23 · PExtra",
+    "more": "Enunciado de la prueba: calcula el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `5 z = 2 x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 8` y cuyos puntos verifican `y > 0`.",
     "solution": "Integrate[(2 x^2 + y^2)/5, {x, -Sqrt[8], Sqrt[8]}, {y, 0, Sqrt[8 - x^2]}] // N",
     "check": {
      "type": "expr",
@@ -837,11 +774,9 @@
      "tol": 1e-05
     },
     "hints": [
-     "Altura: `z = (2 x^2 + y^2)/5`.",
-     "Recinto: semicírculo de radio `Sqrt[8]` con `y > 0`: `x` de `-Sqrt[8]` a `Sqrt[8]`; `y` de `0` a `Sqrt[8 - x^2]` (sale de `Solve[x^2 + y^2 == 8, y]`).",
      "`Integrate[(2 x^2 + y^2)/5, {x, -Sqrt[8], Sqrt[8]}, {y, 0, Sqrt[8 - x^2]}] // N`"
     ],
-    "explain": "Volumen = 24π/5 ≈ 15.0796. Una integral doble de la altura es un volumen: es el puente hacia las integrales triples de la práctica siguiente."
+    "explain": "Volumen = 24π/5 ≈ 15.0796. Una integral doble de la altura es un volumen: el puente hacia las triples."
    }
   }
  ]

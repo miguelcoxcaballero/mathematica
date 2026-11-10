@@ -353,22 +353,59 @@ const normTyped = (s) => String(s).replace(/\r/g, '').replace(/[\u201c\u201d\u20
   .replace(/[\u2013\u2014\u2212]/g, '-').replace(/\u2026/g, '...').replace(/\u00a0/g, ' ');
 const prepGhost = (g) => normTyped(g).replace(/\t/g, '  ').split('\n').map((l) => l.replace(/\s+$/, '')).join('\n').replace(/^\n+|\n+$/g, '');
 const isSp = (c) => c === ' ' || c === '\t';
-const skipSp = (G, p) => { while (p < G.length && isSp(G[p])) p++; return p; };
-// How far into the ghost G does the typed text V get?  → {p: ghost chars consumed, okLen: good prefix of V,
-// wrong: mistyped tail, bounced: an Enter/space that was simply ignored}
-function ghostWalk(G, V) {
+// The ghost is laid out for the width of the cell: lines that do not fit are broken at a space and continued
+// with a hanging indent, like the Mathematica front end wraps Input. Those inserted characters are "soft":
+// the student never types them and they are not part of the code.
+//   → {D: display string, soft: flags per D index, d2g: index into G for every D index}
+function ghostLayout(G, cols) {
+  const D = []; const soft = []; const d2g = [];
+  let g0 = 0;
+  const lines = G.split('\n');
+  lines.forEach((line, li) => {
+    const indent = /^ */.exec(line)[0];
+    const hang = indent + '  ';
+    let start = 0;
+    for (;;) {
+      const avail = cols - (start ? hang.length : 0);
+      const rest = line.slice(start);
+      if (!cols || avail < 10 || rest.length <= avail) { for (let k = 0; k < rest.length; k++) { D.push(rest[k]); soft.push(0); d2g.push(g0 + start + k); } break; }
+      let cut = rest.lastIndexOf(' ', avail - 1);
+      const comma = rest.lastIndexOf(', ', avail - 2) + 1;                  // prefer to break after a comma
+      if (comma > avail * 0.55) cut = comma;
+      if (cut < (start ? 0 : indent.length) + 4) cut = avail - 1;         // no space to break at: cut at the edge
+      for (let k = 0; k <= cut; k++) { D.push(rest[k]); soft.push(0); d2g.push(g0 + start + k); }
+      start += cut + 1;
+      for (const ch of '\n' + hang) { D.push(ch); soft.push(1); d2g.push(g0 + start); }
+    }
+    if (li < lines.length - 1) { D.push('\n'); soft.push(0); d2g.push(g0 + line.length); }
+    g0 += line.length + 1;
+  });
+  return { D: D.join(''), soft, d2g };
+}
+// How far into the laid-out ghost L does the typed text V get?  → {p: chars of L.D consumed, okLen: good prefix
+// of V, wrong: mistyped tail, bounced: an Enter/space that was simply ignored}
+function ghostWalk(L, V) {
+  const D = L.D; const n = D.length;
+  const skipSpaces = (p) => { while (p < n && D[p] === ' ') p++; return p; };
+  const skipSoft = (p) => { while (p < n && (D[p] === ' ' || (D[p] === '\n' && L.soft[p]))) p++; return p; };
   let p = 0; let i = 0;
   for (; i < V.length; i++) {
     const c = V[i];
     if (isSp(c)) continue;
-    const q = skipSp(G, p);
-    if (q < G.length && G[q] === c) { p = q + 1; if (c === '\n') p = skipSp(G, p); } else break;
+    if (c === '\n') {
+      const q = skipSpaces(p);
+      if (q < n && D[q] === '\n') { p = skipSpaces(q + 1); continue; }
+      break;
+    }
+    const q = skipSoft(p);
+    if (q < n && D[q] === c) p = q + 1; else break;
   }
   let wrong = V.slice(i).replace(/\n/g, '');
   let bounced = false;
-  if (!wrong.trim()) { bounced = V.slice(i).includes('\n'); wrong = ''; if (V.length && isSp(V[V.length - 1])) p = skipSp(G, p); }
+  if (!wrong.trim()) { bounced = V.slice(i).includes('\n'); wrong = ''; if (V.length && isSp(V[V.length - 1])) p = skipSpaces(p); }
   else { wrong = wrong.replace(/^\s+/, '').slice(0, 6); }
-  return { p, okLen: i, wrong, bounced };
+  const next = skipSoft(p);
+  return { p, okLen: i, wrong, bounced, next, complete: !wrong && next >= n };
 }
 
 function createEditor({ code = '', readOnly = false, placeholder = '', onRun, onHelp, onInput, ghost = null, onGhost }) {
@@ -381,39 +418,69 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
   let focused = false;
   let gstate = { p: 0, wrong: '', complete: false };
   let composing = false;
+  let L = G != null ? ghostLayout(G, 0) : null;   // laid out for the real width as soon as it is known
+  let cols = 0;
+  const gIndex = (p) => (p >= L.D.length ? G.length : L.d2g[p]);            // position in the code itself
+  const typedCount = (p) => { let k = 0; for (let j = 0; j < p; j++) if (!L.soft[j] && L.D[j] !== ' ') k++; return k; };
 
   // Re-derive the ghost state from whatever is in the textarea; unless the keyboard is mid-composition (dead keys,
   // Android word composing) the textarea is rewritten to the canonical "ghost prefix + mistyped tail".
   function ghostSync(quiet) {
     const V = normTyped(ta.value);
-    const st = ghostWalk(G, V);
+    const st = ghostWalk(L, V);
     let ok;
     if (!composing) {
-      const canon = G.slice(0, st.p) + st.wrong;
+      const canon = L.D.slice(0, st.p) + st.wrong;
       if (ta.value !== canon) ta.value = canon;
       if (ta.selectionStart !== canon.length || ta.selectionEnd !== canon.length) ta.setSelectionRange(canon.length, canon.length);
-      ok = G.slice(0, st.p);
+      ok = L.D.slice(0, st.p);
     } else ok = V.slice(0, st.okLen);
-    const rest = G.slice(st.p);
+    const rest = L.D.slice(st.p);
     pre.innerHTML = highlight(ok + rest, { defined: kernel.defined, ghostFrom: ok.length, wrong: st.wrong }) + '\n';
-    const complete = !st.wrong && skipSp(G, st.p) >= G.length;
     const was = gstate;
-    gstate = { p: st.p, wrong: st.wrong, complete };
+    gstate = { p: st.p, wrong: st.wrong, complete: st.complete };
     el.classList.toggle('is-wrong', !!st.wrong);
-    el.classList.toggle('is-complete', complete);
+    el.classList.toggle('is-complete', st.complete);
     if (!quiet && onGhost) {
-      const total = G.replace(/[ \t]/g, '').length || 1;
-      onGhost({ progress: G.slice(0, st.p).replace(/[ \t]/g, '').length / total, complete, justCompleted: complete && !was.complete,
-        wrong: st.wrong, expected: G[skipSp(G, st.p)], bounced: st.bounced });
+      onGhost({ progress: typedCount(st.p) / (typedCount(L.D.length) || 1), complete: st.complete, justCompleted: st.complete && !was.complete,
+        wrong: st.wrong, expected: L.D[st.next], bounced: st.bounced });
     }
   }
+  // Fit the ghost to the editor width (monospace: columns = width / glyph width). Keeps what was typed.
+  function ghostFit() {
+    if (G == null) return;
+    const w = pre.clientWidth;
+    if (!w) return;
+    const probe = h('span', { text: 'M'.repeat(40), style: 'visibility:hidden;position:absolute;white-space:pre' });
+    pre.append(probe);
+    const cw = probe.getBoundingClientRect().width / 40;
+    probe.remove();
+    const c = cw ? Math.max(0, Math.floor(w / cw + 0.001) - 1) : 0;
+    if (c === cols) return;
+    cols = c;
+    const g = gIndex(gstate.p);
+    L = ghostLayout(G, cols);
+    let p = L.D.length;
+    if (g < G.length) { p = 0; while (p < L.D.length && L.d2g[p] < g) p++; }
+    ta.value = L.D.slice(0, p) + gstate.wrong;
+    ghostSync(true);
+  }
+  const fitObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(() => ghostFit()) : null;
+  if (fitObserver) fitObserver.observe(el);
 
   const ed = {
     el, ta,
     ghost: {
       active: () => G != null,
       complete: () => G != null && gstate.complete,
-      set(g) { G = g == null ? null : prepGhost(g); el.classList.toggle('is-ghost', G != null); ta.value = ''; gstate = { p: 0, wrong: '', complete: false }; ed.refresh(); },
+      code: () => (G == null ? ta.value : G.slice(0, gIndex(gstate.p))),      // what has been typed, as real code
+      set(g) {
+        G = g == null ? null : prepGhost(g);
+        el.classList.toggle('is-ghost', G != null);
+        ta.value = ''; gstate = { p: 0, wrong: '', complete: false }; cols = 0;
+        L = G != null ? ghostLayout(G, 0) : null;
+        ed.refresh(); ghostFit();
+      },
       shake() { el.classList.remove('wl-shake'); void el.offsetWidth; el.classList.add('wl-shake'); },
     },
     refresh() {
@@ -447,7 +514,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
       }
       return ta.getBoundingClientRect();
     },
-    destroy() { editors.delete(ed); if (popup && popup.ed === ed) closePopup(); },
+    destroy() { editors.delete(ed); if (fitObserver) fitObserver.disconnect(); if (popup && popup.ed === ed) closePopup(); },
   };
 
   const lineStart = (v, pos) => v.lastIndexOf('\n', pos - 1) + 1;
@@ -469,7 +536,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
   function ghostKey(e) {
     const mod = e.ctrlKey || e.metaKey;
     if (e.key === 'Enter' && (e.shiftKey || mod)) { e.preventDefault(); onRun && onRun(); return; }
-    if (e.key === 'F1') { e.preventDefault(); const sym = symbolAt(G, Math.min(G.length, gstate.p)); if (sym && onHelp) onHelp(sym.name); return; }
+    if (e.key === 'F1') { e.preventDefault(); const sym = symbolAt(G, Math.max(0, gIndex(gstate.p) - 1)) || symbolAt(G, gIndex(gstate.p)); if (sym && onHelp) onHelp(sym.name); return; }
     if (mod && /^[zyv]$/i.test(e.key)) { e.preventDefault(); return; }            // no undo / paste games
     if (['ArrowLeft', 'ArrowUp', 'Home', 'PageUp'].includes(e.key)) { e.preventDefault(); return; }
     const len = ta.value.length;
@@ -477,8 +544,9 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     if (e.key === 'Enter') {
       e.preventDefault();
       if (gstate.wrong) { ed.ghost.shake(); return; }
-      const q = skipSp(G, gstate.p);
-      if (G[q] === '\n') { ta.value = G.slice(0, q + 1); ghostSync(); onInput && onInput(); } else { ed.ghost.shake(); onGhost && onGhost({ enterBlocked: true, complete: gstate.complete }); }
+      let q = gstate.p;
+      while (q < L.D.length && L.D[q] === ' ') q++;
+      if (L.D[q] === '\n' && !L.soft[q]) { ta.value = L.D.slice(0, q + 1); ghostSync(); onInput && onInput(); } else { ed.ghost.shake(); onGhost && onGhost({ enterBlocked: true, complete: gstate.complete }); }
     }
   }
 
@@ -674,7 +742,7 @@ export function createCell(container, opts = {}) {
       return Promise.resolve({ items: [], inLine: null, lastLine: null, ms: 0, incomplete: true });
     }
     if (editor.ghost.active()) say('');
-    const code = editor.ta.value;
+    const code = editor.ghost.code();
     if (!code.trim()) return Promise.resolve({ items: [], inLine: null, lastLine: null, ms: 0 });
     const help = /^\s*\?\s*([A-Za-z$][\w$]*)\s*$/.exec(code);
     if (help) { showHelp(help[1]); return Promise.resolve({ items: [], inLine: null, lastLine: null, ms: 0 }); }
@@ -704,7 +772,7 @@ export function createCell(container, opts = {}) {
 
   const api = {
     el, run,
-    getCode: () => editor.ta.value,
+    getCode: () => editor.ghost.code(),
     setCode: (c) => { editor.ta.value = String(c ?? ''); editor.refresh(); },
     isComplete: () => (editor.ghost.active() ? editor.ghost.complete() : true),
     setGhost: (g) => { editor.ghost.set(g); el.classList.toggle('wl-cell--ghost', g != null); el.classList.remove('is-ghost-complete'); say(''); },

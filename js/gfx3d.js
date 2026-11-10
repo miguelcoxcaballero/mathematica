@@ -26,9 +26,9 @@ void main(){
   vec3 ng=normalize(cross(dFdx(vVP),dFdy(vVP)));
   n=normalize(mix(ng*sign(dot(ng,n)+1e-6),n,smoothstep(0.72,0.93,abs(dot(n,ng)))));
   if(dot(n,V)<0.0) n=-n;
-  float d=0.22*max(dot(n,vec3(0.7071,0.0,0.7071)),0.0)+0.27*max(dot(n,vec3(0.5774,0.5774,0.5774)),0.0)+0.22*max(dot(n,vec3(0.0,0.7071,0.7071)),0.0);
+  float d=0.19*max(dot(n,vec3(0.7071,0.0,0.7071)),0.0)+0.24*max(dot(n,vec3(0.5774,0.5774,0.5774)),0.0)+0.19*max(dot(n,vec3(0.0,0.7071,0.7071)),0.0)+0.16*max(n.z,0.0);
   vec3 base=vCol.rgb;
-  vec3 lit=base*(0.56+d)+base*vec3(0.62,0.68,0.88)*0.22*max(dot(n,vec3(-0.70,-0.52,0.49)),0.0);
+  vec3 lit=base*(0.52+d)+base*vec3(0.62,0.68,0.88)*0.20*max(dot(n,vec3(-0.70,-0.52,0.49)),0.0);
   vec3 Hh=normalize(V+vec3(0.5774,0.5774,0.5774));
   lit+=vec3(0.13)*pow(max(dot(n,Hh),0.0),24.0);
   vec3 fw=fwidth(vUv.xyz)+1e-6;
@@ -258,6 +258,7 @@ class Scene {
     const rgba = this.rgba(p.color, p.ci, p.opacity);
     const base = this.pos.length / 3;
     const k = [0, 1, 2].map(a => (this.range[a][1] - this.range[a][0]) / this.box[a]);
+    const ML = p.mesh ? (typeof p.mesh === 'number' ? p.mesh + 1 : 6) : 0, bx = this.box;
     for (let q = 0; q < nv; q++) {
       const x = V[q * 3], y = V[q * 3 + 1], z = V[q * 3 + 2];
       this.pos.push(this.N(0, x), this.N(1, y), this.N(2, z));
@@ -265,7 +266,8 @@ class Scene {
       const l = Math.hypot(gx, gy, gz);
       if (l > 0) { gx /= l; gy /= l; gz /= l; } else { gz = 1; }
       this.nrm.push(-gx, -gy, -gz);
-      this.uv.push(0.5, 0.5, 0.5, M ? (fin(M[q]) ? M[q] : -1) : 1);
+      const mk = M ? (fin(M[q]) ? M[q] : -1) : 1;
+      if (ML) { const o = this.pos.length - 3; this.uv.push((this.pos[o] / bx[0] + 0.5) * ML, (this.pos[o + 1] / bx[1] + 0.5) * ML, (this.pos[o + 2] / bx[2] + 0.5) * ML, mk); } else this.uv.push(0.5, 0.5, 0.5, mk);
       this.col.push(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
     const idx = rgba[3] < 255 ? this.idxT : this.idxO;
@@ -890,7 +892,7 @@ class Plot3D {
     for (let i = 0; i < nv; i++) { const q = P([pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]]); X[i] = q[0]; Y[i] = q[1]; D[i] = q[2]; }
     const items = [];
     const inBox = i => Math.abs(pos[i * 3]) <= h[0] * 1.01 + 0.003 && Math.abs(pos[i * 3 + 1]) <= h[1] * 1.01 + 0.003 && Math.abs(pos[i * 3 + 2]) <= h[2] * 1.01 + 0.003 && uv[i * 4 + 3] >= 0;
-    const L = [[0.7071, 0, 0.7071, 0.30], [0.5774, 0.5774, 0.5774, 0.34], [0, 0.7071, 0.7071, 0.30]];
+    const L = [[0.7071, 0, 0.7071, 0.19], [0.5774, 0.5774, 0.5774, 0.24], [0, 0.7071, 0.7071, 0.19], [-0.70, -0.52, 0.49, 0.15]];
     const addTris = idx => {
       for (let t = 0; t < idx.length; t += 3) {
         const a = idx[t], b = idx[t + 1], c = idx[t + 2];
@@ -900,7 +902,7 @@ class Plot3D {
         let vx = cam.r[0] * nx + cam.r[1] * ny + cam.r[2] * nz, vy = cam.u[0] * nx + cam.u[1] * ny + cam.u[2] * nz, vz = cam.b[0] * nx + cam.b[1] * ny + cam.b[2] * nz;
         const l = Math.hypot(vx, vy, vz) || 1; vx /= l; vy /= l; vz /= l;
         if (vz < 0) { vx = -vx; vy = -vy; vz = -vz; }
-        let d = 0.42;
+        let d = 0.52 + 0.16 * vz;
         for (const q of L) d += q[3] * Math.max(0, vx * q[0] + vy * q[1] + vz * q[2]);
         const f = Math.min(1.08, d);
         const cr = Math.min(255, col[a * 4] * f) | 0, cg = Math.min(255, col[a * 4 + 1] * f) | 0, cb = Math.min(255, col[a * 4 + 2] * f) | 0, al = col[a * 4 + 3] / 255;

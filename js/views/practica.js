@@ -7,7 +7,7 @@ import { store } from '../store.js';
 import * as data from '../data.js';
 import * as fx from '../fx.js';
 import {
-  mountExercise, isPractice, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
+  mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel,
 } from '../exercise.js';
 
 const PREF_KEY = 'wolframlab-aero-practice';
@@ -39,6 +39,15 @@ function loadIndex() {
       const unit = units.get(lesson.id) || null;
       const list = [];
       (lesson.steps || []).forEach((step, si) => {
+        if (step && step.type === 'build') {
+          // the recall of a build ("write it from memory") is practised like any other exercise
+          const rx = recallExercise(lesson, si);
+          if (!rx) return;
+          const it = { ex: rx, lesson, unit, step: si, pos: (unit ? unit.pos : 1000 + li) * 1000 + si, year: yearOf(lesson), recall: true };
+          items.push(it); list.push(it); byId.set(rx.id, it);
+          for (const c of new Set(rx.cmds || [])) { if (!byCmd.has(c)) byCmd.set(c, []); byCmd.get(c).push(it); }
+          return;
+        }
         if (!step || step.type !== 'exercise' || !step.ex || !step.ex.id || !step.ex.kind) return;
         if (!isPractice(step.ex)) return; // notes and type-and-observe steps (old mcq/predict) are not exercises
         const it = { ex: step.ex, lesson, unit, step: si, pos: (unit ? unit.pos : 1000 + li) * 1000 + si, year: yearOf(lesson) };
@@ -65,6 +74,7 @@ function lessonStarted(id) {
 }
 /** Has the student studied this exercise's material? (lesson started, or exercise tried, or every command already seen) */
 function studied(it) {
+  if (it.recall) return !!exRec(it.ex.id) || !!safe(() => store.state.lesson[it.lesson.id].typed[it.step], false); // only builds he has already built
   if (lessonStarted(it.lesson.id) || exRec(it.ex.id)) return true;
   const cmds = it.ex.cmds || [];
   return cmds.length > 0 && cmds.every((c) => cmdLv(c) >= 1);
@@ -177,7 +187,7 @@ function renderHub(me) {
 
   const head = h('header', { class: 'pr-head' },
     h('h1', null, 'Práctica'),
-    h('p', { class: 'muted' }, 'Aquí se gana el examen: repite hasta que los comandos te salgan solos. Elige cómo quieres entrenar hoy.'));
+    h('p', { class: 'muted' }, 'Repite hasta que los comandos te salgan solos.'));
 
   /* three big entries */
   const nBtns = h('div', { class: 'pr-n', role: 'group', 'aria-label': 'Número de ejercicios' });
@@ -191,15 +201,15 @@ function renderHub(me) {
   const cards = h('div', { class: 'pr-modes' },
     h('a', { class: 'pr-mode pr-mode--cmd', href: '#pr-cmds', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-cmds')); const s = root.querySelector('.pr-search'); if (s) s.focus({ preventScroll: true }); } },
       h('h2', null, 'Por comando'),
-      h('p', null, 'Elige un comando y escribe ejercicios de todas las prácticas que lo usan, de fácil a difícil.'),
+      h('p', null, 'Un comando, de fácil a difícil.'),
       h('span', { class: 'pr-mode-meta' }, `${cmds.length} comandos con ejercicios`)),
     h('a', { class: 'pr-mode pr-mode--tema', href: '#pr-temas', onclick: (e) => { e.preventDefault(); scrollToEl(root.querySelector('#pr-temas')); } },
       h('h2', null, 'Por tema'),
-      h('p', null, 'Todos los ejercicios de una práctica concreta, incluidos los reales de examen.'),
+      h('p', null, 'Los ejercicios de una práctica, con los reales.'),
       h('span', { class: 'pr-mode-meta' }, `${idx.lessons.length} temas · ${idx.items.length} ejercicios`)),
     h('div', { class: 'pr-mode pr-mode--rand' },
       h('h2', null, 'Aleatoria sobre lo ya estudiado'),
-      h('p', null, 'Mezcla temas y cursos, y te pone delante lo que más te cuesta o hace tiempo que no tocas.'),
+      h('p', null, 'Mezcla lo que más te cuesta y lo que hace tiempo que no tocas.'),
       studiedPool.length
         ? h('div', { class: 'pr-rand-row' }, nBtns, go)
         : h('span', { class: 'pr-mode-meta' }, 'Se activa en cuanto empieces tu primera lección.'),
@@ -322,8 +332,14 @@ function startRandom(me, query) {
   savePrefs({ n: qn });
   runSession(me, {
     kind: 'aleatoria', endless: false,
-    kicker: 'Práctica aleatoria', title: `${Math.min(qn, pool.length)} ejercicios de lo ya estudiado`, sub: 'Se priorizan los que fallaste, los que viste resueltos y los que hace más que no tocas.',
-    build: () => sample(me.idx.items.filter(studied), qn),
+    kicker: 'Práctica aleatoria', title: `${Math.min(qn, pool.length)} ejercicios`, sub: '',
+    build: () => {
+      const picked = sample(me.idx.items.filter(studied), qn);
+      // the session opens with 2–3 "¿recuerdas?" from the review queue (SPEC §13)
+      const due = reviewDue().map((r) => me.idx.byId.get(`${r.lessonId}-b${r.step}`)).filter(Boolean).slice(0, 3);
+      const rest = picked.filter((it) => !due.includes(it));
+      return [...due.map((it) => ({ ...it, warm: true })), ...rest].slice(0, Math.max(qn, due.length));
+    },
     again: `#/practica/aleatoria?n=${qn}`,
   });
 }
@@ -344,7 +360,7 @@ function renderRandomIntro(me, pool) {
     h('header', { class: 'pr-shead' }, h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica' }, '← Práctica'),
       h('div', { class: 'lp-titles' }, h('div', { class: 'lp-crumbs' }, 'Práctica'), h('h1', { class: 'lp-title' }, 'Aleatoria sobre lo ya estudiado'))),
     h('div', { class: 'pr-intro' },
-      h('p', { class: 'pr-intro-t' }, 'Una sesión corta con ejercicios mezclados de todo lo que llevas visto. Mezclar temas cuesta más que repetir uno solo… y por eso se te queda.'),
+      h('p', { class: 'pr-intro-t' }, 'Ejercicios mezclados de lo que ya has visto.'),
       h('div', { class: 'lp-end-stats' }, stat(String(pool.length), 'ejercicios disponibles'), stat(String(lessons.size), lessons.size === 1 ? 'tema' : 'temas'), stat(String(pending), 'para repasar'), stat(String(fresh), 'sin estrenar')),
       h('h3', null, '¿Cuántos ejercicios?'), btns,
       h('div', { class: 'row' }, go, h('a', { class: 'btn ghost', href: '#/practica' }, 'Volver'))));
@@ -395,29 +411,29 @@ function runSession(me, cfg) {
     count.textContent = `${cfg.endless && S.round > 1 ? `Ronda ${S.round} · ` : ''}${S.pos + 1} / ${total}`;
     const unit = it.unit;
     const src = h('div', { class: 'pr-src' },
-      yearBadge(it.year),
-      h('span', { class: 'pr-src-t' }, [unit && unit.practice, it.lesson.title].filter(Boolean).join(' · ')),
+      h('span', { class: 'pr-src-t' }, [it.warm ? '¿Recuerdas?' : it.recall ? 'De memoria' : '', unit && unit.practice, it.lesson.title].filter(Boolean).join(' · ')),
       h('a', { class: 'pr-src-a', href: `#/leccion/${encodeURIComponent(it.lesson.id)}/${explainStep(it)}`, title: 'Abrir la explicación de la lección' }, 'Repasar la teoría'));
     const host = h('div', { class: 'pr-exhost' });
     const wrap = h('div', { class: 'lp-step lp-in-r' }, src, host);
     stage.replaceChildren(wrap);
     S.current = { it, done: false };
     skipBtn.hidden = false;
-    nextBtn.disabled = true; nextBtn.classList.remove('lx-pulse');
+    nextBtn.disabled = true; nextBtn.classList.remove('primary'); // one primary action per screen: Comprobar
     nextBtn.textContent = S.pos === total - 1 ? 'Ver resumen →' : 'Siguiente →';
     hint.textContent = '';
     // a new variant every time the exercise comes up again
     me.widget = mountExercise(host, it.ex, {
-      mode: 'practice', seed: newSeed(), year: it.year, lesson: it.lesson,
+      mode: 'practice', seed: newSeed(), year: it.year, lesson: it.lesson, recall: !!it.recall,
       onDone: (res) => {
         if (S.current.it !== it || S.current.done) return;
         S.current.done = true;
         S.results.push({ ...res, it });
+        if (it.recall) reviewRecord(it.lesson.id, it.step, { revealed: !!res.revealed, hints: res.hints || 0 });
         if (res.xp) S.xp += res.xp;
         meters();
         skipBtn.hidden = true;
-        nextBtn.disabled = false; nextBtn.classList.add('lx-pulse');
-        hint.textContent = 'Enter o → para seguir';
+        nextBtn.disabled = false; nextBtn.classList.add('primary');
+        hint.textContent = 'Enter';
         setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
       },
     });
@@ -463,7 +479,7 @@ function runSession(me, cfg) {
     const acc = ok / n;
     const mins = Math.max(1, Math.round((Date.now() - S.t0) / 60000));
     const improved = [...S.cmd0.entries()].map(([c, lv0]) => ({ c, lv0, lv1: cmdLv(c) })).filter((x) => x.lv1 > x.lv0);
-    const msg = acc === 1 ? 'Sesión perfecta. Sube la dificultad o cambia de tema.' : acc >= 0.8 ? 'Muy bien. Repasa los fallos y lo tienes.' : acc >= 0.5 ? 'Vas por buen camino: repite las falladas ahora que las tienes frescas.' : 'Este tema necesita otra vuelta. Repite las falladas con las pistas a mano.';
+    const msg = acc === 1 ? 'Sesión perfecta.' : acc >= 0.8 ? 'Muy bien.' : 'Repite las falladas ahora que las tienes frescas.';
     const wrap = h('div', { class: 'lp-step lp-in pr-sum' });
     wrap.appendChild(h('div', { class: `lp-end-hero${acc >= 0.8 ? ' is-complete' : ''}` },
       h('div', { class: 'lp-end-big' }, h('b', null, `${Math.round(acc * 100)}`), h('span', null, '%'), h('small', null, 'aciertos')),
@@ -523,6 +539,7 @@ function runSession(me, cfg) {
 }
 
 function explainStep(it) {
+  if (it.recall) return it.step;
   const steps = it.lesson.steps || [];
   for (let i = it.step - 1; i >= 0; i--) if (steps[i] && steps[i].type === 'explain') return i;
   return it.step;

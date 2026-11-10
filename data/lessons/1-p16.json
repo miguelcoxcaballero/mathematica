@@ -133,16 +133,20 @@
      "run": true
     },
     {
-     "code": "Drop[G, {4}]",
-     "md": "Quita solo el 4.º con `Drop[G, {4}]`.",
+     "code": "Drop[G, {3}]",
+     "md": "Quita solo el 3.º con `Drop[G, {3}]`.",
      "run": true,
-     "hint": "Las llaves `{4}` significan «solo el cuarto»; sin llaves quitaría los cuatro primeros."
+     "hint": "Las llaves `{3}` significan «solo el tercero»; sin llaves quitaría los tres primeros."
+    },
+    {
+     "code": "MatrixRank[Drop[G, {3}]]",
+     "md": "Rango sin el 3.º: no baja. Ese vector sobraba.",
+     "run": true
     },
     {
      "code": "MatrixRank[Drop[G, {4}]]",
-     "md": "Calcula el rango de lo que queda.",
-     "run": true,
-     "hint": "Baja a 2: el 4.º era imprescindible. Si no bajara, ese vector sobraba."
+     "md": "Ahora sin el 4.º: baja a 2. Ese era imprescindible.",
+     "run": true
     }
    ],
    "recall": {

@@ -2130,6 +2130,17 @@ class IntQ(XB):
             return None
         from . import calc
 
+        if fs.has(sp.tan, sp.cot, sp.sec, sp.csc) and fs.has(sp.sin, sp.cos, sp.exp):
+            try:
+                alt = fs.replace(sp.tan, lambda u: sp.sin(u) / sp.cos(u)).replace(sp.cot, lambda u: sp.cos(u) / sp.sin(u)) \
+                    .replace(sp.sec, lambda u: 1 / sp.cos(u)).replace(sp.csc, lambda u: 1 / sp.sin(u))
+                alt = sp.cancel(sp.together(alt))
+                if not alt.has(sp.tan, sp.cot, sp.sec, sp.csc) and alt.count_ops() <= fs.count_ops() + 2:
+                    fs = alt
+            except SympyTimeout:
+                raise
+            except Exception:
+                pass
         if not definite:
             r = _heaviside_antiderivative(fs, xs) if fs.has(sp.Heaviside) else None
             if r is None and not piecewise and fs.has(sp.exp, sp.sin, sp.cos, sp.sinh, sp.cosh):
@@ -2532,9 +2543,10 @@ def install(kernel):
     _install_watchdog()
     _init_numpy_extra()
     contribute(kernel, BUILTINS)
-    from . import solve
+    from . import solve, more
 
     solve.install(kernel)
+    more.install(kernel)
     from . import gfx
 
     gfx.install(kernel)

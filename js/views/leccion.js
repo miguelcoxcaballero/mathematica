@@ -93,7 +93,7 @@ function screensOf(lesson, tramo) {
 }
 function minutesOf(lesson, tramo) {
   let m = 0;
-  for (const s of screensOf(lesson, tramo)) m += s.type === 'ex' ? (s.kind === 'exercise' ? 1.5 : 0.5) : s.type === 'recall' ? 1 : s.type === 'cell' || s.type === 'part' ? 0.5 : 0.25;
+  for (const s of screensOf(lesson, tramo)) m += s.type === 'ex' ? (s.kind === 'exercise' ? 1 : 0.3) : s.type === 'recall' ? 0.7 : s.type === 'cell' || s.type === 'part' ? 0.3 : 0.1;
   return Math.max(1, Math.round(m));
 }
 

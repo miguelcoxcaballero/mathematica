@@ -26,33 +26,34 @@
   {
    "type": "build",
    "section": "Derivadas parciales",
-   "title": "Parciales y cruzadas con D",
-   "md": "¿A qué velocidad y altitud gasta menos un avión? Es buscar el mínimo de una función de **dos variables**: derivar, igualar a cero y clasificar, pero con derivadas **parciales**. Empezamos por ellas.",
+   "title": "Parciales y cruzadas",
+   "md": "Con dos variables, las derivadas son parciales.",
    "target": "D[x^2 y + Sin[x y], x, y]",
    "parts": [
     {
      "code": "D[x^2 y + Sin[x y], x]",
-     "md": "Parcial respecto de `x`: la `y` se trata como constante.",
+     "md": "Deriva respecto de `x`: la `y` hace de constante.",
      "run": true
     },
     {
      "code": "D[x^2 y + Sin[x y], y]",
-     "md": "Parcial respecto de `y`: ahora la constante es `x`.",
+     "md": "Ahora respecto de `y`.",
      "run": true
     },
     {
      "code": "D[x^2 y + Sin[x y], {x, 2}]",
-     "md": "Segunda parcial respecto de `x`: variable y orden, entre llaves.",
+     "md": "Segunda parcial en `x`: variable y orden entre llaves.",
      "run": true
     },
     {
      "code": "D[x^2 y + Sin[x y], x, y]",
-     "md": "Derivada **cruzada**: primero respecto de `x`, luego respecto de `y`. Para evaluar en un punto se añade `/. {x -> 1, y -> 2}`.",
-     "run": true
+     "md": "La cruzada: primero `x`, luego `y`.",
+     "run": true,
+     "hint": "Para evaluar en un punto, añade `/. {x -> 1, y -> 2}` al final."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula la derivada cruzada (respecto de x y de y) de `x^2 y + Sin[x y]`.",
+    "prompt": "Calcula la derivada cruzada (en x y en y) de `x^2 y + Sin[x y]`.",
     "hints": [
      "El comando es `D[expresión, …]`",
      "Las dos variables seguidas, separadas por coma: `x, y`",
@@ -95,31 +96,32 @@
    "type": "build",
    "section": "Límites por caminos",
    "title": "Límite por rectas",
-   "md": "`Limit` solo sabe de **una** variable. Para un límite doble en (0, 0) te acercas por caminos; cada camino lo convierte en un límite de una variable. Primer camino: las rectas `y = m x`.",
+   "md": "`Limit` solo sabe de una variable: acércate a (0, 0) por caminos.",
    "target": "g[x_, y_] := x y/(x^2 + y^2)\nLimit[g[x, m x], x -> 0]",
    "parts": [
     {
      "code": "g[x_, y_] := x y/(x^2 + y^2)",
-     "md": "La función, definida con sus dos argumentos.",
+     "md": "Define la función de dos variables.",
      "run": true
     },
     {
      "code": "g[x, m x]",
-     "md": "Acercarse por la recta `y = m x` es sustituir `y` por `m x` al llamar a la función.",
+     "md": "Acércate por la recta `y = m x`: sustituye al llamar.",
      "run": true
     },
     {
      "code": "x -> 0",
-     "md": "La regla del límite: variable, flecha, valor."
+     "md": "Escribe la regla del límite."
     },
     {
      "code": "g[x_, y_] := x y/(x^2 + y^2)\nLimit[g[x, m x], x -> 0]",
-     "md": "El resultado **depende de `m`**: por cada recta sale un valor distinto, así que el límite doble **no existe**. Si no dependiera de `m`, habría que probar más caminos.",
-     "run": true
+     "md": "Calcula el límite por esa recta.",
+     "run": true,
+     "hint": "Depende de `m`: cada recta da un valor distinto, así que el límite doble no existe."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define `g[x_, y_] := x y/(x^2 + y^2)` y calcula su límite en (0, 0) por las rectas `y = m x`.",
+    "prompt": "Define `g[x_, y_] := x y/(x^2 + y^2)` y calcula su límite en (0, 0) por `y = m x`.",
     "hints": [
      "Línea 1: la definición de `g`",
      "La recta se mete al llamar: `g[x, m x]`",
@@ -167,33 +169,35 @@
   {
    "type": "build",
    "title": "Polares y parábolas",
-   "md": "Hay funciones tramposas: por todas las rectas y en polares sale 0 y, aun así, el límite no existe. Se descubre por **parábolas**. Ya está definida `k[x_, y_] := x^2 y/(x^4 + y^2)`.",
+   "md": "`k[x_, y_] := x^2 y/(x^4 + y^2)` ya está definida. Es tramposa.",
    "target": "Limit[k[x, m x^2], x -> 0]",
    "setup": "k[x_, y_] := x^2 y/(x^4 + y^2)",
    "parts": [
     {
      "code": "Limit[k[x, m x], x -> 0]",
-     "md": "Por rectas: 0, sin depender de `m`. No demuestra nada todavía.",
+     "md": "Por rectas: sale 0, sin depender de `m`.",
      "run": true
     },
     {
      "code": "Limit[k[r Cos[t], r Sin[t]], r -> 0]",
-     "md": "En **polares**: `x = r Cos[t]`, `y = r Sin[t]` y `r -> 0`. También 0. (En Mathematica las griegas ρ, α se teclean `Esc r Esc`, `Esc a Esc`.)",
-     "run": true
+     "md": "En polares: `x = r Cos[t]`, `y = r Sin[t]`, `r -> 0`.",
+     "run": true,
+     "hint": "También 0. En Mathematica, ρ y α se teclean `Esc r Esc` y `Esc a Esc`."
     },
     {
      "code": "k[x, m x^2]",
-     "md": "Por las parábolas `y = m x^2`: se sustituye `y` por `m x^2`.",
+     "md": "Prueba por parábolas: sustituye `y` por `m x^2`.",
      "run": true
     },
     {
      "code": "Limit[k[x, m x^2], x -> 0]",
-     "md": "Depende de `m`: el límite doble **no existe**, aunque rectas y polares dieran 0.",
-     "run": true
+     "md": "Calcula el límite por parábolas.",
+     "run": true,
+     "hint": "Depende de `m`: el límite doble no existe, aunque rectas y polares dieran 0."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula el límite de `k` en (0, 0) por las parábolas `y = m x^2`.",
+    "prompt": "Calcula el límite de `k` en (0, 0) por las parábolas `y = m x^2`.",
     "hints": [
      "La parábola se mete al llamar: `k[x, m x^2]`",
      "`Limit[…, x -> 0]`",
@@ -239,36 +243,34 @@
    "type": "build",
    "section": "Gradiente y derivada direccional",
    "title": "Derivada direccional",
-   "md": "El **gradiente** es el vector de las parciales: apunta hacia donde la función crece más deprisa. La **derivada direccional** es su producto escalar por el vector **unitario** de la dirección.",
+   "md": "Gradiente por vector unitario: la derivada direccional.",
    "target": "Grad[x^2 y + y^3, {x, y}].Normalize[{3, 4}] /. {x -> 1, y -> 2}",
    "parts": [
     {
      "code": "Grad[x^2 y + y^3, {x, y}]",
-     "md": "`Grad[función, lista de variables]`. Con tres variables, `{x, y, z}`.",
+     "md": "Calcula el gradiente: función y lista de variables.",
+     "run": true,
+     "hint": "Es el vector de las parciales: apunta hacia donde la función crece más deprisa."
+    },
+    {
+     "code": "Grad[x^2 y + y^3, {x, y}].{3, 4} /. {x -> 1, y -> 2}",
+     "md": "Multiplícalo por (3, 4) y evalúa en (1, 2): sale 64. Está mal.",
      "run": true
     },
     {
      "code": "Normalize[{3, 4}]",
-     "md": "La dirección tiene que ser unitaria. Sin `Normalize` el resultado sale multiplicado por la longitud del vector (aquí, 5). Si te dan dos puntos, la dirección es `B - A`.",
-     "run": true
-    },
-    {
-     "code": "Grad[x^2 y + y^3, {x, y}].Normalize[{3, 4}]",
-     "md": "El punto `.` es el producto escalar: la derivada direccional como expresión en `x`, `y`.",
-     "run": true
-    },
-    {
-     "code": "{x -> 1, y -> 2}",
-     "md": "El punto donde se evalúa, como lista de reglas."
+     "md": "El vector debe ser unitario: normalízalo.",
+     "run": true,
+     "hint": "(3, 4) mide 5: por eso el 64 era cinco veces demasiado. Dados A y B, la dirección es `B - A`."
     },
     {
      "code": "Grad[x^2 y + y^3, {x, y}].Normalize[{3, 4}] /. {x -> 1, y -> 2}",
-     "md": "`/.` sustituye el punto al final.",
+     "md": "Ahora bien: gradiente por el vector unitario, en el punto.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: derivada direccional de `x^2 y + y^3` en el punto (1, 2) según el vector (3, 4).",
+    "prompt": "Derivada direccional de `x^2 y + y^3` en (1, 2) según el vector (3, 4).",
     "hints": [
      "Gradiente: `Grad[x^2 y + y^3, {x, y}]`",
      "Por el vector unitario: `.Normalize[{3, 4}]`",
@@ -325,7 +327,7 @@
     "id": "1-p20-e05",
     "kind": "fix",
     "title": "Arregla la derivada direccional",
-    "prompt": "Esta celda quiere la derivada direccional de `f(x, y) = x^2 y` en el punto (1, 2) según el vector (3, 4), pero tiene dos errores: uno de sintaxis y uno de concepto. Corrígela.",
+    "prompt": "Debe dar la derivada direccional de `x^2 y` en (1, 2) según (3, 4). Corrige el error de sintaxis y el de concepto.",
     "difficulty": 3,
     "cmds": [
      "Grad",
@@ -357,27 +359,29 @@
    "type": "build",
    "section": "Puntos críticos",
    "title": "Gradiente igual a cero",
-   "md": "Los candidatos a máximo o mínimo son los **puntos críticos**: donde el gradiente es el vector cero.",
+   "md": "Los candidatos a extremo: donde el gradiente es cero.",
    "target": "sol = Solve[Grad[x^3 - 3 x + y^2, {x, y}] == {0, 0}, {x, y}]",
    "parts": [
     {
      "code": "Grad[x^3 - 3 x + y^2, {x, y}]",
-     "md": "El gradiente: las dos parciales.",
+     "md": "Calcula el gradiente.",
      "run": true
     },
     {
      "code": "Grad[x^3 - 3 x + y^2, {x, y}] == {0, 0}",
-     "md": "Vector igual a vector: tantos ceros como variables. (En las soluciones de clase verás `== 0` a secas; Mathematica lo admite, pero la lista de ceros funciona siempre.)",
-     "run": true
+     "md": "Iguálalo al vector cero: tantos ceros como variables.",
+     "run": true,
+     "hint": "En clase verás `== 0` a secas; Mathematica lo admite, pero la lista de ceros funciona siempre."
     },
     {
      "code": "sol = Solve[Grad[x^3 - 3 x + y^2, {x, y}] == {0, 0}, {x, y}]",
-     "md": "`Solve` con las incógnitas `{x, y}`. Guárdalo en `sol`: con `/. sol` aplicarás todas las soluciones de golpe.",
-     "run": true
+     "md": "Resuelve en `x, y` y guarda en `sol`.",
+     "run": true,
+     "hint": "Con `/. sol` aplicarás luego todas las soluciones de golpe."
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: halla los puntos críticos de `x^3 - 3 x + y^2` y guárdalos en `sol`.",
+    "prompt": "Halla los puntos críticos de `x^3 - 3 x + y^2` y guárdalos en `sol`.",
     "hints": [
      "La ecuación: `Grad[…, {x, y}] == {0, 0}`",
      "Dentro de `Solve[…, {x, y}]`",
@@ -428,30 +432,33 @@
   {
    "type": "build",
    "section": "Clasificar con la hessiana",
-   "title": "Hessiano y fxx en cada punto",
-   "md": "La **matriz hessiana** reúne las segundas derivadas. Con ella se clasifica cada punto crítico. Ya están definidos `f[x_, y_] := x^3 - 3 x + y^2` y `sol` (sus puntos críticos, (-1, 0) y (1, 0)).",
+   "title": "Hessiano y fxx",
+   "md": "`f` y `sol` (sus puntos críticos) ya están definidos. Clasifícalos.",
    "target": "H = Grad[Grad[f[x, y], {x, y}], {x, y}];\n{Det[H], H[[1, 1]]} /. sol",
    "setup": "f[x_, y_] := x^3 - 3 x + y^2\nsol = {{x -> -1, y -> 0}, {x -> 1, y -> 0}};",
    "parts": [
     {
      "code": "H = Grad[Grad[f[x, y], {x, y}], {x, y}]",
-     "md": "La hessiana es el gradiente del gradiente.",
+     "md": "La hessiana: el gradiente del gradiente.",
      "run": true
     },
     {
      "code": "Det[H]",
-     "md": "Su determinante es el **hessiano**. Negativo → punto de silla. Cero → el criterio no decide.",
-     "run": true
+     "md": "Su determinante es el hessiano.",
+     "run": true,
+     "hint": "Negativo → punto de silla. Cero → el criterio no decide."
     },
     {
      "code": "H[[1, 1]]",
-     "md": "Fila 1, columna 1: la derivada segunda `fxx`. Con hessiano positivo: `fxx > 0` → mínimo; `fxx < 0` → máximo.",
-     "run": true
+     "md": "El elemento (1, 1) es `fxx`.",
+     "run": true,
+     "hint": "Con hessiano positivo: `fxx > 0` → mínimo; `fxx < 0` → máximo."
     },
     {
      "code": "{Det[H], H[[1, 1]]} /. sol",
-     "md": "Los dos números en cada punto crítico: (-1, 0) da hessiano negativo → silla; (1, 0) da los dos positivos → mínimo.",
-     "run": true
+     "md": "Evalúa los dos en cada punto crítico.",
+     "run": true,
+     "hint": "(-1, 0): hessiano negativo → silla. (1, 0): los dos positivos → mínimo."
     },
     {
      "code": "H = Grad[Grad[f[x, y], {x, y}], {x, y}];\n{Det[H], H[[1, 1]]} /. sol",
@@ -460,7 +467,7 @@
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula la hessiana `H` de `f` y el par `{hessiano, fxx}` en cada punto de `sol` (dos líneas).",
+    "prompt": "Calcula la hessiana `H` de `f` y el par `{Det[H], H[[1, 1]]}` en cada punto de `sol`.",
     "hints": [
      "`H = Grad[Grad[f[x, y], {x, y}], {x, y}];`",
      "El par es `{Det[H], H[[1, 1]]}`",
@@ -483,7 +490,7 @@
    "ex": {
     "id": "1-p20-e07",
     "kind": "code",
-    "title": "Hessiano en el punto crítico",
+    "title": "Hessiano del punto crítico",
     "prompt": "Para `f(x, y) = x^2 + x y + y^2 - 3 x` (ya definida como `f[x_, y_]`), guarda en `H` la matriz hessiana y devuelve la lista `{Det[H], H[[1, 1]]}`.",
     "difficulty": 2,
     "cmds": [
@@ -521,36 +528,38 @@
    "type": "build",
    "section": "Extremos condicionados",
    "title": "Multiplicadores de Lagrange",
-   "md": "«Halla los extremos de `x + y` **sobre** la circunferencia `x^2 + y^2 = 2`.» Solo puedes moverte por la restricción. Receta de Lagrange, pieza a pieza.",
+   "md": "Extremos de `x + y` sobre la circunferencia `x^2 + y^2 = 2`.",
    "target": "lag = x + y + lam (x^2 + y^2 - 2);\nsol = Solve[Grad[lag, {x, y, lam}] == {0, 0, 0}, {x, y, lam}];\nx + y /. sol",
    "parts": [
     {
      "code": "x^2 + y^2 - 2",
-     "md": "La restricción, pasada a «algo = 0»."
+     "md": "Pasa la restricción a «algo = 0»."
     },
     {
      "code": "lag = x + y + lam (x^2 + y^2 - 2)",
-     "md": "La lagrangiana: función + multiplicador × restricción. `lam` es una variable nueva (λ; en Mathematica, `Esc l Esc`).",
-     "run": true
+     "md": "Lagrangiana: función + `lam` por la restricción.",
+     "run": true,
+     "hint": "`lam` es el multiplicador λ (en Mathematica, `Esc l Esc`)."
     },
     {
      "code": "sol = Solve[Grad[lag, {x, y, lam}] == {0, 0, 0}, {x, y, lam}]",
-     "md": "Gradiente de `lag` igual a cero respecto de **todas** las variables, `lam` incluida.",
+     "md": "Gradiente cero en todas las variables, `lam` incluida.",
      "run": true
     },
     {
      "code": "x + y /. sol",
-     "md": "La función en cada candidato: el valor mayor es el máximo condicionado y el menor, el mínimo.",
-     "run": true
+     "md": "Evalúa la función en los candidatos.",
+     "run": true,
+     "hint": "El valor mayor es el máximo condicionado; el menor, el mínimo."
     },
     {
      "code": "lag = x + y + lam (x^2 + y^2 - 2);\nsol = Solve[Grad[lag, {x, y, lam}] == {0, 0, 0}, {x, y, lam}];\nx + y /. sol",
-     "md": "La receta completa: máximo 2 en (1, 1) y mínimo -2 en (-1, -1).",
+     "md": "Las tres líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: extremos de `x + y` sobre `x^2 + y^2 = 2` (tres líneas: `lag`, `sol` y la función en los candidatos).",
+    "prompt": "Extremos de `x + y` sobre `x^2 + y^2 = 2`: `lag`, `sol` y la función en los candidatos.",
     "hints": [
      "`lag = x + y + lam (x^2 + y^2 - 2);`",
      "`sol = Solve[Grad[lag, {x, y, lam}] == {0, 0, 0}, {x, y, lam}];`",
@@ -574,7 +583,7 @@
     "id": "1-p20-e08",
     "kind": "code",
     "title": "Producto máximo",
-    "prompt": "Halla el máximo de `f(x, y) = x y` con la restricción `x + y = 10` por multiplicadores de Lagrange (llama `lam` al multiplicador). Guarda los candidatos en `sol` y devuelve en la última línea el valor de `f` en ellos.",
+    "prompt": "Máximo de `x y` con `x + y = 10` por Lagrange (multiplicador `lam`): guarda los candidatos en `sol` y da el valor de `x y` en ellos.",
     "difficulty": 2,
     "cmds": [
      "Grad",
@@ -651,8 +660,8 @@
    "ex": {
     "id": "1-p20-e10",
     "kind": "code",
-    "title": "Prueba real · límites radial, polar y por parábolas",
-    "prompt": "Sea `h(x, y) = 2 x y^2/(x^2 + y^4)`. Define `h[x_, y_]` y devuelve una lista con tres límites en (0,0), en este orden:\n\n1. por las rectas `y = m x`;\n2. en polares (`r`, `t`);\n3. por las parábolas `x = m y^2`.",
+    "title": "Real · tres límites",
+    "prompt": "Define `h[x_, y_] := 2 x y^2/(x^2 + y^4)` y da la lista de sus límites en (0, 0): por `y = m x`, en polares (`r`, `t`) y por `x = m y^2`.",
     "difficulty": 3,
     "cmds": [
      "Limit",
@@ -692,8 +701,8 @@
    "ex": {
     "id": "1-p20-e11",
     "kind": "code",
-    "title": "Prueba real · derivada direccional",
-    "prompt": "Dados los puntos `A = (-3, 4)` y `B = (1, 2)` y la función `f(x, y) = x^2 + 5 y^3`:\n\n- guarda en `dd` la derivada direccional de `f` en la dirección del vector AB (una expresión en `x`, `y`, en decimales);\n- en la última línea, evalúala en el punto B.",
+    "title": "Real · derivada direccional",
+    "prompt": "`A = (-3, 4)`, `B = (1, 2)`, `f = x^2 + 5 y^3`. Guarda en `dd` la derivada direccional según AB (en decimales) y evalúala en B.",
     "difficulty": 3,
     "cmds": [
      "Grad",
@@ -739,7 +748,7 @@
    "ex": {
     "id": "1-p20-e12",
     "kind": "code",
-    "title": "Prueba real · puntos críticos",
+    "title": "Real · puntos críticos",
     "prompt": "Considera `f(x, y) = 2 x^2 - 8 x y + y^4 - 1` (ya definida). Halla sus puntos críticos y guarda la salida de `Solve` en `sol`.",
     "difficulty": 3,
     "cmds": [
@@ -772,8 +781,8 @@
    "ex": {
     "id": "1-p20-e13",
     "kind": "code",
-    "title": "Prueba real · el hessiano",
-    "prompt": "Para la misma `f` (ya definida):\n\n- guarda en `hes` el hessiano de `f` (determinante de la matriz hessiana, expresión en `x`, `y`);\n- devuelve en la última línea la lista `{hes en el punto (1, -1/2), hes en los tres puntos críticos}`.",
+    "title": "Real · el hessiano",
+    "prompt": "`f` ya definida. Guarda en `hes` su hessiano y devuelve `{hes en (1, -1/2), hes en los tres puntos críticos}`.",
     "difficulty": 4,
     "cmds": [
      "Grad",
@@ -818,8 +827,8 @@
    "ex": {
     "id": "1-p20-e14",
     "kind": "code",
-    "title": "Prueba real · clasifica P1, P2 y P3",
-    "prompt": "Para la misma `f` (ya definida), devuelve para cada punto crítico el par `{hessiano, fxx}` (una lista de tres pares). Con eso se clasifican: silla, mínimo o máximo.",
+    "title": "Real · clasifica los puntos",
+    "prompt": "`f` ya definida. Devuelve, para cada punto crítico, el par `{hessiano, fxx}`.",
     "difficulty": 4,
     "cmds": [
      "Grad",
@@ -853,8 +862,8 @@
    "ex": {
     "id": "1-p20-e15",
     "kind": "code",
-    "title": "Prueba real · extremos sobre la esfera",
-    "prompt": "Halla los extremos de `f(x, y, z) = -x - z` sobre la esfera `x^2 + y^2 + z^2 = 1`.\n\nGuarda en `sol` los puntos candidatos **en decimales** (salida de `Solve[…] // N`, con el multiplicador llamado `lam`) y devuelve en la última línea los valores de `f` en ellos.",
+    "title": "Real · Lagrange en esfera",
+    "prompt": "Extremos de `-x - z` sobre `x^2 + y^2 + z^2 = 1`: guarda en `sol` los candidatos en decimales (multiplicador `lam`) y da los valores de `-x - z`.",
     "difficulty": 4,
     "cmds": [
      "Grad",
@@ -897,8 +906,8 @@
    "ex": {
     "id": "1-p20-e16",
     "kind": "code",
-    "title": "Prueba real · extra: límite en polares que depende del ángulo",
-    "prompt": "Sea `g(x, y) = 4 x y/(x^2 + y^2)`. Calcula su límite en (0,0) en polares (radio `r`, ángulo `a`), guárdalo en `lim` y devuelve la lista de sus valores para `a = 1` y `a = 2`, en decimales.",
+    "title": "Real · límite en polares",
+    "prompt": "Para `4 x y/(x^2 + y^2)`: guarda en `lim` su límite en polares (`r`, `a`) y da sus valores para `a = 1` y `a = 2`, en decimales.",
     "difficulty": 3,
     "cmds": [
      "Limit",
@@ -929,7 +938,7 @@
    "ex": {
     "id": "1-p20-e17",
     "kind": "code",
-    "title": "Prueba real · extra: derivada cruzada en un punto",
+    "title": "Real · derivada cruzada",
     "prompt": "Sea `z(x, y) = 3000 Sqrt[(1 - Sqrt[x])/(1 - Sqrt[y])]`. Calcula con 6 cifras el valor de la derivada cruzada `∂²z/∂x∂y` en el punto `(4, Pi^2)`.",
     "difficulty": 3,
     "cmds": [
@@ -962,8 +971,8 @@
    "ex": {
     "id": "1-p20-e18",
     "kind": "code",
-    "title": "Examen PL2 · los puntos críticos",
-    "prompt": "Examen real (junio 2022). Considera\n\n`f(x, y) = 4 (x - 1)^3 - 3 (x + 2) (y + 1)/4 + 3 (y + 1)^2/2 - 3`\n\n(ya definida). Halla sus puntos críticos: guarda la salida de `Solve` en `sol` y la lista de puntos `{x, y}` en decimales en `pts`.",
+    "title": "PL2 · los puntos críticos",
+    "prompt": "`f` (la del examen; escribe `f[x, y]` para verla) ya definida. Guarda la salida de `Solve` en `sol` y los puntos en decimales en `pts`.",
     "difficulty": 4,
     "cmds": [
      "Grad",
@@ -997,8 +1006,8 @@
    "ex": {
     "id": "1-p20-e19",
     "kind": "code",
-    "title": "Examen PL2 · hessiano y clasificación",
-    "prompt": "Misma `f` (ya definida, igual que `sol`, la salida de `Solve` con los dos puntos críticos). Guarda en `hes` el hessiano `Hf(x, y)` y devuelve, para cada punto crítico, el par `{hessiano, fxx}` en decimales.",
+    "title": "PL2 · hessiano y clasificación",
+    "prompt": "`f` y `sol` ya definidos. Guarda en `hes` el hessiano y devuelve el par `{hessiano, fxx}` de cada punto crítico, en decimales.",
     "difficulty": 5,
     "cmds": [
      "Grad",

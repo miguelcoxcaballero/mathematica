@@ -24,43 +24,41 @@
  "steps": [
   {
    "type": "explain",
-   "title": "Integrales triples: para qué",
-   "md": "Una integral triple suma una función sobre un **sólido**.",
+   "title": "Volumen con una integral",
+   "md": "Integra `1` sobre una caja: sale su volumen.",
    "cells": [
     {
      "code": "Integrate[1, {x, 0, 2}, {y, 0, 3}, {z, 0, 4}]",
-     "note": "volumen de una caja de 2 × 3 × 4"
+     "note": "tres iteradores: uno por variable"
     }
    ],
-   "more": "Con ella se calcula el **volumen** (integrando 1), la **masa** (integrando la densidad), la **densidad media** (masa/volumen) o el **momento de inercia**, que mide cuánto cuesta hacer girar una pieza alrededor de un eje: un dato básico de cualquier aeronave.\n\nEs el `Integrate` de siempre con tres iteradores. Primera comprobación: integrar `1` da el volumen.",
+   "more": "Con integrales triples se calculan volúmenes, masas, densidades medias y momentos de inercia de un sólido.",
    "section": "Tres iteradores"
   },
   {
    "type": "build",
-   "title": "Integral triple en una caja",
-   "md": "Tres iteradores, uno por variable.",
+   "title": "Integral triple",
+   "md": "El mismo `Integrate`, ahora con tres iteradores.",
    "target": "Integrate[x + y + z, {x, 0, 1}, {y, 0, 1}, {z, 0, 1}]",
    "parts": [
     {
-     "code": "x + y + z",
-     "md": "Lo que integras (por ejemplo, una densidad)."
+     "code": "Integrate[x y, {x, 0, 1}, {y, 0, 2}]",
+     "md": "Empieza por una doble, que ya conoces.",
+     "run": true
     },
     {
-     "code": "{x, 0, 1}",
-     "md": "Iterador de `x`: variable, desde, hasta."
-    },
-    {
-     "code": "{x, 0, 1}, {y, 0, 1}, {z, 0, 1}",
-     "md": "Los tres iteradores, separados por comas."
+     "code": "Integrate[x y z, {x, 0, 1}, {y, 0, 2}, {z, 0, 3}]",
+     "md": "Añade un tercer iterador para `z`: integral triple.",
+     "run": true
     },
     {
      "code": "Integrate[x + y + z, {x, 0, 1}, {y, 0, 1}, {z, 0, 1}]",
-     "md": "La integral sobre el cubo unidad.",
+     "md": "Otra función sobre el cubo unidad: misma forma.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: integral de `x + y + z` sobre el cubo `0 <= x <= 1`, `0 <= y <= 1`, `0 <= z <= 1`.",
+    "prompt": "De memoria: integral de `x + y + z` sobre el cubo `0 <= x, y, z <= 1`.",
     "hints": [
      "`Integrate[función, {x, ...}, {y, ...}, {z, ...}]`",
      "Los tres iteradores van de `0` a `1`.",
@@ -69,8 +67,7 @@
    },
    "cmds": [
     "Integrate"
-   ],
-   "more": "El primero es el más exterior y el último el más interior."
+   ]
   },
   {
    "type": "exercise",
@@ -78,65 +75,60 @@
     "id": "1-p24-e01",
     "kind": "code",
     "title": "Masa de una caja",
-    "prompt": "Una caja ocupa `0 <= x <= 1`, `0 <= y <= 2`, `0 <= z <= 3` y su densidad es `d(x, y, z) = x y z`. Calcula su masa.",
+    "prompt": "Masa de la caja `0 <= x <= 2`, `0 <= y <= 1`, `0 <= z <= 3` con densidad `x^2 z`.",
     "difficulty": 1,
     "cmds": [
      "Integrate"
     ],
     "real": false,
     "source": null,
-    "solution": "Integrate[x y z, {x, 0, 1}, {y, 0, 2}, {z, 0, 3}]",
+    "solution": "Integrate[x^2 z, {x, 0, 2}, {y, 0, 1}, {z, 0, 3}]",
     "check": {
      "type": "expr",
-     "expected": "9/2"
+     "expected": "12"
     },
     "requires": [
      "Integrate"
     ],
     "hints": [
-     "Masa = integral triple de la densidad.",
-     "`Integrate[x y z, {x, 0, 1}, {y, 0, 2}, {z, 0, 3}]`"
+     "`Integrate[x^2 z, {x, 0, 2}, {y, 0, 1}, {z, 0, 3}]`"
     ],
-    "explain": "Tres iteradores, uno por variable. Resultado: `9/2`."
+    "explain": "`12`. Masa = integral triple de la densidad."
    }
   },
   {
    "type": "build",
-   "title": "Límites variables: un tetraedro",
-   "md": "En un sólido que no es una caja, cada límite depende de las variables anteriores. Ejemplo:",
-   "target": "Integrate[1, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]",
+   "title": "Límites variables",
+   "md": "En un tetraedro, cada límite depende de las variables anteriores.",
+   "target": "Integrate[z, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]",
    "parts": [
     {
-     "code": "{x, 0, 1}",
-     "md": "`x` recorre de 0 a 1: límites numéricos, va primero."
-    },
-    {
-     "code": "{y, 0, 1 - x}",
-     "md": "Para cada `x`, `y` llega hasta la recta `x + y = 1` del suelo."
-    },
-    {
-     "code": "{z, 0, 1 - x - y}",
-     "md": "Para cada `x`, `y`, la `z` llega hasta el plano.",
-     "more": "Un iterador solo usa variables de los que tiene a su izquierda."
+     "code": "Integrate[1, {x, 0, 1}, {y, 0, 1 - x}]",
+     "md": "En el suelo: el triángulo bajo la recta `x + y = 1`.",
+     "run": true
     },
     {
      "code": "Integrate[1, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]",
-     "md": "Integrando 1: el volumen del tetraedro.",
+     "md": "Añade `z` hasta el plano `x + y + z = 1`: volumen del tetraedro.",
+     "run": true
+    },
+    {
+     "code": "Integrate[z, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]",
+     "md": "Mismos límites, otra función: masa con densidad `z`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: volumen del tetraedro limitado por `x = 0`, `y = 0`, `z = 0` y `x + y + z = 1`.",
+    "prompt": "De memoria: masa del tetraedro bajo `x + y + z = 1` (primer octante) con densidad `z`.",
     "hints": [
-     "Volumen = integral triple de `1`.",
+     "Tres iteradores que empiezan en `0`.",
      "`y` hasta `1 - x`; `z` hasta `1 - x - y`.",
-     "`Integrate[1, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]`"
+     "`Integrate[z, {x, 0, 1}, {y, 0, 1 - x}, {z, 0, 1 - x - y}]`"
     ]
    },
    "cmds": [
     "Integrate"
-   ],
-   "more": "el tetraedro bajo el plano `x + y + z = 1`."
+   ]
   },
   {
    "type": "exercise",
@@ -144,7 +136,7 @@
     "id": "1-p24-e02",
     "kind": "code",
     "title": "Volumen de un tetraedro",
-    "prompt": "Calcula el volumen del tetraedro limitado por `x = 0`, `y = 0`, `z = 0` y el plano `x + y + z = 2`.",
+    "prompt": "Volumen del tetraedro limitado por `x = 0`, `y = 0`, `z = 0` y el plano `x + y + z = 2`.",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -160,40 +152,31 @@
      "Integrate"
     ],
     "hints": [
-     "`x` va de `0` a `2`. En el suelo (`z = 0`) el plano es `x + y = 2`: `y` llega hasta `2 - x`.",
-     "Despeja `z` del plano: `z` llega hasta `2 - x - y`.",
+     "`x` hasta `2`; `y` hasta `2 - x`; `z` hasta `2 - x - y`.",
      "`Integrate[1, {x, 0, 2}, {y, 0, 2 - x}, {z, 0, 2 - x - y}]`"
     ],
-    "explain": "`y` hasta `2 - x` y `z` hasta `2 - x - y`. Volumen `4/3`."
+    "explain": "Volumen `4/3`. Un iterador solo puede usar variables de los que tiene a su izquierda."
    }
   },
   {
    "type": "build",
-   "title": "Dibujar el sólido con RegionPlot3D",
-   "md": "Antes de poner límites, dibuja.",
+   "title": "Dibujar con RegionPlot3D",
+   "md": "`RegionPlot3D` rellena los puntos del espacio que cumplen unas desigualdades.",
    "target": "RegionPlot3D[x^2 + y^2 <= 1 && z <= x^2 + y^2, {x, -1, 1}, {y, -1, 1}, {z, 0, 1}]",
    "parts": [
     {
-     "code": "x^2 + y^2 <= 1",
-     "md": "Primera condición: dentro del cilindro de radio 1."
-    },
-    {
-     "code": "z <= x^2 + y^2",
-     "md": "Segunda: por debajo del paraboloide."
-    },
-    {
-     "code": "x^2 + y^2 <= 1 && z <= x^2 + y^2",
-     "md": "`&&` significa «y»: se tienen que cumplir las dos."
+     "code": "RegionPlot3D[x^2 + y^2 <= 1, {x, -1, 1}, {y, -1, 1}, {z, 0, 1}]",
+     "md": "Una condición y la caja que se dibuja: un cilindro.",
+     "run": true
     },
     {
      "code": "RegionPlot3D[x^2 + y^2 <= 1 && z <= x^2 + y^2, {x, -1, 1}, {y, -1, 1}, {z, 0, 1}]",
-     "md": "Condiciones y la caja que se dibuja. Opciones habituales:",
-     "more": "`AxesLabel -> {\"X\", \"Y\", \"Z\"}` y `PlotPoints -> 100` (más suave, más lento).",
+     "md": "Añade con `&&` otra condición: bajo el paraboloide.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: dibuja el sólido `x^2 + y^2 <= 1`, `z <= x^2 + y^2` en la caja `x` e `y` de `-1` a `1`, `z` de `0` a `1`.",
+    "prompt": "De memoria: dibuja `x^2 + y^2 <= 1 && z <= x^2 + y^2` con `x`, `y` de `-1` a `1` y `z` de `0` a `1`.",
     "hints": [
      "`RegionPlot3D[condiciones, {x, ...}, {y, ...}, {z, ...}]`",
      "Las dos condiciones unidas con `&&`.",
@@ -209,16 +192,16 @@
     "RegionPlot3D",
     "And"
    ],
-   "more": "`RegionPlot3D` rellena los puntos del espacio que cumplen unas desigualdades.",
-   "section": "Ver el sólido y sacar los límites"
+   "more": "Opciones habituales en los cuadernos: `AxesLabel -> {\"X\", \"Y\", \"Z\"}` y `PlotPoints -> 100` (más suave, más lento).",
+   "section": "Ver el sólido"
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p24-e03",
     "kind": "code",
-    "title": "Dibuja un cilindro macizo",
-    "prompt": "Dibuja con `RegionPlot3D` el cilindro macizo `x^2 + y^2 <= 4`, `0 <= z <= 3`. Usa la caja `x` de `-2` a `2`, `y` de `-2` a `2`, `z` de `0` a `3`.",
+    "title": "Dibuja un cilindro",
+    "prompt": "Dibuja con `RegionPlot3D` el cilindro `x^2 + y^2 <= 4`, `0 <= z <= 3`, en la caja `x`, `y` de `-2` a `2`, `z` de `0` a `3`.",
     "difficulty": 2,
     "cmds": [
      "RegionPlot3D"
@@ -238,41 +221,72 @@
      "RegionPlot3D"
     ],
     "hints": [
-     "Une las dos condiciones con `&&`.",
      "`RegionPlot3D[x^2 + y^2 <= 4 && 0 <= z <= 3, {x, -2, 2}, {y, -2, 2}, {z, 0, 3}]`"
     ],
-    "explain": "Una desigualdad por cada «pared» del sólido. Puedes girar el dibujo arrastrando para comprobar que es lo que esperabas."
+    "explain": "Una desigualdad por cada «pared» del sólido. Gira el dibujo arrastrando para comprobarlo."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p24-e04",
+    "kind": "code",
+    "title": "El tetraedro de la prueba",
+    "prompt": "Dibuja el sólido `x + y + 2 z <= 13` del primer octante, en la caja `x`, `y` de `0` a `13`, `z` de `0` a `7`.",
+    "difficulty": 2,
+    "cmds": [
+     "RegionPlot3D"
+    ],
+    "real": true,
+    "source": "Práctica 24 · P4 (variante A), dibujo",
+    "solution": "RegionPlot3D[x + y + 2 z <= 13, {x, 0, 13}, {y, 0, 13}, {z, 0, 7}]",
+    "check": {
+     "type": "graphics",
+     "dim": 3,
+     "min": 1,
+     "has": [
+      "iso"
+     ]
+    },
+    "requires": [
+     "RegionPlot3D"
+    ],
+    "hints": [
+     "La caja ya empieza en 0: basta la condición del plano.",
+     "`RegionPlot3D[x + y + 2 z <= 13, {x, 0, 13}, {y, 0, 13}, {z, 0, 7}]`"
+    ],
+    "explain": "En el cuaderno oficial se escriben también `x >= 0 && y >= 0 && z >= 0`; con la caja empezando en 0 el dibujo es el mismo."
    }
   },
   {
    "type": "build",
-   "title": "Límites con Solve, de fuera hacia dentro",
-   "md": "Método de los cuadernos resueltos para el sólido limitado por `x = 0`, `y = 0`, `z = 0` y el plano `x + y + 2 z = 13` (pregunta 4 de la prueba): tres `Solve` y una integral.",
+   "title": "Límites con Solve",
+   "md": "Tres `Solve` sobre el plano `x + y + 2 z == 13` dan los tres límites.",
    "target": "Integrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
    "parts": [
     {
      "code": "Solve[x + y + 2 z == 13 /. {y -> 0, z -> 0}, x]",
-     "md": "Límite de `x`: haces `y = 0`, `z = 0` en el plano y despejas. `x` va de 0 a 13.",
+     "md": "Con `y = 0`, `z = 0`: hasta dónde llega `x`.",
      "run": true
     },
     {
      "code": "Solve[x + y + 2 z == 13 /. z -> 0, y]",
-     "md": "Límite de `y`: en el suelo (`z = 0`). `y` va de 0 a `13 - x`.",
+     "md": "En el suelo (`z = 0`): hasta dónde llega `y`.",
      "run": true
     },
     {
      "code": "Solve[x + y + 2 z == 13, z]",
-     "md": "Límite de `z`: despejas del plano. `z` va de 0 a `(13 - x - y)/2`.",
+     "md": "Y el techo: `z` despejada del plano.",
      "run": true
     },
     {
      "code": "Integrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
-     "md": "Con los tres límites, el volumen: 2197/12 ≈ 183.083, la respuesta del apartado b).",
+     "md": "Con los tres límites, el volumen: apartado b) de la prueba.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: volumen del sólido limitado por los planos coordenados y `x + y + 2 z = 13` (límites: `x` hasta 13, `y` hasta `13 - x`, `z` hasta `(13 - x - y)/2`).",
+    "prompt": "De memoria: volumen bajo el plano `x + y + 2 z = 13` (primer octante). Los límites: 13, `13 - x`, `(13 - x - y)/2`.",
     "hints": [
      "Integral triple de `1` con tres iteradores que empiezan en `0`.",
      "`{x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}`",
@@ -283,15 +297,45 @@
     "Solve",
     "ReplaceAll",
     "Integrate"
-   ]
+   ],
+   "section": "El tetraedro de la prueba"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e04",
+    "id": "1-p24-e05",
     "kind": "code",
-    "title": "Tetraedro: volumen",
-    "prompt": "Un sólido `D` está limitado por los planos `x = 0`, `y = 0`, `z = 0` y `3 x + 2 y + 4 z = 15`.\n\nb) Calcula el **volumen** de `D` en decimal. Saca antes los límites con `Solve` (o a mano): `x` hasta 5, `y` hasta `(15 - 3 x)/2`, `z` hasta `(15 - 3 x - 2 y)/4`.",
+    "title": "Tetraedro B: límite de z",
+    "prompt": "Para el sólido limitado por `x = 0`, `y = 0`, `z = 0` y `3 x + 2 y + 4 z = 15`, despeja `z` del plano con `Solve`.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve"
+    ],
+    "real": true,
+    "source": "Práctica 24 · P4 a) (variante B)",
+    "more": "Enunciado de la prueba: calcula la densidad media de un sólido D en el que la densidad de cada punto coincide con la exponencial de su distancia al plano YOZ, limitado por `x = 0`, `y = 0`, `z = 0`, `3x + 2y + 4z = 15`. a) Límites de integración y densidad. b) Volumen. c) Masa. d) Densidad media.",
+    "solution": "Solve[3 x + 2 y + 4 z == 15, z]",
+    "check": {
+     "type": "expr",
+     "expected": "{{z -> (15 - 3 x - 2 y)/4}}",
+     "compare": "set"
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`Solve[3 x + 2 y + 4 z == 15, z]`"
+    ],
+    "explain": "`z` va de `0` a `(15 - 3 x - 2 y)/4`. Con `z = 0` sale `y` hasta `(15 - 3 x)/2`, y con `y = 0`, `z = 0`, `x` hasta `5`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p24-e06",
+    "kind": "code",
+    "title": "Tetraedro B: volumen",
+    "prompt": "Volumen (decimal) con `x` de `0` a `5`, `y` de `0` a `(15 - 3 x)/2` y `z` de `0` a `(15 - 3 x - 2 y)/4`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -307,27 +351,26 @@
      "tol": 1e-06
     },
     "hints": [
-     "Volumen = integral triple de `1`.",
-     "`{x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}`",
-     "Añade `// N` para el decimal."
+     "Volumen = integral triple de `1`; añade `// N`.",
+     "`Integrate[1, {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N`"
     ],
-    "explain": "V = 23.4375 (en la prueba, 23.4370–23.4380). Los límites salen de `Solve[3 x + 2 y + 4 z == 15, z]` y `Solve[3 x + 2 y == 15, y]`."
+    "explain": "V = 23.4375 (en la prueba, 23.4370–23.4380)."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e05",
+    "id": "1-p24-e07",
     "kind": "code",
-    "title": "Traducir el enunciado a una densidad",
-    "prompt": "El enunciado dice: «la densidad de cada punto `(x, y, z)` coincide con la **exponencial de su distancia al plano YOZ**». Define esa densidad como `d[x_, y_, z_]` y evalúala en el punto `(2, 5, 7)`.",
+    "title": "Tetraedro B: la densidad",
+    "prompt": "La densidad es la exponencial de la distancia al plano YOZ. Defínela como `d[x_, y_, z_]` y evalúa `d[2, 5, 7]`.",
     "difficulty": 2,
     "cmds": [
      "Exp",
      "SetDelayed"
     ],
     "real": true,
-    "source": "Práctica 24 · P4 a)",
+    "source": "Práctica 24 · P4 a) (variante B)",
     "solution": "d[x_, y_, z_] := Exp[x]\nd[2, 5, 7]",
     "check": {
      "type": "value",
@@ -340,19 +383,19 @@
      "Exp"
     ],
     "hints": [
-     "El plano YOZ es el plano `x = 0`. ¿Qué coordenada mide la distancia a él?",
+     "El plano YOZ es `x = 0`: la distancia a él es la coordenada `x`.",
      "`d[x_, y_, z_] := Exp[x]`"
     ],
-    "explain": "La distancia de un punto al plano YOZ (`x = 0`) es su coordenada `x` (aquí `x >= 0`). Densidad: `Exp[x]`. Traducir la frase es la mitad del ejercicio."
+    "explain": "Densidad `Exp[x]`. Traducir la frase del enunciado es la mitad del ejercicio."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e06",
+    "id": "1-p24-e08",
     "kind": "code",
-    "title": "Tetraedro: masa",
-    "prompt": "El mismo sólido (`x = 0`, `y = 0`, `z = 0`, `3 x + 2 y + 4 z = 15`) tiene densidad `Exp[x]`.\n\nc) Calcula su **masa** en decimal: la misma integral triple del volumen, cambiando el `1` por la densidad. Guárdala en `M`.",
+    "title": "Tetraedro B: masa",
+    "prompt": "Masa (decimal): la integral del volumen cambiando el `1` por `Exp[x]`. Límites: 5, `(15 - 3 x)/2`, `(15 - 3 x - 2 y)/4`.",
     "difficulty": 3,
     "cmds": [
      "Integrate",
@@ -372,19 +415,19 @@
      "Exp"
     ],
     "hints": [
-     "Los iteradores no cambian: `{x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}`.",
-     "`M = Integrate[Exp[x], ...] // N`"
+     "Los iteradores no cambian; solo el integrando.",
+     "`Integrate[Exp[x], {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N`"
     ],
-    "explain": "M ≈ 146.152. Los límites describen el sólido; lo que integras decide si obtienes volumen o masa. En el cuaderno de clase se usa `NIntegrate` con los mismos iteradores."
+    "explain": "M ≈ 146.152. En el cuaderno de clase se usa `NIntegrate` con los mismos iteradores."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e07",
+    "id": "1-p24-e09",
     "kind": "code",
-    "title": "Tetraedro: densidad media",
-    "prompt": "Ya tienes el volumen `V = 23.4375` y la masa `M = 146.152` (definidos como `V` y `M`). d) Calcula la **densidad media** del sólido.",
+    "title": "Tetraedro B: densidad media",
+    "prompt": "`V` y `M` ya están definidos. Calcula la densidad media del sólido.",
     "difficulty": 1,
     "cmds": [
      "Integrate"
@@ -400,39 +443,62 @@
      "tol": 1e-06
     },
     "hints": [
-     "Densidad media = masa / volumen."
+     "Densidad media = masa / volumen: `M/V`."
     ],
-    "explain": "dM ≈ 6.23583. Tres apartados, tres casillas: volumen, masa y su cociente."
+    "explain": "dM ≈ 6.23583. Tres casillas: volumen, masa y su cociente."
    }
   },
   {
-   "type": "explain",
-   "title": "Exacto o numérico",
-   "md": "- `Integrate[...]` busca el resultado **exacto** (con `Pi`, raíces...).",
-   "cells": [
+   "type": "build",
+   "title": "Coordenadas cilíndricas",
+   "md": "Con simetría alrededor del eje Z: ángulo `a`, radio `r`, altura `z` y jacobiano `r`.",
+   "target": "Integrate[r, {a, 0, Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]",
+   "parts": [
     {
-     "code": "Integrate[k z, {x, 0, 1}, {y, 0, 1}, {z, 0, 2}]",
-     "note": "con una constante k el resultado queda en función de k"
+     "code": "Integrate[1, {x, -1, 1}, {y, -Sqrt[1 - x^2], Sqrt[1 - x^2]}, {z, 0, 1 - x^2 - y^2}]",
+     "md": "Volumen bajo un paraboloide en cartesianas: raíces en los límites.",
+     "run": true
+    },
+    {
+     "code": "Integrate[r, {a, 0, 2 Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]",
+     "md": "Lo mismo en cilíndricas: integrando `r` y límites sin raíces.",
+     "run": true
+    },
+    {
+     "code": "Integrate[r, {a, 0, Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]",
+     "md": "Solo la mitad con `y >= 0`: el ángulo llega hasta `Pi`.",
+     "run": true
     }
    ],
-   "more": "Con `// N` al final lo pasas a decimal.\n- `NIntegrate[...]` calcula directamente el **número**. Misma sintaxis, mismos iteradores.\n\nEn integrales triples con raíces en los límites, la exacta puede tardar mucho. Como las pruebas piden «6 cifras significativas», `NIntegrate` suele ser la opción práctica en Mathematica. Pero si en el resultado debe quedar una **constante simbólica** (una densidad `k`), hay que usar `Integrate`: `NIntegrate` necesita que todo sea numérico.",
-   "section": "Integrate, NIntegrate y cilíndricas"
+   "recall": {
+    "prompt": "De memoria: volumen bajo `z = 1 - x^2 - y^2` con `y >= 0`, en cilíndricas (`a`, `r`, `z`).",
+    "hints": [
+     "El integrando es solo el jacobiano `r`.",
+     "Iteradores: `{a, 0, Pi}`, `{r, 0, 1}`, `{z, 0, 1 - r^2}`.",
+     "`Integrate[r, {a, 0, Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]`"
+    ]
+   },
+   "cmds": [
+    "Integrate"
+   ],
+   "section": "Cilíndricas"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e08",
+    "id": "1-p24-e10",
     "kind": "code",
-    "title": "Volumen bajo un paraboloide",
-    "prompt": "Calcula el volumen de la región del espacio limitada inferiormente por el plano XOY y superiormente por el paraboloide `8 z = x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 6` y cuyos puntos verifican `y > 0` (6 cifras).",
+    "title": "Paraboloide en cartesianas",
+    "prompt": "Volumen (decimal): `x` de `-Sqrt[6]` a `Sqrt[6]`, `y` de `0` a `Sqrt[6 - x^2]`, `z` de `0` a `(x^2 + y^2)/8`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
-     "Solve",
-     "Sqrt"
+     "Sqrt",
+     "N"
     ],
     "real": true,
     "source": "Práctica 24 · P2 (variante A)",
+    "more": "Enunciado de la prueba: calcula el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `8z = x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 6` y cuyos puntos verifican `y > 0`.",
     "solution": "Integrate[1, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}, {z, 0, (x^2 + y^2)/8}] // N",
     "check": {
      "type": "expr",
@@ -441,60 +507,18 @@
      "tol": 1e-05
     },
     "hints": [
-     "Límites de `x`: el cilindro corta al eje X en `-Sqrt[6]` y `Sqrt[6]`.",
-     "Límites de `y`: `Solve[x^2 + y^2 == 6, y]` da `±Sqrt[6 - x^2]`; como `y > 0`, de `0` a `Sqrt[6 - x^2]`.",
-     "Límites de `z`: de `0` al paraboloide `(x^2 + y^2)/8`."
+     "`Integrate[1, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}, {z, 0, (x^2 + y^2)/8}] // N`"
     ],
-    "explain": "V = 9π/8 ≈ 3.53429. El cuaderno oficial lo hace como integral doble de la altura, `NIntegrate[(x^2 + y^2)/8, {x, ...}, {y, ...}]`: es lo mismo."
+    "explain": "V = 9π/8 ≈ 3.53429. Los límites de `y` salen de `Solve[x^2 + y^2 == 6, y]`, quedándote con `y > 0`."
    }
-  },
-  {
-   "type": "build",
-   "title": "Coordenadas cilíndricas",
-   "md": "Con simetría alrededor del eje Z (cilindros, paraboloides), `x = r Cos[a]`, `y = r Sin[a]`, `z = z`. El jacobiano es `r` y los límites dejan de tener raíces.",
-   "target": "Integrate[r, {a, 0, 2 Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]",
-   "parts": [
-    {
-     "code": "r",
-     "md": "Integrando para un volumen: `1` por el jacobiano `r`."
-    },
-    {
-     "code": "{a, 0, 2 Pi}",
-     "md": "El ángulo: giro completo (`y > 0` sería de `0` a `Pi`)."
-    },
-    {
-     "code": "{r, 0, 1}",
-     "md": "El radio: un cilindro `x^2 + y^2 = 1` es simplemente `r` de 0 a 1."
-    },
-    {
-     "code": "{z, 0, 1 - r^2}",
-     "md": "La altura: el paraboloide `z = 1 - x^2 - y^2` es `1 - r^2`."
-    },
-    {
-     "code": "Integrate[r, {a, 0, 2 Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]",
-     "md": "Volumen bajo el paraboloide, al instante.",
-     "run": true
-    }
-   ],
-   "recall": {
-    "prompt": "De memoria: volumen bajo el paraboloide `z = 1 - x^2 - y^2` (sobre el plano XY) en cilíndricas, variables `a`, `r`, `z`.",
-    "hints": [
-     "El integrando es solo el jacobiano.",
-     "Iteradores: `{a, 0, 2 Pi}`, `{r, 0, 1}`, `{z, 0, 1 - r^2}`.",
-     "`Integrate[r, {a, 0, 2 Pi}, {r, 0, 1}, {z, 0, 1 - r^2}]`"
-    ]
-   },
-   "cmds": [
-    "Integrate"
-   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e09",
+    "id": "1-p24-e11",
     "kind": "code",
-    "title": "El mismo tipo de volumen, en cilíndricas",
-    "prompt": "Calcula, usando **coordenadas cilíndricas** (variables `a`, `r`, `z`), el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `6 z = x^2 + y^2`, interior al cilindro `x^2 + y^2 = 10` y con `y >= 0` (6 cifras).",
+    "title": "Paraboloide en cilíndricas",
+    "prompt": "Volumen (decimal) bajo `6 z = x^2 + y^2`, dentro de `x^2 + y^2 = 10`, con `y >= 0`, en cilíndricas (`a`, `r`, `z`).",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -514,201 +538,19 @@
      "y"
     ],
     "hints": [
-     "En cilíndricas el paraboloide es `z = r^2/6` y el cilindro es `r = Sqrt[10]`.",
-     "`y >= 0` es medio giro: `a` de `0` a `Pi`. No olvides el jacobiano `r`.",
+     "En cilíndricas el paraboloide es `z = r^2/6` y el cilindro es `r = Sqrt[10]`; `y >= 0` es `a` de `0` a `Pi`.",
      "`Integrate[r, {a, 0, Pi}, {r, 0, Sqrt[10]}, {z, 0, r^2/6}] // N`"
     ],
-    "explain": "V = 25π/6 ≈ 13.0900, el valor de la prueba (13.085–13.095). En cartesianas sale lo mismo con límites `±Sqrt[10 - x^2]`."
+    "explain": "V = 25π/6 ≈ 13.0900, el valor de la prueba (13.085–13.095)."
    }
-  },
-  {
-   "type": "build",
-   "title": "Dónde se cortan dos esferas",
-   "md": "Problema estrella de la práctica:",
-   "target": "Solve[36 - z^2 == 10 - (z - 6)^2, z]",
-   "parts": [
-    {
-     "code": "36 - z^2",
-     "md": "Lo que vale `x^2 + y^2` en la esfera grande."
-    },
-    {
-     "code": "10 - (z - 6)^2",
-     "md": "Lo que vale `x^2 + y^2` en la pequeña."
-    },
-    {
-     "code": "36 - z^2 == 10 - (z - 6)^2",
-     "md": "En la intersección coinciden: una ecuación con `==`."
-    },
-    {
-     "code": "Solve[36 - z^2 == 10 - (z - 6)^2, z]",
-     "md": "La altura del plano de corte: `z = 31/6`.",
-     "more": "Sustituida en una esfera da el radio del círculo proyección.",
-     "run": true
-    }
-   ],
-   "recall": {
-    "prompt": "De memoria: halla la altura `z` a la que se cortan las esferas `x^2 + y^2 + z^2 = 36` y `x^2 + y^2 + (z - 6)^2 = 10`.",
-    "hints": [
-     "Iguala lo que vale `x^2 + y^2` en cada esfera.",
-     "`36 - z^2 == 10 - (z - 6)^2`",
-     "`Solve[36 - z^2 == 10 - (z - 6)^2, z]`"
-    ],
-    "check": {
-     "type": "expr",
-     "expected": "{{z -> 31/6}}",
-     "compare": "set"
-    }
-   },
-   "cmds": [
-    "Solve"
-   ],
-   "more": "el volumen entre `x^2 + y^2 + z^2 = 36` y `x^2 + y^2 + (z - 6)^2 = 10`. Lo primero es hallar el plano donde se cortan.",
-   "section": "El sólido entre dos esferas"
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p24-e10",
-    "kind": "code",
-    "title": "Dos esferas: radio de la proyección",
-    "prompt": "Considera las esferas `x^2 + y^2 + z^2 = 36` y `x^2 + y^2 + (z - 6)^2 = 10`.\n\na) La proyección sobre XOY de su intersección es un círculo. Calcula su **radio** (6 cifras).",
-    "difficulty": 3,
-    "cmds": [
-     "Solve",
-     "ReplaceAll",
-     "Sqrt",
-     "N"
-    ],
-    "real": true,
-    "source": "Práctica 24 · P3 a) (variante B)",
-    "solution": "sol = Solve[36 - z^2 == 10 - (z - 6)^2, z];\nSqrt[36 - z^2] /. Flatten[sol] // N",
-    "check": {
-     "type": "expr",
-     "expected": "3.0505008696",
-     "compare": "numeric",
-     "tol": 1e-05
-    },
-    "requires": [
-     "Solve"
-    ],
-    "hints": [
-     "En la primera esfera `x^2 + y^2 = 36 - z^2`; en la segunda, `x^2 + y^2 = 10 - (z - 6)^2`. Iguálalas y despeja `z`.",
-     "Con esa `z`, el radio es `Sqrt[36 - z^2]`.",
-     "`Sqrt[36 - z^2] /. Flatten[sol] // N`"
-    ],
-    "explain": "El corte está en `z = 31/6` y el radio es `Sqrt[335/36] ≈ 3.05050`. Con ese radio se escriben los límites de `x` e `y`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p24-e11",
-    "kind": "code",
-    "title": "Dos esferas: volumen",
-    "prompt": "Calcula el volumen de la región comprendida entre las esferas `x^2 + y^2 + z^2 = 36` y `x^2 + y^2 + (z - 6)^2 = 10` (6 cifras).\n\nDatos ya obtenidos: la proyección es el círculo de radio `Sqrt[335]/6`; dentro de la lente, `z` va desde `6 - Sqrt[10 - x^2 - y^2]` hasta `Sqrt[36 - x^2 - y^2]`. Puedes hacerlo en cartesianas con `NIntegrate` o en cilíndricas.",
-    "difficulty": 5,
-    "cmds": [
-     "Integrate",
-     "NIntegrate",
-     "Sqrt"
-    ],
-    "real": true,
-    "source": "Práctica 24 · P3 b) (variante B)",
-    "solution": "Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N",
-    "check": {
-     "type": "expr",
-     "expected": "53.1406190487",
-     "compare": "numeric",
-     "tol": 2e-05
-    },
-    "hints": [
-     "En cilíndricas: `a` de `0` a `2 Pi`, `r` de `0` a `Sqrt[335]/6`, `z` de `6 - Sqrt[10 - r^2]` a `Sqrt[36 - r^2]`, con jacobiano `r`.",
-     "En cartesianas: `NIntegrate[1, {x, -Sqrt[335]/6, Sqrt[335]/6}, {y, -Sqrt[335 - 36 x^2]/6, Sqrt[335 - 36 x^2]/6}, {z, 6 - Sqrt[10 - x^2 - y^2], Sqrt[36 - x^2 - y^2]}]`.",
-     "Cilíndricas: `Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N`"
-    ],
-    "explain": "V ≈ 53.1406. El punto delicado es el orden de los límites de `z`: abajo la esfera pequeña, arriba la grande. Si los pones al revés sale el mismo número en negativo."
-   }
-  },
-  {
-   "type": "build",
-   "title": "Coordenadas esféricas",
-   "md": "Para esferas completas:",
-   "target": "Integrate[ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
-   "parts": [
-    {
-     "code": "ro^2 Sin[fi]",
-     "md": "El jacobiano de las esféricas: es el integrando cuando calculas un volumen."
-    },
-    {
-     "code": "{ro, 0, 1}",
-     "md": "El radio, de 0 al de la esfera."
-    },
-    {
-     "code": "{fi, 0, Pi}",
-     "md": "El ángulo con el eje Z: de polo norte a polo sur, solo hasta `Pi`."
-    },
-    {
-     "code": "{te, 0, 2 Pi}",
-     "md": "El giro completo alrededor del eje."
-    },
-    {
-     "code": "Integrate[ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
-     "md": "Volumen de la esfera unidad: `4 Pi/3`. Los tres límites son números.",
-     "run": true
-    }
-   ],
-   "recall": {
-    "prompt": "De memoria: volumen de la esfera de radio 1 en esféricas (variables `ro`, `fi`, `te`).",
-    "hints": [
-     "Integrando: el jacobiano `ro^2 Sin[fi]`.",
-     "`fi` va de `0` a `Pi`; `te` de `0` a `2 Pi`.",
-     "`Integrate[ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]`"
-    ]
-   },
-   "cmds": [
-    "Integrate",
-    "Sin"
-   ],
-   "more": "`ro` = distancia al origen, `fi` = ángulo con el eje Z, `te` = giro alrededor de Z. Jacobiano: `ro^2 Sin[fi]`. (En Mathematica puedes usar las letras griegas con `Esc r Esc`, `Esc f Esc`, `Esc q Esc`.)",
-   "section": "Esféricas y momento de inercia"
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p24-e12",
-    "kind": "code",
-    "title": "Volumen de una esfera",
-    "prompt": "Calcula con coordenadas esféricas (variables `ro`, `fi`, `te`) el volumen de la esfera de radio 2.",
-    "difficulty": 2,
-    "cmds": [
-     "Integrate",
-     "Sin"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "Integrate[ro^2 Sin[fi], {ro, 0, 2}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
-    "check": {
-     "type": "expr",
-     "expected": "32 Pi/3"
-    },
-    "requires": [
-     "Integrate",
-     "Sin"
-    ],
-    "hints": [
-     "Volumen = integral de `1` por el jacobiano `ro^2 Sin[fi]`.",
-     "`Integrate[ro^2 Sin[fi], {ro, 0, 2}, {fi, 0, Pi}, {te, 0, 2 Pi}]`"
-    ],
-    "explain": "`32 Pi/3`, que es `4/3 Pi R^3` con `R = 2`."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p24-e13",
     "kind": "fix",
-    "title": "Falta algo en esta integral",
-    "prompt": "Esta celda quiere calcular en cilíndricas el volumen del cilindro `x^2 + y^2 <= 9`, `0 <= z <= 2` (debe dar `18 Pi`), pero tiene **dos errores**. Corrígela.",
+    "title": "Falta el jacobiano",
+    "prompt": "Corrige los dos errores: volumen en cilíndricas del cilindro `x^2 + y^2 <= 9`, `0 <= z <= 2` (debe dar `18 Pi`).",
     "difficulty": 2,
     "cmds": [
      "Integrate"
@@ -728,7 +570,86 @@
      "En cilíndricas siempre se multiplica por el jacobiano `r`.",
      "`x^2 + y^2 <= 9` significa radio 3, no 9."
     ],
-    "explain": "Faltaba el jacobiano `r` y el radio es `Sqrt[9] = 3`. Olvidar el jacobiano es el error número uno al cambiar de coordenadas."
+    "explain": "Faltaba el jacobiano `r` y el radio es `Sqrt[9] = 3`."
+   }
+  },
+  {
+   "type": "build",
+   "title": "Corte de dos esferas",
+   "md": "Volumen entre `x^2+y^2+z^2 = 36` y `x^2+y^2+(z-6)^2 = 10`: primero, dónde se cortan.",
+   "target": "Solve[x^2 + y^2 + z^2 == 36, z]",
+   "parts": [
+    {
+     "code": "Solve[36 - z^2 == 10 - (z - 6)^2, z]",
+     "md": "Iguala lo que vale `x^2 + y^2` en cada esfera y despeja `z`.",
+     "run": true
+    },
+    {
+     "code": "Sqrt[36 - z^2] /. z -> 31/6",
+     "md": "Con esa `z`, el radio del círculo de corte.",
+     "run": true
+    },
+    {
+     "code": "Solve[x^2 + y^2 + (z - 6)^2 == 10, z]",
+     "md": "Ramas de la esfera pequeña: la de abajo, `6 - Sqrt[...]`, es el suelo.",
+     "run": true
+    },
+    {
+     "code": "Solve[x^2 + y^2 + z^2 == 36, z]",
+     "md": "Ramas de la grande: la de arriba, `Sqrt[36 - ...]`, es el techo.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: despeja `z` de la esfera grande `x^2 + y^2 + z^2 == 36`.",
+    "hints": [
+     "Es un `Solve` con la ecuación (doble igual) y la incógnita.",
+     "`Solve[ecuación, z]`",
+     "`Solve[x^2 + y^2 + z^2 == 36, z]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{{z -> -Sqrt[36 - x^2 - y^2]}, {z -> Sqrt[36 - x^2 - y^2]}}",
+     "compare": "set"
+    }
+   },
+   "cmds": [
+    "Solve"
+   ],
+   "section": "Entre dos esferas"
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p24-e13",
+    "kind": "code",
+    "title": "Dos esferas: el radio",
+    "prompt": "Radio (decimal) del círculo donde se cortan `x^2+y^2+z^2 = 36` y `x^2+y^2+(z-6)^2 = 10`. Usa `Solve`.",
+    "difficulty": 3,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Sqrt",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 24 · P3 a) (variante B)",
+    "more": "Enunciado de la prueba: calcula el volumen de la región comprendida entre las esferas `x^2 + y^2 + z^2 = 36` y `x^2 + y^2 + (z - 6)^2 = 10`. a) La proyección sobre XOY de la intersección es un círculo de radio: __. b) El volumen pedido es: __.",
+    "solution": "sol = Solve[36 - z^2 == 10 - (z - 6)^2, z];\nSqrt[36 - z^2] /. Flatten[sol] // N",
+    "check": {
+     "type": "expr",
+     "expected": "3.0505008696",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`sol = Solve[36 - z^2 == 10 - (z - 6)^2, z];` da la altura del corte.",
+     "`Sqrt[36 - z^2] /. Flatten[sol] // N`"
+    ],
+    "explain": "Corte en `z = 31/6`; radio `Sqrt[335]/6 ≈ 3.05050`."
    }
   },
   {
@@ -736,8 +657,89 @@
    "ex": {
     "id": "1-p24-e14",
     "kind": "code",
-    "title": "Momento de inercia de un cilindro",
-    "prompt": "El momento de inercia de un sólido `R` de densidad `mu(x, y, z)` respecto del eje OY es la integral triple sobre `R` de `(x^2 + z^2) mu(x, y, z)`.\n\nHalla el momento de inercia respecto del eje OY del cilindro `x^2 + y^2 <= 8`, `-2 <= z <= 4`, si su densidad es `mu(x, y, z) = k z` con `k` constante. Da el resultado en la forma `número * k`.",
+    "title": "Dos esferas: el volumen",
+    "prompt": "Volumen (decimal) en cilíndricas: `r` de `0` a `Sqrt[335]/6`, `z` de `6 - Sqrt[10 - r^2]` a `Sqrt[36 - r^2]`.",
+    "difficulty": 5,
+    "cmds": [
+     "Integrate",
+     "Sqrt",
+     "N"
+    ],
+    "real": true,
+    "source": "Práctica 24 · P3 b) (variante B)",
+    "more": "En cartesianas (cuaderno de clase): `NIntegrate[1, {x, -Sqrt[335]/6, Sqrt[335]/6}, {y, -Sqrt[335 - 36 x^2]/6, Sqrt[335 - 36 x^2]/6}, {z, 6 - Sqrt[10 - x^2 - y^2], Sqrt[36 - x^2 - y^2]}]`.",
+    "solution": "Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N",
+    "check": {
+     "type": "expr",
+     "expected": "53.1406190487",
+     "compare": "numeric",
+     "tol": 2e-05
+    },
+    "hints": [
+     "Giro completo: `{a, 0, 2 Pi}`. Integrando: el jacobiano `r`.",
+     "`Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N`"
+    ],
+    "explain": "V ≈ 53.1406. Abajo la esfera pequeña, arriba la grande: con los límites de `z` al revés sale negativo."
+   }
+  },
+  {
+   "type": "build",
+   "title": "Coordenadas esféricas",
+   "md": "Para esferas: radio `ro`, ángulo con el eje Z `fi`, giro `te`. Jacobiano `ro^2 Sin[fi]`.",
+   "target": "z = ro Cos[fi];\nIntegrate[z^2 ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
+   "parts": [
+    {
+     "code": "Integrate[ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
+     "md": "Volumen de la esfera unidad: el integrando es el jacobiano.",
+     "run": true
+    },
+    {
+     "code": "Integrate[ro^2 Sin[fi], {ro, 0, 2}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
+     "md": "Cambia solo el radio: esfera de radio 2.",
+     "run": true
+    },
+    {
+     "code": "z = ro Cos[fi];",
+     "md": "En esféricas, `z = ro Cos[fi]`.",
+     "run": true
+    },
+    {
+     "code": "Integrate[z^2 ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
+     "md": "Integral de `z^2` sobre la esfera unidad: función por jacobiano.",
+     "run": true
+    },
+    {
+     "code": "z = ro Cos[fi];\nIntegrate[z^2 ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]",
+     "md": "Las dos líneas juntas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "De memoria: integral de `z^2` sobre la esfera de radio 1 en esféricas (`z = ro Cos[fi]`).",
+    "hints": [
+     "Primero `z = ro Cos[fi];`. Después la función por el jacobiano `ro^2 Sin[fi]`.",
+     "`fi` va de `0` a `Pi`; `te` de `0` a `2 Pi`.",
+     "`Integrate[z^2 ro^2 Sin[fi], {ro, 0, 1}, {fi, 0, Pi}, {te, 0, 2 Pi}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "4 Pi/15"
+    }
+   },
+   "cmds": [
+    "Integrate",
+    "Sin",
+    "Cos"
+   ],
+   "section": "Esféricas e inercia"
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p24-e15",
+    "kind": "code",
+    "title": "Inercia de un cilindro",
+    "prompt": "Integra `(x^2 + z^2) k z` con `x` de `-Sqrt[8]` a `Sqrt[8]`, `y` de `-Sqrt[8 - x^2]` a `Sqrt[8 - x^2]`, `z` de `-2` a `4`. Añade `// N`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -746,7 +748,8 @@
     ],
     "real": true,
     "source": "Práctica 24 · P5 (variante A)",
-    "solution": "Integrate[(x^2 + z^2) k z, {x, -2 Sqrt[2], 2 Sqrt[2]}, {y, -Sqrt[8 - x^2], Sqrt[8 - x^2]}, {z, -2, 4}] // N",
+    "more": "Enunciado de la prueba: el momento de inercia de un sólido R de densidad μ respecto del eje OY es la integral triple sobre R de `(x^2 + z^2) μ`. Halla el del cilindro `x^2 + y^2 <= 8`, `-2 <= z <= 4` con densidad `μ = α z` (aquí la constante se llama `k`). Sol.: __ · α.",
+    "solution": "Integrate[(x^2 + z^2) k z, {x, -Sqrt[8], Sqrt[8]}, {y, -Sqrt[8 - x^2], Sqrt[8 - x^2]}, {z, -2, 4}] // N",
     "check": {
      "type": "expr",
      "expected": "1809.5573684677 k"
@@ -755,20 +758,19 @@
      "Integrate"
     ],
     "hints": [
-     "Integrando: `(x^2 + z^2) * k * z`. Como queda la constante `k`, usa `Integrate` (y `// N` al final).",
-     "Límites: `x` de `-2 Sqrt[2]` a `2 Sqrt[2]`; `y` de `-Sqrt[8 - x^2]` a `Sqrt[8 - x^2]`; `z` de `-2` a `4`.",
-     "También sale en cilíndricas: `x = r Cos[a]`, jacobiano `r`, `r` de `0` a `Sqrt[8]`."
+     "Como queda la constante `k`, hay que usar `Integrate` (no `NIntegrate`).",
+     "`Integrate[(x^2 + z^2) k z, {x, -Sqrt[8], Sqrt[8]}, {y, -Sqrt[8 - x^2], Sqrt[8 - x^2]}, {z, -2, 4}] // N`"
     ],
-    "explain": "MOI = 576 π k ≈ 1809.56 k. En la prueba la constante se llama α y la casilla pide solo el número que la multiplica."
+    "explain": "MOI = 576 π k ≈ 1809.56 k. La casilla pide solo el número que multiplica a la constante."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p24-e15",
+    "id": "1-p24-e16",
     "kind": "code",
-    "title": "Momento de inercia de una esfera",
-    "prompt": "Con la misma definición (integral triple de `(x^2 + z^2) mu`), halla el momento de inercia respecto del eje OY de la esfera `x^2 + y^2 + z^2 <= 6` con densidad constante `mu = k`. Da el resultado en la forma `número * k`.\n\nConsejo: en cartesianas los límites tienen raíces dentro de raíces y `Integrate` tarda muchísimo; en **esféricas** es inmediato.",
+    "title": "Inercia de una esfera",
+    "prompt": "En esféricas: integra `(x^2 + z^2) k` por el jacobiano en la esfera de radio `Sqrt[6]`, con `x = ro Sin[fi] Cos[te]`, `z = ro Cos[fi]`.",
     "difficulty": 5,
     "cmds": [
      "Integrate",
@@ -778,6 +780,7 @@
     ],
     "real": true,
     "source": "Práctica 24 · P5 (variante B)",
+    "more": "Enunciado de la prueba: halla el momento de inercia respecto del eje OY (integral triple de `(x^2 + z^2) μ`) de la esfera `x^2 + y^2 + z^2 <= 6` con densidad constante `μ = α` (aquí `k`). En cartesianas los límites tienen raíces dentro de raíces y tarda muchísimo; en esféricas es inmediato.",
     "solution": "x = ro Sin[fi] Cos[te]; z = ro Cos[fi];\nIntegrate[(x^2 + z^2) k ro^2 Sin[fi], {ro, 0, Sqrt[6]}, {fi, 0, Pi}, {te, 0, 2 Pi}] // N",
     "check": {
      "type": "expr",
@@ -787,9 +790,9 @@
      "Integrate"
     ],
     "hints": [
-     "Asigna `x = ro Sin[fi] Cos[te]; z = ro Cos[fi];` para que `x^2 + z^2` quede en esféricas.",
-     "Multiplica por la densidad `k` y por el jacobiano `ro^2 Sin[fi]`.",
-     "Límites: `ro` de `0` a `Sqrt[6]`, `fi` de `0` a `Pi`, `te` de `0` a `2 Pi`."
+     "Primera línea: `x = ro Sin[fi] Cos[te]; z = ro Cos[fi];`",
+     "Integrando: `(x^2 + z^2) k ro^2 Sin[fi]`.",
+     "Iteradores: `{ro, 0, Sqrt[6]}, {fi, 0, Pi}, {te, 0, 2 Pi}`; termina con `// N`."
     ],
     "explain": "MOI = 96 Sqrt[6] π k/5 ≈ 147.750 k. Elegir bien las coordenadas convierte una integral que no acaba en una de una línea."
    }

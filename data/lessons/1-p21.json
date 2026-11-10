@@ -95,7 +95,7 @@
     "id": "1-p21-e02",
     "kind": "code",
     "title": "Diferencial del volumen",
-    "prompt": "El volumen de un depósito cilíndrico es `Pi r^2 h`. Calcula su **diferencial total** (sirve para estimar cuánto cambia el volumen con pequeños errores en `r` y `h`).",
+    "prompt": "El volumen de un depósito cilíndrico es `Pi r^2 h`. Calcula su diferencial total (`Dt` con un solo argumento).",
     "difficulty": 1,
     "cmds": [
      "Dt"
@@ -323,7 +323,7 @@
    "ex": {
     "id": "1-p21-e06",
     "kind": "code",
-    "title": "Encuentra el punto de la curva",
+    "title": "El punto de la curva",
     "prompt": "La curva `y Exp[y] == x^2 + 1` define `y(x)`. Calcula `y(2)` con `FindRoot` empezando en `y = 1` y guarda el **número** en `y0`.",
     "difficulty": 2,
     "cmds": [
@@ -533,7 +533,7 @@
     "id": "1-p21-e09",
     "kind": "code",
     "title": "Parciales de una z implícita",
-    "prompt": "La esfera `x^2 + y^2 + z^2 == 14` define `z(x, y)` cerca del punto (1, 2, 3). Guarda en `Dzy` la parcial `∂z/∂y` (expresión en `x`, `y`, `z`) y evalúala en ese punto en la última línea.",
+    "prompt": "`x^2 + y^2 + z^2 == 14` define `z(x, y)`. Guarda en `Dzy` la parcial `∂z/∂y` y evalúala en (1, 2, 3).",
     "difficulty": 3,
     "cmds": [
      "Dt",
@@ -572,7 +572,7 @@
    "type": "build",
    "section": "Jacobianos",
    "title": "dx/dz con jacobianos",
-   "md": "`F1 = x^2 + y^2 - z` y `F2 = x + y - 1` ya están definidos: `F1 = F2 = 0` define `x(z)`, `y(z)`.",
+   "md": "`F1`, `F2` ya definidos: el sistema `F1 = F2 = 0` define `x(z)`, `y(z)`. Halla `dx/dz`.",
    "target": "-Det[Grad[{F1, F2}, {z, y}]]/Det[Grad[{F1, F2}, {x, y}]]",
    "setup": "F1 = x^2 + y^2 - z; F2 = x + y - 1;",
    "parts": [
@@ -650,8 +650,8 @@
    "ex": {
     "id": "1-p21-e11",
     "kind": "code",
-    "title": "Prueba real · el punto de tangencia",
-    "prompt": "La función `y(x)` viene dada implícitamente por\n\n`Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]`.\n\nYa está definida `f[x_, y_] := Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]` (la curva es `f = 0`). Halla `y0 = y(1)` sabiendo que `y(1) > 1` y guarda el número en `y0`.",
+    "title": "Real · punto de tangencia",
+    "prompt": "La curva es `f[x, y] == 0`, con `f = Log[x^2 + 2 y^2] - ArcTan[5 y/(2 x)]` ya definida. Guarda en `y0` el número `y(1)` (es mayor que 1).",
     "difficulty": 3,
     "cmds": [
      "FindRoot",
@@ -684,8 +684,8 @@
    "ex": {
     "id": "1-p21-e12",
     "kind": "code",
-    "title": "Prueba real · pendiente y ordenada en el origen",
-    "prompt": "Misma curva (`f` ya definida; `y0 = 1.0923436569562697` también). Calcula la recta tangente `y = m x + n` en `(1, y0)`:\n\n- `Dyx`: la derivada `dy/dx` por derivación implícita (expresión en `x`, `y`);\n- `m`: su valor en `(1, y0)`;\n- `n`: la ordenada en el origen.\n\nDeja definidos `Dyx`, `m` y `n`.",
+    "title": "Real · pendiente y ordenada",
+    "prompt": "`f` e `y0` ya definidos. Guarda `dy/dx` en `Dyx`, su valor en `(1, y0)` en `m` y la ordenada en el origen de la tangente en `n`.",
     "difficulty": 4,
     "cmds": [
      "Dt",
@@ -741,8 +741,8 @@
    "ex": {
     "id": "1-p21-e13",
     "kind": "code",
-    "title": "Prueba real · curva y tangente juntas",
-    "prompt": "Comprueba el resultado: representa juntas la curva implícita `Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]` y la recta tangente `y == m x + n` (ya definidos `m = -0.918378` y `n = 2.01072`), para `x` e `y` entre 0.1 y 2.",
+    "title": "Real · curva y tangente",
+    "prompt": "`m` y `n` ya definidos. Dibuja juntas `Log[x^2 + 2 y^2] == ArcTan[5 y/(2 x)]` y `y == m x + n`, con x e y de 0.1 a 2.",
     "difficulty": 3,
     "cmds": [
      "ContourPlot"
@@ -775,7 +775,7 @@
    "ex": {
     "id": "1-p21-e14",
     "kind": "code",
-    "title": "Prueba real · la segunda derivada",
+    "title": "Real · la segunda derivada",
     "prompt": "Misma curva (`f` y `y0` ya definidos). Halla `d²y/dx²` y evalúala en `(1, y0)`.",
     "difficulty": 4,
     "cmds": [
@@ -810,7 +810,7 @@
    "ex": {
     "id": "1-p21-e15",
     "kind": "code",
-    "title": "Prueba real · z implícita: el punto",
+    "title": "Real · el punto z0",
     "prompt": "`ecu` es `z^3 - 2 x z^2 - 2 y == 0` (ya definida). Halla `z0 > 0` con `z0 = z(3, 0)` y guárdalo en `z0`.",
     "difficulty": 3,
     "cmds": [
@@ -843,7 +843,7 @@
    "ex": {
     "id": "1-p21-e16",
     "kind": "code",
-    "title": "Prueba real · z implícita: las parciales",
+    "title": "Real · parciales de z",
     "prompt": "Con `ecu` y `z0 = 6` ya definidos, guarda en `Dzx` y `Dzy` las parciales de `z` y evalúa `{Dzx, Dzy}` en `(3, 0, z0)`, en decimales.",
     "difficulty": 4,
     "cmds": [
@@ -896,8 +896,8 @@
    "ex": {
     "id": "1-p21-e17",
     "kind": "code",
-    "title": "Prueba real · la derivada cruzada",
-    "prompt": "Con `ecu` y las parciales ya definidas (`Dzx = 2 z/(3 z - 4 x)`, `Dzy = 2/(z (3 z - 4 x))`), calcula `∂²z/∂y∂x` en `P0 = (3, 0, 6)`, en decimales.\n\nIdea: deriva `Dzx` respecto de `y` (con `x` constante y `z` dependiente) y sustituye la derivada de `z` por `Dzy`.",
+    "title": "Real · la derivada cruzada",
+    "prompt": "`Dzx` y `Dzy` (parciales de z) ya definidas. Calcula `∂²z/∂y∂x` en `(3, 0, 6)`: deriva `Dzx` en `y` y sustituye `Dt[z, y]`.",
     "difficulty": 4,
     "cmds": [
      "Dt",
@@ -931,7 +931,7 @@
    "ex": {
     "id": "1-p21-e18",
     "kind": "code",
-    "title": "Prueba real · sistema: los puntos",
+    "title": "Real · puntos del sistema",
     "prompt": "`f1 = x^2 + y^2 - z^2/2` y `f2 = x + y + z - 2` están definidas como `f1[x, y, z]`, `f2[x, y, z]`. Halla los puntos con `z = 10`.",
     "difficulty": 3,
     "cmds": [
@@ -961,7 +961,7 @@
    "ex": {
     "id": "1-p21-e19",
     "kind": "code",
-    "title": "Prueba real · sistema: primeras derivadas",
+    "title": "Real · dx/dz y dy/dz",
     "prompt": "Mismas `f1`, `f2`; `P1`, `P2` ya son listas de reglas. Guarda `dx/dz` en `Dxz` y `dy/dz` en `Dyz` (jacobianos) y evalúa `{Dxz, Dyz}` en `P1` y en `P2`.",
     "difficulty": 5,
     "cmds": [
@@ -1011,8 +1011,8 @@
    "ex": {
     "id": "1-p21-e20",
     "kind": "code",
-    "title": "Prueba real · sistema: la segunda derivada",
-    "prompt": "Con el mismo sistema y sus derivadas ya definidas (`Dxz = (2 y + z)/(2 x - 2 y)`, `Dyz = (-2 x - z)/(2 x - 2 y)`), calcula `d²y/dz²` y devuelve sus valores en `P1 = (-7, -1, 10)` y `P2 = (-1, -7, 10)` en una lista, en decimales.",
+    "title": "Real · segunda derivada d²y/dz²",
+    "prompt": "`Dxz` y `Dyz` ya definidas. Calcula `d²y/dz²` y da sus valores en `(-7, -1, 10)` y `(-1, -7, 10)`, en decimales.",
     "difficulty": 5,
     "cmds": [
      "Dt",
@@ -1045,8 +1045,8 @@
    "ex": {
     "id": "1-p21-e21",
     "kind": "code",
-    "title": "Prueba real · extra: x(u, v), y(u, v)",
-    "prompt": "El sistema `2u - v + x^2 + x y = 0`, `u + 2v + x y - y^2 = 0` define `x(u, v)`, `y(u, v)`. Ya están definidas `F1[x, y, u, v]` y `F2[x, y, u, v]` (los lados izquierdos).\n\nCon jacobianos, guarda en `Dxu` la parcial `∂x/∂u` y en `Dxv` la parcial `∂x/∂v`. En la última línea evalúa `Dxv` en `x = 0`, `y = Sqrt[5]`, en decimales.",
+    "title": "Real · extra x(u, v)",
+    "prompt": "`F1[x, y, u, v]`, `F2[x, y, u, v]` ya definidas (sistema `F1 = F2 = 0`). Guarda `∂x/∂u` en `Dxu`, `∂x/∂v` en `Dxv` y evalúa `Dxv` en x = 0, y = Sqrt[5].",
     "difficulty": 5,
     "cmds": [
      "Grad",

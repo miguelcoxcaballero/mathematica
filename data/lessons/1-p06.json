@@ -1265,7 +1265,7 @@
    "ex": {
     "id": "1-p06-e24",
     "kind": "code",
-    "title": "Real 2/4 · Curvas y eje Y",
+    "title": "Real 2/4 · Curvas, eje Y",
     "prompt": "`f` y `g` ya están definidas. Dibújalas juntas para `x` entre −1 y 5 con el eje Y de −2 a 1.",
     "difficulty": 3,
     "cmds": [

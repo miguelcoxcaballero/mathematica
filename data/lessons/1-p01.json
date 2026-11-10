@@ -5,7 +5,7 @@
  "block": "Cálculo I",
  "order": 1,
  "title": "Introducción a Mathematica",
- "summary": "Tu primer contacto de verdad, paso a paso: cómo se escribe en una celda, por qué hay mayúsculas y corchetes, qué significa que un resultado sea exacto y cómo pedir decimales con N.",
+ "summary": "Tu primer contacto, tecleando: celdas, mayúsculas y corchetes, exacto frente a decimal, N, Pi, E, I, % y ==.",
  "minutes": 45,
  "commands": [
   "N",
@@ -25,44 +25,84 @@
  "uses": [],
  "steps": [
   {
-   "type": "explain",
+   "type": "build",
    "section": "Tu primera celda",
-   "title": "Tu primera celda",
-   "md": "Mathematica es una calculadora que **entiende las matemáticas**: trabaja con fracciones, raíces y π sin redondear, deriva, integra y resuelve ecuaciones.\n\nSolo tiene cuatro o cinco reglas de escritura. Las vas a ver una a una, despacio, y **tecleándolo todo tú**.\n\nLo de abajo es una **celda**. El código aparece en gris: escríbelo y se irá poniendo negro. Cuando esté completo, pulsa **Shift+Enter** para evaluarlo (Enter a secas solo baja de línea). Mathematica contesta debajo: `In[n]:=` es lo que tú escribes y `Out[n]=` es su respuesta.",
-   "cells": [
+   "title": "Evaluar una celda",
+   "md": "Escribe lo que ves en gris y evalúa con Shift+Enter.",
+   "target": "2^100",
+   "parts": [
     {
      "code": "2 + 3",
-     "note": "Escríbelo y pulsa Shift+Enter"
+     "md": "Teclea lo gris y pulsa Shift+Enter.",
+     "run": true,
+     "more": "Enter a secas solo baja de línea. `In[n]:=` es lo que tú escribes y `Out[n]=` la respuesta."
+    },
+    {
+     "code": "7 * 6",
+     "md": "Ahora un producto, con asterisco.",
+     "run": true
+    },
+    {
+     "code": "2^10",
+     "md": "Una potencia, con el acento circunflejo.",
+     "run": true
+    },
+    {
+     "code": "2^100",
+     "md": "Sube el exponente a 100.",
+     "run": true,
+     "hint": "No redondea: da el número exacto, con todas sus cifras."
     }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: calcula 2 elevado a 100.",
+    "hints": [
+     "La potencia se escribe con `^`.",
+     "`2^100`"
+    ]
+   },
+   "cmds": [
+    "Power"
    ]
   },
   {
    "type": "build",
-   "title": "Una operación completa",
-   "md": "Vamos a construir, pieza a pieza, un cálculo con suma, potencia, paréntesis y producto.",
+   "title": "Prioridad y paréntesis",
+   "md": "Comprueba qué operación se hace primero.",
+   "more": "Prioridad: primero potencias, luego productos y cocientes, al final sumas y restas. Los paréntesis `( )` la cambian.",
    "target": "(17 + 4) * 3^2",
    "parts": [
     {
-     "code": "17 + 4",
-     "md": "Una suma. Los operadores son los de cualquier calculadora: `+`, `-`, `*` (producto) y `/` (cociente).",
+     "code": "2 + 3 * 4",
+     "md": "Sin paréntesis: ¿suma o producto primero?",
      "run": true
     },
     {
-     "code": "3^2",
-     "md": "La potencia se escribe con el acento circunflejo `^`.",
+     "code": "(2 + 3) * 4",
+     "md": "Ahora con paréntesis en la suma.",
+     "run": true
+    },
+    {
+     "code": "2 * 3^2",
+     "md": "¿Producto o potencia primero?",
+     "run": true
+    },
+    {
+     "code": "(2 * 3)^2",
+     "md": "Y con paréntesis en el producto.",
      "run": true
     },
     {
      "code": "(17 + 4) * 3^2",
-     "md": "Los paréntesis agrupan: primero la suma y después el producto. Sin ellos mandaría la prioridad de siempre (potencias, luego productos, luego sumas).",
+     "md": "Todo junto: suma, producto y potencia.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Ahora sin mirar: calcula 17 más 4, todo ello multiplicado por 3 al cuadrado.",
+    "prompt": "Sin mirar: 17 más 4, todo ello multiplicado por 3 al cuadrado.",
     "hints": [
-     "Empieza por la suma entre paréntesis: `(17 + 4)`.",
-     "El producto es `*` y la potencia `^`.",
+     "La suma va entre paréntesis.",
+     "Producto con `*` y potencia con `^`.",
      "`(17 + 4) * 3^2`"
     ]
    },
@@ -76,7 +116,7 @@
     "id": "1-p01-e01",
     "kind": "code",
     "title": "Cambia la prioridad",
-    "prompt": "La celda `2 + 3 * 4^2` vale 50: primero la potencia, después el producto y al final la suma.\n\nEscríbela con unos paréntesis para que **primero se sume 2 + 3** y ese resultado se multiplique por 4². Debe dar 80.",
+    "prompt": "Escribe `2 + 3 * 4^2` con paréntesis para que primero se sume 2 + 3. Debe dar 80.",
     "difficulty": 1,
     "cmds": [
      "Power"
@@ -95,7 +135,7 @@
      "Los paréntesis obligan a hacer antes lo que encierran.",
      "`(2 + 3) * 4^2`"
     ],
-    "explain": "`(2 + 3) * 4^2` es 5 · 16 = 80. Sin paréntesis manda la prioridad habitual; con ellos decides tú el orden."
+    "explain": "5 · 16 = 80. Sin paréntesis valía 50."
    }
   },
   {
@@ -120,45 +160,52 @@
      "Power"
     ],
     "hints": [
-     "El numerador entero va entre paréntesis: `(2^10 - 24)`.",
+     "El numerador entero va entre paréntesis.",
      "`(2^10 - 24)/100`"
     ],
-    "explain": "`(2^10 - 24)/100` es (1024 − 24)/100 = 10. Sin los paréntesis solo se dividiría el 24."
+    "explain": "(1024 − 24)/100 = 10. Sin los paréntesis solo se dividiría el 24."
    }
   },
   {
    "type": "build",
-   "section": "Las dos reglas de escritura",
+   "section": "Espacios y corchetes",
    "title": "El espacio multiplica",
-   "md": "Primera regla de escritura: en Mathematica, un **espacio** entre dos cosas es un producto.",
+   "md": "Un espacio entre dos cosas es un producto.",
    "target": "3 a b + 2 a b",
    "parts": [
     {
      "code": "3 4",
-     "md": "Un espacio entre dos números los multiplica: sale 12. Teclea también el espacio.",
+     "md": "Teclea 3, espacio, 4.",
      "run": true
     },
     {
-     "code": "a b",
-     "md": "Con letras, igual: «a por b». Como `a` y `b` no tienen valor, las deja como símbolos y no pasa nada.",
+     "code": "3 x",
+     "md": "Ahora un número y una letra.",
+     "run": true,
+     "hint": "La letra no tiene valor: la deja como símbolo y no pasa nada."
+    },
+    {
+     "code": "x y",
+     "md": "Dos letras con espacio.",
      "run": true
     },
     {
-     "code": "ab",
-     "md": "Pegadas es otra cosa: un símbolo nuevo que se llama «ab». No es un producto.",
-     "run": true
+     "code": "xy",
+     "md": "Las mismas letras, pegadas.",
+     "run": true,
+     "hint": "Pegadas son un símbolo nuevo llamado xy, no un producto."
     },
     {
      "code": "3 a b + 2 a b",
-     "md": "Con los espacios bien puestos, Mathematica reconoce el mismo producto en los dos términos y los suma.",
+     "md": "Suma dos productos iguales.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: suma 3·a·b y 2·a·b. Mathematica debe responder `5 a b`.",
+    "prompt": "Sin mirar: suma 3·a·b y 2·a·b. Debe salir `5 a b`.",
     "hints": [
-     "Entre cada número y cada letra va un espacio (o un `*`).",
-     "Si te sale `5 ab`, has pegado las letras.",
+     "Entre cada número y cada letra, un espacio.",
+     "Si sale `5 ab`, has pegado las letras.",
      "`3 a b + 2 a b`"
     ],
     "check": {
@@ -172,37 +219,45 @@
   },
   {
    "type": "build",
-   "title": "Funciones: mayúscula y corchetes",
-   "md": "Segunda regla: toda función empieza por **mayúscula** y lleva sus argumentos entre **corchetes**.",
-   "target": "Sqrt[144] + Cos[0]",
+   "title": "Mayúscula y corchetes",
+   "md": "Las funciones: mayúscula inicial y corchetes.",
+   "more": "`[ ]` argumentos de una función, `( )` solo agrupar, `{ }` listas. Si una salida repite lo que escribiste, revisa mayúsculas y corchetes.",
+   "target": "Sqrt[16] + Cos[0]",
    "parts": [
     {
-     "code": "Sqrt[144]",
-     "md": "`Sqrt` es la raíz cuadrada. Nombre con mayúscula inicial y el argumento entre corchetes `[ ]`.",
+     "code": "Sqrt[16]",
+     "md": "La raíz cuadrada: Sqrt y corchetes.",
      "run": true
+    },
+    {
+     "code": "sqrt[16]",
+     "md": "Mal a propósito: con minúscula.",
+     "run": true,
+     "hint": "No la reconoce y la devuelve tal cual, sin avisar."
+    },
+    {
+     "code": "Sqrt(16)",
+     "md": "Otro error a propósito: con paréntesis.",
+     "run": true,
+     "hint": "Lo toma por un producto: el símbolo Sqrt por 16."
     },
     {
      "code": "Cos[0]",
-     "md": "El coseno, igual: `Cos` y corchetes. Los paréntesis `( )` solo sirven para agrupar operaciones.",
+     "md": "Otra función bien escrita: el coseno.",
      "run": true
     },
     {
-     "code": "sqrt(144)",
-     "md": "Mal a propósito: minúscula y paréntesis. Mathematica no avisa: entiende «un símbolo sqrt multiplicado por 144».",
-     "run": true
-    },
-    {
-     "code": "Sqrt[144] + Cos[0]",
-     "md": "Bien escrito: 12 + 1.",
+     "code": "Sqrt[16] + Cos[0]",
+     "md": "Las dos, sumadas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula la raíz cuadrada de 144 más el coseno de 0.",
+    "prompt": "Sin mirar: raíz cuadrada de 16 más coseno de 0.",
     "hints": [
-     "Las dos funciones empiezan por mayúscula: `Sqrt` y `Cos`.",
+     "`Sqrt` y `Cos`, con mayúscula.",
      "Los argumentos, entre corchetes.",
-     "`Sqrt[144] + Cos[0]`"
+     "`Sqrt[16] + Cos[0]`"
     ]
    },
    "cmds": [
@@ -216,7 +271,7 @@
     "id": "1-p01-e03",
     "kind": "fix",
     "title": "Arregla la celda",
-    "prompt": "Esta celda debería calcular el seno de π/2 más la raíz cuadrada de 16 (resultado: 5). Tiene los dos errores típicos. Escríbela bien.",
+    "prompt": "Debería dar 5: seno de π/2 más raíz de 16. Escríbela bien.",
     "difficulty": 1,
     "cmds": [
      "Sin",
@@ -235,10 +290,10 @@
      "Sqrt"
     ],
     "hints": [
-     "Las funciones empiezan por mayúscula: `Sin`, `Sqrt`.",
-     "Los argumentos van entre corchetes: `Sin[Pi/2] + Sqrt[16]`."
+     "Mayúscula inicial en las funciones y corchetes en los argumentos.",
+     "`Sin[Pi/2] + Sqrt[16]`"
     ],
-    "explain": "Mayúscula inicial y corchetes. Si una salida te devuelve lo mismo que escribiste, o algo absurdo, revisa esas dos cosas antes que nada."
+    "explain": "Con minúscula y paréntesis, Mathematica multiplicaba símbolos desconocidos."
    }
   },
   {
@@ -246,7 +301,7 @@
    "ex": {
     "id": "1-p01-e04",
     "kind": "code",
-    "title": "Una función con una operación dentro",
+    "title": "Una operación dentro",
     "prompt": "Calcula la raíz cuadrada de 2 elevado a 10.",
     "difficulty": 1,
     "cmds": [
@@ -267,59 +322,63 @@
      "Dentro de los corchetes puede ir cualquier operación.",
      "`Sqrt[2^10]`"
     ],
-    "explain": "`Sqrt[2^10]` da 32. El argumento puede ser cualquier expresión: Mathematica la calcula y luego hace la raíz."
+    "explain": "Primero calcula el argumento (1024) y luego la raíz: 32."
    }
   },
   {
    "type": "build",
-   "section": "Exacto o aproximado",
+   "section": "Exacto o decimal",
    "title": "Exacto frente a decimal",
-   "md": "La idea más importante de Mathematica: **nunca redondea por su cuenta**.",
-   "target": "{1/3 + 1/6, 1/3 + 0.5}",
+   "md": "Compara cada par: sin punto y con punto decimal.",
+   "more": "Mathematica nunca redondea por su cuenta: con datos exactos responde exacto. Un solo punto decimal vuelve aproximado todo el cálculo.",
+   "target": "1/3 + 0.5",
    "parts": [
     {
      "code": "10/4",
-     "md": "Dos enteros: responde con la fracción exacta `5/2`, no con 2.5.",
+     "md": "Divide dos enteros.",
+     "run": true
+    },
+    {
+     "code": "10/4.",
+     "md": "Lo mismo, con un punto detrás del 4.",
      "run": true
     },
     {
      "code": "Sqrt[8]",
-     "md": "Simplifica la raíz, pero no la convierte en 2.828…",
+     "md": "Una raíz de un entero.",
+     "run": true
+    },
+    {
+     "code": "Sqrt[8.]",
+     "md": "Y con punto decimal.",
      "run": true
     },
     {
      "code": "1/3 + 1/6",
-     "md": "Fracciones exactas: resultado exacto, `1/2`.",
+     "md": "Suma dos fracciones.",
      "run": true
     },
     {
      "code": "1/3 + 0.5",
-     "md": "Un solo **punto decimal** y todo el resultado pasa a ser aproximado.",
-     "run": true
-    },
-    {
-     "code": "{1/3 + 1/6, 1/3 + 0.5}",
-     "md": "Las dos versiones juntas en una **lista**: varias cosas entre llaves `{ }`, separadas por comas.",
+     "md": "Cambia la segunda por 0.5.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: escribe una lista con dos elementos. El primero, un tercio más un sexto (exacto). El segundo, un tercio más 0.5.",
+    "prompt": "Sin mirar: suma un tercio y 0.5.",
     "hints": [
-     "Una lista va entre llaves y con una coma entre los elementos.",
-     "Las fracciones se escriben `1/3` y `1/6`.",
-     "`{1/3 + 1/6, 1/3 + 0.5}`"
+     "La fracción se escribe `1/3`.",
+     "`1/3 + 0.5`"
     ],
     "check": {
      "type": "expr",
-     "expected": "{1/2, 1/3 + 0.5}",
+     "expected": "1/3 + 0.5",
      "compare": "numeric",
      "tol": 1e-09
     }
    },
    "cmds": [
-    "Sqrt",
-    "List"
+    "Sqrt"
    ]
   },
   {
@@ -328,7 +387,7 @@
     "id": "1-p01-e05",
     "kind": "code",
     "title": "Un resultado exacto",
-    "prompt": "Calcula tres cuartos más cinco sextos. El resultado tiene que ser **exacto** (una fracción), no un decimal.",
+    "prompt": "Calcula tres cuartos más cinco sextos. Tiene que salir una fracción, no un decimal.",
     "difficulty": 1,
     "cmds": [
      "Plus"
@@ -346,64 +405,69 @@
       {
        "type": "satisfies",
        "test": "Head[%] === Rational || Head[Out[$Line]] === Rational",
-       "msg": "El valor es correcto, pero se pedía el resultado **exacto**: escribe los datos sin punto decimal y no uses `N`."
+       "msg": "Se pedía el resultado exacto: escribe los datos sin punto decimal y no uses `N`."
       }
      ]
     },
     "hints": [
-     "Escribe las fracciones con `/` y sin ningún punto decimal.",
+     "Fracciones con `/` y sin ningún punto decimal.",
      "`3/4 + 5/6`"
     ],
-    "explain": "`3/4 + 5/6` da `19/12`. Regla práctica: escribe los datos exactos (`1/2`, no `0.5`) y decide al final si quieres decimales."
+    "explain": "Sale `19/12`. Escribe los datos exactos y decide al final si quieres decimales."
    }
   },
   {
    "type": "build",
    "title": "N: pedir decimales",
-   "md": "Cuando sí quieres decimales, se los pides con `N`.",
-   "target": "N[Sqrt[2]/3, 10]",
+   "md": "Pide los decimales con N.",
+   "more": "`N[expr]` da precisión de máquina (unas 16 cifras; en pantalla se ven 6). `N[expr, n]` da n cifras significativas.",
+   "target": "N[Sqrt[2], 30]",
    "parts": [
     {
-     "code": "Sqrt[2]/3",
-     "md": "Un valor exacto. Así no sabes cuánto vale.",
+     "code": "Sqrt[2]",
+     "md": "Una raíz exacta: no dice cuánto vale.",
      "run": true
     },
     {
-     "code": "N[Sqrt[2]/3]",
-     "md": "`N[...]` lo pasa a decimal. En Mathematica verás 6 cifras en pantalla; por dentro guarda unas 16.",
+     "code": "N[Sqrt[2]]",
+     "md": "Envuélvela en N.",
      "run": true
     },
     {
-     "code": "Sqrt[2]/3 // N",
-     "md": "Lo mismo escrito al final: `// N`. Cómodo para añadirlo a una línea ya hecha.",
+     "code": "Sqrt[2] // N",
+     "md": "Lo mismo, con // N al final.",
      "run": true
     },
     {
-     "code": "N[Sqrt[2]/3, 10]",
-     "md": "Con un segundo argumento eliges las **cifras significativas**: aquí, 10.",
+     "code": "N[Sqrt[2], 10]",
+     "md": "Segundo argumento: 10 cifras.",
+     "run": true
+    },
+    {
+     "code": "N[Sqrt[2], 30]",
+     "md": "Ahora 30 cifras.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula la raíz de 2 dividida entre 3, con 10 cifras significativas.",
+    "prompt": "Sin mirar: raíz de 2 con 30 cifras significativas.",
     "hints": [
-     "La forma es `N[qué, cuántas cifras]`.",
-     "Lo que aproximas es `Sqrt[2]/3`.",
-     "`N[Sqrt[2]/3, 10]`"
+     "`N[qué, cuántas cifras]`.",
+     "`N[Sqrt[2], 30]`"
     ],
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "expr",
-       "expected": "Sqrt[2]/3",
+       "expected": "Sqrt[2]",
        "compare": "numeric",
-       "tol": 1e-09
+       "tol": 1e-12
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
-       "msg": "El valor es correcto, pero no tiene exactamente 10 cifras significativas. Pídelas con el segundo argumento: `N[expr, 10]`, y no escribas decimales dentro (usa datos exactos)."
+       "test": "Precision[%] == 30 || Precision[Out[$Line]] == 30",
+       "msg": "El valor es correcto, pero no tiene 30 cifras: usa `N[expr, 30]` con datos exactos (sin decimales)."
       }
      ]
     }
@@ -411,6 +475,51 @@
    "cmds": [
     "N",
     "Sqrt"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "N necesita datos exactos",
+   "md": "N no puede inventar cifras a un decimal.",
+   "target": "N[1/3 + 1/2, 20]",
+   "parts": [
+    {
+     "code": "N[1/3 + 0.5, 20]",
+     "md": "Pide 20 cifras con un decimal dentro.",
+     "run": true,
+     "hint": "No salen 20: el 0.5 ya era aproximado."
+    },
+    {
+     "code": "N[1/3 + 1/2, 20]",
+     "md": "Cambia 0.5 por 1/2.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: un tercio más un medio, con 20 cifras significativas.",
+    "hints": [
+     "Los datos, como fracciones: `1/3` y `1/2`.",
+     "`N[1/3 + 1/2, 20]`"
+    ],
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "5/6",
+       "compare": "numeric",
+       "tol": 1e-12
+      },
+      {
+       "type": "satisfies",
+       "test": "Precision[%] == 20 || Precision[Out[$Line]] == 20",
+       "msg": "El valor es correcto, pero no tiene 20 cifras: usa `N[expr, 20]` con datos exactos (sin decimales)."
+      }
+     ]
+    }
+   },
+   "cmds": [
+    "N"
    ]
   },
   {
@@ -439,7 +548,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 20 || Precision[Out[$Line]] == 20",
-       "msg": "El valor es correcto, pero no tiene exactamente 20 cifras significativas. Pídelas con el segundo argumento: `N[expr, 20]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 20 cifras: usa `N[expr, 20]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -450,7 +559,7 @@
      "`N[expresión, cifras]`.",
      "`N[1/7, 20]`"
     ],
-    "explain": "`N[1/7, 20]` da 0.14285714285714285714. Las cifras significativas se cuentan desde la primera que no es cero."
+    "explain": "0.14285714285714285714. Las cifras significativas se cuentan desde la primera que no es cero."
    }
   },
   {
@@ -480,7 +589,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 12 || Precision[Out[$Line]] == 12",
-       "msg": "El valor es correcto, pero no tiene exactamente 12 cifras significativas. Pídelas con el segundo argumento: `N[expr, 12]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 12 cifras: usa `N[expr, 12]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -488,50 +597,56 @@
      "N"
     ],
     "hints": [
-     "Toda la suma va como primer argumento de `N`.",
+     "Toda la suma es el primer argumento de `N`.",
      "`N[Sqrt[2] + Sqrt[3], 12]`"
     ],
-    "explain": "Sale 3.14626436994. Importante: `N[..., 12]` solo puede dar 12 cifras buenas si dentro todo es exacto. Con un decimal dentro (`1.5` en vez de `3/2`) ya no puede."
+    "explain": "Sale 3.14626436994."
    }
   },
   {
    "type": "build",
-   "section": "Constantes: Pi, E, I",
+   "section": "Pi, E, I",
    "title": "Las constantes π y e",
-   "md": "Las constantes también empiezan por mayúscula. Y son exactas.",
+   "md": "Las constantes llevan mayúscula.",
    "target": "N[Pi E^2, 8]",
    "parts": [
     {
      "code": "Pi",
-     "md": "π se escribe `Pi`. Es exacto: Mathematica lo deja tal cual, no lo cambia por 3.14.",
+     "md": "Escribe Pi.",
+     "run": true,
+     "hint": "Es exacto: lo deja tal cual, no lo cambia por 3.14."
+    },
+    {
+     "code": "N[Pi]",
+     "md": "Su valor decimal.",
      "run": true
     },
     {
-     "code": "pi",
-     "md": "Mal a propósito: en minúscula es un símbolo cualquiera, sin valor. Es el fallo número uno al copiar una fórmula.",
-     "run": true
+     "code": "N[pi]",
+     "md": "Mal a propósito: en minúscula.",
+     "run": true,
+     "hint": "pi en minúscula es un símbolo cualquiera, sin valor."
     },
     {
-     "code": "E^2",
-     "md": "`E` mayúscula es el número e (2.71828…).",
+     "code": "N[E]",
+     "md": "El número e: E mayúscula.",
      "run": true
     },
     {
      "code": "Pi E^2",
-     "md": "Producto con espacio. Sigue siendo exacto.",
+     "md": "Un producto exacto de las dos.",
      "run": true
     },
     {
      "code": "N[Pi E^2, 8]",
-     "md": "Y con `N`, el número con las cifras que quieras.",
+     "md": "Y ahora con 8 cifras.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula π·e² con 8 cifras significativas.",
+    "prompt": "Sin mirar: π·e² con 8 cifras significativas.",
     "hints": [
-     "π es `Pi` y e es `E`, los dos con mayúscula.",
-     "Entre `Pi` y `E^2` va un espacio (producto).",
+     "`Pi` y `E`, con mayúscula y un espacio entre ellas.",
      "`N[Pi E^2, 8]`"
     ],
     "check": {
@@ -546,7 +661,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
-       "msg": "El valor es correcto, pero no tiene exactamente 8 cifras significativas. Pídelas con el segundo argumento: `N[expr, 8]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 8 cifras: usa `N[expr, 8]` con datos exactos (sin decimales)."
       }
      ]
     }
@@ -562,8 +677,8 @@
    "ex": {
     "id": "1-p01-e08",
     "kind": "fix",
-    "title": "Tres errores en una línea",
-    "prompt": "Queremos el valor decimal de e²/3 (sale 2.46302). La celda tiene tres errores de escritura. Escríbela bien.",
+    "title": "Tres errores",
+    "prompt": "Queremos el valor decimal de e²/3 (sale 2.46302). Escríbela bien.",
     "difficulty": 2,
     "cmds": [
      "N",
@@ -584,39 +699,44 @@
      "E"
     ],
     "hints": [
-     "Mayúscula en funciones y constantes; corchetes para los argumentos.",
+     "Mayúscula en `N` y en `E`; corchetes para el argumento.",
      "`N[E^2/3]`"
     ],
-    "explain": "`N` con mayúscula, corchetes para su argumento y `E` con mayúscula. Tal como estaba, Mathematica multiplicaba dos símbolos desconocidos."
+    "explain": "`N` con mayúscula y corchetes, `E` con mayúscula."
    }
   },
   {
    "type": "build",
    "title": "La unidad imaginaria",
-   "md": "Los números complejos se escriben con `I` mayúscula.",
+   "md": "Los complejos se escriben con I mayúscula.",
    "target": "(1 + 2 I)/(3 - 4 I)",
    "parts": [
     {
      "code": "I^2",
-     "md": "`I` es la unidad imaginaria: su cuadrado es −1.",
+     "md": "Eleva I al cuadrado.",
      "run": true
     },
     {
-     "code": "1 + 2 I",
-     "md": "Un complejo en forma binómica. `2 I` es «2 por I», con el espacio de producto.",
+     "code": "2 + 3 I",
+     "md": "Un complejo: 3 I es 3 por I.",
+     "run": true
+    },
+    {
+     "code": "(1 + 2 I) (3 - 4 I)",
+     "md": "Un producto de dos complejos.",
      "run": true
     },
     {
      "code": "(1 + 2 I)/(3 - 4 I)",
-     "md": "Un cociente: numerador y denominador entre paréntesis. Lo opera y lo deja en la forma a + b I.",
+     "md": "Y ahora el cociente.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: calcula el cociente (1 + 2i)/(3 − 4i).",
+    "prompt": "Sin mirar: el cociente (1 + 2i)/(3 − 4i).",
     "hints": [
      "La unidad imaginaria es `I` mayúscula.",
-     "Numerador y denominador, cada uno entre paréntesis.",
+     "Numerador y denominador, entre paréntesis.",
      "`(1 + 2 I)/(3 - 4 I)`"
     ]
    },
@@ -630,7 +750,7 @@
     "id": "1-p01-e09",
     "kind": "code",
     "title": "La identidad de Euler",
-    "prompt": "Calcula e elevado a i·π. Usa las tres constantes: `E`, `I` y `Pi`.",
+    "prompt": "Calcula e elevado a i·π, con `E`, `I` y `Pi`.",
     "difficulty": 2,
     "cmds": [
      "E",
@@ -649,49 +769,83 @@
      "Pi"
     ],
     "hints": [
-     "El exponente entero va entre paréntesis: `(I Pi)`.",
+     "El exponente entero va entre paréntesis.",
      "`E^(I Pi)`"
     ],
-    "explain": "`E^(I Pi)` da exactamente −1. Sin los paréntesis, `E^I Pi` sería (e elevado a i) por π."
+    "explain": "Da exactamente −1. Sin paréntesis, `E^I Pi` sería (e elevado a i) por π."
    }
   },
   {
    "type": "build",
-   "section": "Ángulos en radianes",
-   "title": "De grados a radianes",
-   "md": "Las funciones trigonométricas trabajan en **radianes**. Vamos a convertir un ángulo dado en grados, minutos y segundos.",
-   "target": "N[FromDMS[{12, 30, 0}] Degree, 8]",
+   "section": "Ángulos",
+   "title": "Grados y radianes",
+   "md": "Sin y Cos trabajan en radianes.",
+   "more": "`Degree` es la constante π/180. `30 Degree` es lo mismo que `30 Pi/180`.",
+   "target": "Cos[60 Degree]",
    "parts": [
     {
+     "code": "Sin[Pi/6]",
+     "md": "El seno de π/6 radianes.",
+     "run": true
+    },
+    {
+     "code": "Sin[30]",
+     "md": "¿Y el seno de 30?",
+     "run": true,
+     "hint": "Son 30 radianes, no 30 grados: por eso no sale 1/2."
+    },
+    {
      "code": "Sin[30 Degree]",
-     "md": "`Degree` es la constante π/180: multiplicar por ella pasa de grados a radianes. `Sin[30]` a secas sería el seno de 30 radianes.",
+     "md": "Añade Degree para decir que son grados.",
      "run": true
     },
     {
-     "code": "{12, 30, 0}",
-     "md": "Un ángulo de 12° 30' 0'' como lista: grados, minutos, segundos."
-    },
-    {
-     "code": "FromDMS[{12, 30, 0}]",
-     "md": "`FromDMS` lo convierte a **grados** con decimales (DMS: degrees, minutes, seconds). Sale exacto: 25/2.",
-     "run": true
-    },
-    {
-     "code": "FromDMS[{12, 30, 0}] Degree",
-     "md": "Por `Degree`: ahora en radianes, todavía exacto.",
-     "run": true
-    },
-    {
-     "code": "N[FromDMS[{12, 30, 0}] Degree, 8]",
-     "md": "Y `N` para verlo con 8 cifras.",
+     "code": "Cos[60 Degree]",
+     "md": "Otro: el coseno de 60 grados.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: pasa el ángulo 12° 30' 0'' a radianes, con 8 cifras significativas.",
+    "prompt": "Sin mirar: el coseno de 60 grados.",
     "hints": [
-     "Tres capas: `FromDMS[{...}]` da los grados, `Degree` los pasa a radianes y `N[..., 8]` da los decimales.",
-     "El ángulo es la lista `{12, 30, 0}`.",
+     "Los grados se escriben multiplicando por `Degree`.",
+     "`Cos[60 Degree]`"
+    ]
+   },
+   "cmds": [
+    "Sin",
+    "Cos",
+    "Degree"
+   ]
+  },
+  {
+   "type": "build",
+   "title": "Grados, minutos y segundos",
+   "md": "Convierte 12° 30' 0'' a radianes, pieza a pieza.",
+   "target": "N[FromDMS[{12, 30, 0}] Degree, 8]",
+   "parts": [
+    {
+     "code": "FromDMS[{12, 30, 0}]",
+     "md": "Lista {grados, minutos, segundos} dentro de FromDMS.",
+     "run": true,
+     "hint": "Devuelve los grados con decimales, exactos: 25/2."
+    },
+    {
+     "code": "FromDMS[{12, 30, 0}] Degree",
+     "md": "Multiplica por Degree: ya son radianes.",
+     "run": true
+    },
+    {
+     "code": "N[FromDMS[{12, 30, 0}] Degree, 8]",
+     "md": "Envuélvelo en N, con 8 cifras.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Sin mirar: 12° 30' 0'' en radianes, con 8 cifras.",
+    "hints": [
+     "Tres capas: `FromDMS[{...}]`, por `Degree`, y `N[..., 8]`.",
+     "La lista es `{12, 30, 0}`.",
      "`N[FromDMS[{12, 30, 0}] Degree, 8]`"
     ],
     "check": {
@@ -706,7 +860,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
-       "msg": "El valor es correcto, pero no tiene exactamente 8 cifras significativas. Pídelas con el segundo argumento: `N[expr, 8]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 8 cifras: usa `N[expr, 8]` con datos exactos (sin decimales)."
       }
      ]
     }
@@ -714,8 +868,7 @@
    "cmds": [
     "FromDMS",
     "Degree",
-    "N",
-    "Sin"
+    "N"
    ]
   },
   {
@@ -723,28 +876,27 @@
    "ex": {
     "id": "1-p01-e10",
     "kind": "code",
-    "title": "Coseno de 60 grados",
-    "prompt": "Calcula el coseno de 60 grados. Debe salir el valor exacto 1/2.",
+    "title": "Tangente de 45 grados",
+    "prompt": "Calcula la tangente de 45 grados (`Tan`). Debe dar 1.",
     "difficulty": 1,
     "cmds": [
-     "Cos",
      "Degree"
     ],
     "real": false,
     "source": null,
-    "solution": "Cos[60 Degree]",
+    "solution": "Tan[45 Degree]",
     "check": {
      "type": "expr",
-     "expected": "1/2"
+     "expected": "1"
     },
     "requires": [
-     "Cos"
+     "Tan"
     ],
     "hints": [
-     "Los grados se escriben multiplicando por `Degree`.",
-     "`Cos[60 Degree]`"
+     "El ángulo en grados se escribe `45 Degree`.",
+     "`Tan[45 Degree]`"
     ],
-    "explain": "`Cos[60 Degree]` da 1/2. También vale `Cos[60 Pi/180]` o `Cos[Pi/3]`: lo importante es que dentro haya radianes."
+    "explain": "Sin `Degree` serían 45 radianes."
    }
   },
   {
@@ -775,7 +927,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
-       "msg": "El valor es correcto, pero no tiene exactamente 10 cifras significativas. Pídelas con el segundo argumento: `N[expr, 10]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 10 cifras: usa `N[expr, 10]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -783,44 +935,51 @@
      "N"
     ],
     "hints": [
-     "Es la misma construcción con otra lista: `{40, 15, 30}`.",
+     "La misma construcción con la lista `{40, 15, 30}`.",
      "`N[FromDMS[{40, 15, 30}] Degree, 10]`"
     ],
-    "explain": "Sale 0.7026404680. Siempre las mismas tres capas: `FromDMS`, `Degree` (o `Pi/180`) y `N`."
+    "explain": "Sale 0.7026404680. Siempre tres capas: `FromDMS`, `Degree` y `N`."
    }
   },
   {
    "type": "build",
    "section": "%, punto y coma y ==",
-   "title": "% y el punto y coma",
-   "md": "Dos ayudas para encadenar cálculos sin copiar resultados.",
+   "title": "% y punto y coma",
+   "md": "% es la última salida; el ; la oculta.",
+   "more": "`%` es lo último que se evaluó, no lo que está escrito encima. Para algo importante es más seguro guardar el resultado con un nombre (práctica 2).",
    "target": "2^20;\n% / 1024",
    "parts": [
     {
      "code": "12 * 3",
-     "md": "Un cálculo cualquiera: 36.",
+     "md": "Un cálculo cualquiera.",
      "run": true
     },
     {
      "code": "% + 1",
-     "md": "`%` es **la última salida**. Aquí vale 36, así que sale 37.",
+     "md": "Sigue desde ese resultado con %.",
      "run": true
     },
     {
      "code": "2^20;",
-     "md": "Un `;` al final hace el cálculo pero **no muestra** la salida.",
+     "md": "Ahora termina la línea en punto y coma.",
+     "run": true,
+     "hint": "Hace el cálculo, pero no muestra la salida."
+    },
+    {
+     "code": "%",
+     "md": "Recupera ese resultado con %.",
      "run": true
     },
     {
      "code": "2^20;\n% / 1024",
-     "md": "Dos líneas en una celda. La primera calcula en silencio y la segunda recupera el resultado con `%`.",
+     "md": "Las dos cosas en una celda de dos líneas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar, en dos líneas: calcula 2^20 sin mostrarlo y, en la segunda línea, divide ese resultado entre 1024 usando `%`.",
+    "prompt": "Sin mirar, en dos líneas: 2^20 sin mostrarlo y, debajo, % entre 1024.",
     "hints": [
-     "La primera línea termina en punto y coma: `2^20;`",
+     "La primera línea termina en `;`.",
      "La segunda empieza por `%`.",
      "`2^20;` y debajo `% / 1024`"
     ],
@@ -839,7 +998,7 @@
     "id": "1-p01-e12",
     "kind": "code",
     "title": "Seguir con %",
-    "prompt": "Dos líneas en la misma celda:\n\n1. Calcula `15!` (el factorial de 15) terminando la línea en punto y coma.\n2. Divide ese resultado entre `13!` usando `%`.",
+    "prompt": "En dos líneas: calcula `15!` sin mostrarlo y, debajo, divide `%` entre `13!`.",
     "difficulty": 2,
     "cmds": [
      "Out",
@@ -859,40 +1018,47 @@
      "Primera línea: `15!;`",
      "Segunda línea: `% / 13!`"
     ],
-    "explain": "15!/13! = 15 · 14 = 210. Ojo con `%`: es lo último que se **evaluó**, no lo que está escrito justo encima. Para algo importante es más seguro guardar el resultado con un nombre (siguiente lección)."
+    "explain": "15!/13! = 15 · 14 = 210."
    }
   },
   {
    "type": "build",
    "title": "Comparar con ==",
-   "md": "`==` (dos signos igual) **pregunta** si dos cosas son iguales. Un solo `=` es otra cosa: guardar un valor (siguiente lección).",
+   "md": "Dos signos igual preguntan si dos cosas son iguales.",
+   "more": "Un solo `=` no pregunta: guarda un valor (práctica 2). Con una letra sin valor, `x == 5` se queda tal cual: es una ecuación.",
    "target": "8!! == 8*6*4*2",
    "parts": [
     {
+     "code": "2 + 2 == 4",
+     "md": "Pregunta si 2 + 2 es 4.",
+     "run": true
+    },
+    {
      "code": "2 + 2 == 5",
-     "md": "Contesta `True` o `False`. Aquí, `False`.",
+     "md": "Ahora con 5.",
      "run": true
     },
     {
      "code": "5!",
-     "md": "`n!` es el factorial: 5·4·3·2·1.",
+     "md": "El factorial de 5.",
      "run": true
     },
     {
-     "code": "8!!",
-     "md": "`n!!` es el doble factorial: salta de dos en dos. `8!!` es 8·6·4·2."
+     "code": "5! == 120",
+     "md": "Compruébalo con ==.",
+     "run": true
     },
     {
      "code": "8!! == 8*6*4*2",
-     "md": "Una comprobación con `==`: los dos lados valen lo mismo, así que responde `True`.",
+     "md": "El doble factorial salta de dos en dos: compruébalo.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: comprueba con `==` que el doble factorial de 8 es igual a 8·6·4·2.",
+    "prompt": "Sin mirar: comprueba que 8!! es igual a 8·6·4·2.",
     "hints": [
-     "El doble factorial se escribe con dos signos de admiración: `8!!`.",
-     "Para preguntar si son iguales, dos signos igual.",
+     "El doble factorial es `8!!`.",
+     "Para preguntar si son iguales, `==`.",
      "`8!! == 8*6*4*2`"
     ],
     "check": {
@@ -933,20 +1099,20 @@
      "Factorial"
     ],
     "hints": [
-     "El factorial es `6!` y la comparación lleva dos signos igual.",
+     "Factorial `6!` y dos signos igual.",
      "`6! == 720`"
     ],
-    "explain": "`6! == 720` responde `True`. Si en una comparación hay una letra sin valor (`x == 5`), Mathematica no puede decidir y la deja tal cual: eso es una **ecuación**, y así se las daremos a `Solve` más adelante."
+    "explain": "Responde `True`."
    }
   },
   {
    "type": "exercise",
-   "section": "Práctica 1 · los ejercicios reales",
+   "section": "Práctica 1 · reales",
    "ex": {
     "id": "1-p01-e14",
     "kind": "code",
-    "title": "Práctica 1 · un ángulo en radianes",
-    "prompt": "Ejercicio real de la práctica. Calcula el valor de **5° 20' 30'' en radianes** con 16 cifras significativas.",
+    "title": "Práctica 1 · 2a",
+    "prompt": "Ejercicio real. Calcula 5° 20' 30'' en radianes con 16 cifras significativas.",
     "difficulty": 3,
     "cmds": [
      "FromDMS",
@@ -968,7 +1134,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
-       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -976,11 +1142,10 @@
      "N"
     ],
     "hints": [
-     "`FromDMS[{5, 20, 30}]` convierte grados, minutos y segundos a grados.",
-     "Para pasar a radianes multiplica por `Pi/180` (o por `Degree`).",
+     "Tres capas: `FromDMS[{5, 20, 30}]`, por `Pi/180` (o `Degree`) y `N[..., 16]`.",
      "`N[FromDMS[{5, 20, 30}] Pi/180, 16]`"
     ],
-    "explain": "Resultado oficial: 0.09322967087736377. Tres piezas: `FromDMS` da los grados, `Pi/180` los pasa a radianes y `N[..., 16]` fija las cifras."
+    "explain": "Resultado oficial: 0.09322967087736377."
    }
   },
   {
@@ -988,8 +1153,8 @@
    "ex": {
     "id": "1-p01-e15",
     "kind": "code",
-    "title": "Práctica 1 · π·e²/3",
-    "prompt": "Calcula con 16 cifras significativas el valor de π·e² / 3.",
+    "title": "Práctica 1 · 2b",
+    "prompt": "Calcula π·e²/3 con 16 cifras significativas.",
     "difficulty": 2,
     "cmds": [
      "N",
@@ -1011,7 +1176,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
-       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -1030,8 +1195,8 @@
    "ex": {
     "id": "1-p01-e16",
     "kind": "code",
-    "title": "Práctica 1 · π·e²/(3 + π)",
-    "prompt": "Calcula con 16 cifras significativas el valor de π·e² / (3 + π).",
+    "title": "Práctica 1 · 2c",
+    "prompt": "Calcula π·e²/(3 + π) con 16 cifras significativas.",
     "difficulty": 3,
     "cmds": [
      "N",
@@ -1054,7 +1219,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
-       "msg": "El valor es correcto, pero no tiene exactamente 16 cifras significativas. Pídelas con el segundo argumento: `N[expr, 16]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -1062,11 +1227,10 @@
      "N"
     ],
     "hints": [
-     "Es el cálculo anterior con otro denominador.",
      "El denominador entero va entre paréntesis: `(3 + Pi)`.",
      "`N[Pi E^2/(3 + Pi), 16]`"
     ],
-    "explain": "Resultado oficial: 3.779704331871478. Los paréntesis del denominador son obligatorios: sin ellos dividirías solo entre 3 y luego sumarías π."
+    "explain": "Resultado oficial: 3.779704331871478. Sin paréntesis dividirías solo entre 3."
    }
   },
   {
@@ -1074,8 +1238,8 @@
    "ex": {
     "id": "1-p01-e17",
     "kind": "code",
-    "title": "Práctica 1 · cociente de complejos, 6 cifras",
-    "prompt": "Calcula la aproximación numérica, con 6 cifras significativas, de la forma binómica del cociente\n\n(7 − 2i) / (e + πi)",
+    "title": "Práctica 1 · 3a",
+    "prompt": "Calcula con 6 cifras significativas la forma binómica del cociente (7 − 2i)/(e + πi).",
     "difficulty": 3,
     "cmds": [
      "N",
@@ -1098,7 +1262,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 6 || Precision[Out[$Line]] == 6",
-       "msg": "El valor es correcto, pero no tiene exactamente 6 cifras significativas. Pídelas con el segundo argumento: `N[expr, 6]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 6 cifras: usa `N[expr, 6]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -1106,11 +1270,10 @@
      "N"
     ],
     "hints": [
-     "Numerador y denominador van cada uno entre paréntesis.",
-     "Unidad imaginaria `I`, número e `E`, π `Pi`: `(7 - 2 I)/(E + Pi I)`.",
+     "Numerador y denominador entre paréntesis; `I`, `E` y `Pi` con mayúscula.",
      "`N[(7 - 2 I)/(E + Pi I), 6]`"
     ],
-    "explain": "Resultado oficial: 0.738458 − 1.58921 i. `N` hace la división y deja directamente parte real y parte imaginaria."
+    "explain": "Resultado oficial: 0.738458 − 1.58921 i."
    }
   },
   {
@@ -1118,8 +1281,8 @@
    "ex": {
     "id": "1-p01-e18",
     "kind": "code",
-    "title": "Práctica 1 · el mismo cociente, 13 cifras",
-    "prompt": "Halla ahora la aproximación del mismo cociente, (7 − 2i)/(e + πi), con 13 cifras significativas.",
+    "title": "Práctica 1 · 3b",
+    "prompt": "El mismo cociente, (7 − 2i)/(e + πi), ahora con 13 cifras significativas.",
     "difficulty": 2,
     "cmds": [
      "N",
@@ -1142,7 +1305,7 @@
       {
        "type": "satisfies",
        "test": "Precision[%] == 13 || Precision[Out[$Line]] == 13",
-       "msg": "El valor es correcto, pero no tiene exactamente 13 cifras significativas. Pídelas con el segundo argumento: `N[expr, 13]`, y no escribas decimales dentro (usa datos exactos)."
+       "msg": "El valor es correcto, pero no tiene 13 cifras: usa `N[expr, 13]` con datos exactos (sin decimales)."
       }
      ]
     },
@@ -1150,10 +1313,10 @@
      "N"
     ],
     "hints": [
-     "Es la celda anterior cambiando el número de cifras.",
+     "La celda anterior, cambiando el número de cifras.",
      "`N[(7 - 2 I)/(E + Pi I), 13]`"
     ],
-    "explain": "Resultado oficial: 0.7384575119268 − 1.589214425535 i. Solo cambia el segundo argumento de `N`."
+    "explain": "Resultado oficial: 0.7384575119268 − 1.589214425535 i."
    }
   },
   {
@@ -1161,7 +1324,7 @@
    "ex": {
     "id": "1-p01-e19",
     "kind": "code",
-    "title": "Práctica 1 · factorial de 16",
+    "title": "Práctica 1 · 3c",
     "prompt": "Calcula 16!.",
     "difficulty": 1,
     "cmds": [
@@ -1178,10 +1341,10 @@
      "Factorial"
     ],
     "hints": [
-     "El factorial se escribe con un signo de admiración detrás del número.",
+     "El factorial es un signo de admiración detrás del número.",
      "`16!`"
     ],
-    "explain": "16! = 20922789888000, exacto, con todas sus cifras."
+    "explain": "16! = 20922789888000."
    }
   },
   {
@@ -1189,8 +1352,8 @@
    "ex": {
     "id": "1-p01-e20",
     "kind": "code",
-    "title": "Práctica 1 · doble factorial de 16",
-    "prompt": "Comprueba con `==` que `16!!` es igual a 16·14·12·10·8·6·4·2. La salida debe ser `True`.",
+    "title": "Práctica 1 · 3d",
+    "prompt": "Comprueba con `==` que `16!!` es igual a 16·14·12·10·8·6·4·2. Debe salir `True`.",
     "difficulty": 3,
     "cmds": [
      "Factorial2",
@@ -1210,11 +1373,10 @@
      "Equal"
     ],
     "hints": [
-     "El doble factorial es `16!!`.",
-     "Para comprobar una igualdad se usan dos signos igual.",
+     "Doble factorial `16!!` y dos signos igual.",
      "`16!! == 16*14*12*10*8*6*4*2`"
     ],
-    "explain": "16!! = 10321920, el producto de los pares de 16 a 2. El `==` no calcula nada nuevo: contesta `True` porque los dos lados valen lo mismo."
+    "explain": "16!! = 10321920, el producto de los pares de 16 a 2."
    }
   }
  ]

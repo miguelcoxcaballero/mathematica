@@ -1,6 +1,6 @@
 (* Wolfram-level definitions completing Mathics3 for the course material *)
 
-(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData *)
+(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData Erfi SinIntegral CosIntegral SinhIntegral CoshIntegral LogIntegral Sinc KroneckerDelta Surd TrigExpand FunctionExpand PolynomialGCD PolynomialLCM NSum RSolve RecurrenceTable DSolveValue NDSolveValue Wronskian SolveAlways AsymptoticDSolveValue ArrayFlatten Differences Clip Rescale UpperTriangularize LowerTriangularize RotationMatrix HilbertMatrix MinValue MaxValue ArgMin ArgMax NMinValue NMaxValue NArgMin NArgMax DiagonalMatrixQ Expand PowerExpand Collect Sum Join LinearSolve Needs Subscript D Mod Factorial2 Solve NSolve FindRoot NIntegrate Residue Eliminate *)
 Unprotect[Solve, LaplaceTransform, InverseLaplaceTransform, Grad, Div, Laplacian, CharacteristicPolynomial, Orthogonalize, Projection, Minors, NestWhileList, SetPrecision, HeavisideTheta, DiracDelta, UnitStep, DiscreteDelta, Integrate, Limit, Simplify, FullSimplify, Refine, Convolve, Ordering, ReIm, FromDMS, Hessian, Curl, Normalize, VectorAngle, EuclideanDistance, Cofactor, Adjugate, UnitVector, AbsArg, Assuming, ArcLength, MatrixPower, PositiveDefiniteMatrixQ, SymmetricMatrixQ, DiagonalizableMatrixQ, Accumulate, Variables, Maximize, Minimize, NMaximize, NMinimize, FindMaximum, UnitBox, UnitTriangle, Ramp, Subsets, ComplexExpand, ToPolarCoordinates, FromPolarCoordinates, CoordinateTransform, TrigToExp, ExpToTrig, Magnify, Style, Framed, Labeled, Rasterize, Quiet, Series];
 
 
@@ -93,6 +93,62 @@ FromPolarCoordinates[{r_, t_}] := {r Cos[t], r Sin[t]};
 Convolve[f_, g_, x_, y_] /; WLX`ConvolveQ[f, g, x, y] := WLX`ConvolveGet[];
 Convolve[f_, g_, x_, y_] := Integrate[(f /. x -> WLX`u) (g /. x -> y - WLX`u), {WLX`u, -Infinity, Infinity}];
 
+(* ---- algebra / misc builtins missing or weak in Mathics ---- *)
+Unprotect[Expand, PowerExpand, Collect, Sum, Join, LinearSolve, Needs, Subscript, Mod, Factorial2, D, Transpose];
+Transpose[{v_List}] := List /@ v /; VectorQ[v, !ListQ[#] &];
+Expand[e_, Trig -> True] /; WLX`ExpandTrigQ[e] := WLX`ExpandTrigGet[];
+Expand[e_] /; (!FreeQ[e, Power[_, _?(!IntegerQ[#] &)]] || !FreeQ[e, _Sin | _Cos | _Log | _Tan | _Sinh | _Cosh]) && WLX`ExpandQ[e] := WLX`ExpandGet[];
+PowerExpand[e_] /; WLX`PowerExpandQ[e] := WLX`PowerExpandGet[];
+Collect[a_ == b_, x__] := Collect[a, x] == Collect[b, x];
+Sum[f_, {i_Symbol, a_, b_}] /; (b === Infinity || !NumericQ[b] || !NumericQ[a]) && FreeQ[{a, b}, i] && WLX`SumQ[f, {i, a, b}] := WLX`SumGet[];
+Join[a_List, b_List, 2] := MapThread[Join, {a, b}];
+Join[a_List, b_List, c_List, 2] := MapThread[Join, {a, b, c}];
+ArrayFlatten[m_List] := Join @@ (MapThread[Join, #] & /@ m) /; MatrixQ[m, MatrixQ];
+LinearSolve[m_?MatrixQ, b_?MatrixQ] := Transpose[LinearSolve[m, #] & /@ Transpose[b]];
+Needs[_String] := Null;
+Mod[m_Real | m_Rational, n_Integer | n_Rational | n_Real] := m - n Floor[m/n];
+Mod[m_Integer, n_Rational | n_Real] := m - n Floor[m/n];
+Factorial2[n_Integer] := Product[WLX`k, {WLX`k, n, 1, -2}] /; n >= 0;
+Differences[l_List] := Rest[l] - Most[l];
+Differences[l_List, n_Integer] := Nest[Differences, l, n];
+Clip[x_?NumericQ] := Clip[x, {-1, 1}];
+Clip[x_?NumericQ, {a_, b_}] := Which[x < a, a, x > b, b, True, x];
+Clip[l_List, r___] := Clip[#, r] & /@ l;
+Rescale[x_, {a_, b_}] := (x - a)/(b - a);
+Rescale[x_, {a_, b_}, {c_, d_}] := c + (x - a) (d - c)/(b - a);
+UpperTriangularize[m_?MatrixQ] := Table[If[j >= i, m[[i, j]], 0], {i, Length[m]}, {j, Length[First[m]]}];
+LowerTriangularize[m_?MatrixQ] := Table[If[j <= i, m[[i, j]], 0], {i, Length[m]}, {j, Length[First[m]]}];
+RotationMatrix[t_] := {{Cos[t], -Sin[t]}, {Sin[t], Cos[t]}};
+RotationMatrix[t_, {0, 0, 1}] := {{Cos[t], -Sin[t], 0}, {Sin[t], Cos[t], 0}, {0, 0, 1}};
+RotationMatrix[t_, {1, 0, 0}] := {{1, 0, 0}, {0, Cos[t], -Sin[t]}, {0, Sin[t], Cos[t]}};
+RotationMatrix[t_, {0, 1, 0}] := {{Cos[t], 0, Sin[t]}, {0, 1, 0}, {-Sin[t], 0, Cos[t]}};
+HilbertMatrix[n_Integer] := Table[1/(i + j - 1), {i, n}, {j, n}];
+DiagonalMatrixQ[m_] := MatrixQ[m] && m === DiagonalMatrix[Diagonal[m]];
+MinValue[f_, v_] := First[Minimize[f, v]]; MaxValue[f_, v_] := First[Maximize[f, v]];
+ArgMin[f_, v_] := (If[ListQ[v], v, {v}] /. Last[Minimize[f, v]]) // If[ListQ[v], #, First[#]] &;
+ArgMax[f_, v_] := (If[ListQ[v], v, {v}] /. Last[Maximize[f, v]]) // If[ListQ[v], #, First[#]] &;
+NMinValue[f_, v_] := First[NMinimize[f, v]]; NMaxValue[f_, v_] := First[NMaximize[f, v]];
+Wronskian[fs_List, x_] := Det[Table[D[fs, {x, k}], {k, 0, Length[fs] - 1}]];
+WLX`first[r : {_List, ___}, y_] := y /. First[r];
+DSolveValue[eq_, y_, x_] := WLX`first[DSolve[eq, y, x], y];
+NDSolveValue[eq_, y_, x_] := WLX`first[NDSolve[eq, y, x], y];
+SolveAlways[a_ == b_, x_] := Solve[Thread[CoefficientList[Expand[a - b], x] == 0]];
+AsymptoticDSolveValue[eqs_, y_[x_], {x_, x0_, n_Integer}] := Module[{eq, ics, ser, res, ord, ceqs, vars, sol},
+   eq = Select[Flatten[{eqs}], !FreeQ[#, x] &]; ics = Select[Flatten[{eqs}], FreeQ[#, x] &];
+   ser = Sum[WLX`a[k] (x - x0)^k, {k, 0, n}];
+   res = (eq[[1, 1]] - eq[[1, 2]]) /. y -> Function[x, Evaluate[ser]];
+   ord = Max[Cases[eq, Derivative[m_][y][_] :> m, Infinity], 1];
+   ceqs = CoefficientList[Expand[res /. x -> x + x0], x];
+   ceqs = Thread[Take[ceqs, Min[Length[ceqs], n + 1 - ord]] == 0];
+   If[ics === {}, ics = Table[(D[y[x], {x, k}] /. x -> x0) == C[k + 1], {k, 0, ord - 1}]];
+   ceqs = Join[ceqs, ics /. y -> Function[x, Evaluate[ser]]];
+   vars = Table[WLX`a[k], {k, 0, n}];
+   sol = Solve[ceqs, vars];
+   If[ListQ[sol] && sol =!= {}, Expand[ser /. First[sol]], $Failed]];
+Cofactor[m_?MatrixQ, {i_Integer, j_Integer}] := (-1)^(i + j) Det[Drop[m, {i}, {j}]];
+D[(f : Erfi | SinIntegral | CosIntegral | SinhIntegral | CoshIntegral | LogIntegral)[u_], x_Symbol] := Switch[f, Erfi, 2 E^(u^2)/Sqrt[Pi], SinIntegral, Sin[u]/u, CosIntegral, Cos[u]/u, SinhIntegral, Sinh[u]/u, CoshIntegral, Cosh[u]/u, LogIntegral, 1/Log[u]] D[u, x];
+Protect[Expand, PowerExpand, Collect, Sum, Join, LinearSolve, Needs, Mod, Factorial2, D, Transpose];
+
 (* ---- calculus fixes ---- *)
 SetAttributes[C, NHoldAll];
 Unprotect[D];
@@ -101,7 +157,6 @@ D[f_List, {v_List}] := Table[D[fi, vj], {fi, f}, {vj, v}] /; VectorQ[f, !ListQ[#
 D[HoldPattern[Sum[f_, it__List]], x_Symbol] := Sum[D[f, x], it] /; FreeQ[{it}, x];
 D[HoldPattern[Sum[f_, it__List]], {x_Symbol, n_Integer}] := Sum[D[f, {x, n}], it] /; FreeQ[{it}, x];
 D[HoldPattern[Integrate[f_, {t_, a_, b_}]], x_Symbol] := (f /. t -> b) D[b, x] - (f /. t -> a) D[a, x] + Integrate[D[f, x], {t, a, b}] /; t =!= x;
-D[Erfi[u_], x_Symbol] := 2 E^(u^2)/Sqrt[Pi] D[u, x];
 Derivative[1][Erfi] = (2 E^(#^2)/Sqrt[Pi]) &;
 Protect[D];
 Series[f_, {x_Symbol, x0_, n_Integer}] /; WLX`SeriesQ[f, x, x0, n] := WLX`SeriesGet[];

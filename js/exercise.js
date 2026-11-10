@@ -111,7 +111,7 @@ export function splitText(src, limit = 90) {
   for (let i = 0; i < para.length; i++) {
     const c = para[i];
     if (c === '`') inCode = !inCode;
-    else if (!inCode && /[.!?:]/.test(c) && (i === para.length - 1 || /\s/.test(para[i + 1])) && i >= 10) ends.push(i + 1);
+    else if (!inCode && /[.!?]/.test(c) && (i === para.length - 1 || /\s/.test(para[i + 1])) && i >= 10) ends.push(i + 1);
   }
   if (!ends.length || ends[ends.length - 1] !== para.length) ends.push(para.length);
   let end = ends[0];

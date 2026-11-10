@@ -1938,7 +1938,7 @@ class RegionPlot(GB):
             m = 321
             X, Y = grid_xy(a_v, b_v, c_v, d_v, m)
             Fh = fn(X, Y)
-            prims.append(field_prim(Fh[::2, ::2], a_v, b_v, c_v, d_v, 2, mode="region", color=st["color"],
+            prims.append(field_prim(Fh[::4, ::4], a_v, b_v, c_v, d_v, 2, mode="region", color=st["color"],
                                     opacity=st.get("opacity", 0.4), boundary=False))
             if not no_bd:
                 lines = implicit_lines(Fh, a_v, b_v, c_v, d_v, reject_poles=False)
@@ -2479,11 +2479,24 @@ class ContourPlot3D(GB):
                     continue
                 lo_, hi_ = float(fin.min()), float(fin.max())
                 levels = [lo_ + (hi_ - lo_) * q for q in (0.25, 0.5, 0.75)]
+            axes = None if fn.slow else [np().linspace(lo, hi, m) for lo, hi in r]
             for lv in levels:
                 st = sts[i] if len(levels) == 1 else {}
-                prims.append(iso_prim(F - lv, r, st.get("color") if st.get("explicit") else None,
-                                      i if len(levels) == 1 else k, st.get("opacity", sts[i].get("opacity")), mesh))
+                col = st.get("color") if st.get("explicit") else None
+                ci = i if len(levels) == 1 else k
+                op = st.get("opacity", sts[i].get("opacity"))
                 k += 1
+                res = snet_mesh(F - lv, axes) if axes is not None else None
+                if res is None:
+                    prims.append(iso_prim(F - lv, r, col, ci, op, mesh))
+                    continue
+                P, G, _, tris = res
+                p = iso_prim((F - lv)[::3, ::3, ::3], r, col, ci, op, mesh)      # data = coarse signature only
+                p["n"] = 0
+                p["v"] = nlist(P, 3)
+                p["nrm"] = nlist(G / (np().linalg.norm(G, axis=1, keepdims=True) + 1e-300), 1)
+                p["i"] = tris.ravel().tolist()
+                prims.append(p)
         defaults = {"PlotRange": rng_expr(r), "Axes": SymbolTrue, "BoxRatios": L(Integer(1), Integer(1), Integer(1))}
         return G3(prims, rules3(options, defaults))
 

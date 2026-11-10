@@ -68,8 +68,12 @@ salen como `field` sino como `line` (las isolíneas se calculan en Python a alta
 `axes:bool|[3]`, `boxed`, `axesLabel:[x,y,z]`, `plotLabel`, `size`, `view:[x,y,z]|null` (ViewPoint).
 **prims 3D**: `surf{nx,ny,x[],y[],z[],mesh:true|false|n|[nu,nv],bd?,ci,color?,opacity?,m?[] (máscara: visible donde >0),
 cf?,cv?[] (ColorFunction: nombre de degradado + escalar 0..1 por vértice; sin cv se usa z escalada)}`,
-`iso{n,r[3][2],data[] (orden [iz][iy][ix]),ci,color?,opacity?,mesh?:n,pad?,inner?}` (isosuperficie en nivel 0; con
-`pad` la capa exterior queda justo fuera de la caja `inner` para cerrar el sólido de `RegionPlot3D`),
+`iso{n,r[3][2],data[] (orden [iz][iy][ix]),ci,color?,opacity?,mesh?:n,pad?,inner?}` (isosuperficie en nivel 0 que
+triangula el renderer; con `pad` la capa exterior queda justo fuera de la caja `inner` para cerrar el sólido). Lo
+habitual (ContourPlot3D y RegionPlot3D vectorizables) es que el `iso` llegue YA triangulado desde Python:
+`iso{v[] (x,y,z por vértice, coords. de datos),nrm[] (gradiente),i[] (triángulos),m?[] (máscara por vértice: visible
+donde >0),n:0,data[] = firma gruesa del campo solo para comparar gráficos}`; RegionPlot3D = un `iso` por condición
+(enmascarado con las demás → aristas nítidas) + caras de la caja como `surf{…,m,cap:true}`,
 `line3{x,y,z,color,width,opacity?}`, `pts3{x,y,z,color,psize}`, `poly3{x,y,z,color,opacity?,edge?}`,
 `arrow3{x,y,z,color,width}`, `text3{x,y,z,text,color}`. Color por defecto de superficies según `ci`:
 `#E19C24 #5E81B5 #8FB032 …` (como Mathematica: la primera naranja, la segunda azul).
