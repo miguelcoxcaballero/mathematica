@@ -154,7 +154,7 @@ def oscillatory_tail(f, a, direction, rtol=1e-9, kmax=17):
     return total, err, err < 1e-6 * (1.0 + abs(total))
 
 
-def integrate_1d(f, a, b, points=(), rtol=1e-9, limit=120, oscillatory=False):
+def integrate_1d(f, a, b, points=(), rtol=1e-9, limit=120, oscillatory=False, soften=False):
     """f vectorised; a, b floats or +-inf; points = interior break points. -> (value, err, ok)"""
     sign = 1.0
     if a > b:
@@ -181,8 +181,17 @@ def integrate_1d(f, a, b, points=(), rtol=1e-9, limit=120, oscillatory=False):
             err += e
             ok = ok and o
             continue
-        g, l2, h2 = _transform(f, lo, hi)
-        v, e, o = gk_adaptive(g, l2, h2, rtol=rtol, limit=limit)
+        if soften and lo != -inf and hi != inf:
+            # x = c + h (3u - u^3)/2 : the Jacobian vanishes at both ends, which tames the square-root
+            # behaviour that inner integrals over curved regions leave at the ends of the outer ranges
+            c_, h_ = 0.5 * (lo + hi), 0.5 * (hi - lo)
+
+            def g(u, c_=c_, h_=h_):
+                return f(c_ + h_ * (3.0 * u - u ** 3) / 2.0) * (h_ * 1.5 * (1.0 - u * u))
+            v, e, o = gk_adaptive(g, -1.0, 1.0, rtol=rtol, limit=limit)
+        else:
+            g, l2, h2 = _transform(f, lo, hi)
+            v, e, o = gk_adaptive(g, l2, h2, rtol=rtol, limit=limit)
         total += v
         err += e
         ok = ok and o
@@ -385,6 +394,22 @@ class NIntegrate(XB):
                             continue
                         for rel in cond.atoms(sp.core.relational.Relational):
                             bexprs.add(rel.lhs - rel.rhs)
+                # projections of a quadratic switching surface onto the outer variables (its discriminants)
+                work = list(bexprs)
+                for g in work:
+                    for lev in range(n - 1, 0, -1):
+                        v = comp.syms[lev]
+                        if g.has(v) and not (g.free_symbols - set(comp.syms[:lev + 1])):
+                            try:
+                                pl = sp.Poly(g, v)
+                                if pl.degree() == 2:
+                                    d_ = sp.expand(sp.discriminant(pl))
+                                    if d_.free_symbols and d_ not in bexprs:
+                                        bexprs.add(d_)
+                                        work.append(d_)
+                            except Exception:
+                                pass
+                            break
                 for g in bexprs:
                     for lev in range(n):
                         v = comp.syms[lev]
@@ -463,7 +488,7 @@ class NIntegrate(XB):
             osc = comp.sym is not None and (comp.sym.has(sp.sin, sp.cos) or comp.sym.has(sp.I)) and \
                 (abs(a) == float("inf") or abs(b) == float("inf"))
             v, e, ok = integrate_1d(fv, a, b, points=inner_pts, rtol=rt * (0.1 if level == n - 1 and n > 1 else 1.0),
-                                    limit=limit, oscillatory=osc)
+                                    limit=limit, oscillatory=osc, soften=(n > 1 and level < n - 1))
             if level == 0:
                 state["err"] = e
                 state["ok"] = ok

@@ -6,10 +6,11 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794354627';
-import { createCell } from './notebook.js?v=1794354627';
-import { store } from './store.js?v=1794354627';
-import * as fx from './fx.js?v=1794354627';
+import { kernel } from './kernel-client.js?v=1794355221';
+import { createCell } from './notebook.js?v=1794355221';
+import { store } from './store.js?v=1794355221';
+import * as fx from './fx.js?v=1794355221';
+import * as keybarMod from './keybar.js?v=1794355221'; // namespace import: `keysFor` may not be exported yet (SPEC §15.4)
 
 const { sfx, xpFloat } = fx;
 
@@ -128,9 +129,37 @@ export function splitText(src, limit = 90) {
 }
 /* ============================================================ mobile (SPEC §15.2) */
 /** Touch UI? (phones/tablets, or a narrow window) */
+/** On a phone there is no Shift+Enter: statements written for a keyboard name the key bar's button instead. */
+export function touchText(text) {
+  return touchUI() ? String(text ?? '').replace(/(pulsa(?:ndo)?|con|usa)\s+`?Shift\s*\+\s*Enter`?/gi, (m, v) => `${v} «Evaluar»`).replace(/`?Shift\s*\+\s*Enter`?/gi, '«Evaluar»') : String(text ?? '');
+}
 export function touchUI() { return safe(() => window.matchMedia('(pointer: coarse)').matches, false) || window.innerWidth <= 620; }
+// SPEC §15.4: the slim key row of a phone shows only the characters THIS cell needs. Ghost cells derive them from their
+// ghost; for empty cells (exercises, recalls) we pass the ones of the reference solution — in a fixed canonical order.
+const KEY_COMPOUND = ['===', '->', ':=', '==', '/.', '//', '/@', '[[', ']]', '>=', '<=', '!=', '&&', '||', ';;', ':>', '@@', '<>'];
+const KEY_ORDER = ['[', ']', '{', '}', '(', ')', ',', ';', '^', '_', '*', '/', '+', '-', '=', "'", '"', '.', '%', '#', '&', '<', '>', '!', '|', '@',
+  '->', ':=', '==', '/.', '//', '/@', '[[', ']]', '>=', '<=', '!=', '&&', '||', ';;', ':>', '@@', '<>', '==='];
+export function keysFor(code) {
+  if (typeof keybarMod.keysFor === 'function') { const k = safe(() => keybarMod.keysFor(code), null); if (Array.isArray(k)) return k; }
+  const src = String(code ?? '').replace(/\(\*[\s\S]*?\*\)/g, ' ');
+  const found = new Set();
+  for (let i = 0; i < src.length;) {
+    const c = src[i];
+    if (/[\sA-Za-z0-9$`]/.test(c)) { i++; continue; }
+    const comp = KEY_COMPOUND.find((op) => src.startsWith(op, i));
+    if (comp) { found.add(comp); i += comp.length; continue; }
+    if (c === '.' && /[0-9]/.test(src[i + 1] || '') ) { found.add('.'); i++; continue; }
+    if (KEY_ORDER.includes(c)) found.add(c);
+    i++;
+  }
+  return KEY_ORDER.filter((k) => found.has(k));
+}
 /** Sets the key bar's primary action of a cell (SPEC §15.1: `cell.setPrimary`). No-op until notebook.js provides it. */
-export function setPrimary(cell, action) { if (cell && typeof cell.setPrimary === 'function') safe(() => cell.setPrimary(action)); }
+export function setPrimary(cell, action) {
+  if (!cell || typeof cell.setPrimary !== 'function') return;
+  document.documentElement.classList.add('lx-primary'); // the key bar can carry our next action: footers may step aside
+  safe(() => cell.setPrimary(action));
+}
 
 // Keeps <html> informed about the on-screen keyboard: class `lx-kb` while it is open (or the viewport is very short) and
 // the variables --lx-vvh / --lx-kb-h as a fallback for keybar.js' --vvh / --kb-h.
@@ -152,8 +181,6 @@ function watchViewport() {
   upd();
   if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
   window.addEventListener('resize', upd);
-  // keybar.js is optional (it may not be deployed yet): with it, the next action lives in the key bar
-  import('./keybar.js?v=1794354627').then((m) => { if (m && m.keybar) root.classList.add('lx-keybar'); }).catch(() => {});
 }
 /** Immersive mode inside a tramo / session / exam: the global navigation goes away (class on <body> + event for the shell). */
 export function setImmersive(on) {
@@ -207,6 +234,7 @@ export function moreBox({ hint, more, moreLabel = 'Más detalle', hintLabel = 'P
   const mk = (label, text) => {
     const bodyEl = h('div', { class: 'lx-md lx-more-b', html: md(text) });
     const d = h('details', { class: 'lx-more-d' }, h('summary', null, label), bodyEl);
+    d.querySelector('summary').addEventListener('mousedown', (e) => { if (touchUI()) e.preventDefault(); }); // keep the keyboard open
     d.querySelector('summary').addEventListener('click', (e) => {
       if (!touchUI()) return;
       e.preventDefault();
@@ -408,6 +436,7 @@ export function ghostSupported(cell) { return !!cell && typeof cell.isComplete =
  * A cell whose code the student must type character by character.
  *   mountGhost(host, code, { onDone(result), onTyped(), onNext(), before(): Promise, evaluate(code): Promise<result>, run?: false })
  * `onNext` = what the key bar's primary button does once the cell is done («Siguiente ›», touch).
+ * `keys` = explicit key set for the phone key row (otherwise the cell derives it from its ghost).
  * `run: false` = the piece is only typed (done as soon as it is complete), never evaluated.
  * `before` runs (inside the kernel lock) right before each evaluation; `evaluate` replaces the plain cell.run().
  * → { cell, el, isDone(), isTyped(), run(), focus(), destroy() }
@@ -434,7 +463,7 @@ export function mountGhost(host, code, opts = {}) {
   const typed = () => { wrap.classList.add('is-typed'); msg.hidden = true; safe(() => opts.onTyped && opts.onTyped()); if (opts.run === false) finish(null); };
   try {
     cell = createCell(wrap, {
-      ghost: code, placeholder: '',
+      ghost: code, placeholder: '', ...(Array.isArray(opts.keys) && opts.keys.length ? { keys: opts.keys } : {}),
       onProgress: (p) => safe(() => opts.onProgress && opts.onProgress(p)),
       onComplete: typed,
       onResult: (c, result) => { if (!opts.evaluate && matches()) finish(result); },
@@ -569,7 +598,8 @@ export function recallExercise(lesson, i) {
     id: `${lesson.id}-b${i}`, kind: 'code', recall: true, lessonId: lesson.id, step: i,
     title: st.title || 'De memoria', prompt: rc.prompt || `Escribe de memoria: ${st.title || ''}`,
     difficulty: 2, cmds: st.cmds || [], setup: st.setup || undefined,
-    solution: rc.solution || target, check, hints: rc.hints || [], explain: rc.explain || '',
+    solution: rc.solution || target, check, hints: rc.hints || [], explain: rc.explain || '', hint: rc.hint, more: rc.more,
+    keys: rc.keys || st.keys,
     params: st.params,
   };
 }
@@ -653,7 +683,7 @@ export function mountExercise(container, exRaw, opts = {}) {
     // SPEC §14: the statement is the headline; the title (if it says something) is a small gray label, the meta goes to the foot
     const generic = !ex.title || /^(ejercicio|nota|teclea y observa|de memoria)\.?$/i.test(String(ex.title).trim());
     if (!opts.noTitle && !generic) root.appendChild(h('div', { class: 'ex-label' }, ex.title));
-    const statement = (text, fallback) => h('div', { class: 'ex-prompt lx-statement lx-md', html: mdInline(String(text || '').trim() || fallback) });
+    const statement = (text, fallback) => h('div', { class: 'ex-prompt lx-statement lx-md', html: mdInline(touchText(String(text || '').trim() || fallback)) });
 
     const body = h('div', { class: 'ex-body' });
     const actions = h('div', { class: 'ex-actions' });
@@ -705,7 +735,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       if (foot) root.appendChild(foot);
       let primed = false;
       const g = mountGhost(host, ex.code, {
-        onNext: opts.onNext,
+        onNext: opts.onNext, keys: ex.keys,
         before: async () => { if (!primed) { primed = true; await prime(); } },
         onDone: () => {
           st.done = true; root.dataset.state = 'ok';
@@ -719,7 +749,7 @@ export function mountExercise(container, exRaw, opts = {}) {
           after.replaceChildren(box);
           const mb = moreBox({ more: [ex.more, ex.explain].filter(Boolean).join('\n\n') });
           if (mb) after.appendChild(mb);
-          if (gained) safe(() => xpFloat(xpChip.hidden ? root : xpChip, gained));
+          if (gained && root.offsetParent && !document.documentElement.classList.contains('lx-kb')) safe(() => xpFloat(root, gained));
           report({ ok: true, xp: gained, typed: true });
         },
       });
@@ -815,7 +845,7 @@ export function mountExercise(container, exRaw, opts = {}) {
     placeShape();
     // SPEC §15.2 (touch): the key bar's primary button is «Comprobar», and «Siguiente ›» once solved
     const keyPrimary = () => { if (!cell) return; setPrimary(cell, st.done ? (opts.onNext ? { label: 'Siguiente ›', onPress: () => opts.onNext() } : null) : { label: 'Comprobar', onPress: () => doCheck() }); };
-    try { cell = createCell(host, { code: '', placeholder: gentle ? 'Escríbelo de memoria…' : 'Escribe aquí tu código…', primary: { label: 'Comprobar', onPress: () => doCheck() } }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
+    try { cell = createCell(host, { code: '', placeholder: gentle ? 'Escríbelo de memoria…' : 'Escribe aquí tu código…', primary: { label: 'Comprobar', onPress: () => doCheck() }, keys: Array.isArray(ex.keys) && ex.keys.length ? ex.keys : keysFor(solutionOf(ex)) }); } catch (e) { console.error('[learn] createCell', e); host.appendChild(h('div', { class: 'ex-fb ex-fb--info' }, 'No se pudo crear la celda.')); }
 
     /* ---------- kernel gate ---------- */
     let pillEl = null;
@@ -903,7 +933,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       }
       play('ok');
       // sober feedback: a green mark and a short animation; confetti is reserved for milestones
-      if (!isExam && gained > 0) safe(() => xpFloat(xpChip, gained));
+      if (!isExam && gained > 0 && xpChip.offsetParent) safe(() => xpFloat(xpChip, gained)); // (the gain is also in the feedback line)
       const box = h('div', { class: 'ex-fb ex-fb--ok' });
       const head = h('div', { class: 'ex-fb-title' }, h('span', { class: 'ex-fb-ic' }, '✓'),
         h('strong', null, dry ? 'Así es. Volverá a salir para que lo escribas sin mirar.' : OK_MSGS[Math.floor(Math.random() * OK_MSGS.length)]));
@@ -961,7 +991,7 @@ export function mountExercise(container, exRaw, opts = {}) {
       cell = null;
       host.replaceChildren();
       const g = mountGhost(host, sol, {
-        onNext: opts.onNext,
+        onNext: opts.onNext, keys: ex.keys,
         evaluate: async (code) => {
           await kernel.reset();
           const res = await kernel.check({ code, setup: ex.setup || undefined, check: ex.check || { type: 'none' }, requires: [], forbids: [] });
@@ -974,6 +1004,8 @@ export function mountExercise(container, exRaw, opts = {}) {
       setTimeout(() => g.focus(), 30);
     });
 
+    // on touch, tapping these must not take the focus (and the keyboard) away from the cell
+    actions.addEventListener('mousedown', (e) => { if (touchUI() && e.target instanceof Element && e.target.closest('button')) e.preventDefault(); });
     actions.append(btnCheck, btnHint, btnSol, btnVariant);
     if (pillEl) actions.append(pillEl);
     actions.append(kbd);

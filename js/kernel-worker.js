@@ -261,13 +261,14 @@ const OPS = {
   manipulate: ({ id, values }) => JSON.parse(api.manipulate(id, JSON.stringify(values ?? {}))),
   reset: () => { api.reset(); return { defined: [] }; },
   symbols: () => JSON.parse(api.symbols()),
+  ping: () => true,
 };
 
 self.onmessage = async (ev) => {
   const { id, op, args } = ev.data || {};
   try {
     if (!OPS[op]) throw new Error('operación desconocida: ' + op);
-    if (op !== 'init' && !api) throw new Error('el kernel no está listo');
+    if (op !== 'init' && op !== 'ping' && !api) throw new Error('el kernel no está listo');
     post({ id, ok: true, result: await OPS[op](args || {}) });
   } catch (e) {
     post({ id, ok: false, error: String((e && e.message) || e).slice(-1200) });

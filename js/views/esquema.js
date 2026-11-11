@@ -1,7 +1,7 @@
 // Vista: esquema de comandos y comprensión (#/esquema) — página guía: anatomía, signos, familias e ideas clave.
-import { store } from '../store.js?v=1794354627';
-import { loadSchema, loadCommands, safe, cmdHref, familyIndex } from '../data.js?v=1794354627';
-import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, ghostCell } from '../fx.js?v=1794354627';
+import { store } from '../store.js?v=1794355221';
+import { loadSchema, loadCommands, safe, cmdHref, familyIndex } from '../data.js?v=1794355221';
+import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, ghostCell } from '../fx.js?v=1794355221';
 
 let alive = false;
 let root = null;
@@ -63,15 +63,17 @@ function anatomy(schema) {
   const sec = h('section', { id: 'esq-anatomia' },
     h('h2', { class: 'sec-title' }, 'Anatomía de un comando'),
     h('div', { class: 'esq-stage' }, partsRow(TEMPLATE, true)),
+    // en táctil las piezas del dibujo son demasiado estrechas para el dedo: se eligen con estos botones
+    h('div', { class: 'esq-parts', role: 'group', 'aria-label': 'Piezas del comando' }, ['head', 'br', 'what', 'sep', 'spec', 'opt'].map((k) => h('button', { type: 'button', class: 'esq-part', dataset: { part: k } }, PARTS[k].k))),
     info,
     h('div', { class: 'esq-exs' },
       h('div', { class: 'esq-exs-k' }, 'La misma forma en comandos reales:'),
       EXAMPLES.map((e) => h('div', { class: 'esq-ex' }, partsRow(e.parts), h('span', { class: 'esq-ex-say' }, e.say)))));
   const setPart = (key) => {
-    for (const b of sec.querySelectorAll('.esq-p')) b.classList.toggle('on', b.dataset.part === key);
+    for (const b of sec.querySelectorAll('.esq-p, .esq-part')) { b.classList.toggle('on', b.dataset.part === key); if (b.classList.contains('esq-part')) b.setAttribute('aria-pressed', String(b.dataset.part === key)); }
     info.replaceChildren(h('b', null, PARTS[key].k), PARTS[key].t);
   };
-  sec.addEventListener('click', (e) => { const b = e.target.closest('.esq-p'); if (b) setPart(b.dataset.part); });
+  sec.addEventListener('click', (e) => { const b = e.target.closest('.esq-p, .esq-part'); if (b) setPart(b.dataset.part); });
   sec.addEventListener('pointerover', (e) => { const b = e.target.closest('.esq-p'); if (b && e.pointerType === 'mouse') setPart(b.dataset.part); });
   sec.addEventListener('focusin', (e) => { const b = e.target.closest('.esq-p'); if (b) setPart(b.dataset.part); });
   return sec;

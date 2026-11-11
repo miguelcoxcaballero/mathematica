@@ -1,7 +1,7 @@
 // app.js (SHELL) — arranque: barra superior (navegación, nivel/XP, racha, motor, sonido), ajustes y atajos.
-import { store, dayKey } from './store.js?v=1794354627';
-import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794354627';
-import { router } from './router.js?v=1794354627';
+import { store, dayKey } from './store.js?v=1794355221';
+import { sfx, toast, levelUp, h, icon } from './fx.js?v=1794355221';
+import { router } from './router.js?v=1794355221';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -183,14 +183,15 @@ const kernelUI = (() => {
     if (status !== prev) {
       if (status === 'ready') {
         if (recovering) toast('Motor listo otra vez. Las definiciones se han borrado: vuelve a evaluar las celdas que necesites.', 'ok', 5200);
-        everReady = true; recovering = false;
+        everReady = true; recovering = false; lastWarn = 0;
       } else if (status === 'loading' && everReady && !recovering) {
         recovering = true;
         toast('El motor se está reiniciando. Tu progreso está guardado: en unos segundos puedes seguir.', 'info', 4200);
-      } else if (status === 'error' && Date.now() - lastWarn > 8000) {
+      } else if (status === 'error' && !lastWarn) {
+        // un solo aviso por caída (no uno por cada reintento automático); la píldora queda en «Reintentar»
         lastWarn = Date.now();
         recovering = everReady;
-        toast(h('span', null, 'El motor no ha podido cargar. ', h('button', { class: 'btn link', type: 'button', onclick: () => start(true) }, 'Reintentar')), 'bad', 7000);
+        toast(h('span', null, navigator.onLine === false ? 'Sin conexión: el motor no ha podido cargar. ' : 'El motor no ha podido cargar. ', h('button', { class: 'btn link', type: 'button', onclick: () => { lastWarn = 0; start(true); } }, 'Reintentar')), 'bad', 7000);
       }
     }
     paint();
@@ -205,7 +206,7 @@ const kernelUI = (() => {
   async function load() {
     if (kernel) return kernel;
     try {
-      const mod = await import('./kernel-client.js?v=1794354627');
+      const mod = await import('./kernel-client.js?v=1794355221');
       kernel = mod.kernel || mod.default;
       if (!kernel || typeof kernel.start !== 'function') throw new Error('kernel-client sin kernel.start');
       missing = false;
@@ -233,7 +234,8 @@ const kernelUI = (() => {
   async function restart() {
     const k = await load();
     if (!k) return;
-    try { await (k.abort ? k.abort() : k.start()); toast('Motor reiniciado: definiciones borradas.', 'ok'); } catch { toast('No se pudo reiniciar el motor.', 'bad'); }
+    // los avisos («se está reiniciando» / «listo otra vez») salen del seguimiento de estado
+    try { await (k.abort ? k.abort() : k.start()); } catch { toast('No se pudo reiniciar el motor.', 'bad'); }
   }
   async function clearDefs() {
     const k = await load();
@@ -258,7 +260,7 @@ const kernelUI = (() => {
       const st = missing ? 'missing' : status;
       if (st === 'ready' || st === 'busy') popover(e.currentTarget, panel());
       else if (st === 'loading') toast($('#kpill').title, 'info');
-      else if (st === 'error') { kernel?.abort ? kernel.abort().catch(() => {}).then(() => start(true)) : start(true); }
+      else if (st === 'error') { lastWarn = 0; kernel?.abort ? kernel.abort().catch(() => {}).then(() => start(true)) : start(true); }
       else start(true);
     });
     // calentar el motor en segundo plano ~1,5 s tras el primer pintado (salvo ahorro de datos)

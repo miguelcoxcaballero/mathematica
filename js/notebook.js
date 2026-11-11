@@ -2,15 +2,19 @@
 //   createNotebook(container, {cells:[{code,note?}], title?, compact?, onResult?(code,result), onChange?(codes)})
 //       → {addCell(code), getCells(), evaluateAll(), focus(), destroy()}
 //   createCell(container, {code, readOnly?, placeholder?, onResult?(code,result), autorun?,
-//                          ghost?: "code to type", onProgress?(0..1), onComplete?()})          (ghost: SPEC §11)
+//                          ghost?: "code to type", onProgress?(0..1), onComplete?(),           (ghost: SPEC §11)
+//                          primary?: {label, onPress, disabled?}, enter?: 'primary'|'newline',  (touch: SPEC §15)
+//                          keys?: ['->', '[', …]})      symbol keys of the key bar; default: derived from ghost
 //       → {run(), getCode(), setCode(c), focus(), el, clearOutput(), showResult(result), destroy(),
-//          isComplete(), setGhost(code|null)}
+//          isComplete(), setGhost(code|null), setPrimary({label,onPress,disabled?}|null), setKeys([...]|null)}
+// Touch devices get the Wolfram key bar (keybar.js) above the on-screen keyboard while a cell is focused.
 //   renderItems(container, items, {labels?})  — appends the items of SPEC §2 (does not clear the container)
 // Editing: Shift+Enter / Ctrl+Enter evaluate · Enter = newline with auto-indent · Tab/Shift+Tab indent ·
 // brackets and quotes auto-close · live Mathematica colouring (wl-highlight.js) · autocomplete of System symbols ·
 // F1 or ?Name shows the command card from data/commands.json.
-import { kernel } from './kernel-client.js?v=1794354627';
-import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js?v=1794354627';
+import { kernel } from './kernel-client.js?v=1794355221';
+import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js?v=1794355221';
+import { keybar, keysFor } from './keybar.js?v=1794355221';
 
 // ------------------------------------------------------------------------------------------------ helpers
 function h(tag, attrs, ...kids) {
@@ -31,8 +35,8 @@ const RUN_ICON = '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="t
 
 // Graphics modules belong to the GFX agent: load them lazily and survive their absence.
 let gfx = null; let manip = null;
-const gfxP = import('./gfx2d.js?v=1794354627').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
-const manipP = import('./manipulate.js?v=1794354627').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
+const gfxP = import('./gfx2d.js?v=1794355221').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
+const manipP = import('./manipulate.js?v=1794355221').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
 
 // ------------------------------------------------------------------------------------------------ catalogue
 let catalog = null; let catalogP = null;
@@ -350,7 +354,10 @@ const CLOSE = new Set([']', '}', ')']);
 // The reference code is shown gray; what the student types turns black in place. Comparison ignores spaces and
 // tabs (never line breaks); typographic quotes/dashes from phone keyboards count as their ASCII twins.
 const normTyped = (s) => String(s).replace(/\r/g, '').replace(/[\u201c\u201d\u201e\u00ab\u00bb\u2033]/g, '"').replace(/[\u2018\u2019\u201a\u2032\u00b4]/g, "'")
-  .replace(/[\u2013\u2014\u2212]/g, '-').replace(/\u2026/g, '...').replace(/\u00a0/g, ' ');
+  .replace(/\u2014/g, '--').replace(/[\u2013\u2212]/g, '-').replace(/\u2026/g, '...').replace(/\u00a0/g, ' ');
+// iOS "smart punctuation" in free cells: only what the phone substitutes by itself
+const SMART = /[\u201c\u201d\u2018\u2019\u2014\u2026]/;
+const smartFix = (s) => s.replace(/[\u201c\u201d]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u2014/g, '--').replace(/\u2026/g, '...');
 const prepGhost = (g) => normTyped(g).replace(/\t/g, '  ').split('\n').map((l) => l.replace(/\s+$/, '')).join('\n').replace(/^\n+|\n+$/g, '');
 const isSp = (c) => c === ' ' || c === '\t';
 // The ghost is laid out for the width of the cell: lines that do not fit are broken at a space and continued
@@ -408,7 +415,7 @@ function ghostWalk(L, V) {
   return { p, okLen: i, wrong, bounced, next, complete: !wrong && next >= n };
 }
 
-function createEditor({ code = '', readOnly = false, placeholder = '', onRun, onHelp, onInput, ghost = null, onGhost }) {
+function createEditor({ code = '', readOnly = false, placeholder = '', onRun, onHelp, onInput, ghost = null, onGhost, hooks = {} }) {
   let G = ghost != null ? prepGhost(ghost) : null;
   const pre = h('pre', { class: 'wl-hl', 'aria-hidden': 'true' });
   const ta = h('textarea', { class: 'wl-ta', spellcheck: 'false', autocapitalize: 'off', autocomplete: 'off', autocorrect: 'off', rows: '1', 'aria-label': 'Celda de entrada de Wolfram Language', placeholder });
@@ -438,9 +445,11 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     const rest = L.D.slice(st.p);
     pre.innerHTML = highlight(ok + rest, { defined: kernel.defined, ghostFrom: ok.length, wrong: st.wrong }) + '\n';
     const was = gstate;
-    gstate = { p: st.p, wrong: st.wrong, complete: st.complete };
+    gstate = { p: st.p, wrong: st.wrong, complete: st.complete, next: st.next };
+    enterHint();
     el.classList.toggle('is-wrong', !!st.wrong);
     el.classList.toggle('is-complete', st.complete);
+    keybar.update();
     if (!quiet && onGhost) {
       onGhost({ progress: typedCount(st.p) / (typedCount(L.D.length) || 1), complete: st.complete, justCompleted: st.complete && !was.complete,
         wrong: st.wrong, expected: L.D[st.next], bounced: st.bounced });
@@ -514,7 +523,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
       }
       return ta.getBoundingClientRect();
     },
-    destroy() { editors.delete(ed); if (fitObserver) fitObserver.disconnect(); if (popup && popup.ed === ed) closePopup(); },
+    destroy() { editors.delete(ed); keybar.detach(ed.kb); if (fitObserver) fitObserver.disconnect(); if (popup && popup.ed === ed) closePopup(); },
   };
 
   const lineStart = (v, pos) => v.lastIndexOf('\n', pos - 1) + 1;
@@ -533,6 +542,113 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     ta.setSelectionRange(Math.max(from, s0 + dFirst), Math.max(from, e0 + dAll));
   }
 
+  // ---- typing primitives shared by the hardware keyboard, the on-screen keyboard and the key bar (keybar.js)
+  // Brackets and quotes in a free cell: auto-close, type over the closer, wrap the selection. → handled?
+  function smartChar(ch) {
+    const v = ta.value; const s = ta.selectionStart; const en = ta.selectionEnd;
+    if (OPEN[ch]) {
+      const close = OPEN[ch];
+      if (s !== en) { const sel = v.slice(s, en); ed.insert(ch + sel + close); ta.setSelectionRange(s + 1, en + 1); return true; }
+      const next = v[en];
+      if (next === undefined || /[\s\])},;]/.test(next)) { ed.insert(ch + close); ta.setSelectionRange(s + 1, s + 1); return true; }
+      return false;
+    }
+    if (CLOSE.has(ch) && s === en && v[s] === ch) {
+      // type over the closer that was inserted automatically (only while brackets are balanced)
+      const opener = Object.keys(OPEN).find((k) => OPEN[k] === ch);
+      let bal = 0;
+      for (const t of tokenize(v)) { if (t.t === 'open' && t.v === opener) bal++; else if (t.t === 'close' && t.v === ch) bal--; }
+      if (bal <= 0) { ta.setSelectionRange(s + 1, s + 1); ed.refresh(); return true; }
+      return false;
+    }
+    if (ch === '"') {
+      if (s !== en) { const sel = v.slice(s, en); ed.insert('"' + sel + '"'); ta.setSelectionRange(s + 1, en + 1); return true; }
+      const inside = tokenize(v).find((t) => t.s < s && s < t.e && (t.t === 'string' || t.t === 'comment'));
+      if (inside && inside.t === 'string' && v[s] === '"' && s === inside.e - 1 && v[s - 1] !== '\\') { ta.setSelectionRange(s + 1, s + 1); return true; }
+      if (!inside && (v[s] === undefined || /[\s\])},;]/.test(v[s]))) { ed.insert('""'); ta.setSelectionRange(s + 1, s + 1); return true; }
+    }
+    return false;
+  }
+  // Enter in a free cell: new line that keeps (or opens) the indentation.
+  function newline() {
+    const v = ta.value; const s = ta.selectionStart; const en = ta.selectionEnd;
+    const ls = lineStart(v, s);
+    const line = v.slice(ls, s);
+    let indent = /^[ \t]*/.exec(line)[0];
+    let depth = 0;
+    for (const t of tokenize(line)) { if (t.t === 'open') depth++; else if (t.t === 'close') depth--; }
+    if (depth > 0) indent += '  ';
+    else if (depth < 0) indent = indent.slice(0, Math.max(0, indent.length - 2));
+    const prev = v[s - 1]; const next = v[en];
+    if (s === en && OPEN[prev] && OPEN[prev] === next) {
+      const outer = /^[ \t]*/.exec(line)[0];
+      ed.insert('\n' + outer + '  ' + '\n' + outer);
+      const p = s + 1 + outer.length + 2; ta.setSelectionRange(p, p);
+    } else ed.insert('\n' + indent);
+  }
+  // Enter (any keyboard, or the ⏎ key of the bar when `explicit`). On touch devices Enter doubles as the
+  // primary action where SPEC §15.1 says so; on desktop it is always a new line (Shift+Enter evaluates).
+  function enterPressed(explicit) {
+    if (readOnly) return;
+    const touch = keybar.isTouch();
+    if (G != null) {
+      if (gstate.wrong) { ed.ghost.shake(); return; }
+      let q = gstate.p;
+      while (q < L.D.length && L.D[q] === ' ') q++;
+      if (L.D[q] === '\n' && !L.soft[q]) { ta.value = L.D.slice(0, q + 1); ghostSync(); onInput && onInput(); return; }
+      if (gstate.complete && touch && !explicit && hooks.doPrimary) { hooks.doPrimary(); return; }
+      ed.ghost.shake();
+      onGhost && onGhost({ enterBlocked: true, complete: gstate.complete });
+      return;
+    }
+    if (!explicit && touch && hooks.enterIsPrimary && hooks.enterIsPrimary(ta.value, ta.selectionStart) && hooks.doPrimary) { closePopup(); hooks.doPrimary(); return; }
+    newline();
+  }
+  function enterHint() {
+    let hint = 'enter';
+    if (G != null) { let q = gstate.p; while (q < L.D.length && L.D[q] === ' ') q++; hint = gstate.complete || !G.includes('\n') ? 'go' : 'enter'; if (L.D[q] === '\n' && !L.soft[q]) hint = 'enter'; }
+    else if (hooks.enterIsPrimary && hooks.enterIsPrimary(null)) hint = 'go';
+    if (ta.getAttribute('enterkeyhint') !== hint) ta.setAttribute('enterkeyhint', hint);
+  }
+  ed.enterHint = enterHint;
+
+  // What the key bar drives (keybar.js): same paths as real typing, so ghost validation and colouring apply.
+  let ghostKeys = { g: null, keys: null };
+  const kb = {
+    ta,
+    type(text) {
+      if (readOnly) return;
+      if (document.activeElement !== ta) ta.focus({ preventScroll: true });
+      if (composing) {
+        // The keyboard is in the middle of a word (IME composition). Writing through execCommand would leave that
+        // word "open" and the keyboard would later overwrite it; a direct edit makes the browser close the
+        // composition first, exactly like typing a symbol on the keyboard itself.
+        composing = false;
+        const at = G != null ? ta.value.length : ta.selectionEnd;
+        ta.setRangeText(text, at, at, 'end');
+        ta.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+        return;
+      }
+      if (G != null) { const n = ta.value.length; if (ta.selectionStart !== n || ta.selectionEnd !== n) ta.setSelectionRange(n, n); ed.insert(text); return; }
+      if (text.length === 1 && smartChar(text)) return;
+      ed.insert(text);
+    },
+    move(d) {
+      if (G != null) return;
+      const p = Math.max(0, Math.min(ta.value.length, (d < 0 ? ta.selectionStart : ta.selectionEnd) + (ta.selectionStart === ta.selectionEnd ? d : 0)));
+      ta.setSelectionRange(p, p); closePopup(); ed.refresh();
+    },
+    enter(explicit) { enterPressed(!!explicit); },
+    isGhost: () => G != null,
+    // the symbol keys of this cell: given by the host, or what its ghost needs (null → the bar's default set)
+    keys: () => { const k = hooks.keys ? hooks.keys() : null; if (k) return k; if (G == null) return null; if (ghostKeys.g !== G) ghostKeys = { g: G, keys: keysFor(G) }; return ghostKeys.keys; },
+    ghostNext: () => (G == null || gstate.wrong || gstate.next == null || gstate.next >= L.D.length ? null : L.D.slice(gstate.next, gstate.next + 4)),
+    primary: () => (hooks.primary ? hooks.primary() : null),
+    busy: () => !!(hooks.busy && hooks.busy()),
+    run: () => { onRun && onRun(); },
+  };
+  ed.kb = kb;
+
   function ghostKey(e) {
     const mod = e.ctrlKey || e.metaKey;
     if (e.key === 'Enter' && (e.shiftKey || mod)) { e.preventDefault(); onRun && onRun(); return; }
@@ -541,22 +657,25 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     if (['ArrowLeft', 'ArrowUp', 'Home', 'PageUp'].includes(e.key)) { e.preventDefault(); return; }
     const len = ta.value.length;
     if (ta.selectionStart !== len || ta.selectionEnd !== len) ta.setSelectionRange(len, len);   // always type at the end
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (gstate.wrong) { ed.ghost.shake(); return; }
-      let q = gstate.p;
-      while (q < L.D.length && L.D[q] === ' ') q++;
-      if (L.D[q] === '\n' && !L.soft[q]) { ta.value = L.D.slice(0, q + 1); ghostSync(); onInput && onInput(); } else { ed.ghost.shake(); onGhost && onGhost({ enterBlocked: true, complete: gstate.complete }); }
-    }
+    if (e.key === 'Enter') { e.preventDefault(); enterPressed(false); }
   }
 
   ta.addEventListener('compositionstart', () => { composing = true; });
   ta.addEventListener('compositionend', () => { composing = false; if (G != null) { ghostSync(); onInput && onInput(); } });
   for (const ev of ['paste', 'drop', 'cut']) ta.addEventListener(ev, (e) => { if (G != null) e.preventDefault(); });
-  ta.addEventListener('beforeinput', (e) => { if (G != null && /^(insertFromPaste|insertFromDrop|insertFromYank|historyUndo|historyRedo)$/.test(e.inputType || '')) e.preventDefault(); });
+  ta.addEventListener('beforeinput', (e) => {
+    const type = e.inputType || '';
+    if (G != null && /^(insertFromPaste|insertFromDrop|insertFromYank|historyUndo|historyRedo)$/.test(type)) { e.preventDefault(); return; }
+    // Enter that did not come as a keydown (several Android keyboards)
+    if ((type === 'insertLineBreak' || type === 'insertParagraph') && !readOnly && e.cancelable) { e.preventDefault(); enterPressed(false); return; }
+    if (G != null) return;
+    // phones "correcting" quotes and dashes would break the code: put back the ASCII characters
+    if (!e.isComposing && e.cancelable && (type === 'insertText' || type === 'insertReplacementText') && typeof e.data === 'string' && SMART.test(e.data)) { e.preventDefault(); ed.insert(smartFix(e.data)); return; }
+    if (type === 'deleteContentBackward' && ta.value === '' && hooks.onEmptyBackspace) { e.preventDefault(); hooks.onEmptyBackspace(); }
+  });
 
   ta.addEventListener('keydown', (e) => {
-    if (e.isComposing) return;
+    if (e.isComposing || e.keyCode === 229) return;        // the IME owns this key: wait for the input events
     if (G != null) { ghostKey(e); return; }
     const v = ta.value; const s = ta.selectionStart; const en = ta.selectionEnd;
     if (popup && popup.ed === ed) {
@@ -570,23 +689,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); closePopup(); onRun && onRun(); return; }
     if (e.key === 'F1') { e.preventDefault(); const sym = symbolAt(v, s); if (sym && onHelp) onHelp(sym.name); return; }
     if (readOnly) return;
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const ls = lineStart(v, s);
-      const line = v.slice(ls, s);
-      let indent = /^[ \t]*/.exec(line)[0];
-      let depth = 0;
-      for (const t of tokenize(line)) { if (t.t === 'open') depth++; else if (t.t === 'close') depth--; }
-      if (depth > 0) indent += '  ';
-      else if (depth < 0) indent = indent.slice(0, Math.max(0, indent.length - 2));
-      const prev = v[s - 1]; const next = v[en];
-      if (s === en && OPEN[prev] && OPEN[prev] === next) {
-        const outer = /^[ \t]*/.exec(line)[0];
-        ed.insert('\n' + outer + '  ' + '\n' + outer);
-        const p = s + 1 + outer.length + 2; ta.setSelectionRange(p, p);
-      } else ed.insert('\n' + indent);
-      return;
-    }
+    if (e.key === 'Enter') { e.preventDefault(); enterPressed(false); return; }
     if (e.key === 'Tab') {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
@@ -594,27 +697,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
       return;
     }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (OPEN[e.key]) {
-      const close = OPEN[e.key];
-      if (s !== en) { e.preventDefault(); const sel = v.slice(s, en); ed.insert(e.key + sel + close); ta.setSelectionRange(s + 1, en + 1); return; }
-      const next = v[en];
-      if (next === undefined || /[\s\])},;]/.test(next)) { e.preventDefault(); ed.insert(e.key + close); ta.setSelectionRange(s + 1, s + 1); }
-      return;
-    }
-    if (CLOSE.has(e.key) && s === en && v[s] === e.key) {
-      // type over the closer that was inserted automatically (only while brackets are balanced)
-      let bal = 0;
-      for (const t of tokenize(v)) { if (t.t === 'open' && t.v === Object.keys(OPEN).find((k) => OPEN[k] === e.key)) bal++; else if (t.t === 'close' && t.v === e.key) bal--; }
-      if (bal <= 0) { e.preventDefault(); ta.setSelectionRange(s + 1, s + 1); ed.refresh(); }
-      return;
-    }
-    if (e.key === '"') {
-      if (s !== en) { e.preventDefault(); const sel = v.slice(s, en); ed.insert('"' + sel + '"'); ta.setSelectionRange(s + 1, en + 1); return; }
-      const inside = tokenize(v).find((t) => t.s < s && s < t.e && (t.t === 'string' || t.t === 'comment'));
-      if (inside && inside.t === 'string' && v[s] === '"' && s === inside.e - 1 && v[s - 1] !== '\\') { e.preventDefault(); ta.setSelectionRange(s + 1, s + 1); return; }
-      if (!inside && (v[s] === undefined || /[\s\])},;]/.test(v[s]))) { e.preventDefault(); ed.insert('""'); ta.setSelectionRange(s + 1, s + 1); }
-      return;
-    }
+    if (e.key.length === 1 && (OPEN[e.key] || CLOSE.has(e.key) || e.key === '"')) { if (smartChar(e.key)) e.preventDefault(); return; }
     if (e.key === 'Backspace' && s === en && s > 0) {
       const a = v[s - 1]; const b = v[s];
       if ((OPEN[a] && OPEN[a] === b) || (a === '"' && b === '"' && v[s - 2] !== '\\')) {
@@ -626,23 +709,42 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
   });
 
   ta.addEventListener('input', (e) => {
-    if (G != null) { composing = !!(e && e.isComposing); ghostSync(); onInput && onInput(); return; }
+    if (G != null) { composing = !!(e && e.isComposing); ghostSync(); onInput && onInput(); keybar.update(); return; }
+    // (free cell) a phone that slipped typographic quotes past beforeinput: fix what was just typed
+    if (!(e && e.isComposing) && e && typeof e.data === 'string' && SMART.test(e.data) && ta.selectionStart === ta.selectionEnd) {
+      const end = ta.selectionStart; const start = end - e.data.length;
+      if (start >= 0 && ta.value.slice(start, end) === e.data) { ed.replaceRange(start, end, smartFix(e.data)); return; }
+    }
     ed.refresh();
     if (!readOnly) {
       const s = ta.selectionStart;
       const sym = s === ta.selectionEnd ? symbolAt(ta.value, s) : null;
-      if (sym && sym.end === s && sym.name.length >= 2 && /^[A-Z$]/.test(sym.name)) openPopup(ed, sym); else closePopup();
+      const want = sym && sym.end === s && sym.name.length >= 2 && /^[A-Z$]/.test(sym.name);
+      if (keybar.isTouch()) {
+        // on phones the completions live in the key bar (no floating popup under the thumb)
+        const list = want && !(hooks.keys && hooks.keys()) ? candidates(sym.name).slice(0, 5) : [];   // (not in exercises: there the row is for symbols)
+        if (want && !catalog) loadCatalog();
+        keybar.suggest(kb, list, (name) => { const cur = symbolAt(ta.value, ta.selectionStart); if (cur) ed.replaceRange(cur.start, ta.selectionStart, name); });
+      } else if (want) openPopup(ed, sym); else closePopup();
     }
+    enterHint();
     onInput && onInput();
   });
-  ta.addEventListener('focus', () => { focused = true; el.classList.add('is-focus'); ed.refresh(); wantSymbols(); });
-  ta.addEventListener('blur', () => { focused = false; el.classList.remove('is-focus'); ed.refresh(); setTimeout(() => { if (popup && popup.ed === ed && document.activeElement !== ta) closePopup(); }, 120); });
+  ta.addEventListener('focus', () => { focused = true; el.classList.add('is-focus'); ed.refresh(); enterHint(); wantSymbols(); keybar.attach(kb); });
+  ta.addEventListener('blur', () => {
+    focused = false; el.classList.remove('is-focus');
+    if (composing) { composing = false; }
+    ed.refresh();
+    keybar.detach(kb);
+    setTimeout(() => { if (popup && popup.ed === ed && document.activeElement !== ta) closePopup(); }, 120);
+  });
   const onSel = () => { if (focused) ed.refresh(); };
   ta.addEventListener('keyup', (e) => { if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End') { onSel(); if (popup && popup.ed === ed && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) closePopup(); } });
-  ta.addEventListener('click', () => { if (G != null) { const n = ta.value.length; ta.setSelectionRange(n, n); return; } onSel(); closePopup(); });
+  ta.addEventListener('click', () => { if (G != null) { const n = ta.value.length; if (!composing) ta.setSelectionRange(n, n); return; } onSel(); closePopup(); keybar.reveal(); });
 
   editors.add(ed);
   ed.refresh();
+  enterHint();
   return ed;
 }
 
@@ -674,6 +776,7 @@ export function createCell(container, opts = {}) {
   let completedOnce = false;
   const onGhost = (g) => {
     if (g.enterBlocked) { say(g.complete ? EVAL_HINT : 'Escribe la línea completa', g.complete); return; }
+    if (g.bounced && g.complete && keybar.isTouch()) { doPrimary(); return; }   // Enter typed by a keyboard that sends no key events
     if (g.wrong) {
       const exp = g.expected;
       const same = exp && g.wrong[0] && exp.toLowerCase() === g.wrong[0].toLowerCase();
@@ -685,7 +788,32 @@ export function createCell(container, opts = {}) {
     if (opts.onProgress) { try { opts.onProgress(g.progress); } catch (e) { console.error(e); } }
     if (g.justCompleted) { completedOnce = true; if (opts.onComplete) { try { opts.onComplete(); } catch (e) { console.error(e); } } }
   };
-  const editor = createEditor({ code: opts.code || '', readOnly: !!opts.readOnly, placeholder: opts.placeholder || '', onRun: () => { run(); }, onHelp: showHelp, onInput: () => { opts.onInput && opts.onInput(); }, ghost: opts.ghost != null ? opts.ghost : null, onGhost });
+  // Primary action of the key bar / of Enter on touch devices (SPEC §15.1). Default: evaluate this cell.
+  let primary = opts.primary || null;
+  let cellKeys = Array.isArray(opts.keys) ? opts.keys.map(String) : null;      // symbol keys of the bar (SPEC §15.4)
+  const doPrimary = () => {
+    if (primary && primary.disabled) return;
+    if (primary && typeof primary.onPress === 'function') { try { primary.onPress(); } catch (e) { console.error('[notebook] primary.onPress', e); } } else run();
+  };
+  const hooks = {
+    primary: () => primary,
+    busy: () => !!running,
+    doPrimary,
+    // Free cells: Enter is the primary action only when the host gave the cell one (exercises: «Comprobar»)
+    // and the line looks finished; opts.enter = 'primary' | 'newline' forces either behaviour.
+    enterIsPrimary: (code, caret) => {
+      if (opts.enter === 'newline') return false;
+      if (opts.enter !== 'primary' && !primary) return false;
+      if (code == null) return true;                                  // static question (enterkeyhint)
+      if (!code.trim() || caret < code.replace(/\s+$/, '').length) return false;
+      let depth = 0;
+      for (const t of tokenize(code)) { if (t.t === 'open') depth++; else if (t.t === 'close') depth--; else if ((t.t === 'string' || t.t === 'comment') && t.open) depth += 99; }
+      return depth <= 0;
+    },
+    onEmptyBackspace: opts.onEmptyBackspace || null,
+    keys: () => cellKeys,
+  };
+  const editor = createEditor({ code: opts.code || '', readOnly: !!opts.readOnly, placeholder: opts.placeholder || '', onRun: () => { run(); }, onHelp: showHelp, onInput: () => { opts.onInput && opts.onInput(); }, ghost: opts.ghost != null ? opts.ghost : null, onGhost, hooks });
   const el = h('div', { class: 'wl-cell' + (opts.ghost != null ? ' wl-cell--ghost' : '') },
     h('div', { class: 'wl-in' }, label, editor.el, h('div', { class: 'wl-tools' }, runBtn), h('div', { class: 'wl-bracket' })),
     hint, helpSlot, status, outs, h('div', { class: 'wl-bracket wl-bracket--group' }));
@@ -714,6 +842,7 @@ export function createCell(container, opts = {}) {
   function setRunning(on) {
     el.classList.toggle('is-running', on);
     runBtn.disabled = on;
+    keybar.update();
     if (on) {
       t0 = performance.now();
       offStatus = kernel.onStatus(paintStatus);
@@ -733,6 +862,8 @@ export function createCell(container, opts = {}) {
     if (result.inLine != null) label.textContent = `In[${result.inLine}]:=`;
     renderItems(outs, result.items || [], { labels: true });
     el.classList.toggle('has-out', outs.childElementCount > 0);
+    // phones: with the keyboard open, bring the result into the strip that is still visible above the key bar
+    if (keybar.visible && keybar.target === editor.kb) { requestAnimationFrame(() => keybar.ensureVisible(el)); setTimeout(() => keybar.ensureVisible(el), 350); }
   }
 
   function run() {
@@ -777,6 +908,9 @@ export function createCell(container, opts = {}) {
     setCode: (c) => { editor.ta.value = String(c ?? ''); editor.refresh(); },
     isComplete: () => (editor.ghost.active() ? editor.ghost.complete() : true),
     setGhost: (g) => { editor.ghost.set(g); el.classList.toggle('wl-cell--ghost', g != null); el.classList.remove('is-ghost-complete'); say(''); },
+    setPrimary: (p) => { primary = p || null; editor.enterHint(); keybar.update(); },
+    setKeys: (k) => { cellKeys = Array.isArray(k) ? k.map(String) : null; keybar.update(); },
+    primary: () => doPrimary(),
     focus: () => { editor.ta.focus({ preventScroll: false }); },
     clearOutput, showResult,
     resetLabel: () => { label.textContent = 'In[ ]:='; },
@@ -832,14 +966,16 @@ export function createNotebook(container, opts = {}) {
       slot.append(h('button', { class: 'wl-add wl-add--between', type: 'button', title: 'Insertar una celda aquí', 'aria-label': 'Insertar celda', text: '+', onclick: () => { insert('', null, cells.indexOf(rec)).cell.focus(); changed(); } }));
     }
     if (note) slot.append(h('div', { class: 'wl-nb-note', text: note }));
-    rec.cell = createCell(slot, { code, onResult: opts.onResult, onInput: changed });
+    const remove = (focusPrev) => {
+      const i = cells.indexOf(rec);
+      if (i < 0) return;
+      cells.splice(i, 1); rec.cell.destroy(); slot.remove(); changed();
+      if (!cells.length) insert('', null, 0);
+      if (focusPrev) cells[Math.max(0, i - 1)].cell.focus();
+    };
+    rec.cell = createCell(slot, { code, onResult: opts.onResult, onInput: changed, onEmptyBackspace: () => { if (cells.length > 1) remove(true); } });
     if (!compact) {
-      rec.cell.el.querySelector('.wl-tools').append(h('button', { class: 'wl-del', type: 'button', title: 'Eliminar celda', 'aria-label': 'Eliminar celda', text: '×', onclick: () => {
-        const i = cells.indexOf(rec);
-        if (i < 0) return;
-        cells.splice(i, 1); rec.cell.destroy(); slot.remove(); changed();
-        if (!cells.length) insert('', null, 0);
-      } }));
+      rec.cell.el.querySelector('.wl-tools').append(h('button', { class: 'wl-del', type: 'button', title: 'Eliminar celda', 'aria-label': 'Eliminar celda', text: '×', onclick: () => remove(false) }));
     }
     if (index == null || index >= cells.length) { list.append(slot); cells.push(rec); } else { list.insertBefore(slot, cells[index].slot); cells.splice(index, 0, rec); }
     return rec;

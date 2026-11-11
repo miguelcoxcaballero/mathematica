@@ -3,12 +3,12 @@
 //   #/practica/comando/<Nombre>     exercises (from every lesson) that use that command, easy → hard, unsolved first
 //   #/practica/tema/<lessonId>      exercises of one lesson
 //   #/practica/aleatoria[?n=10]     N exercises sampled from what the student has already studied (weak/stale first)
-import { store } from '../store.js?v=1794354627';
-import * as data from '../data.js?v=1794354627';
-import * as fx from '../fx.js?v=1794354627';
+import { store } from '../store.js?v=1794355221';
+import * as data from '../data.js?v=1794355221';
+import * as fx from '../fx.js?v=1794355221';
 import {
   mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel, setImmersive, touchUI,
-} from '../exercise.js?v=1794354627';
+} from '../exercise.js?v=1794355221';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];
@@ -380,6 +380,7 @@ function runSession(me, cfg) {
   const head = h('header', { class: 'pr-shead' },
     h('a', { class: 'lp-back', href: '#/practica', title: 'Volver a práctica' }, '← Práctica'),
     h('div', { class: 'lp-titles' }, h('div', { class: 'lp-crumbs' }, cfg.year ? yearBadge(cfg.year) : null, h('span', null, cfg.kicker)), h('h1', { class: 'lp-title' }, cfg.title)),
+    h('button', { class: 'lx-link ls-skiptop', type: 'button', title: 'Saltar este ejercicio', onclick: () => skipBtn.click() }, 'saltar'),
     h('button', { class: 'ls-x pr-x', type: 'button', 'aria-label': 'Terminar la sesión', title: 'Terminar la sesión', onclick: () => summary() }, '×'),
     h('div', { class: 'pr-meters', 'aria-live': 'polite' }, h('span', { title: 'Aciertos' }, okEl, ' bien'), h('span', { title: 'Fallos, saltos y soluciones vistas' }, badEl, ' mal'), h('span', { title: 'XP de esta sesión' }, xpEl, ' XP')),
     finishBtn);
@@ -444,7 +445,7 @@ function runSession(me, cfg) {
         skipBtn.hidden = true;
         nextBtn.disabled = false; nextBtn.classList.add('primary');
         hint.textContent = 'Enter';
-        if (!(touchUI() && document.documentElement.classList.contains('lx-keybar'))) setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
+        if (!(touchUI() && document.documentElement.classList.contains('lx-primary'))) setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
       },
     });
     S.seen.add(it.ex.id);

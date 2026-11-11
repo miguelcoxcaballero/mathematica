@@ -186,14 +186,24 @@ def _patch_symbol_iteration():
     Symbol.evaluate = evaluate
 
 
-_SLOT_RE = re.compile(r'("(?:[^"\\]|\\.)*")|#(?=[A-Za-z])')
+_SLOT_RE = re.compile(r'("(?:[^"\\]|\\.)*")|#(?=[A-Za-z])|:\u2192|[\u2192\u29f4]')
+_ARROWS = {"\u2192": "->", "\u29f4": ":>", ":\u2192": ":>"}
 
 
 def _pre_scan(code):
-    """`2#Pi` means 2*#*Pi in the course notebooks (Mathics would read the named slot #Pi)."""
-    if "#" not in code:
+    """Input clean-up before parsing:
+    * `2#Pi` means 2*#*Pi in the course notebooks (Mathics would read the named slot #Pi);
+    * the arrows we print for rules (x → 2, a ⧴ b) are accepted back as -> and :> when an output is pasted
+      into a cell (Mathics would read U+2192 as the inert RightArrow)."""
+    if "#" not in code and "\u2192" not in code and "\u29f4" not in code:
         return code
-    return _SLOT_RE.sub(lambda m: m.group(1) if m.group(1) else "# ", code)
+
+    def fix(m):
+        if m.group(1):
+            return m.group(1)
+        g = m.group(0)
+        return _ARROWS.get(g, "# ")
+    return _SLOT_RE.sub(fix, code)
 
 
 _SCI_RE = re.compile(r"<mrow>\s*<mn>([^<]*)</mn>\s*<mtext>\*\^</mtext>\s*<mn>(-?\d+)</mn>\s*</mrow>")
@@ -327,7 +337,7 @@ class Kernel:
     def parse(self, code):
         from mathics.core.parser import MathicsSingleLineFeeder, parse
 
-        return parse(self.defs, MathicsSingleLineFeeder(code, "<expr>"))
+        return parse(self.defs, MathicsSingleLineFeeder(_pre_scan(code), "<expr>"))
 
     def eval_expr(self, expr):
         """Evaluate a Mathics expression silently, returning the result expression."""

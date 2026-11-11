@@ -171,3 +171,60 @@
   .wl-nb-actions { margin-left: auto; }
 }
 @media (prefers-reduced-motion: reduce) { .wl-cell.is-running .wl-bracket, .wl-dot { animation: none !important; } }
+
+/* ------------------------------------------------------------------ touch devices (SPEC §15.1): key bar + comfort
+   html.wl-touch is set by js/keybar.js on (pointer: coarse) devices and inside the Android app. */
+html.wl-touch .wl-nb, html.wl-touch .wl-cell { --wl-fs: 16px; }                 /* ≥16px: iOS never zooms into the editor */
+.wl-cell { scroll-margin-top: 12px; scroll-margin-bottom: calc(var(--kb-h, 0px) + 12px); }
+.wl-in { scroll-margin-top: 12px; scroll-margin-bottom: calc(var(--kb-h, 0px) + 12px); }
+.wl-body { -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+html.wl-touch .wl-editor > .wl-ta { touch-action: manipulation; }
+html.wl-touch .wl-tools { padding-top: 0; }
+html.wl-touch .wl-run, html.wl-touch .wl-del { position: relative; width: 34px; height: 34px; color: var(--muted); }
+html.wl-touch .wl-run::after, html.wl-touch .wl-del::after, html.wl-touch .wl-copy::after, html.wl-touch .wl-more::after, html.wl-touch .wl-help-x::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+html.wl-touch .wl-copy, html.wl-touch .wl-more, html.wl-touch .wl-help-x { position: absolute; }
+html.wl-touch .wl-more { position: relative; padding: 8px 0; font-size: 14px; }
+html.wl-touch .wl-copy { opacity: .8; font-size: 12px; padding: 5px 8px; }
+/* delete: under ▶, only while the cell is being edited (never hover-only) */
+html.wl-touch .wl-del { position: absolute; right: 3px; top: 100%; left: auto; visibility: hidden; background: var(--paper); border: 1px solid var(--line); z-index: 2; }
+html.wl-touch .wl-cell:hover .wl-del { visibility: hidden; }
+html.wl-touch .wl-cell:focus-within .wl-del { visibility: visible; }
+html.wl-touch .wl-add--between { color: var(--dim); height: 22px; line-height: 22px; font-size: 13px; }
+html.wl-touch .wl-add--between::before { top: 10.5px; }
+html.wl-touch .wl-add--tail { padding: 12px 8px; font-size: 14px; }
+html.wl-touch .wl-tbtn { padding: 10px 12px; font-size: 13.5px; }
+html.wl-touch .wl-link { padding: 8px 0; }
+
+/* The key bar (js/keybar.js, SPEC §15.4): one slim row above the on-screen keyboard — the symbols this cell needs,
+   «⋯» for the full sheet, and the primary action. Touch devices only (the element is never created elsewhere). */
+.wl-kb { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; box-sizing: border-box; background: #f4f4f5; border-top: 1px solid #d4d4d8; will-change: transform;
+  padding: 0 max(4px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(4px, env(safe-area-inset-left, 0px));
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.wl-kb[hidden], .wl-kb-sheet[hidden] { display: none; }
+.wl-kb.wl-kb--osk { padding-bottom: 0; }
+.wl-kb-row { display: flex; align-items: center; gap: 3px; height: 40px; }
+.wl-kb-keys { flex: 1 1 auto; min-width: 0; height: 100%; display: flex; align-items: center; gap: 3px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 14px), transparent); padding-right: 10px; }
+.wl-kb-keys::-webkit-scrollbar { display: none; }
+.wl-kb-sugs, .wl-kb-cellkeys { display: flex; align-items: center; gap: 3px; flex: none; }
+.wl-kb-sugs:empty { display: none; }
+.wl-kb-key { position: relative; flex: none; min-width: 36px; height: 34px; margin: 0; padding: 0 6px; border: 1px solid #cfcfd4; border-radius: 5px; background: #fff; color: var(--ink); font: 600 17px/1 var(--mono); touch-action: pan-x; cursor: pointer; }
+.wl-kb-key::after { content: ""; position: absolute; left: -2px; right: -2px; top: -4px; bottom: -4px; }      /* the whole height of the row is the target */
+.wl-kb-key.is-down { background: #dcdce1; }
+.wl-kb-key.is-next { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: #fff3f1; color: var(--accent); }
+.wl-kb-word { font-size: 14.5px; padding: 0 8px; }
+.wl-kb-more { color: var(--muted); font-family: var(--font); letter-spacing: 1px; }
+.wl-kb-more.is-on { background: #e4e4e8; color: var(--ink); }
+.wl-kb-sug { font-size: 14px; background: var(--y1-bg); border-color: #cfe0f0; color: var(--y1); padding: 0 9px; }
+.wl-kb-primary { flex: none; min-width: 84px; max-width: 44vw; height: 34px; margin: 0 0 0 2px; padding: 0 12px; border: 0; border-radius: 5px; background: var(--accent); color: #fff;
+  font: 600 14.5px/1 var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; touch-action: manipulation; cursor: pointer; transition: opacity .15s; position: relative; }
+.wl-kb-primary::after { content: ""; position: absolute; inset: -4px -2px; }
+.wl-kb-primary.is-dim { opacity: .45; }
+.wl-kb-primary.is-down { filter: brightness(.88); }
+/* the generic menu */
+.wl-kb-sheet { max-height: max(120px, calc(var(--vvh, 100vh) - 190px)); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 6px 2px 5px; border-bottom: 1px solid #dddde0; }
+.wl-kb-group + .wl-kb-group { margin-top: 5px; }
+.wl-kb-cap { font: 600 10px/1.3 var(--font); letter-spacing: .05em; text-transform: uppercase; color: var(--dim); margin: 0 1px 3px; }
+.wl-kb-grid { display: flex; flex-wrap: wrap; gap: 4px 3px; }
+.wl-kb-sheet .wl-kb-key { touch-action: pan-y; }
+.wl-kb-sheet .wl-kb-key::after { top: -2px; bottom: -2px; }

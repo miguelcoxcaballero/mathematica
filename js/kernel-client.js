@@ -23,6 +23,7 @@ let creep = null;
 let cap = 0;
 let symbolsPromise = null;
 let retries = 0;
+let stallReject = null;
 
 function abortError(msg) {
   const e = new Error(msg || 'Evaluación abortada');
@@ -50,12 +51,16 @@ function startCreep() {
   creep = setInterval(() => {
     const p = kernel.progress;
     if (kernel.status !== 'loading') return stopCreep();
+    // a worker that has been silent for minutes while the page is visible is dead (killed in the background)
+    if (lastMessage && !document.hidden && Date.now() - lastMessage > 150000 && stallReject) { const r = stallReject; stallReject = null; r(new Error('El kernel dejó de responder mientras se cargaba')); return; }
     if (p.pct < cap - 0.002) { kernel.progress = { phase: p.phase, pct: p.pct + (cap - p.pct) * 0.04 }; emit(); }
   }, 250);
 }
 
+let lastMessage = 0;
 function onMessage(ev) {
   const m = ev.data || {};
+  lastMessage = Date.now();
   if (m.type === 'progress') {
     if (kernel.status !== 'loading') return;
     cap = Math.max(m.cap || 0, m.pct || 0);
@@ -113,7 +118,7 @@ function start() {
   startCreep();
   startPromise = new Promise((resolve, reject) => {
     try {
-      worker = new Worker(new URL('./kernel-worker.js?v=1794354627', import.meta.url), { type: 'module' });
+      worker = new Worker(new URL('./kernel-worker.js?v=1794355221', import.meta.url), { type: 'module' });
     } catch (e) { reject(e); return; }
     worker.onmessage = onMessage;
     worker.onerror = (e) => {
@@ -125,6 +130,8 @@ function start() {
       if (wasLoading) reject(err);
       else { console.warn('[kernel] reinicio automático tras un fallo:', err.message); start().catch(() => {}); }
     };
+    lastMessage = Date.now();
+    stallReject = reject;
     send('init', {}, false).then(resolve, reject);
   }).then((info) => {
     if (gen !== generation) throw abortError();
@@ -184,6 +191,35 @@ function call(op, args, watch = true) {
 function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
 function lsSet(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ } }
 
+// Phones freeze or kill the worker of a page that sits in the background. When the page comes back: if the
+// kernel was idle, ask it for a sign of life and boot a fresh one if none comes (definitions are lost, the UI
+// is told through onStatus: 'loading' → 'ready'); if it was loading, the stall check above takes care.
+let probing = false;
+function probe() {
+  if (document.hidden || probing || !worker || kernel.status !== 'ready' || pending.size) return;
+  probing = true;
+  const gen = generation;
+  const w = worker;
+  let alive = false;
+  const id = ++seq;
+  pending.set(id, { resolve: () => { alive = true; probing = false; }, reject: () => { probing = false; }, timer: null });
+  try { w.postMessage({ id, op: 'ping', args: {} }); } catch { /* handled by the timeout */ }
+  setTimeout(() => {
+    probing = false;
+    if (alive || gen !== generation || worker !== w) return;
+    pending.delete(id);
+    if (pending.size || kernel.status !== 'ready') return;         // something else is talking to it: it is alive
+    console.warn('[kernel] el worker no responde tras volver a primer plano: se reinicia');
+    killWorker(abortError('El kernel se cerró en segundo plano y se ha reiniciado'));
+    retries = 0;
+    start().catch(() => {});
+  }, 5000);
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { lastMessage = Date.now(); setTimeout(probe, 300); } });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) setTimeout(probe, 300); });
+}
+
 export const kernel = {
   status: 'idle',                       // 'idle'|'loading'|'ready'|'busy'|'error'
   progress: { phase: '', pct: 0 },      // while loading
@@ -210,6 +246,8 @@ export const kernel = {
     retries = 0;
     return start().then(() => undefined);
   },
+
+  probe,                                // check that the worker is alive (done automatically on visibilitychange)
 
   // Never starts the kernel by itself when a cached list exists (it is only used for colouring/autocomplete).
   symbols() {

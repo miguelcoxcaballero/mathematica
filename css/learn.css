@@ -533,7 +533,7 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 /* bottom sheet: hints and «Más detalle» on touch */
 .lx-sheet-scrim { position: fixed; inset: 0; z-index: 180; background: rgba(0, 0, 0, .22); opacity: 0; pointer-events: none; transition: opacity .2s; }
 .lx-sheet-scrim.is-open { opacity: 1; pointer-events: auto; }
-.lx-sheet { position: fixed; z-index: 181; left: 0; right: 0; bottom: var(--kb-h, var(--lx-kb-h, 0px)); max-height: min(62vh, calc(var(--vvh, var(--lx-vvh, 100vh)) * .7)); display: flex; flex-direction: column; background: var(--bg); border-top: 1px solid var(--line); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 30px rgba(0, 0, 0, .14); transform: translateY(105%); transition: transform .2s var(--ease); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.lx-sheet { position: fixed; z-index: 181; left: 0; right: 0; bottom: max(var(--kb-h, 0px), var(--lx-kb-h, 0px)); max-height: min(62vh, calc(var(--vvh, var(--lx-vvh, 100vh)) * .7)); display: flex; flex-direction: column; background: var(--bg); border-top: 1px solid var(--line); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 30px rgba(0, 0, 0, .14); transform: translateY(105%); transition: transform .2s var(--ease); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .lx-sheet.is-open { transform: none; }
 .lx-sheet-h { display: flex; align-items: center; justify-content: space-between; padding: 6px 6px 0 18px; font-size: .8rem; color: var(--muted); }
 .lx-sheet-x { width: 44px; height: 44px; font-size: 1.5rem; line-height: 1; color: var(--muted); }
@@ -544,6 +544,10 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 .lx-sheet-acts .ex-shape { flex: 1 1 100%; padding-left: 0; }
 .lx-sheet-acts .btn { min-height: 44px; }
 
+/* with the key bar open the footer is gone: a discreet «saltar» next to the «×» */
+.ls-skiptop { display: none !important; }
+.lx-primary.wl-kb-open .ls-skiptop { display: inline-flex !important; align-items: center; min-height: 44px; padding: 0 8px; font-size: .82rem; }
+.lx-kb .ls-skiptop { margin-top: -6px; margin-bottom: -6px; }
 /* «×» of the immersive screens */
 .ls-x { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; font-size: 1.6rem; line-height: 1; color: var(--muted); flex: none; }
 .ls-x:hover { color: var(--text); text-decoration: none; }
@@ -558,10 +562,11 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 
   /* lesson screen */
   .ls--tramo { min-height: calc(var(--vvh, var(--lx-vvh, 100dvh)) - 12px - env(safe-area-inset-top, 0px)); }
-  .ls--tramo .ls-top { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 4px; }
+  .ls--tramo .ls-top { grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 0 4px; }
   .ls--tramo .ls-top .lp-back, .ls--tramo .ls-top .ls-top-t, .ls--tramo .ls-top .ls-count { display: none; }
   .ls--tramo .ls-bar { grid-column: 1; grid-row: 1; height: 3px; }
-  .ls--tramo .ls-x { grid-column: 2; grid-row: 1; margin-right: -10px; }
+  .ls--tramo .ls-skiptop { grid-column: 2; grid-row: 1; }
+  .ls--tramo .ls-x { grid-column: 3; grid-row: 1; margin-right: -10px; }
   .ls-body { padding: 10px 0 18px; }
   .ls-screen { gap: 16px; }
   .ls-nav { bottom: 0; padding: 8px 0 max(8px, env(safe-area-inset-bottom, 0px)); }
@@ -589,9 +594,12 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
   .lp-weak li { min-height: 48px; align-items: center; }
   .lp-end-actions { gap: 6px 18px; }
   .lp-back { min-height: 44px; display: inline-flex; align-items: center; }
+  .ls-sum .chip, .lp-end-chips .chip, .lp-end-card .chip, .pr-rec-chip, .pr-improved .chip, .pr-weak-cmds .chip { min-height: 44px; padding: 0 .75em; }
+  .ls-sum-v { align-items: center; }
 
   /* practice session */
-  .pr-session .pr-shead { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "meters x"; align-items: center; gap: 0 4px; }
+  .pr-session .pr-shead { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "meters skip x"; align-items: center; gap: 0 4px; }
+  .pr-session .ls-skiptop { grid-area: skip; }
   .pr-session .pr-shead .lp-back, .pr-session .pr-shead .lp-titles, .pr-session .pr-finish { display: none; }
   .pr-session .pr-x { grid-area: x; margin-right: -10px; }
   .pr-session .pr-meters { grid-area: meters; }
@@ -624,16 +632,27 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 .lx-kb .ex { gap: 10px; }
 .lx-kb .ex-foot, .lx-kb .pr-src { display: none; }
 .lx-kb .ls--tramo { min-height: 0; }
-.lx-kb .ls--tramo .ls-x, .lx-kb .pr-session .pr-x, .lx-kb .sm-x { height: 34px; }
+/* the «×» keeps its 44 px target but takes less room */
+.lx-kb .ls--tramo .ls-x, .lx-kb .pr-session .pr-x, .lx-kb .sm-x { margin-top: -6px; margin-bottom: -6px; }
 .lx-kb .pr-session .pr-meters { font-size: .72rem; }
 .lx-kb .pr-session .lp-step { gap: 10px; }
-/* with the key bar, «Evaluar / Comprobar / Siguiente» live there: no footer under the keyboard */
-.lx-keybar.lx-kb.lx-touch .ls-nav, .lx-keybar.lx-kb.lx-touch .pr-session .lp-nav { display: none; }
-.lx-keybar.lx-kb.lx-touch .ex-check { display: none; }
+/* with the key bar carrying our action («Evaluar / Comprobar / Siguiente ›»): no footer under the keyboard */
+.lx-primary.wl-kb-open .ls-nav, .lx-primary.wl-kb-open .pr-session .lp-nav { display: none; }
+.lx-primary.wl-kb-open .ex-check { display: none; }
+/* room for the key bar + keyboard, so the output can always be scrolled into view */
+.wl-kb-open .ls--tramo, .wl-kb-open .pr-session { padding-bottom: calc(var(--kb-h, 0px) + 12px); }
 /* without it, the footer stays reachable right above the keyboard */
 .lx-kb .ls-nav, .lx-kb .pr-session .lp-nav { padding: 4px 0; }
-.lx-kb .ls-nav .btn, .lx-kb .lp-nav .btn { min-height: 40px; }
+.lx-kb .ls-nav .btn, .lx-kb .lp-nav .btn { min-height: 44px; }
 @media (max-width: 380px) {
   .lx-statement { font-size: 1.3rem; }
   .ls-tramo { grid-template-columns: 1.3em minmax(0, 1fr) auto; }
+}
+@media (max-width: 520px) {
+  /* lists: the content first — titles do not eat the screen */
+  .ls--list .lp-title, .pr-shead .lp-title, .sm-head .lp-title { font-size: 1.45rem; line-height: 1.2; }
+  .ls--list { gap: 10px; }
+  .ls-summary { font-size: .95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pr-head h1 { font-size: 1.5rem; }
+  .sm .pr-head p { font-size: .95rem; }
 }

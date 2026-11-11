@@ -4,14 +4,15 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794354627';
-import * as data from '../data.js?v=1794354627';
-import { kernel } from '../kernel-client.js?v=1794354627';
-import * as fx from '../fx.js?v=1794354627';
+import { store } from '../store.js?v=1794355221';
+import * as data from '../data.js?v=1794355221';
+import { kernel } from '../kernel-client.js?v=1794355221';
+import * as fx from '../fx.js?v=1794355221';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
-  safe, play, exStatus, startKernel, kernelPill, newSeed, setImmersive, touchUI,
-} from '../exercise.js?v=1794354627';
+  exclusive, kernelReady, watchKernel,
+  safe, play, exStatus, startKernel, kernelPill, newSeed, setImmersive, touchUI, touchText,
+} from '../exercise.js?v=1794355221';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson
@@ -268,6 +269,7 @@ async function enterTramo(S, t, stepIdx) {
   const top = h('header', { class: 'ls-top' },
     h('a', { class: 'lp-back', href: `#/leccion/${encodeURIComponent(lesson.id)}`, title: 'Volver a la lista de tramos' }, '← Tramos'),
     h('span', { class: 'ls-top-t' }, tramo.title), count,
+    h('button', { class: 'lx-link ls-skiptop', type: 'button', title: 'Pasar a la siguiente pantalla sin completar esta', onclick: () => goScreen(S, S.pos + 1) }, 'saltar'),
     h('a', { class: 'ls-x', href: `#/leccion/${encodeURIComponent(lesson.id)}`, 'aria-label': 'Salir del tramo', title: 'Salir del tramo' }, '×'),
     h('div', { class: 'ls-bar', role: 'progressbar', 'aria-label': 'Avance del tramo' }, bar));
   const body = h('main', { class: 'ls-body' });
@@ -336,7 +338,7 @@ function setComplete(S, pos, done, focus) {
   if (done && focus) {
     S.navHint.textContent = 'Enter';
     // desktop: Enter moves on. Touch with the key bar: the focus stays in the cell so the keyboard does not close.
-    const keepKeyboard = touchUI() && document.documentElement.classList.contains('lx-keybar');
+    const keepKeyboard = touchUI() && document.documentElement.classList.contains('lx-primary');
     if (!keepKeyboard) setTimeout(() => { if (S.pos === pos && S.nextBtn.isConnected) S.nextBtn.focus({ preventScroll: true }); }, 80);
   }
 }
@@ -377,14 +379,14 @@ function sessionFor(S, i, k, codes, setup) {
   return async () => {
     if (S.kses.step !== i) { await kernel.reset(); S.kses = { step: i, upTo: -1 }; if (setup) await kernel.run(setup); }
     for (let j = S.kses.upTo + 1; j < k; j++) if (codes[j] != null) await kernel.run(codes[j]);
-    S.kses.upTo = Math.max(S.kses.upTo, k);
+    S.kses.upTo = Math.max(S.kses.upTo, k - 1); // cell k itself counts once the student has evaluated it (see ghostScreen)
   };
 }
 /** The statement — the one visible line and headline of a screen (SPEC §14). Returns what did not fit, for «Más detalle». */
 function lineOf(wrap, text, limit = 90, fallback = '') {
   const sp = splitText(text, limit);
   const line = sp.line || fallback;
-  if (line) wrap.appendChild(h('p', { class: 'lx-statement lx-md', html: mdInline(line) }));
+  if (line) wrap.appendChild(h('p', { class: 'lx-statement lx-md', html: mdInline(touchText(line)) }));
   return sp.rest;
 }
 /** Small gray label above the statement (the step title, when it says something). */
@@ -395,12 +397,24 @@ function labelOf(wrap, ...bits) {
 const joinMd = (...xs) => xs.filter((x) => x && String(x).trim()).join('\n\n');
 /** What the key bar's primary button does once the screen is done (touch): on to the next screen. */
 const nextOf = (S) => () => { if (S.view === 'tramo' && S.nextBtn && !S.nextBtn.disabled) goScreen(S, S.pos + 1); };
-function ghostScreen(S, wrap, code, { run, before, onDone, hint, more }) {
+function ghostScreen(S, wrap, code, { run, before, onDone, hint, more, step, k, keys }) {
   const host = h('div', { class: 'ls-cell' });
   wrap.appendChild(host);
   const pill = kernelPill();
   if (run) wrap.appendChild(h('div', { class: 'ls-hint' }, pill.el));
-  const g = mountGhost(host, code, { run: run ? undefined : false, before, onDone, onNext: nextOf(S) });
+  const g = mountGhost(host, code, {
+    run: run ? undefined : false, before, onNext: nextOf(S), keys,
+    onDone: (res) => { if (run && S.kses.step === step) S.kses.upTo = Math.max(S.kses.upTo, k); onDone(res); },
+  });
+  // prepare the session as soon as the engine is ready (clean kernel, setup, earlier cells): whatever triggers the
+  // evaluation — Shift+Enter, the ▶ of the cell or the key bar on a phone — finds it in place
+  if (run && before) {
+    let alive = true, fired = false;
+    const prime = () => { if (alive) exclusive(async () => { if (alive) await before(); }).catch(() => {}); };
+    if (kernelReady()) prime();
+    else { const off = watchKernel((st) => { if (!fired && st === 'ready') { fired = true; setTimeout(() => { off(); prime(); }, 0); } }); S.screenCleanup.push(off); }
+    S.screenCleanup.push(() => { alive = false; });
+  }
   const mb = moreBox({ hint, more });
   if (mb) wrap.appendChild(mb);
   S.screenCleanup.push(() => { pill.destroy(); g.destroy(); });
@@ -439,7 +453,7 @@ function screenCell(S, wrap, step, scr, done) {
     return;
   }
   const codes = cells.map((x) => (x.run === false ? null : x.code));
-  ghostScreen(S, wrap, c.code, { run: true, before: sessionFor(S, scr.i, scr.k, codes), onDone: () => finish(true), hint: c.hint || (scr.k === 0 ? step.hint : ''), more });
+  ghostScreen(S, wrap, c.code, { run: true, before: sessionFor(S, scr.i, scr.k, codes), onDone: () => finish(true), hint: c.hint || (scr.k === 0 ? step.hint : ''), more, step: scr.i, k: scr.k, keys: c.keys || step.keys });
 }
 
 /* ---------- build: intro, pieces (assembling above), recall ---------- */
@@ -475,7 +489,7 @@ function screenPart(S, wrap, step, scr, done) {
   const codes = parts.map((x) => (x.run === true ? x.code : null));
   ghostScreen(S, wrap, p.code, {
     run, before: run ? sessionFor(S, scr.i, scr.k, codes, step.setup) : undefined, onDone: () => done(true),
-    hint: p.hint, more: joinMd(rest, p.more, scr.k === 0 ? step.more : ''),
+    hint: p.hint, more: joinMd(rest, p.more, scr.k === 0 ? step.more : ''), step: scr.i, k: scr.k, keys: p.keys || step.keys,
   });
 }
 function screenRecall(S, wrap, step, scr, done) {

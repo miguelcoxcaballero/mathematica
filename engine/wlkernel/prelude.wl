@@ -1,6 +1,6 @@
 (* Wolfram-level definitions completing Mathics3 for the course material *)
 
-(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData Erfi SinIntegral CosIntegral SinhIntegral CoshIntegral LogIntegral Sinc KroneckerDelta Surd TrigExpand FunctionExpand PolynomialGCD PolynomialLCM NSum RSolve RecurrenceTable DSolveValue NDSolveValue Wronskian SolveAlways AsymptoticDSolveValue ArrayFlatten Differences Clip Rescale UpperTriangularize LowerTriangularize RotationMatrix HilbertMatrix MinValue MaxValue ArgMin ArgMax NMinValue NMaxValue NArgMin NArgMax DiagonalMatrixQ Expand PowerExpand Collect Sum Join LinearSolve Needs Subscript D Mod Factorial2 Solve NSolve FindRoot NIntegrate Residue Eliminate ZTransform InverseZTransform MatrixRank NullSpace Abs Arg Dt PrincipalValue *)
+(*PUBLIC: LaplaceTransform InverseLaplaceTransform Grad Div Laplacian CharacteristicPolynomial Orthogonalize Projection Minors NestWhileList SetPrecision HeavisideTheta DiracDelta UnitStep DiscreteDelta Integrate Limit Simplify FullSimplify Refine Convolve Ordering ReIm FromDMS Hessian Curl Normalize VectorAngle EuclideanDistance Cofactor Adjugate UnitVector AbsArg Assuming ArcLength MatrixPower PositiveDefiniteMatrixQ SymmetricMatrixQ DiagonalizableMatrixQ Accumulate Variables Maximize Minimize NMaximize NMinimize FindMaximum UnitBox UnitTriangle Ramp Subsets ComplexExpand ToPolarCoordinates FromPolarCoordinates CoordinateTransform TrigToExp ExpToTrig Magnify Style Framed Labeled Rasterize Quiet Series ColorData Erfi SinIntegral CosIntegral SinhIntegral CoshIntegral LogIntegral Sinc KroneckerDelta Surd TrigExpand FunctionExpand PolynomialGCD PolynomialLCM NSum RSolve RecurrenceTable DSolveValue NDSolveValue Wronskian SolveAlways AsymptoticDSolveValue ArrayFlatten Differences Clip Rescale UpperTriangularize LowerTriangularize RotationMatrix HilbertMatrix MinValue MaxValue ArgMin ArgMax NMinValue NMaxValue NArgMin NArgMax DiagonalMatrixQ Expand PowerExpand Collect Sum Join LinearSolve Needs Subscript D Mod Factorial2 Solve NSolve FindRoot NIntegrate Residue Eliminate ZTransform InverseZTransform MatrixRank NullSpace Abs Arg Dt PrincipalValue LeastSquares Cartesian *)
 Unprotect[Maximize, Minimize, Solve, LaplaceTransform, InverseLaplaceTransform, Grad, Div, Laplacian, CharacteristicPolynomial, Orthogonalize, Projection, Minors, NestWhileList, SetPrecision, HeavisideTheta, DiracDelta, UnitStep, DiscreteDelta, Integrate, Limit, Simplify, FullSimplify, Refine, Convolve, Ordering, ReIm, FromDMS, Hessian, Curl, Normalize, VectorAngle, EuclideanDistance, Cofactor, Adjugate, UnitVector, AbsArg, Assuming, ArcLength, MatrixPower, PositiveDefiniteMatrixQ, SymmetricMatrixQ, DiagonalizableMatrixQ, Accumulate, Variables, Maximize, Minimize, NMaximize, NMinimize, FindMaximum, UnitBox, UnitTriangle, Ramp, Subsets, ComplexExpand, ToPolarCoordinates, FromPolarCoordinates, CoordinateTransform, TrigToExp, ExpToTrig, Magnify, Style, Framed, Labeled, Rasterize, Quiet, Series];
 
 
@@ -180,6 +180,20 @@ Unprotect[Normal];
 HoldPattern[Normal[SeriesData[x_, DirectedInfinity[1], c_List, nmin_, nmax_, den_]]] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)/den), {WLX`k, Length[c]}]];
 Normal[e_] := (e /. s_SeriesData :> Normal[s]) /; Head[e] =!= SeriesData && !FreeQ[e, SeriesData[_, DirectedInfinity[1], __]];
 Protect[Normal];
+
+Unprotect[LeastSquares];
+HoldPattern[LeastSquares[a_?MatrixQ, b_List]] := PseudoInverse[a] . b;
+Protect[LeastSquares];
+Curl[f_, Cartesian[x_, y_, z_]] := Curl[f, {x, y, z}];
+Div[f_, Cartesian[x_, y_, z_]] := Div[f, {x, y, z}];
+Grad[f_, Cartesian[x_, y_, z_]] := Grad[f, {x, y, z}];
+Laplacian[f_, Cartesian[x_, y_, z_]] := Laplacian[f, {x, y, z}];
+
+Unprotect[Eigenvalues, Eigenvectors, Eigensystem];
+HoldPattern[Eigenvalues[m_?MatrixQ]] /; WLX`EigQ[m, 1] := WLX`EigGet[];
+HoldPattern[Eigenvectors[m_?MatrixQ]] /; WLX`EigQ[m, 2] := WLX`EigGet[];
+HoldPattern[Eigensystem[m_?MatrixQ]] /; WLX`EigQ[m, 3] := WLX`EigGet[];
+Protect[Eigenvalues, Eigenvectors, Eigensystem];
 
 (* ---- calculus fixes ---- *)
 SetAttributes[C, NHoldAll];

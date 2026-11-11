@@ -669,6 +669,74 @@ class ComplexExpand(XB):
             return None
 
 
+class XEigQ(XB):
+    """WLX`EigQ[m, kind]: exact matrices whose characteristic polynomial has an irreducible factor of degree >= 3
+    (Mathics spends ~10 s producing Cardano radicals with spurious imaginary parts): give Root objects, as
+    Mathematica does. kind: 1 values, 2 vectors, 3 system."""
+    name = "EigQ"
+    context = "WLX`"
+
+    def eval(self, m, kind, evaluation):
+        "WLX`EigQ[m_, kind_Integer]"
+        try:
+            c = Conv()
+            rows = c.to(m)
+            M = sp.Matrix(rows)
+            n = M.rows
+            if n != M.cols or n < 3 or n > 6 or not all(v.is_Rational for v in M):
+                return SymbolFalse
+            lam = sp.Symbol("WLX`lam")
+            with budget(6.0):
+                p = M.charpoly(lam).as_expr()
+                facs = sp.factor_list(p, lam)[1]
+                if all(sp.Poly(f, lam).degree() <= 2 for f, _ in facs):
+                    return SymbolFalse
+                if any(mult > 1 for f, mult in facs):
+                    return SymbolFalse
+                roots = sp.Poly(p, lam).all_roots()
+                roots.sort(key=lambda r: (-abs(complex(sp.N(r))), -complex(sp.N(r)).real))
+                vals = roots
+                vecs = []
+                if kind.value in (2, 3):
+                    for r in roots:
+                        A = M - r * sp.eye(n)
+                        adj = A.adjugate()
+                        rn = complex(sp.N(r))
+                        best, bestn = None, 0.0
+                        for j in range(n):
+                            col = adj[:, j]
+                            nv = sum(abs(complex(sp.N(q))) for q in col)
+                            if nv > bestn:
+                                best, bestn = col, nv
+                        if best is None or bestn < 1e-12:
+                            return SymbolFalse
+                        last = None
+                        for q in reversed(list(best)):
+                            if abs(complex(sp.N(q))) > 1e-12:
+                                last = q
+                                break
+                        vecs.append([sp.expand(q) / sp.expand(last) if q != last else sp.Integer(1) for q in best])
+            if kind.value == 1:
+                res = c.back(vals)
+            elif kind.value == 2:
+                res = c.back(vecs)
+            else:
+                res = L(c.back(vals), c.back(vecs))
+            return _stash("eig", res.evaluate(evaluation))
+        except Exception:
+            _dbg()
+            return SymbolFalse
+
+
+class XEigGet(XB):
+    name = "EigGet"
+    context = "WLX`"
+
+    def eval(self, evaluation):
+        "WLX`EigGet[]"
+        return _RESULT.pop("eig", None)
+
+
 class Eliminate(XB):
     def eval(self, eqs, vars, evaluation):
         "Eliminate[eqs_, vars_]"
@@ -707,7 +775,7 @@ class Eliminate(XB):
             return None
 
 
-BUILTINS = SPECIALS + [Eliminate, XNAbs, XNArg, ComplexExpand, KroneckerDelta, Surd, TrigExpand, FunctionExpand,
+BUILTINS = SPECIALS + [Eliminate, XEigQ, XEigGet, XNAbs, XNArg, ComplexExpand, KroneckerDelta, Surd, TrigExpand, FunctionExpand,
                        PolynomialGCD, PolynomialLCM, NSum, XSumQ, XSumGet, RSolve, RecurrenceTable] + STASHED
 
 

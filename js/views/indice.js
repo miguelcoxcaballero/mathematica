@@ -1,8 +1,8 @@
 // Vista: índice de contenidos (#/indice) — la ruta de aprendizaje como una página de contenidos de documentación:
 // aireada, con tres niveles de texto bien distintos (título ≫ temas > comandos/meta).
-import { store } from '../store.js?v=1794354627';
-import { loadCourse, loadCommands, loadAllLessons, safe, flatUnits, nextUnit, yearProgress, lessonHref, cmdHref } from '../data.js?v=1794354627';
-import { h, icon, yearBadge, emptyState, skeleton, fmtDate } from '../fx.js?v=1794354627';
+import { store } from '../store.js?v=1794355221';
+import { loadCourse, loadCommands, loadAllLessons, safe, flatUnits, nextUnit, yearProgress, lessonHref, cmdHref } from '../data.js?v=1794355221';
+import { h, icon, yearBadge, emptyState, skeleton, fmtDate } from '../fx.js?v=1794355221';
 
 let alive = false;
 let root = null;
@@ -115,7 +115,7 @@ function build(course, cmds) {
     h('p', null, 'Cada unidad es una práctica real de tu carrera, ordenadas de lo más simple a lo más completo. Nada está bloqueado: el orden es una recomendación.'),
     h('p', { class: 'idx-now' },
       `${doneN} de ${units.length} lecciones completadas`, minsLeft > 0 ? ` · quedan unas ${fmtMin(Math.round(minsLeft / 5) * 5)}` : '',
-      nx && !nx.allDone ? [' · ', h('button', { class: 'btn link more', type: 'button', onclick: () => focusUnit(nx.unit.lesson) }, `Siguiente: ${nx.unit.practice || nx.unit.title}`)] : null)));
+      nx && !nx.allDone ? [h('span', { class: 'idx-sep' }, ' · '), h('button', { class: 'btn link more', type: 'button', onclick: () => focusUnit(nx.unit.lesson) }, `Siguiente: ${nx.unit.practice || nx.unit.title}`)] : null)));
 
   let n = 0;
   for (const y of course.years || []) {

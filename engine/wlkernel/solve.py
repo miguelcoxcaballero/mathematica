@@ -684,26 +684,11 @@ class Solve(XB):
                     continue
                 val = sol[x]
                 if floats or self.numeric:
-                    try:
-                        val = sp.N(val, 17) if not val.free_symbols else val.xreplace(
-                            {q: sp.Float(q, 17) for q in val.atoms(sp.Rational) if not q.is_Integer}) if False else \
-                            (sp.N(val, 17) if not val.free_symbols else val)
-                    except Exception:
-                        pass
-                    if isinstance(val, sp.Basic) and not val.free_symbols and val.is_number:
-                        nv = numeric_value(val)
-                        if nv is not None:
-                            if abs(nv.imag) < 1e-13 * (1 + abs(nv.real)):
-                                val = sp.Float(nv.real)
-                            else:
-                                val = sp.Float(nv.real) + sp.I * sp.Float(nv.imag) if abs(nv.real) > 1e-13 * abs(nv.imag) \
-                                    else sp.I * sp.Float(nv.imag)
+                    val = _numify(val)
                 m = c.back(val)
                 if dummies:
                     m = replace_expr(m, [(Symbol(dn), dv) for dn, dv in dummies.items()])
                 m = m.evaluate(ev)
-                if (floats or self.numeric) and not _is_inexact_free(m):
-                    m = E("N", m).evaluate(ev)
                 rules.append(Rule(v, m))
             out.append(L(*rules))
         return L(*out)
@@ -733,6 +718,45 @@ class Solve(XB):
         if any(e.atoms(sp.exp, sp.log, sp.sin, sp.cos, sp.tan) for e in exprs):
             info["ifun"] = True
         return [{k_: nice_logs(v) for k_, v in r.items()} for r in res]
+
+
+def _numify(val):
+    """Decimal form of a solution obtained from decimal input: pure numbers are evaluated, and in symbolic
+    results only the rational coefficients become decimals (E^(-2 s), y[0], C[1] ... are left alone,
+    which is what Mathematica shows)."""
+    try:
+        if not isinstance(val, sp.Basic):
+            return val
+        if not val.free_symbols and not val.atoms(sp.core.function.AppliedUndef):
+            nv = numeric_value(val)
+            if nv is None:
+                return val
+            if abs(nv.imag) < 1e-13 * (1 + abs(nv.real)):
+                return sp.Float(nv.real)
+            if abs(nv.real) < 1e-13 * abs(nv.imag):
+                return sp.I * sp.Float(nv.imag)
+            return sp.Float(nv.real) + sp.I * sp.Float(nv.imag)
+
+        def conv(e):
+            if e.is_Rational and not e.is_Integer:
+                return sp.Float(e)
+            if not e.args:
+                return e
+            if isinstance(e, sp.Pow):
+                # keep integer/rational exponents exact: x^2, Sqrt[...]
+                return sp.Pow(conv(e.base), e.exp if e.exp.is_Rational else conv(e.exp))
+            if isinstance(e, sp.core.function.AppliedUndef):
+                return e
+            if e.is_number and not e.is_Integer and e.is_real is not False and e.count_ops() < 30 and \
+                    not e.atoms(sp.I):
+                try:
+                    return sp.Float(float(sp.N(e)))
+                except Exception:
+                    pass
+            return e.func(*[conv(a) for a in e.args])
+        return conv(val)
+    except Exception:
+        return val
 
 
 def _is_head(e, sym):

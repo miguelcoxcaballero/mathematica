@@ -409,3 +409,23 @@ al enfocar cualquier celda aparece una barra pegada justo encima del teclado (po
   iconos apple-touch; así en iPhone/Android se puede «Añadir a pantalla de inicio» y abre sin barra del navegador.
 - El kernel: arranque perezoso con progreso claro; si el sistema mata el worker al ir a segundo plano, se rearranca
   solo al volver sin perder el punto de la lección.
+
+### 15.4 Barra de teclas v2 — PETICIÓN DEL USUARIO: fila fina, caracteres del ejercicio + menú genérico (solo móvil)
+"Añade encima del teclado una fila de caracteres matemáticos pensados para cada uno de los ejercicios y también un menú
+genérico. Que sea finita. Esto solo en móvil."
+Sustituye a la fila larga de 15.1:
+- UNA sola fila FINA (≈ 36–40 px de alto, teclas ≈ 34–40 px de ancho con separación mínima, sin etiquetas ni adornos),
+  solo en táctil (`pointer: coarse`); en escritorio no existe.
+- **Teclas del ejercicio** (a la izquierda, desplazables si no caben): los caracteres/operadores que hacen falta en ESA
+  celda, y solo esos. Se calculan del código de referencia (`ghost` en piezas; `solution` en ejercicios y recall):
+  tokens no alfanuméricos únicos — `[` `]` `{` `}` `(` `)` `,` `;` `^` `_` `*` `/` `+` `-` `=` `'` `"` `.` `%` `#` `&`
+  `<` `>` `!` `|` `@` — con los operadores compuestos como UNA tecla (`->` `:=` `==` `/.` `//` `/@` `[[` `]]` `>=` `<=`
+  `!=` `&&` `||` `;;` `:>` `@@` `<>` `===`). Orden canónico fijo (no el de aparición, para no delatar la respuesta). No se
+  incluyen nombres de comandos ni números ni letras. El contenido puede fijarlas con un campo opcional `keys: ["->", …]`
+  (en un paso, pieza o ejercicio). API: `createCell(el, {keys: [...]})` / `cell.setKeys([...])`; si no se pasan, la celda
+  las deduce de su `ghost`; LEARN pasa las de `solution` en ejercicios y recall.
+- En celdas fantasma se sigue resaltando la tecla que toca.
+- **Menú genérico**: una tecla «⋯» al final de la fila abre una hoja compacta sobre el teclado con TODOS los símbolos
+  agrupados (Corchetes · Operadores · Reglas y asignación · Comparación y lógica · Constantes `Pi` `E` `I` `Infinity`
+  `Degree` · Cursor ← →); tocar uno lo inserta y cierra la hoja (pulsación larga la deja abierta).
+- A la derecha, fija, la acción principal («Evaluar» / «Comprobar» / «Siguiente ›») como botón compacto.

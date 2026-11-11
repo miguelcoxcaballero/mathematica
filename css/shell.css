@@ -488,6 +488,7 @@ a.chip:hover { text-decoration: none; }
 .esq-p.on .esq-p-c { color: var(--accent); }
 .esq-code.big .esq-p.on .esq-p-l { color: var(--accent); border-top-color: var(--accent); }
 .esq-p:focus-visible .esq-p-c { outline: 2px solid var(--accent); outline-offset: 1px; }
+.esq-parts { display: none; }
 .esq-info { margin: 12px 0 0; max-width: 680px; min-height: 76px; padding: 2px 0 2px 14px; border-left: 2px solid var(--accent); font-size: .95rem; }
 .esq-info b { display: block; color: var(--text); font-weight: 600; }
 .esq-exs { margin-top: 22px; }
@@ -639,3 +640,230 @@ a.chip:hover { text-decoration: none; }
 .cua-fallback textarea { display: block; width: 100%; min-height: 84px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid var(--rule-2); border-radius: var(--radius-s); font: 600 .93rem/1.5 var(--mono); color: var(--ink); background: var(--paper); resize: vertical; }
 .cua-fallback textarea:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow); }
 .cua-note { font-size: .88rem; color: var(--muted); margin: 0; }
+
+/* =====================================================================
+   MÓVIL (SPEC §15.3) — pensado para el pulgar, no solo encogido
+   Objetivos táctiles ≥ 44 px (cuando el elemento es pequeño a la vista, su zona de toque se amplía con ::after),
+   texto de los campos ≥ 16 px (sin zoom de iOS), nada depende de hover.
+   ===================================================================== */
+@media (pointer: coarse), (max-width: 900px) {
+  .btn { min-height: 44px; }
+  .btn.sm { min-height: 40px; }
+  .btn.link { min-height: 44px; display: inline-flex; align-items: center; }
+  .input { height: 44px; font-size: 16px; }
+  .seg { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg button { height: 44px; padding: 0 14px; font-size: .92rem; flex: 1 0 auto; }
+  .search kbd { display: none; }
+  .switch { width: 46px; height: 28px; border-radius: 14px; }
+  .switch::after { width: 24px; height: 24px; }
+  .switch:checked::after { transform: translateX(18px); }
+  .set-row { min-height: 52px; }
+  .idx-eval summary { min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+  .idx-eval summary::-webkit-details-marker { display: none; }
+  .idx-eval summary::before { content: "›"; font-weight: 600; transition: transform .15s; }
+  .idx-eval[open] summary::before { transform: rotate(90deg); }
+  .more { display: inline-flex; align-items: center; gap: .3em; min-height: 44px; }
+  /* enlaces pequeños dentro de listas: la zona de toque crece sin cambiar el aspecto */
+  .sqs { display: flex; flex-wrap: wrap; align-items: center; gap: 0; }
+  .sqs > * { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 9px 0 0; }
+  .sqs > * + *::before { margin: 0 9px 0 0; }
+  .idx-chips { gap: 18px 8px; padding: 9px 0; }
+  .idx-chip { position: relative; min-width: 36px; justify-content: center; text-align: center; font-size: .8rem; padding: 3px 8px; }
+  .idx-chip::after { content: ""; position: absolute; inset: -9px -4px; }
+  .seg button { min-width: 48px; }
+  /* anatomía: las piezas del dibujo son estrechas para el dedo → se eligen con botones cómodos */
+  .esq-parts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .esq-part { min-height: 44px; padding: 0 14px; border: 1px solid var(--rule-2); border-radius: var(--radius-s); background: var(--bg); color: var(--text); font: 400 .9rem var(--font); cursor: pointer; }
+  .esq-part.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .esq-p { pointer-events: none; }
+  .esq-toc button, .esq-syms button { display: inline-flex; align-items: center; min-height: 44px; padding-right: 9px; }
+  .reg-exams li { position: relative; }
+  .reg-exams li a::after { content: ""; position: absolute; inset: 0; }
+  .reg-export .btn.link { min-height: 44px; }
+}
+@media (max-width: 900px) { .brand { min-height: 44px; } }
+
+@media (max-width: 900px) {
+  .page { gap: 24px; }
+  .page-head h1 { font-size: clamp(1.75rem, 7.4vw, 2.2rem); }
+  .page-head p { font-size: 1rem; line-height: 1.55; }
+  .sec-title { font-size: 1.15rem; flex-wrap: wrap; gap: 0 10px; }
+  .sec-title small { flex-basis: 100%; padding-left: 17px; font-size: .86rem; }
+  .toasts { bottom: calc(var(--tab-h) + var(--safe-b) + 12px); width: auto; left: 12px; right: 12px; transform: none; }
+  .toast { width: 100%; padding: 12px 14px 12px 12px; font-size: .95rem; }
+  .popover { left: 10px !important; right: 10px; width: auto; top: calc(var(--hud-h) + 6px) !important; }
+  .pop-body { padding: 16px 18px; }
+  .empty { padding: 28px 0; }
+  .empty-actions .btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* ---- ajustes: hoja a pantalla completa ---- */
+@media (max-width: 640px) {
+  .dlg { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+  .dlg-head { padding: calc(8px + var(--safe-t)) max(8px, var(--safe-r)) 8px max(18px, var(--safe-l)); position: sticky; top: 0; background: var(--panel); }
+  .dlg-head .st-icon { width: 44px; height: 44px; }
+  .dlg-body { flex: 1; padding: 4px max(18px, var(--safe-r)) calc(24px + var(--safe-b)) max(18px, var(--safe-l)); -webkit-overflow-scrolling: touch; }
+  .dlg-body p { font-size: .95rem; }
+  .set-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+  .set-actions .btn { justify-content: center; min-height: 48px; }
+  .dlg-body section:has(.set-keys) { display: none; }   /* los atajos de teclado no pintan nada en un teléfono */
+}
+
+/* ---- inicio ---- */
+@media (max-width: 720px) {
+  .home { gap: 34px; }
+  .home-meta { display: block; font-size: .95rem; margin: 10px 0 16px; line-height: 1.5; }
+  .home-meta .badge { margin-right: 8px; vertical-align: 1px; }
+  .home-cont .progress { max-width: none; margin-bottom: 20px; }
+  .home-actions { flex-direction: column; align-items: stretch; gap: 4px; }
+  .home-actions .btn.primary { justify-content: center; min-height: 52px; font-size: 1.05rem; }
+  .home-actions .more { justify-content: center; }
+  .home-cols { gap: 30px; }
+  .home-days b { font-size: 3rem; }
+  .home-col p { font-size: 1rem; }
+  .home-col p.muted { font-size: .9rem; }
+  .home-prog { padding: 6px 0 14px; min-height: 52px; font-size: 1rem; }
+  /* enlaces como filas de lista: toda la fila se toca, con chevrón a la derecha */
+  .home-links { border-top: 1px solid var(--rule); }
+  .home-links li { position: relative; padding: 12px 30px 12px 0; min-height: 60px; border-bottom: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; }
+  .home-links li::after { content: "›"; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: var(--dim); font-size: 1.3rem; }
+  .home-links a { min-height: 0; font-weight: 600; color: var(--text); font-size: 1.02rem; }
+  .home-links a::after { content: ""; position: absolute; inset: 0; }
+  .home-links li:active { background: var(--bg-2); }
+  .home-links small { font-size: .88rem; }
+}
+
+/* ---- índice ---- */
+@media (max-width: 720px) {
+  .idx-intro p { font-size: 1rem; }
+  .idx-now .idx-sep { display: none; }
+  .idx-now .btn.link { display: flex; }
+  .idx-topics { font-size: .95rem; }
+  .idx-topics li { padding: 3px 0; }
+  .idx-side { font-size: .86rem; }
+  .idx-row:active { background: var(--bg-2); }
+  .idx-yhead { margin: 0 -18px; padding: 0 18px; }
+  .idx-block { margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+}
+
+/* ---- registro: una tarjeta por práctica en vez de tabla ---- */
+@media (max-width: 720px) {
+  .reg-tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .reg-tools .seg { display: flex; }
+  .reg-tools .seg button { flex: 1 1 0; padding: 0 6px; }
+  .reg-tools .seg button b { display: none; }   /* los recuentos ya están en la frase de arriba */
+  .reg-body { border-top: 0; display: flex; flex-direction: column; gap: 10px; }
+  .reg-item { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+  .reg-row { grid-template-columns: auto auto minmax(0, 1fr) 28px; grid-template-areas: "prac year drive chev" "title title title title" "app app app app" "real real real real"; gap: 4px 8px; padding: 14px 10px 14px 14px; }
+  .reg-row:hover { background: none; }
+  .reg-row:active { background: var(--bg-2); }
+  .reg-row.open { border-bottom: 1px solid var(--rule); }
+  .reg-c-prac { font-size: .84rem; }
+  .reg-toggle { font-size: 1.1rem; margin-top: 2px; }
+  .reg-sub { font-size: .86rem; color: var(--muted); }
+  .reg-c-app { margin-top: 8px; }
+  .reg-app-top { font-size: .88rem; }
+  .reg-app-top span { font-size: .8rem; }
+  .reg-c-real { text-align: left; font-size: .84rem; }
+  .reg-c-chev { align-self: start; height: 28px; }
+  .reg-detail { padding: 14px 14px 16px; }
+  .reg-ex { padding: 9px 0; font-size: .95rem; }
+  .reg-ex-kind, .reg-ex-when { font-size: .82rem; }
+  .reg-actions { flex-direction: column; align-items: stretch; gap: 0; margin-top: 6px; }
+  .reg-foot { font-size: .86rem; }
+  .reg-export { flex-wrap: wrap; gap: 0 18px; }
+  .reg-exams li { grid-template-columns: auto minmax(0, 1fr); min-height: 56px; padding: 10px 0; gap: 2px 12px; align-items: center; }
+  .reg-exams li > :last-child { grid-column: 2; font-size: .88rem; }
+}
+
+/* ---- comandos: lista ---- */
+@media (max-width: 720px) {
+  .cmd-tabs { gap: 0; }
+  .cmd-tab { flex: 1 1 0; text-align: center; padding: 0 4px; min-height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .92rem; line-height: 1.2; }
+  .cmd-tab b { margin: 0; font-size: .78rem; order: 2; }
+  .cmd-tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .cmd-tools .search, .cmd-tools select.input:first-of-type { grid-column: 1 / -1; }
+  .cmd-tools .seg { display: flex; }
+  .cmd-info { margin: -6px 0 -6px; font-size: .92rem; }
+  .cmd-fam { font-size: 1.45rem; margin-top: 28px; padding-top: 22px; }
+  .cmd-group { margin: 20px 0 2px; }
+  .cmd-row { position: relative; grid-template-columns: minmax(0, 1fr) auto; padding: 12px 0; min-height: 56px; border-bottom: 1px solid var(--rule); align-items: start; }
+  .cmd-row:active { background: var(--bg-2); }
+  .cmd-row-m { white-space: normal; overflow: visible; font-size: .93rem; line-height: 1.45; color: var(--muted); }
+  .cmd-row-m a.sym { font-size: 1.04rem; }
+  .cmd-row-m a.sym::after { content: ""; position: absolute; inset: 0; }
+  .cmd-row-m .dash { display: none; }
+  .cmd-row-m > span:last-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+  .cmd-row-s { padding-top: 4px; }
+}
+
+/* ---- comandos: ficha ---- */
+@media (max-width: 720px) {
+  .cmd-crumb { flex-direction: column; gap: 0; font-size: .9rem; }
+  .cmd-name { font-size: 2.1rem; margin-bottom: 12px; }
+  .cmd-syn { padding: 2px max(18px, var(--safe-r)) 2px max(18px, var(--safe-l)); }
+  .cmd-syn-row { padding: 12px 0; }
+  .cmd-syn code { font-size: .95rem; }
+  .cmd-syn p { margin-left: 0; font-size: 1rem; }
+  .cmd-state { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; }
+  .cmd-state .muted { grid-column: 1 / -1; flex: none; font-size: .95rem; }
+  .cmd-state .btn { grid-column: 1 / -1; margin: 10px 0 0; justify-content: center; min-height: 50px; font-size: 1.02rem; }
+  .cmd-sec { margin-top: 34px; }
+  .cmd-args { grid-template-columns: minmax(0, 1fr); }
+  .cmd-args dt { border-bottom: 0; padding: 10px 0 0; }
+  .cmd-args dd { padding: 2px 0 10px; font-size: 1rem; }
+  .cmd-ex { margin-left: 0; }
+  .cmd-ex-tip { margin-left: 0; font-size: .92rem; }
+  .cmd-pitfalls { font-size: 1rem; }
+  .cmd-lessons li { min-height: 44px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--rule); }
+  .cmd-lessons li > span:last-child { display: flex; flex-direction: column; line-height: 1.3; }
+  .cmd-lessons small { font-size: .84rem; }
+  .cmd-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+}
+
+/* ---- esquema ---- */
+@media (max-width: 760px) {
+  .esq { gap: 34px; }
+  .esq-toc { flex-wrap: nowrap; overflow-x: auto; margin: 10px -18px 0; padding: 0 18px; scrollbar-width: none; white-space: nowrap; }
+  .esq-toc::-webkit-scrollbar { display: none; }
+  .esq-code.big { gap: 8px 0; }
+  .esq-p { min-height: 36px; justify-content: center; }
+  .esq-ex { padding: 10px 0; }
+  .esq-ex .esq-code { margin-bottom: 2px; }
+  .esq-ex-say { font-size: .92rem; }
+  .esq-info { font-size: 1rem; min-height: 96px; }
+  /* signos: cada fila = signo a la izquierda, nombre + para qué sirve + ejemplo a la derecha */
+  .esq-signs, .esq-signs tbody { display: block; }
+  .esq-signs tr { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 0 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .esq-signs td { padding: 0; border: 0; }
+  .esq-signs td.esq-sign-s { grid-row: 1 / span 3; width: auto; font-size: 1.15rem; }
+  .esq-signs td.esq-sign-d { display: block; font-size: .92rem; color: var(--muted); }
+  .esq-signs td:last-child { text-align: left; padding-top: 4px; }
+  .esq-rules { font-size: 1rem; padding-left: 1.3em; }
+  .esq-rules li { margin: 8px 0; }
+  .esq-famlist { margin: 0 -18px; padding: 0 18px; background: none; border-bottom: 1px solid var(--rule); gap: 4px; }
+  .esq-famlist::-webkit-scrollbar { display: none; }
+  .esq-famlist button { min-height: 44px; padding: 0 12px; background: var(--panel-2); align-items: center; }
+  .esq-fam-main h3 { font-size: 1.45rem; }
+  .esq-cmdcard { padding: 12px 14px; }
+  .esq-fold summary { padding: 10px 0 10px 20px; min-height: 52px; display: grid; align-items: start; }
+  .esq-fold summary::before { top: 9px; }
+  .esq-fold-s { font-size: .92rem; }
+  .esq-fold-b { padding-left: 0; }
+  .esq-steps { padding-left: 1.2em; }
+}
+
+/* ---- cuaderno ---- */
+@media (max-width: 720px) {
+  .cua-bar { font-size: .92rem; }
+  .cua-nb { margin: 0 -8px; }
+}
+
+/* pantallas muy estrechas (360 px): un punto menos de margen para ganar ancho útil */
+@media (max-width: 380px) {
+  .view { padding-left: max(14px, var(--safe-l)); padding-right: max(14px, var(--safe-r)); }
+  .idx-yhead, .idx-block, .esq-toc, .esq-famlist { margin-left: -14px; margin-right: -14px; padding-left: 14px; padding-right: 14px; }
+  .cmd-syn { margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+  .brand { font-size: .94rem; }
+}
