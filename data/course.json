@@ -822,6 +822,24 @@
          "minutes": 70,
          "dateHint": "≈ febrero–marzo de 2027 (patrón del curso 2020-21, sin confirmar)",
          "order": 39
+        },
+        {
+         "lesson": "2-m3-pl4",
+         "practice": "PL4",
+         "title": "Examen de Mathematica: cómo se resuelve",
+         "topics": [
+          "Polos dentro de circunferencias, elipses y cuadrados",
+          "Caminos poligonales con f[z[t]] z'[t]",
+          "Integrales con Im(z) parametrizando",
+          "Coeficientes de Laurent en las tres regiones",
+          "Errores típicos de los exámenes de 2021"
+         ],
+         "status": "pendiente",
+         "evidence": "Asignatura del semestre B: todavía no ha empezado y no hay ningún cuaderno propio de Matemáticas III en el Drive.",
+         "nExercisesReal": 7,
+         "minutes": 60,
+         "dateHint": "≈ abril de 2027 (en 2021 el examen PL4 fue el 20 de abril, sin confirmar)",
+         "order": 40
         }
        ]
       }
@@ -866,6 +884,15 @@
    "durationMin": 90,
    "date": null,
    "description": "Cinco ejercicios de variable compleja como el PL4 de 2021: integrales de contorno, Cauchy-Riemann, Laurent, residuos y Fourier inversa."
+  },
+  {
+   "id": "2-m3-sim2",
+   "title": "Simulacro 2 · examen de Mathematica (PL4, modelo B de 2021)",
+   "subject": "Matemáticas III",
+   "year": 2,
+   "durationMin": 90,
+   "date": null,
+   "description": "El examen PL4 real del 20/04/2021 (modelo B) con sus datos: residuos en circunferencias y elipse, Im(z) por dos caminos, Laurent en tres regiones y Fourier inversa."
   },
   {
    "id": "1-sim-pl1",

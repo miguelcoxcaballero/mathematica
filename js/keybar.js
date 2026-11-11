@@ -8,7 +8,7 @@
 //   · «⋯» opens a compact sheet with every symbol, grouped; a tap inserts and closes it, a long press keeps it open;
 //   · the primary action («▶ Evaluar» unless the host of the cell sets another one) stays fixed at the right.
 //
-//   import { keybar, keysFor } from './keybar.js?v=1794357739'
+//   import { keybar, keysFor } from './keybar.js?v=1794358225'
 //   keysFor(code)           → ['[', ']', ',', '->', …]   the symbol keys a piece of code needs
 //   keybar.visible          true while the bar is shown
 //   keybar.height           px taken by the bar itself (0 when hidden)
@@ -23,7 +23,7 @@
 // Cells talk to the bar through attach(target)/detach(target); a target is
 //   { ta, type(text), move(±1), enter(explicit), keys(), ghostNext(), isGhost(), primary(), run(), busy(), actions() }
 // Keys go through target.type(): the same input path as the keyboard, so ghost validation applies.
-import { tokenize } from './wl-highlight.js?v=1794357739';
+import { tokenize } from './wl-highlight.js?v=1794358225';
 
 // Canonical order of the cell keys (never the order of appearance: that would give the answer away).
 const ORDER = ['[', ']', '[[', ']]', '{', '}', '(', ')', ',', ';', '->', ':>', '=', ':=', '==', '===', '!=', '=!=', '<', '>', '<=', '>=', '&&', '||', '!',

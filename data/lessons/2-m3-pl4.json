@@ -1,0 +1,781 @@
+{
+ "id": "2-m3-pl4",
+ "year": 2,
+ "subject": "Matemáticas III",
+ "block": "Variable compleja",
+ "order": 4,
+ "title": "Examen de Mathematica: cómo se resuelve",
+ "summary": "Las técnicas del examen PL4 con los datos reales del examen A de 2021: polos dentro de elipses y cuadrados, caminos poligonales, Im(z) parametrizando, coeficientes en las tres regiones y los errores típicos.",
+ "minutes": 60,
+ "commands": [
+  "ListLinePlot"
+ ],
+ "uses": [
+  "Residue",
+  "Abs",
+  "N",
+  "Graphics",
+  "Point",
+  "PointSize",
+  "Show",
+  "ParametricPlot",
+  "NIntegrate",
+  "Integrate",
+  "Im",
+  "ComplexExpand",
+  "D",
+  "Series",
+  "SeriesCoefficient",
+  "Apart",
+  "Table",
+  "HeavisideTheta"
+ ],
+ "steps": [
+  {
+   "type": "build",
+   "section": "Polos dentro del contorno",
+   "title": "Test de distancia",
+   "md": "En una circunferencia: distancia al centro menos radio.",
+   "target": "N[Abs[polos - (-Pi/2 + I)] - 2]",
+   "parts": [
+    {
+     "code": "polos = {-Pi I/3, -Pi, Pi/2, -3 I};",
+     "md": "Guarda en una lista los cuatro polos de la función del examen.",
+     "run": true
+    },
+    {
+     "code": "N[Abs[polos - (-Pi/2 + I)]]",
+     "md": "Distancia de cada polo al centro −π/2 + i.",
+     "run": true
+    },
+    {
+     "code": "N[Abs[polos - (-Pi/2 + I)] - 2]",
+     "md": "Resta el radio 2: negativo quiere decir dentro.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`polos` ya existe. Para la circunferencia de centro −π/2 + i y radio 2, calcula distancia − radio.",
+    "hints": [
+     "Distancias: `Abs[polos - centro]`.",
+     "`N[Abs[polos - (-Pi/2 + I)] - 2]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "Abs[{-Pi I/3, -Pi, Pi/2, -3 I} - (-Pi/2 + I)] - 2",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "Abs",
+    "N"
+   ],
+   "setup": "polos = {-Pi I/3, -Pi, Pi/2, -3 I};"
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e01",
+    "kind": "code",
+    "title": "Un solo polo dentro",
+    "prompt": "`f1` ya está definida. Solo el polo −π está dentro de esa circunferencia. Calcula ∫ f1 dz (numérico).",
+    "difficulty": 3,
+    "cmds": [
+     "Residue",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 1b",
+    "setup": "f1[z_] = Exp[z] Cos[z]^6/((Pi I + 3 z) (z + Pi) (z - Pi/2) (I z - 3));",
+    "solution": "N[2 Pi I Residue[f1[z], {z, -Pi}]]",
+    "check": {
+     "type": "expr",
+     "expected": "-0.0006244646201056473 - 0.001180117832896051 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "2πi por el residuo en el único polo interior.",
+     "`N[2 Pi I Residue[f1[z], {z, -Pi}]]`"
+    ],
+    "explain": "≈ −0.000624 − 0.001180 i. f1(z) = e^z cos⁶z/((πi + 3z)(z + π)(z − π/2)(iz − 3)), con polos −πi/3, −π, π/2 y −3i."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e02",
+    "kind": "code",
+    "title": "Decide y calcula",
+    "prompt": "`fA` ya está; sus polos son πi/3, −π, π/2 e i. Circunferencia de centro −π y radio 2: aplica el test y calcula ∫ fA dz.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "Abs",
+     "N"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 1a",
+    "setup": "fA[z_] = Exp[z] Cos[z]^6/((Pi I - 3 z) (z + Pi) (z - Pi/2) (I z + 1));",
+    "solution": "polosA = {Pi I/3, -Pi, Pi/2, I};\nN[Abs[polosA + Pi] - 2]\nN[2 Pi I Residue[fA[z], {z, -Pi}]]",
+    "check": {
+     "type": "expr",
+     "expected": "0.001421533947461855 - 0.00103628635546413 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "`N[Abs[polosA + Pi] - 2]` solo es negativo para −π.",
+     "`N[2 Pi I Residue[fA[z], {z, -Pi}]]`"
+    ],
+    "explain": "≈ 0.001422 − 0.001036 i. En el cuaderno de 2021 aquí aparece el valor de la otra función, f1: quedó una definición antigua en memoria. Usa nombres distintos para cada función."
+   }
+  },
+  {
+   "type": "build",
+   "title": "Dibujar un cuadrado",
+   "md": "Si el contorno no es una circunferencia, se dibuja con los polos.",
+   "target": "Show[ListLinePlot[v], puntos, PlotRange -> All]",
+   "parts": [
+    {
+     "code": "v = {{-2 Pi, -Pi}, {-Pi/2, -Pi}, {-Pi/2, Pi}, {-2 Pi, Pi}, {-2 Pi, -Pi}};",
+     "md": "Vértices del cuadrado del examen; el primero se repite para cerrar.",
+     "run": true
+    },
+    {
+     "code": "ListLinePlot[v]",
+     "md": "ListLinePlot une los puntos de la lista con segmentos.",
+     "run": true
+    },
+    {
+     "code": "puntos = Graphics[{Red, PointSize[Large], Point[Table[{Re[p], Im[p]}, {p, polos}]]}];",
+     "md": "Los polos como puntos: cada complejo p pasa a {Re[p], Im[p]}.",
+     "run": true
+    },
+    {
+     "code": "Show[ListLinePlot[v], puntos, PlotRange -> All]",
+     "md": "Superponlos: se ve qué polos caen dentro.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`v` y `puntos` ya existen. Dibuja el cuadrado y superpón los polos, con todo a la vista.",
+    "hints": [
+     "El cuadrado es `ListLinePlot[v]`.",
+     "`Show[ListLinePlot[v], puntos, PlotRange -> All]`"
+    ],
+    "check": {
+     "type": "graphics",
+     "dim": 2,
+     "min": 2,
+     "has": [
+      "line",
+      "points"
+     ]
+    }
+   },
+   "cmds": [
+    "ListLinePlot",
+    "Show",
+    "Point"
+   ],
+   "more": "Solo −π queda dentro del cuadrado [−2π, −π/2] × [−π, π]: la integral del examen A (ej. 1c) es otra vez 2πi por el residuo en −π.",
+   "setup": "polos = {-Pi I/3, -Pi, Pi/2, -3 I};\nv = {{-2 Pi, -Pi}, {-Pi/2, -Pi}, {-Pi/2, Pi}, {-2 Pi, Pi}, {-2 Pi, -Pi}};\npuntos = Graphics[{Red, PointSize[Large], Point[Table[{Re[p], Im[p]}, {p, polos}]]}];"
+  },
+  {
+   "type": "build",
+   "title": "Dentro de una elipse",
+   "md": "Elipse de centro c y semiejes a, b: dibujo y test.",
+   "target": "N[((Re[polos] + Pi/2)/3)^2 + (Im[polos]/2)^2]",
+   "parts": [
+    {
+     "code": "elipse = ParametricPlot[{-Pi/2 + 3 Cos[t], 2 Sin[t]}, {t, 0, 2 Pi}];",
+     "md": "Centro −π/2, semieje horizontal 3 y vertical 2.",
+     "run": true
+    },
+    {
+     "code": "Show[elipse, puntos, PlotRange -> All]",
+     "md": "Con los polos encima se ve cuáles entran.",
+     "run": true
+    },
+    {
+     "code": "N[((Re[polos] + Pi/2)/3)^2 + (Im[polos]/2)^2]",
+     "md": "Compruébalo con la ecuación: menor que 1 quiere decir dentro.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`polos` ya existe. Evalúa la ecuación de la elipse (centro −π/2, semiejes 3 y 2) en cada polo.",
+    "hints": [
+     "((x − xc)/a)² + ((y − yc)/b)², con x = `Re[polos]` e y = `Im[polos]`.",
+     "`N[((Re[polos] + Pi/2)/3)^2 + (Im[polos]/2)^2]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "{0.5483113556160755, 0.2741556778080377, 1.096622711232151, 2.524155677808038}",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "ParametricPlot",
+    "Show"
+   ],
+   "setup": "polos = {-Pi I/3, -Pi, Pi/2, -3 I};\npuntos = Graphics[{Red, PointSize[Large], Point[Table[{Re[p], Im[p]}, {p, polos}]]}];"
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e03",
+    "kind": "code",
+    "title": "Integral sobre la elipse",
+    "prompt": "`f1` ya está. En esa elipse entran los polos −πi/3 y −π. Calcula ∫ f1 dz (numérico).",
+    "difficulty": 3,
+    "cmds": [
+     "Residue",
+     "N"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "f1[z_] = Exp[z] Cos[z]^6/((Pi I + 3 z) (z + Pi) (z - Pi/2) (I z - 3));",
+    "solution": "N[2 Pi I (Residue[f1[z], {z, -Pi I/3}] + Residue[f1[z], {z, -Pi}])]",
+    "check": {
+     "type": "expr",
+     "expected": "2.785790131941085 + 0.7321554416002676 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "Suma los residuos de los dos polos interiores.",
+     "`N[2 Pi I (Residue[f1[z], {z, -Pi I/3}] + Residue[f1[z], {z, -Pi}])]`"
+    ],
+    "explain": "≈ 2.7858 + 0.7322 i. Los polos π/2 y −3i dan 1.10 y 2.52 en la ecuación de la elipse: fuera."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Caminos poligonales",
+   "title": "Integral sobre un segmento",
+   "md": "Segmento de p a q: inicio + t·(fin − inicio), t de 0 a 1.",
+   "target": "f[z_] = 2 z^3 - Abs[z];\nz1[t_] = 2 + 3 I + t (7 + 4 I - (2 + 3 I));\nNIntegrate[f[z1[t]] z1'[t], {t, 0, 1}]",
+   "parts": [
+    {
+     "code": "f[z_] = 2 z^3 - Abs[z];",
+     "md": "La función del examen: con Abs no es holomorfa.",
+     "run": true
+    },
+    {
+     "code": "z1[t_] = 2 + 3 I + t (7 + 4 I - (2 + 3 I));",
+     "md": "El segmento de 2 + 3i a 7 + 4i.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[f[z1[t]] z1'[t], {t, 0, 1}]",
+     "md": "Integrando: f sobre el camino por la derivada del camino.",
+     "run": true
+    },
+    {
+     "code": "f[z_] = 2 z^3 - Abs[z];\nz1[t_] = 2 + 3 I + t (7 + 4 I - (2 + 3 I));\nNIntegrate[f[z1[t]] z1'[t], {t, 0, 1}]",
+     "md": "Las tres líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Integra f(z) = 2z³ − |z| sobre el segmento de 2 + 3i a 7 + 4i (numérico).",
+    "hints": [
+     "`z1[t_] = 2 + 3 I + t (7 + 4 I - (2 + 3 I));`",
+     "`NIntegrate[f[z1[t]] z1'[t], {t, 0, 1}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-992.7128729999584 + 1902.257425400008 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "NIntegrate",
+    "Abs"
+   ],
+   "more": "Es el ej. 2-a1 del examen A de 2021: −992.713 + 1902.26 i."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e04",
+    "kind": "code",
+    "title": "La poligonal",
+    "prompt": "`f` ya está. Integra por la poligonal 2+3i → −1+2i → 7+4i: un camino por tramo y suma las dos integrales.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 2-a2",
+    "setup": "f[z_] = 2 z^3 - Abs[z];",
+    "solution": "za[t_] = 2 + 3 I + t (-1 + 2 I - (2 + 3 I));\nzb[t_] = -1 + 2 I + t (7 + 4 I - (-1 + 2 I));\nNIntegrate[f[za[t]] za'[t], {t, 0, 1}] + NIntegrate[f[zb[t]] zb'[t], {t, 0, 1}]",
+    "check": {
+     "type": "expr",
+     "expected": "-991.945740532394 + 1901.681908648879 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Dos caminos: `za` de 2+3i a −1+2i y `zb` de −1+2i a 7+4i.",
+     "`NIntegrate[f[za[t]] za'[t], {t, 0, 1}] + NIntegrate[f[zb[t]] zb'[t], {t, 0, 1}]`"
+    ],
+    "explain": "≈ −991.946 + 1901.68 i, distinto del segmento (−992.713 + 1902.26 i): la integral depende del camino. En 2021 un alumno contestó que no dependía."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e05",
+    "kind": "fix",
+    "title": "El tramo equivocado",
+    "prompt": "Poligonal 0 → 1 → 1 + i con g(z) = 2z + Im(z). En el segundo tramo se reutilizó el camino del primero. Corrígelo.",
+    "difficulty": 3,
+    "cmds": [
+     "Integrate",
+     "Im"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "g[z_] = 2 z + Im[z];\nza[t_] = t; zb[t_] = 1 + I t;\nIntegrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[za[t]] zb'[t], {t, 0, 1}]",
+    "solution": "g[z_] = 2 z + Im[z];\nza[t_] = t; zb[t_] = 1 + I t;\nIntegrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[zb[t]] zb'[t], {t, 0, 1}]",
+    "check": {
+     "type": "expr",
+     "expected": "5 I/2"
+    },
+    "hints": [
+     "En la segunda integral, la función debe evaluarse sobre `zb`.",
+     "`Integrate[g[zb[t]] zb'[t], {t, 0, 1}]`"
+    ],
+    "explain": "Con el error sale 1 + i; lo correcto es 5i/2. Es el fallo real de un examen de 2021: `gg2[zt]` en vez de `gg2[zt2]`, y el resultado salió igual que el del segmento."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e06",
+    "kind": "fix",
+    "title": "Im(z) va en la parte real",
+    "prompt": "g(z) = z² + Im(z). Al separar u y v se puso Im(z) en v. Corrígelo con `ComplexExpand` y devuelve la lista de Cauchy-Riemann.",
+    "difficulty": 3,
+    "cmds": [
+     "ComplexExpand",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "zz = x + I y;\nu = x^2 - y^2; v = 2 x y + y;\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+    "solution": "zz = x + I y;\nu = ComplexExpand[Re[zz^2 + Im[zz]]]; v = ComplexExpand[Im[zz^2 + Im[zz]]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{0, 1}"
+      },
+      {
+       "type": "value",
+       "expr": "u",
+       "expected": "x^2 - y^2 + y"
+      }
+     ]
+    },
+    "hints": [
+     "Im(z) = y es un número real: pertenece a u.",
+     "`u = ComplexExpand[Re[zz^2 + Im[zz]]]; v = ComplexExpand[Im[zz^2 + Im[zz]]];`"
+    ],
+    "explain": "u = x² − y² + y, v = 2xy, y sale {0, 1}: no es holomorfa. En 2021 un alumno tomó u = 0, v = y para Im(z) y obtuvo {−1, 0}."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Con Im(z) se parametriza",
+   "title": "Circunferencia con Im(z)",
+   "md": "Con Im[z] el integrando no es holomorfo: los residuos no valen.",
+   "target": "h[z_] = Im[z]/((z - 2) (z + 3 I));\nc1[t_] = 5/2 Exp[I t];\nNIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}]",
+   "parts": [
+    {
+     "code": "h[z_] = Im[z]/((z - 2) (z + 3 I));",
+     "md": "La función del examen.",
+     "run": true
+    },
+    {
+     "code": "c1[t_] = 5/2 Exp[I t];",
+     "md": "Circunferencia de centro 0 y radio 5/2: centro + radio·e^(it).",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}]",
+     "md": "Parametriza e integra de 0 a 2π.",
+     "run": true
+    },
+    {
+     "code": "h[z_] = Im[z]/((z - 2) (z + 3 I));\nc1[t_] = 5/2 Exp[I t];\nNIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}]",
+     "md": "Las tres líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Integra Im(z)/((z − 2)(z + 3i)) sobre la circunferencia de centro 0 y radio 5/2.",
+    "hints": [
+     "`c1[t_] = 5/2 Exp[I t];`",
+     "`NIntegrate[h[c1[t]] c1'[t], {t, 0, 2 Pi}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "-0.5437371900443885 - 2.456886562422787 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    }
+   },
+   "cmds": [
+    "NIntegrate",
+    "Im"
+   ],
+   "more": "Ej. 3a del examen A de 2021: −0.543737 − 2.45689 i."
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e07",
+    "kind": "code",
+    "title": "Otra circunferencia",
+    "prompt": "`h` ya está. Integra sobre la circunferencia de centro −i y radio 1.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 3b",
+    "setup": "h[z_] = Im[z]/((z - 2) (z + 3 I));",
+    "solution": "c2[t_] = -I + Exp[I t];\nNIntegrate[h[c2[t]] c2'[t], {t, 0, 2 Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "-0.3141592653589796 - 0.628318530717959 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Camino: `c2[t_] = -I + Exp[I t];`",
+     "`NIntegrate[h[c2[t]] c2'[t], {t, 0, 2 Pi}]`"
+    ],
+    "explain": "≈ −0.314159 − 0.628319 i = −π/10 − (π/5) i. No hay polos dentro y aun así no es 0."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e08",
+    "kind": "fix",
+    "title": "Nombres mal copiados",
+    "prompt": "Misma integral (centro −i, radio 1) al estilo del guion. `zta` usa `x[t]`, `y[t]`, que no existen. Corrígelo.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate",
+     "D"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "xa[t_] = Cos[t]; ya[t_] = -1 + Sin[t];\nzta = x[t] + I y[t];\nNIntegrate[ya[t]/((zta - 2) (zta + 3 I)) D[zta, t], {t, 0, 2 Pi}]",
+    "solution": "xa[t_] = Cos[t]; ya[t_] = -1 + Sin[t];\nzta = xa[t] + I ya[t];\nNIntegrate[ya[t]/((zta - 2) (zta + 3 I)) D[zta, t], {t, 0, 2 Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "-0.3141592653589796 - 0.628318530717959 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "hints": [
+     "Las funciones definidas se llaman `xa` y `ya`.",
+     "`zta = xa[t] + I ya[t];`"
+    ],
+    "explain": "Fallo real de 2021: al copiar el bloque se quedó `x[t] + I y[t]` y el resultado no era fiable. Al duplicar código, cambia todos los nombres."
+   }
+  },
+  {
+   "type": "build",
+   "section": "Coeficientes en tres regiones",
+   "title": "Disco y exterior",
+   "md": "q = 1/((z − 3i)(z − 2 + 5i)) en potencias de z − (2 + 3i).",
+   "target": "Series[q /. z -> w + z0, {w, Infinity, 4}] /. w -> z - z0",
+   "parts": [
+    {
+     "code": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;",
+     "md": "Guarda la función y el centro.",
+     "run": true
+    },
+    {
+     "code": "N[Abs[{3 I, 2 - 5 I} - z0]]",
+     "md": "Distancias de los polos al centro: los radios 2 y 8.",
+     "run": true
+    },
+    {
+     "code": "Series[q, {z, z0, 2}] // N",
+     "md": "Disco |z − z0| < 2: un Taylor.",
+     "run": true
+    },
+    {
+     "code": "Series[q /. z -> w + z0, {w, Infinity, 4}] /. w -> z - z0",
+     "md": "Exterior |z − z0| > 8: toda q hacia fuera.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`q` y `z0` ya están. Desarrolla q en la región exterior (potencias negativas) hasta orden 4.",
+    "hints": [
+     "Cambio `z -> w + z0`, centro `Infinity` y al final `w -> z - z0`.",
+     "`Series[q /. z -> w + z0, {w, Infinity, 4}] /. w -> z - z0`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1/(z - z0)^2 - (2 + 8 I)/(z - z0)^3 - (60 - 16 I)/(z - z0)^4"
+    }
+   },
+   "cmds": [
+    "Series",
+    "Abs"
+   ],
+   "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;"
+  },
+  {
+   "type": "build",
+   "title": "La corona",
+   "md": "En 2 < |z − z0| < 8: polo cercano hacia fuera, polo lejano hacia dentro.",
+   "target": "q1 = Residue[q, {z, 3 I}]/(z - 3 I);\nfuera = Series[q1 /. z -> w + z0, {w, Infinity, 3}] /. w -> z - z0;\ndentro = Series[q - q1, {z, z0, 2}];\nfuera + dentro",
+   "parts": [
+    {
+     "code": "Apart[q]",
+     "md": "Fracciones simples: una por polo.",
+     "run": true
+    },
+    {
+     "code": "q1 = Residue[q, {z, 3 I}]/(z - 3 I);",
+     "md": "Fracción del polo cercano 3i: su numerador es el residuo.",
+     "run": true
+    },
+    {
+     "code": "fuera = Series[q1 /. z -> w + z0, {w, Infinity, 3}] /. w -> z - z0",
+     "md": "Polo cercano: potencias negativas.",
+     "run": true
+    },
+    {
+     "code": "dentro = Series[q - q1, {z, z0, 2}]",
+     "md": "El resto (polo lejano): Taylor.",
+     "run": true
+    },
+    {
+     "code": "fuera + dentro",
+     "md": "La suma es el Laurent en la corona.",
+     "run": true
+    },
+    {
+     "code": "q1 = Residue[q, {z, 3 I}]/(z - 3 I);\nfuera = Series[q1 /. z -> w + z0, {w, Infinity, 3}] /. w -> z - z0;\ndentro = Series[q - q1, {z, z0, 2}];\nfuera + dentro",
+     "md": "Las cuatro líneas seguidas.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`q` y `z0` ya están. Laurent en la corona: `q1`, `fuera`, `dentro` y la suma.",
+    "hints": [
+     "`q1 = Residue[q, {z, 3 I}]/(z - 3 I);`",
+     "`fuera = Series[q1 /. z -> w + z0, {w, Infinity, 3}] /. w -> z - z0;`",
+     "`dentro = Series[q - q1, {z, z0, 2}];` y `fuera + dentro`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "fuera",
+     "expected": "-(1/34 + 2 I/17)/(z - z0) + (1/17 + 4 I/17)/(z - z0)^2 - (2/17 + 8 I/17)/(z - z0)^3"
+    }
+   },
+   "cmds": [
+    "Residue",
+    "Series",
+    "Apart"
+   ],
+   "more": "En el guion las fracciones se sacan con `desc = Apart[q]` y `desc[[1]]`, `desc[[2]]`: mira antes cuál corresponde a cada polo.",
+   "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;"
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e09",
+    "kind": "code",
+    "title": "Coeficientes del disco",
+    "prompt": "`q` y `z0` ya están. En el disco |z − z0| < 2 devuelve `N` de `{c0, c2}`.",
+    "difficulty": 3,
+    "cmds": [
+     "SeriesCoefficient",
+     "Table"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 4a",
+    "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;",
+    "solution": "N[Table[SeriesCoefficient[q, {z, z0, k}], {k, {0, 2}}]]",
+    "check": {
+     "type": "expr",
+     "expected": "{-0.0625 I, -0.00390625 - 0.0146484375 I}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "`SeriesCoefficient[q, {z, z0, k}]` da c_k.",
+     "`N[Table[SeriesCoefficient[q, {z, z0, k}], {k, {0, 2}}]]`"
+    ],
+    "explain": "c0 = −0.0625 i y c2 = −0.00390625 − 0.0146484 i."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e10",
+    "kind": "fix",
+    "title": "Copiado a mano",
+    "prompt": "Se copió c2 del disco a ojo y con el signo cambiado. Pídelo con `SeriesCoefficient` (`q` y `z0` ya están).",
+    "difficulty": 2,
+    "cmds": [
+     "SeriesCoefficient"
+    ],
+    "real": false,
+    "source": null,
+    "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;",
+    "broken": "Series[q, {z, z0, 2}] // N\nc2 = 0.00390625 + 0.0146484375 I",
+    "solution": "c2 = N[SeriesCoefficient[q, {z, z0, 2}]]",
+    "check": {
+     "type": "value",
+     "expr": "c2",
+     "expected": "-0.00390625 - 0.0146484375 I",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "SeriesCoefficient"
+    ],
+    "hints": [
+     "El número de la llave es el exponente: `{z, z0, 2}`.",
+     "`c2 = N[SeriesCoefficient[q, {z, z0, 2}]]`"
+    ],
+    "explain": "En la serie el término aparece como −(0.0039 + 0.0146 i)(z − z0)²: el signo va delante del paréntesis. Un alumno de 2021 copió así un c4 con el signo contrario."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e11",
+    "kind": "code",
+    "title": "Coeficientes de la corona",
+    "prompt": "`q` y `z0` ya están. En la corona 2 < |z − z0| < 8 devuelve `N` de `{c₋₂, c0}`.",
+    "difficulty": 4,
+    "cmds": [
+     "SeriesCoefficient",
+     "Residue"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 4b",
+    "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;",
+    "solution": "q1 = Residue[q, {z, 3 I}]/(z - 3 I);\nN[{SeriesCoefficient[q1 /. z -> w + z0, {w, Infinity, 2}], SeriesCoefficient[q - q1, {z, z0, 0}]}]",
+    "check": {
+     "type": "expr",
+     "expected": "{1/17 + 4 I/17, 1/68 - I/272}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "c₋₂ sale de `q1` (polo cercano, hacia fuera); c0, de `q - q1` (hacia dentro).",
+     "`SeriesCoefficient[q1 /. z -> w + z0, {w, Infinity, 2}]` y `SeriesCoefficient[q - q1, {z, z0, 0}]`"
+    ],
+    "explain": "c₋₂ ≈ 0.0588 + 0.2353 i y c0 ≈ 0.0147 − 0.0037 i."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl4-e12",
+    "kind": "code",
+    "title": "Exterior y residuos",
+    "prompt": "`q` y `z0` ya están. Devuelve `N` de `{c₋₃ del exterior, residuo en 3i, residuo en 2 − 5i}`.",
+    "difficulty": 4,
+    "cmds": [
+     "SeriesCoefficient",
+     "Residue"
+    ],
+    "real": true,
+    "source": "Examen PL4 2021 (modelo A) · ej. 4c y 4e",
+    "setup": "q = 1/((z - 3 I) (z - 2 + 5 I)); z0 = 2 + 3 I;",
+    "solution": "N[{SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}], Residue[q, {z, 3 I}], Residue[q, {z, 2 - 5 I}]}]",
+    "check": {
+     "type": "expr",
+     "expected": "{-2 - 8 I, -1/34 - 2 I/17, 1/34 + 2 I/17}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "hints": [
+     "Exterior: `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}]`.",
+     "Residuos: `Residue[q, {z, 3 I}]` y `Residue[q, {z, 2 - 5 I}]`."
+    ],
+    "explain": "c₋₃ = −2 − 8i; residuos ∓(0.0294 + 0.1176 i). Suman 0: por eso en el exterior c₋₁ = 0."
+   }
+  },
+  {
+   "type": "exercise",
+   "section": "Fourier inversa: el semiplano",
+   "ex": {
+    "id": "2-m3-pl4-e13",
+    "kind": "fix",
+    "title": "Evaluar donde vale cero",
+    "prompt": "F(w) = 1/(1 − 2iw)³ tiene el polo abajo: f(x) = 0 para x > 0. Aquí f(π) sale 2.97. Corrige `fx` con `HeavisideTheta[-x]`.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "HeavisideTheta"
+    ],
+    "real": false,
+    "source": null,
+    "broken": "F[w_] = 1/(1 - 2 I w)^3;\nfx[x_] = -I Residue[Exp[I w x] F[w], {w, -I/2}];\nN[fx[Pi]]",
+    "solution": "F[w_] = 1/(1 - 2 I w)^3;\nfx[x_] = -I Residue[Exp[I w x] F[w], {w, -I/2}] HeavisideTheta[-x];\nN[fx[Pi]]",
+    "check": {
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "N[fx[Pi]]",
+       "expected": "0",
+       "compare": "numeric",
+       "tol": 1e-09
+      },
+      {
+       "type": "value",
+       "expr": "N[fx[-Pi]]",
+       "expected": "0.12823057385300446",
+       "compare": "numeric",
+       "tol": 1e-06
+      }
+     ]
+    },
+    "hints": [
+     "`HeavisideTheta[-x]` vale 1 si x < 0 y 0 si x > 0.",
+     "`fx[x_] = -I Residue[Exp[I w x] F[w], {w, -I/2}] HeavisideTheta[-x];`"
+    ],
+    "explain": "Así f(π) = 0 y f(−π) = 0.1282, igual que `InverseFourierTransform[F[w], w, x, FourierParameters -> {1, -1}]`. Es el fallo del ej. 5 de un examen de 2021."
+   }
+  }
+ ]
+}

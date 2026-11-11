@@ -1,7 +1,7 @@
 // Vista: esquema de comandos y comprensión (#/esquema) — página guía: anatomía, signos, familias e ideas clave.
-import { store } from '../store.js?v=1794357739';
-import { loadSchema, loadCommands, safe, cmdHref, familyIndex } from '../data.js?v=1794357739';
-import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, ghostCell } from '../fx.js?v=1794357739';
+import { store } from '../store.js?v=1794358225';
+import { loadSchema, loadCommands, safe, cmdHref, familyIndex } from '../data.js?v=1794358225';
+import { h, hlWL, mdLite, yearBadge, emptyState, skeleton, ghostCell } from '../fx.js?v=1794358225';
 
 let alive = false;
 let root = null;

@@ -1,0 +1,364 @@
+{
+ "id": "2-m3-sim2",
+ "year": 2,
+ "subject": "Matemáticas III",
+ "title": "Simulacro 2 · examen de Mathematica (PL4, modelo B de 2021)",
+ "durationMin": 90,
+ "intro": "**Qué es.** El examen de Mathematica de Matemáticas III (PL4) que hizo un alumno el 20 de abril de 2021, con sus datos reales: cinco ejercicios de las prácticas PL1 a PL3 y respuestas **numéricas** en casillas.\n\n**Cómo responder aquí.** Resuelve en el cuaderno de al lado y copia cada número en su casilla, con punto decimal. Varios resultados son muy pequeños: escribe al menos 5 cifras significativas (por ejemplo, 0.0000133386). Los complejos se piden por separado: parte real y parte imaginaria.\n\n**Consejos.**\n\n- Unos 18 minutos por ejercicio.\n- P1: comprueba qué polos entran con `Abs[polo - centro] - radio` y, en la elipse, con un dibujo. Los residuos de esta función tardan unos segundos.\n- P2 y P3 llevan `Im[z]`: no valen los residuos, hay que parametrizar.\n- P4: pide cada coeficiente con `SeriesCoefficient`; no los copies a mano.\n- P5: mira en qué semiplano está el polo antes de evaluar.",
+ "source": "Examen de prácticas PL4 del 20/04/2021, modelo B: enunciados reconstruidos a partir de las respuestas de un alumno (las soluciones oficiales nunca se publicaron). Datos reales sin adaptar. Valores recalculados y comprobados por un segundo método; difieren de los del alumno en P2-Γ2, en el signo de c4 de P4 y en la justificación de Cauchy-Riemann, donde su solución tenía errores. En P1 los apartados de la elipse reutilizan los residuos ya calculados para que ningún paso tarde más de 5 s.",
+ "questions": [
+  {
+   "title": "P1 · Integrales de contorno por residuos",
+   "prompt": "Sea f(z) = sin(e^(2z)) cos(4e^z) / ((z − 3)² (z − 2π) (z + 3πi)⁴). Calcula ∫ f(z) dz, en sentido antihorario, sobre:\n\n- **C1**: la circunferencia de centro π − i y radio 6.\n- **C2**: la circunferencia de centro 3π y radio 6.\n- **C3**: la elipse de centro 2 − 5i, semieje horizontal 6 y semieje vertical 8.\n\nLos resultados son pequeños: escribe al menos 5 cifras significativas.",
+   "points": 2.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": 0.0234377,
+     "tol": 1e-05,
+     "points": 0.4,
+     "solution": "f[z_] = Sin[Exp[2 z]] Cos[4 Exp[z]]/((z - 3)^2 (z - 2 Pi) (z + 3 I Pi)^4);\nr1 = Residue[f[z], {z, 3}]; r7 = Residue[f[z], {z, 2 Pi}];\nia = N[2 Pi I (r1 + r7)];\nRe[ia]",
+     "explain": "Polos: 3 (doble), 2π y −3πi (cuádruple). Test: `N[Abs[{3, 2 Pi, -3 I Pi} - (Pi - I)] - 6]` da {−4.99, −2.70, 2.99}: dentro están 3 y 2π. Resultado: 0.0234377 − 0.00820524 i. El residuo en 3 tarda unos segundos."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": -0.00820524,
+     "tol": 1e-05,
+     "points": 0.4,
+     "solution": "f[z_] = Sin[Exp[2 z]] Cos[4 Exp[z]]/((z - 3)^2 (z - 2 Pi) (z + 3 I Pi)^4);\nr1 = Residue[f[z], {z, 3}]; r7 = Residue[f[z], {z, 2 Pi}];\nia = N[2 Pi I (r1 + r7)];\nIm[ia]",
+     "explain": "Polos: 3 (doble), 2π y −3πi (cuádruple). Test: `N[Abs[{3, 2 Pi, -3 I Pi} - (Pi - I)] - 6]` da {−4.99, −2.70, 2.99}: dentro están 3 y 2π. Resultado: 0.0234377 − 0.00820524 i. El residuo en 3 tarda unos segundos."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": 1.33386e-05,
+     "tol": 3e-08,
+     "points": 0.4,
+     "solution": "f[z_] = Sin[Exp[2 z]] Cos[4 Exp[z]]/((z - 3)^2 (z - 2 Pi) (z + 3 I Pi)^4);\nr7 = Residue[f[z], {z, 2 Pi}];\nib = N[2 Pi I r7];\nRe[ib]",
+     "explain": "Con centro 3π: `N[Abs[{3, 2 Pi, -3 I Pi} - 3 Pi] - 6]` da {0.42, −2.86, 7.33}: solo 2π está dentro. Resultado: 0.0000133386 + 0.0000132274 i (da 5 cifras significativas)."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": 1.32274e-05,
+     "tol": 3e-08,
+     "points": 0.4,
+     "solution": "f[z_] = Sin[Exp[2 z]] Cos[4 Exp[z]]/((z - 3)^2 (z - 2 Pi) (z + 3 I Pi)^4);\nr7 = Residue[f[z], {z, 2 Pi}];\nib = N[2 Pi I r7];\nIm[ib]",
+     "explain": "Con centro 3π: `N[Abs[{3, 2 Pi, -3 I Pi} - 3 Pi] - 6]` da {0.42, −2.86, 7.33}: solo 2π está dentro. Resultado: 0.0000133386 + 0.0000132274 i (da 5 cifras significativas)."
+    },
+    {
+     "label": "e)",
+     "prompt": "Parte real de la integral sobre C3.",
+     "answerType": "numeric",
+     "value": 0.0505093,
+     "tol": 1e-05,
+     "points": 0.45,
+     "solution": "r3 = Residue[f[z], {z, -3 I Pi}];\nic = N[2 Pi I (r1 + r3 + r7)];\nRe[ic]",
+     "explain": "Elipse x = 2 + 6 cos t, y = −5 + 8 sin t: dibújala con `ParametricPlot` y los polos con `Graphics[Point…]`; entran los tres. Solo falta el residuo en −3πi (`r1` y `r7` ya están calculados en los apartados anteriores). Resultado: 0.0505093 + 0.0218379 i."
+    },
+    {
+     "label": "f)",
+     "prompt": "Parte imaginaria de la integral sobre C3.",
+     "answerType": "numeric",
+     "value": 0.0218379,
+     "tol": 1e-05,
+     "points": 0.45,
+     "solution": "Im[ic]",
+     "explain": "Elipse x = 2 + 6 cos t, y = −5 + 8 sin t: dibújala con `ParametricPlot` y los polos con `Graphics[Point…]`; entran los tres. Solo falta el residuo en −3πi (`r1` y `r7` ya están calculados en los apartados anteriores). Resultado: 0.0505093 + 0.0218379 i."
+    }
+   ]
+  },
+  {
+   "title": "P2 · Función no holomorfa por dos caminos",
+   "prompt": "Sea g(z) = 3z² − Im(z). Se integra entre 1 + i y 2 + 2i por dos caminos:\n\n- **Γ1**: el segmento recto de 1 + i a 2 + 2i.\n- **Γ2**: la poligonal 1 + i → 1 + 2i → 2 + 2i.\n\nDespués se estudian las ecuaciones de Cauchy-Riemann de g = u + i v.",
+   "points": 2,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre Γ1.",
+     "answerType": "numeric",
+     "value": -15.5,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 3 z^2 - Im[z];\nz1[t_] = 1 + I + t (2 + 2 I - (1 + I));\ni1 = N[Integrate[g[z1[t]] z1'[t], {t, 0, 1}]];\nRe[i1]",
+     "explain": "Segmento: `z1[t_] = p + t (q - p)`, t de 0 a 1; integrando `g[z1[t]] z1'[t]`. Resultado: −15.5 + 12.5 i."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre Γ1.",
+     "answerType": "numeric",
+     "value": 12.5,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 3 z^2 - Im[z];\nz1[t_] = 1 + I + t (2 + 2 I - (1 + I));\ni1 = N[Integrate[g[z1[t]] z1'[t], {t, 0, 1}]];\nIm[i1]",
+     "explain": "Segmento: `z1[t_] = p + t (q - p)`, t de 0 a 1; integrando `g[z1[t]] z1'[t]`. Resultado: −15.5 + 12.5 i."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre Γ2.",
+     "answerType": "numeric",
+     "value": -16,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 3 z^2 - Im[z];\nza[t_] = 1 + I + t I; zb[t_] = 1 + 2 I + t;\ni2 = N[Integrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[zb[t]] zb'[t], {t, 0, 1}]];\nRe[i2]",
+     "explain": "Dos tramos: de 1 + i a 1 + 2i (`za`) y de 1 + 2i a 2 + 2i (`zb`), cada uno con su camino. Resultado: −16 + 12.5 i. En el examen real el alumno evaluó los dos tramos sobre el camino del segmento y le salió −15.5 + 12.5 i otra vez."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre Γ2.",
+     "answerType": "numeric",
+     "value": 12.5,
+     "tol": 0.001,
+     "points": 0.35,
+     "solution": "g[z_] = 3 z^2 - Im[z];\nza[t_] = 1 + I + t I; zb[t_] = 1 + 2 I + t;\ni2 = N[Integrate[g[za[t]] za'[t], {t, 0, 1}] + Integrate[g[zb[t]] zb'[t], {t, 0, 1}]];\nIm[i2]",
+     "explain": "Dos tramos: de 1 + i a 1 + 2i (`za`) y de 1 + 2i a 2 + 2i (`zb`), cada uno con su camino. Resultado: −16 + 12.5 i. En el examen real el alumno evaluó los dos tramos sobre el camino del segmento y le salió −15.5 + 12.5 i otra vez."
+    },
+    {
+     "label": "e)",
+     "prompt": "Valor de u_y + v_x (segunda ecuación de Cauchy-Riemann pasada a un lado).",
+     "answerType": "numeric",
+     "value": -1,
+     "tol": 0.001,
+     "points": 0.3,
+     "solution": "zz = x + I y;\nu = ComplexExpand[Re[3 zz^2 - Im[zz]]];\nv = ComplexExpand[Im[3 zz^2 - Im[zz]]];\nD[u, y] + D[v, x]",
+     "explain": "u = 3x² − 3y² − y y v = 6xy: u_x − v_y = 0, pero u_y + v_x = −1. (En el examen real el alumno tomó u = 0, v = y para Im z y obtuvo {−1, 0}; Im z = y es real y va en u.)"
+    },
+    {
+     "label": "f)",
+     "prompt": "¿Es g holomorfa? ¿Depende la integral del camino? Justifícalo en una línea.",
+     "answerType": "text",
+     "points": 0.3,
+     "solution": "zz = x + I y;\nu = ComplexExpand[Re[3 zz^2 - Im[zz]]];\nv = ComplexExpand[Im[3 zz^2 - Im[zz]]];\n{D[u, x] - D[v, y], D[u, y] + D[v, x]}",
+     "explain": "Cauchy-Riemann da {0, −1}: g no es holomorfa en ningún punto y la integral depende del camino, como confirman −15.5 + 12.5 i y −16 + 12.5 i."
+    }
+   ]
+  },
+  {
+   "title": "P3 · Integral de Im(z)/(…) parametrizando",
+   "prompt": "Sea k(z) = Im(z) / ((z − 2i)(z + 8i)). Calcula ∫ k(z) dz, en sentido antihorario, sobre:\n\n- **C1**: la circunferencia de centro −i y radio 3/4.\n- **C2**: la circunferencia de centro 1 − i y radio 1/2.",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Parte real de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": -0.0841498,
+     "tol": 1e-05,
+     "points": 0.4,
+     "solution": "k[z_] = Im[z]/((z - 2 I) (z + 8 I));\nca[t_] = -I + 3/4 Exp[I t];\nja = NIntegrate[k[ca[t]] ca'[t], {t, 0, 2 Pi}];\nRe[ja]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: no valen los residuos, hay que parametrizar (`centro + radio Exp[I t]`) y usar `NIntegrate`. Resultado: −0.0841498 + 0 i."
+    },
+    {
+     "label": "b)",
+     "prompt": "Parte imaginaria de la integral sobre C1.",
+     "answerType": "numeric",
+     "value": 0,
+     "tol": 1e-05,
+     "points": 0.3,
+     "solution": "k[z_] = Im[z]/((z - 2 I) (z + 8 I));\nca[t_] = -I + 3/4 Exp[I t];\nja = NIntegrate[k[ca[t]] ca'[t], {t, 0, 2 Pi}];\nIm[ja]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: no valen los residuos, hay que parametrizar (`centro + radio Exp[I t]`) y usar `NIntegrate`. La parte imaginaria es 0 (el centro está sobre el eje imaginario, donde están los polos)."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte real de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": -0.0345575,
+     "tol": 1e-05,
+     "points": 0.4,
+     "solution": "k[z_] = Im[z]/((z - 2 I) (z + 8 I));\ncb[t_] = 1 - I + 1/2 Exp[I t];\njb = NIntegrate[k[cb[t]] cb'[t], {t, 0, 2 Pi}];\nRe[jb]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: no valen los residuos, hay que parametrizar (`centro + radio Exp[I t]`) y usar `NIntegrate`. Resultado: −0.0345575 + 0.00628319 i."
+    },
+    {
+     "label": "d)",
+     "prompt": "Parte imaginaria de la integral sobre C2.",
+     "answerType": "numeric",
+     "value": 0.00628319,
+     "tol": 1e-06,
+     "points": 0.4,
+     "solution": "k[z_] = Im[z]/((z - 2 I) (z + 8 I));\ncb[t_] = 1 - I + 1/2 Exp[I t];\njb = NIntegrate[k[cb[t]] cb'[t], {t, 0, 2 Pi}];\nIm[jb]",
+     "explain": "Con `Im[z]` el integrando no es holomorfo: no valen los residuos, hay que parametrizar (`centro + radio Exp[I t]`) y usar `NIntegrate`. Resultado: −0.0345575 + 0.00628319 i."
+    }
+   ]
+  },
+  {
+   "title": "P4 · Laurent en tres regiones, coeficientes y residuos",
+   "prompt": "Sea q(z) = −1 / ((z − (1 + 7i))(z − 2)) y el centro z0 = 2 + 3i. Llama c_k al coeficiente de (z − z0)^k en cada desarrollo de Laurent de q en potencias de (z − z0): en el **disco**, en la **corona** y en el **exterior**.",
+   "points": 2.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Radio exterior de la corona.",
+     "answerType": "numeric",
+     "value": 4.123106,
+     "tol": 0.001,
+     "points": 0.15,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nN[Abs[1 + 7 I - z0]]",
+     "explain": "Polos: 2 (a distancia 3 del centro 2 + 3i) y 1 + 7i (a distancia √17 ≈ 4.12311). Regiones: |z − z0| < 3, 3 < |z − z0| < 4.12311 y |z − z0| > 4.12311."
+    },
+    {
+     "label": "b)",
+     "prompt": "Disco: parte real de c0.",
+     "answerType": "numeric",
+     "value": -0.0784314,
+     "tol": 1e-05,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nc0 = SeriesCoefficient[q, {z, z0, 0}];\nN[Re[c0]]",
+     "explain": "Disco: Taylor. `SeriesCoefficient[q, {z, z0, k}]`. c0 = −0.0784314 + 0.0196078 i; c4 = −0.000600176 + 0.000198527 i (en el examen real el alumno copió c4 a mano con el signo cambiado)."
+    },
+    {
+     "label": "c)",
+     "prompt": "Disco: parte imaginaria de c0.",
+     "answerType": "numeric",
+     "value": 0.0196078,
+     "tol": 1e-05,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nc0 = SeriesCoefficient[q, {z, z0, 0}];\nN[Im[c0]]",
+     "explain": "Disco: Taylor. `SeriesCoefficient[q, {z, z0, k}]`. c0 = −0.0784314 + 0.0196078 i; c4 = −0.000600176 + 0.000198527 i (en el examen real el alumno copió c4 a mano con el signo cambiado)."
+    },
+    {
+     "label": "d)",
+     "prompt": "Disco: parte real de c4.",
+     "answerType": "numeric",
+     "value": -0.000600176,
+     "tol": 1e-06,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nc4 = SeriesCoefficient[q, {z, z0, 4}];\nN[Re[c4]]",
+     "explain": "Disco: Taylor. `SeriesCoefficient[q, {z, z0, k}]`. c0 = −0.0784314 + 0.0196078 i; c4 = −0.000600176 + 0.000198527 i (en el examen real el alumno copió c4 a mano con el signo cambiado)."
+    },
+    {
+     "label": "e)",
+     "prompt": "Disco: parte imaginaria de c4.",
+     "answerType": "numeric",
+     "value": 0.000198527,
+     "tol": 1e-06,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nc4 = SeriesCoefficient[q, {z, z0, 4}];\nN[Im[c4]]",
+     "explain": "Disco: Taylor. `SeriesCoefficient[q, {z, z0, k}]`. c0 = −0.0784314 + 0.0196078 i; c4 = −0.000600176 + 0.000198527 i (en el examen real el alumno copió c4 a mano con el signo cambiado)."
+    },
+    {
+     "label": "f)",
+     "prompt": "Corona: parte real de c₋₃.",
+     "answerType": "numeric",
+     "value": 0.18,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nqa = Residue[q, {z, 2}]/(z - 2); qb = q - qa;\ncm3 = SeriesCoefficient[qa /. z -> w + z0, {w, Infinity, 3}];\nN[Re[cm3]]",
+     "explain": "Corona: la fracción del polo cercano (2) va hacia fuera y la del lejano (1 + 7i) hacia dentro. `qa = Residue[q, {z, 2}]/(z - 2)`; c₋₃ sale de `qa /. z -> w + z0` con centro `Infinity`: 0.18 + 1.26 i. c2 sale de `qb = q - qa`: 0.00129045 − 0.00155099 i."
+    },
+    {
+     "label": "g)",
+     "prompt": "Corona: parte imaginaria de c₋₃.",
+     "answerType": "numeric",
+     "value": 1.26,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nqa = Residue[q, {z, 2}]/(z - 2); qb = q - qa;\ncm3 = SeriesCoefficient[qa /. z -> w + z0, {w, Infinity, 3}];\nN[Im[cm3]]",
+     "explain": "Corona: la fracción del polo cercano (2) va hacia fuera y la del lejano (1 + 7i) hacia dentro. `qa = Residue[q, {z, 2}]/(z - 2)`; c₋₃ sale de `qa /. z -> w + z0` con centro `Infinity`: 0.18 + 1.26 i. c2 sale de `qb = q - qa`: 0.00129045 − 0.00155099 i."
+    },
+    {
+     "label": "h)",
+     "prompt": "Corona: parte real de c2.",
+     "answerType": "numeric",
+     "value": 0.00129045,
+     "tol": 1e-06,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nqa = Residue[q, {z, 2}]/(z - 2); qb = q - qa;\nc2 = SeriesCoefficient[qb, {z, z0, 2}];\nN[Re[c2]]",
+     "explain": "Corona: la fracción del polo cercano (2) va hacia fuera y la del lejano (1 + 7i) hacia dentro. `qa = Residue[q, {z, 2}]/(z - 2)`; c₋₃ sale de `qa /. z -> w + z0` con centro `Infinity`: 0.18 + 1.26 i. c2 sale de `qb = q - qa`: 0.00129045 − 0.00155099 i."
+    },
+    {
+     "label": "i)",
+     "prompt": "Corona: parte imaginaria de c2.",
+     "answerType": "numeric",
+     "value": -0.00155099,
+     "tol": 1e-06,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nqa = Residue[q, {z, 2}]/(z - 2); qb = q - qa;\nc2 = SeriesCoefficient[qb, {z, z0, 2}];\nN[Im[c2]]",
+     "explain": "Corona: la fracción del polo cercano (2) va hacia fuera y la del lejano (1 + 7i) hacia dentro. `qa = Residue[q, {z, 2}]/(z - 2)`; c₋₃ sale de `qa /. z -> w + z0` con centro `Infinity`: 0.18 + 1.26 i. c2 sale de `qb = q - qa`: 0.00129045 − 0.00155099 i."
+    },
+    {
+     "label": "j)",
+     "prompt": "Exterior: parte real de c₋₃.",
+     "answerType": "numeric",
+     "value": 1,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\ncx = SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}];\nN[Re[cx]]",
+     "explain": "Exterior: toda q hacia fuera, `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, k}]`. c₋₃ = 1 − i y c₋₁ = 0 (los dos residuos se cancelan)."
+    },
+    {
+     "label": "k)",
+     "prompt": "Exterior: parte imaginaria de c₋₃.",
+     "answerType": "numeric",
+     "value": -1,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\ncx = SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 3}];\nN[Im[cx]]",
+     "explain": "Exterior: toda q hacia fuera, `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, k}]`. c₋₃ = 1 − i y c₋₁ = 0 (los dos residuos se cancelan)."
+    },
+    {
+     "label": "l)",
+     "prompt": "Exterior: valor de c₋₁.",
+     "answerType": "numeric",
+     "value": 0,
+     "tol": 1e-06,
+     "points": 0.15,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nN[SeriesCoefficient[q /. z -> w + z0, {w, Infinity, 1}]]",
+     "explain": "Exterior: toda q hacia fuera, `SeriesCoefficient[q /. z -> w + z0, {w, Infinity, k}]`. c₋₃ = 1 − i y c₋₁ = 0 (los dos residuos se cancelan)."
+    },
+    {
+     "label": "m)",
+     "prompt": "Parte imaginaria del residuo de q en z = 2.",
+     "answerType": "numeric",
+     "value": -0.14,
+     "tol": 0.001,
+     "points": 0.2,
+     "solution": "q = -1/((z - (1 + 7 I)) (z - 2)); z0 = 2 + 3 I;\nN[Im[Residue[q, {z, 2}]]]",
+     "explain": "`Residue[q, {z, 2}]` = −0.02 − 0.14 i y en 1 + 7i, 0.02 + 0.14 i. El residuo en 2 es el c₋₁ de la corona."
+    }
+   ]
+  },
+  {
+   "title": "P5 · Transformada inversa de Fourier por residuos",
+   "prompt": "Sea F(w) = 1 / (1 − 2 i w)³. Calcula por residuos su transformada inversa de Fourier f(x), con la definición de teoría: f(x) = (1/2π) ∫ F(w) e^(iwx) dw.",
+   "points": 1.5,
+   "parts": [
+    {
+     "label": "a)",
+     "prompt": "Valor de f(−π).",
+     "answerType": "numeric",
+     "value": 0.128231,
+     "tol": 1e-05,
+     "points": 0.5,
+     "solution": "F[w_] = 1/(1 - 2 I w)^3;\nfmin[x_] = -I Residue[F[w] Exp[I x w], {w, -I/2}];\nN[fmin[-Pi]]",
+     "explain": "Polo: `Solve[1 - 2 I w == 0, w]` da w = −i/2, en el semiplano inferior. Regla: f(x) = −i · Res[F(w) e^(ixw)] para x < 0 y f(x) = 0 para x > 0. Queda f(x) = x² e^(x/2)/16 para x < 0, como da `InverseFourierTransform[F[w], w, x, FourierParameters -> {1, -1}]`."
+    },
+    {
+     "label": "b)",
+     "prompt": "Valor de f(3.7).",
+     "answerType": "numeric",
+     "value": 0,
+     "tol": 1e-06,
+     "points": 0.5,
+     "solution": "F[w_] = 1/(1 - 2 I w)^3;\nSolve[1 - 2 I w == 0, w]\n0",
+     "explain": "Polo: `Solve[1 - 2 I w == 0, w]` da w = −i/2, en el semiplano inferior. Regla: f(x) = −i · Res[F(w) e^(ixw)] para x < 0 y f(x) = 0 para x > 0. Queda f(x) = x² e^(x/2)/16 para x < 0, como da `InverseFourierTransform[F[w], w, x, FourierParameters -> {1, -1}]`. Como 3.7 > 0, f(3.7) = 0 sin calcular nada."
+    },
+    {
+     "label": "c)",
+     "prompt": "Parte imaginaria del residuo de F(w) e^(ixw) en el polo, para x = −π.",
+     "answerType": "numeric",
+     "value": 0.128231,
+     "tol": 1e-05,
+     "points": 0.5,
+     "solution": "F[w_] = 1/(1 - 2 I w)^3;\nres = Residue[F[w] Exp[I x w], {w, -I/2}] /. x -> -Pi;\nIm[N[res]]",
+     "explain": "El residuo vale 0 + 0.128231 i; al multiplicarlo por −i da f(−π)."
+    }
+   ]
+  }
+ ]
+}
