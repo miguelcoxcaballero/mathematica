@@ -176,6 +176,12 @@ Protect[MatrixRank, NullSpace, ZTransform, InverseZTransform];
 Unprotect[Derivative];
 HoldPattern[Derivative[n_Integer][f_Symbol]] /; WLX`DerivQ[f, n] := WLX`DerivGet[];
 
+Unprotect[SeriesData];
+(* a series at Infinity after  /. w -> z + a : its variable 1/(z + a) is no longer a plain reciprocal, so it
+   becomes the finite Laurent sum (which then adds correctly to other series) *)
+SeriesData[Power[x_, -1], 0, c_List, nmin_Integer, nmax_Integer, 1] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)), {WLX`k, Length[c]}]] /; !AtomQ[x];
+SeriesData /: Plus[s : SeriesData[x_Symbol, x0_, _List, _Integer, nmax_Integer, 1], e__] := Series[Normal[s] + Plus[e], {x, x0, nmax - 1}] /; FreeQ[{e}, SeriesData] && !FreeQ[{e}, x] && FreeQ[x0, DirectedInfinity];
+Protect[SeriesData];
 Unprotect[Normal];
 HoldPattern[Normal[SeriesData[x_, DirectedInfinity[1], c_List, nmin_, nmax_, den_]]] := Total[Table[c[[WLX`k]] x^(-(nmin + WLX`k - 1)/den), {WLX`k, Length[c]}]];
 Normal[e_] := (e /. s_SeriesData :> Normal[s]) /; Head[e] =!= SeriesData && !FreeQ[e, SeriesData[_, DirectedInfinity[1], __]];

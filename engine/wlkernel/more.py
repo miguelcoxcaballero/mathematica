@@ -648,17 +648,25 @@ class ComplexExpand(XB):
                 s_ = c.to(e)
                 if s_.atoms(sp.core.function.AppliedUndef):
                     return None
-                re_, im_ = sp.expand(s_).as_real_imag()
+                from . import calc
+
+                ex_ = sp.expand(s_)
+                ex_ = ex_.replace(lambda q: isinstance(q, sp.exp) and q.args[0].has(sp.I), calc._cis)
+                re_, im_ = ex_.as_real_imag()
+                if re_.has(sp.re, sp.im) or im_.has(sp.re, sp.im):
+                    re_, im_ = sp.simplify(ex_).as_real_imag()
                 re_ = sp.expand(re_)
                 im_ = sp.expand(im_)
                 try:
-                    r2, i2 = sp.simplify(re_), sp.simplify(im_)
-                    if r2.count_ops() <= re_.count_ops():
-                        re_ = r2
-                    if i2.count_ops() <= im_.count_ops():
-                        im_ = i2
-                except SympyTimeout:
-                    raise
+                    with budget(1.2):
+                        if re_.count_ops() < 120:
+                            r2 = sp.simplify(re_)
+                            if r2.count_ops() <= re_.count_ops():
+                                re_ = r2
+                        if im_.count_ops() < 120:
+                            i2 = sp.simplify(im_)
+                            if i2.count_ops() <= im_.count_ops():
+                                im_ = i2
                 except Exception:
                     pass
             if not cvars and (re_.has(sp.re, sp.im, sp.arg) or im_.has(sp.re, sp.im, sp.arg)):

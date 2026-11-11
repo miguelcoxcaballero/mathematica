@@ -49,6 +49,8 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         web.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         web.setBackgroundColor(Color.WHITE);
+        web.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        web.setFocusableInTouchMode(true);
         setContentView(web);
 
         WebSettings s = web.getSettings();
@@ -65,7 +67,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(true);
         s.setJavaScriptCanOpenWindowsAutomatically(false);
-        s.setUserAgentString(s.getUserAgentString() + " WolframLabAeroApp/1.0");
+        s.setUserAgentString(s.getUserAgentString() + " WolframLabAeroApp/1.1");
         CookieManager.getInstance().setAcceptCookie(true);
 
         web.addJavascriptInterface(new Bridge(this), "WolframLabApp");
@@ -165,6 +167,17 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         CookieManager.getInstance().flush();   // asegura que el almacenamiento queda escrito en disco
+        if (web != null) {
+            web.onPause();                     // sin trabajo en segundo plano: ahorra batería
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (web != null) {
+            web.onResume();
+        }
     }
 
     @Override

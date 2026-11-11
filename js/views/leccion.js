@@ -4,15 +4,15 @@
 // SPEC §13: ONE thing per screen. A tramo is flattened into screens: a text, ONE ghost cell to type (explain cells and
 // the pieces of a `build`, with the pieces already typed assembling above), the `recall` of a build (write it from memory,
 // hints never penalised), one exercise, and a 3-line summary. No step list in sight: a thin progress line and back/next.
-import { store } from '../store.js?v=1794355523';
-import * as data from '../data.js?v=1794355523';
-import { kernel } from '../kernel-client.js?v=1794355523';
-import * as fx from '../fx.js?v=1794355523';
+import { store } from '../store.js?v=1794356580';
+import * as data from '../data.js?v=1794356580';
+import { kernel } from '../kernel-client.js?v=1794356580';
+import * as fx from '../fx.js?v=1794356580';
 import {
   mountExercise, mountGhost, exerciseMode, recallExercise, reviewRecord, reviewDue, ensureCss, h, mdInline, codeBlock, yearBadge, yearOf, cmdChip, splitText, moreBox,
   exclusive, kernelReady, watchKernel,
   safe, play, exStatus, startKernel, kernelPill, newSeed, setImmersive, touchUI, touchText,
-} from '../exercise.js?v=1794355523';
+} from '../exercise.js?v=1794356580';
 
 const WARMUP_KEY = 'wolframlab-aero-warmup';
 let S = null; // state of the mounted lesson
@@ -333,6 +333,7 @@ function setComplete(S, pos, done, focus) {
   S.nextBtn.textContent = !next ? 'Volver a la lista ›' : next.type === 'summary' ? 'Terminar el tramo ›' : 'Siguiente ›';
   S.nextBtn.disabled = !done;
   S.nextBtn.classList.toggle('primary', !!done); // one primary action per screen
+  S.root.classList.toggle('is-done', !!done);
   S.skipBtn.hidden = !!done || scr.type === 'summary';
   S.navHint.textContent = '';
   if (done && focus) {
@@ -348,10 +349,11 @@ function renderScreen(S, dir) {
   const pos = S.pos;
   const scr = S.screens[pos];
   const total = S.screens.length;
-  S.bar.style.width = `${Math.round((100 * (pos + (scr.type === 'summary' ? 1 : 0))) / Math.max(1, total - 1))}%`;
+  S.bar.style.width = `${Math.min(100, Math.round((100 * pos) / Math.max(1, total - 1)))}%`; // the summary is the last screen = 100 %
   S.count.textContent = scr.type === 'summary' ? '' : `${pos + 1} / ${total - 1}`;
   S.prevBtn.textContent = pos === 0 ? '‹ Tramos' : '‹ Atrás';
   const wrap = h('div', { class: `ls-screen ls-screen--${scr.type} ${dir > 0 ? 'lp-in-r' : dir < 0 ? 'lp-in-l' : 'lp-in'}` });
+  S.root.classList.toggle('ls--sum', scr.type === 'summary');
   S.body.replaceChildren(wrap);
   setComplete(S, pos, false, false);
   const done = (focus = true) => setComplete(S, pos, true, focus);

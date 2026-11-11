@@ -3,12 +3,12 @@
 //   #/practica/comando/<Nombre>     exercises (from every lesson) that use that command, easy → hard, unsolved first
 //   #/practica/tema/<lessonId>      exercises of one lesson
 //   #/practica/aleatoria[?n=10]     N exercises sampled from what the student has already studied (weak/stale first)
-import { store } from '../store.js?v=1794355523';
-import * as data from '../data.js?v=1794355523';
-import * as fx from '../fx.js?v=1794355523';
+import { store } from '../store.js?v=1794356580';
+import * as data from '../data.js?v=1794356580';
+import * as fx from '../fx.js?v=1794356580';
 import {
   mountExercise, isPractice, recallExercise, reviewRecord, reviewDue, ensureCss, h, yearBadge, yearOf, cmdChip, safe, play, exStatus, newSeed, startKernel, setImmersive, touchUI,
-} from '../exercise.js?v=1794355523';
+} from '../exercise.js?v=1794356580';
 
 const PREF_KEY = 'wolframlab-aero-practice';
 const LEVEL_NAME = ['por aprender', 'visto', 'en práctica', 'dominado'];
@@ -429,6 +429,7 @@ function runSession(me, cfg) {
     S.current = { it, done: false };
     skipBtn.hidden = false;
     nextBtn.disabled = true; nextBtn.classList.remove('primary'); // one primary action per screen: Comprobar
+    root.classList.remove('is-done');
     nextBtn.textContent = S.pos === total - 1 ? 'Ver resumen →' : 'Siguiente →';
     hint.textContent = '';
     // a new variant every time the exercise comes up again
@@ -444,6 +445,7 @@ function runSession(me, cfg) {
         meters();
         skipBtn.hidden = true;
         nextBtn.disabled = false; nextBtn.classList.add('primary');
+        root.classList.add('is-done');
         hint.textContent = 'Enter';
         if (!(touchUI() && document.documentElement.classList.contains('lx-primary'))) setTimeout(() => { if (S.current && S.current.it === it && nextBtn.isConnected) nextBtn.focus({ preventScroll: true }); }, 60);
       },

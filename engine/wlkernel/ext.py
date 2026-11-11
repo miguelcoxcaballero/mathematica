@@ -2075,6 +2075,21 @@ class InverseZTransform(XB):
             Fs = c.to(F)
             zs = c.sym(z.get_name())
             ns = c.to(n)
+            if not Fs.is_rational_function(zs):
+                # sums of c Cos[a/z], c Sin[a/z], c E^(a/z):  a^n Cos[n Pi/2]/n!, a^n Sin[n Pi/2]/n!, a^n/n!
+                tot = 0
+                for term in sp.Add.make_args(sp.expand(Fs)):
+                    co, fn = term.as_independent(zs)
+                    a_ = sp.simplify(fn.args[0] * zs) if isinstance(fn, (sp.cos, sp.sin, sp.exp)) else None
+                    if a_ is None or a_.has(zs):
+                        return None
+                    if isinstance(fn, sp.cos):
+                        tot += co * a_ ** ns * sp.cos(ns * sp.pi / 2) / sp.factorial(ns)
+                    elif isinstance(fn, sp.sin):
+                        tot += co * a_ ** ns * sp.sin(ns * sp.pi / 2) / sp.factorial(ns)
+                    else:
+                        tot += co * a_ ** ns / sp.factorial(ns)
+                return c.back(tot).evaluate(evaluation)
             G = sp.apart(sp.together(Fs / zs), zs, full=False)
             total = 0
             for term in sp.Add.make_args(G):
@@ -2703,6 +2718,15 @@ class IntQ(XB):
         r = calc.no_stray_complex(r, fs, a, b)
         if r is not None:
             return c.back(self._finish(_trig_tidy(r))).evaluate(ev)
+        contour_nv = None
+        if fs.has(sp.I) and not (fs.free_symbols - {xs}) and not a.free_symbols and not b.free_symbols \
+                and a not in (sp.oo, -sp.oo) and b not in (sp.oo, -sp.oo):
+            # complex integrand of a real parameter (contour integral): a vanishing value is recognised at once
+            from . import numeric
+
+            contour_nv = numeric.quick_numeric(fs, xs, a, b)
+            if contour_nv is not None and abs(contour_nv) < 1e-10:
+                return Integer(0)
         if rat is not None and a not in (sp.oo, -sp.oo) and b not in (sp.oo, -sp.oo):
             try:
                 den = sp.fraction(sp.together(fs))[1]
@@ -2717,11 +2741,31 @@ class IntQ(XB):
         if r is not None:
             return c.back(self._finish(r)).evaluate(ev)
         try:
-            r = sp.integrate(fs, (xs, a, b))
+            if contour_nv is not None:
+                try:
+                    with budget(4.0):
+                        r = sp.integrate(fs, (xs, a, b))
+                except SympyTimeout:
+                    r = None
+            else:
+                r = sp.integrate(fs, (xs, a, b))
         except SympyTimeout:
             raise
         except Exception:
             r = None
+        if (r is None or r.has(sp.Integral)) and contour_nv is not None:
+            # no primitive: accept the quadrature when it is clearly a simple multiple of Pi (2 Pi I Res ...)
+            def exact(v):
+                if abs(v) < 1e-10:
+                    return sp.Integer(0)
+                for base in (sp.pi, sp.Integer(1)):
+                    q = sp.nsimplify(v / float(base), rational=True, tolerance=1e-10)
+                    if q.is_Rational and q.q <= 360:
+                        return q * base
+                return None
+            er, ei = exact(contour_nv.real), exact(contour_nv.imag)
+            if er is not None and ei is not None:
+                return c.back(er + sp.I * ei).evaluate(ev)
         if r is None or r.has(sp.Integral):
             r2 = None
             if piecewise:

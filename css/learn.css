@@ -548,6 +548,8 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
 .ls-skiptop { display: none !important; }
 .lx-primary.wl-kb-open .ls-skiptop { display: inline-flex !important; align-items: center; min-height: 44px; padding: 0 8px; font-size: .82rem; }
 .lx-kb .ls-skiptop { margin-top: -6px; margin-bottom: -6px; }
+.ls--sum .ls-skiptop, .is-done .ls-skiptop { display: none !important; }
+.ls-bar { overflow: hidden; }
 /* «×» of the immersive screens */
 .ls-x { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; font-size: 1.6rem; line-height: 1; color: var(--muted); flex: none; }
 .ls-x:hover { color: var(--text); text-decoration: none; }
@@ -656,3 +658,29 @@ a.pr-mode h2::after { content: " ›"; color: var(--dim); font-weight: 400; }
   .pr-head h1 { font-size: 1.5rem; }
   .sm .pr-head p { font-size: .95rem; }
 }
+@media (max-width: 900px), (pointer: coarse) {
+  .pr-src-a { min-height: 44px; display: inline-flex; align-items: center; }
+  .sm-run .sm-submit { min-height: 44px; }
+}
+@media (max-width: 620px) {
+  /* exam on a phone: ONE thin sticky row — tabs · clock · Entregar · × — and the time line under it */
+  .sm-run .sm-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; grid-template-areas: "tabs clock submit x" "line line line line" "confirm confirm confirm confirm"; align-items: center; gap: 0 8px; margin-bottom: 0; }
+  .sm-run .sm-bar-row { display: contents; }
+  .sm-run .sm-bar-t, .sm-run .sm-answered { display: none; }
+  .sm-run .sm-tabs { grid-area: tabs; border-bottom: 0; gap: 14px; min-width: 0; }
+  .sm-run .sm-tab { font-size: .86rem; padding: 0; margin-bottom: 0; white-space: nowrap; }
+  .sm-run .sm-clock { grid-area: clock; }
+  .sm-run .sm-clock b { font-size: 1.05rem; }
+  .sm-run .sm-submit { grid-area: submit; padding: 0 .8em; font-size: .88rem; }
+  .sm-run .sm-x { grid-area: x; margin-right: -8px; }
+  .sm-run .sm-timeline { grid-area: line; }
+  .sm-run .sm-confirm { grid-area: confirm; }
+}
+/* keyboard open: plots give way a little so that statement + cell + output fit above the key bar */
+.lx-kb .ls-cell .wl-gfx2d svg, .lx-kb .ex-cell .wl-gfx2d svg { max-height: 140px; }
+.lx-kb .ex-fb { gap: 4px; }
+/* exam on touch: with the key bar open everything can still be scrolled above it (notebook's «+ celda», answer boxes) */
+.wl-kb-open .sm-run { padding-bottom: calc(var(--kb-h, 0px) + 20px); }
+.sm-run .sm-nb .wl-add, .sm-run .sm-input { scroll-margin-bottom: calc(var(--kb-h, 0px) + 16px); scroll-margin-top: 60px; }
+.lx-kb .pr-session { gap: 4px; }
+.lx-kb .pr-session .lp-prog { margin-top: -6px; }

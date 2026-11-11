@@ -128,6 +128,13 @@ class Ck:
 
     def pynum(self, e):
         try:
+            # display wrappers (NumberForm[x, 10], ...) do not change the value
+            if isinstance(e, Expression) and e.get_head_name() == "System`Out":
+                e = self.evalx(e)
+            while isinstance(e, Expression) and e.get_head_name() in (
+                    "System`NumberForm", "System`DecimalForm", "System`ScientificForm", "System`EngineeringForm",
+                    "System`InputForm", "System`StandardForm", "System`OutputForm", "System`TraditionalForm") and e.elements:
+                e = e.elements[0]
             r = self.evalx(E("N", e))
             v = r.to_python()
             return self._clean(v)

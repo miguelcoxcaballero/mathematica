@@ -76,7 +76,7 @@
      "value": 28.15144435,
      "tol": 1e-06,
      "points": 0.6,
-     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nL = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, a, b}]",
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nL = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, a, b}]\nNumberForm[L, 10]   (* para ver las 10 cifras *)",
      "explain": "Longitud: integral de `Sqrt[x'(t)^2 + y'(t)^2]` en todo el intervalo. Esta integral no tiene primitiva sencilla, así que se usa `NIntegrate`. Cuando piden más dígitos de los que muestra la salida, usa `N[..., 10]` o `NumberForm[L, 10]`."
     },
     {
@@ -271,7 +271,7 @@
      "value": 22359.338277,
      "tol": 1e-06,
      "points": 0.4,
-     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nV = 2 Pi/3*NIntegrate[r[a]^3*Sin[a], {a, a1, a2}]",
+     "solution": "ClearAll[\"Global`*\"]\nr[a_] := 3 Log[6!] - 2 Sin[7 a]\nm1 = Sqrt[3]; m2 = -1/Sqrt[3];   (* pendientes de las rectas *)\np = PolarPlot[r[a], {a, 0, Pi}];\nq = Plot[{m1*x, m2*x}, {x, -22, 22}];\nShow[p, q]\n(* ángulo de la recta y = m x en [0, Pi[ *)\nang[m_] := If[ArcTan[m] >= 0, ArcTan[m], ArcTan[m] + Pi]\na1 = ang[m1]; a2 = ang[m2];\n{a1, a2}/Degree   (* 60 y 150 grados *)\nV = 2 Pi/3*NIntegrate[r[a]^3*Sin[a], {a, a1, a2}]\nNumberForm[V, 11]   (* para ver las 11 cifras *)",
      "explain": "Volumen al girar un sector polar alrededor del eje polar: `2 Pi/3` por la integral de `ρ^3 Sin[α]`. Cuando la casilla pide 11 dígitos, muestra el resultado con `NumberForm[V, 11]` o calcula con `N[Integrate[...], 11]`."
     }
    ]
