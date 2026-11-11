@@ -1,7 +1,7 @@
 // Vista: inicio (#/) — lo justo: continuar, próximo examen, progreso de 1º y 2º, y tres enlaces.
-import { store } from '../store.js?v=1794355221';
-import { loadCourse, safe, flatUnits, nextUnit, yearProgress, lessonHref } from '../data.js?v=1794355221';
-import { h, yearBadge, fmtDate, skeleton } from '../fx.js?v=1794355221';
+import { store } from '../store.js?v=1794355523';
+import { loadCourse, safe, flatUnits, nextUnit, yearProgress, lessonHref } from '../data.js?v=1794355523';
+import { h, yearBadge, fmtDate, skeleton } from '../fx.js?v=1794355523';
 
 let off = null;
 

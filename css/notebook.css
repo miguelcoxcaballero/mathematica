@@ -185,10 +185,8 @@ html.wl-touch .wl-run::after, html.wl-touch .wl-del::after, html.wl-touch .wl-co
 html.wl-touch .wl-copy, html.wl-touch .wl-more, html.wl-touch .wl-help-x { position: absolute; }
 html.wl-touch .wl-more { position: relative; padding: 8px 0; font-size: 14px; }
 html.wl-touch .wl-copy { opacity: .8; font-size: 12px; padding: 5px 8px; }
-/* delete: under ▶, only while the cell is being edited (never hover-only) */
-html.wl-touch .wl-del { position: absolute; right: 3px; top: 100%; left: auto; visibility: hidden; background: var(--paper); border: 1px solid var(--line); z-index: 2; }
-html.wl-touch .wl-cell:hover .wl-del { visibility: hidden; }
-html.wl-touch .wl-cell:focus-within .wl-del { visibility: visible; }
+/* delete lives in the «⋯» sheet of the key bar on phones (and Backspace on an empty cell removes it) */
+html.wl-touch .wl-del { display: none; }
 html.wl-touch .wl-add--between { color: var(--dim); height: 22px; line-height: 22px; font-size: 13px; }
 html.wl-touch .wl-add--between::before { top: 10.5px; }
 html.wl-touch .wl-add--tail { padding: 12px 8px; font-size: 14px; }
@@ -208,13 +206,15 @@ html.wl-touch .wl-link { padding: 8px 0; }
 .wl-kb-keys::-webkit-scrollbar { display: none; }
 .wl-kb-sugs, .wl-kb-cellkeys { display: flex; align-items: center; gap: 3px; flex: none; }
 .wl-kb-sugs:empty { display: none; }
-.wl-kb-key { position: relative; flex: none; min-width: 36px; height: 34px; margin: 0; padding: 0 6px; border: 1px solid #cfcfd4; border-radius: 5px; background: #fff; color: var(--ink); font: 600 17px/1 var(--mono); touch-action: pan-x; cursor: pointer; }
+.wl-kb-key { position: relative; flex: none; min-width: 36px; height: 34px; margin: 0; padding: 0 6px; border: 1px solid #cfcfd4; border-radius: 5px; background: #fff; color: var(--ink); font: 600 17px/1 var(--mono); font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; touch-action: pan-x; cursor: pointer; }
 .wl-kb-key::after { content: ""; position: absolute; left: -2px; right: -2px; top: -4px; bottom: -4px; }      /* the whole height of the row is the target */
 .wl-kb-key.is-down { background: #dcdce1; }
 .wl-kb-key.is-next { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: #fff3f1; color: var(--accent); }
 .wl-kb-word { font-size: 14.5px; padding: 0 8px; }
 .wl-kb-more { color: var(--muted); font-family: var(--font); letter-spacing: 1px; }
 .wl-kb-more.is-on { background: #e4e4e8; color: var(--ink); }
+.wl-kb-act { font-family: var(--font); font-weight: 500; font-size: 14px; }
+.wl-kb-actions[hidden] { display: none; }
 .wl-kb-sug { font-size: 14px; background: var(--y1-bg); border-color: #cfe0f0; color: var(--y1); padding: 0 9px; }
 .wl-kb-primary { flex: none; min-width: 84px; max-width: 44vw; height: 34px; margin: 0 0 0 2px; padding: 0 12px; border: 0; border-radius: 5px; background: var(--accent); color: #fff;
   font: 600 14.5px/1 var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; touch-action: manipulation; cursor: pointer; transition: opacity .15s; position: relative; }

@@ -12,9 +12,9 @@
 // Editing: Shift+Enter / Ctrl+Enter evaluate · Enter = newline with auto-indent · Tab/Shift+Tab indent ·
 // brackets and quotes auto-close · live Mathematica colouring (wl-highlight.js) · autocomplete of System symbols ·
 // F1 or ?Name shows the command card from data/commands.json.
-import { kernel } from './kernel-client.js?v=1794355221';
-import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js?v=1794355221';
-import { keybar, keysFor } from './keybar.js?v=1794355221';
+import { kernel } from './kernel-client.js?v=1794355523';
+import { highlight, setSystemSymbols, systemSymbols, symbolAt, tokenize } from './wl-highlight.js?v=1794355523';
+import { keybar, keysFor } from './keybar.js?v=1794355523';
 
 // ------------------------------------------------------------------------------------------------ helpers
 function h(tag, attrs, ...kids) {
@@ -35,8 +35,8 @@ const RUN_ICON = '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="t
 
 // Graphics modules belong to the GFX agent: load them lazily and survive their absence.
 let gfx = null; let manip = null;
-const gfxP = import('./gfx2d.js?v=1794355221').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
-const manipP = import('./manipulate.js?v=1794355221').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
+const gfxP = import('./gfx2d.js?v=1794355523').then((m) => { gfx = m; return m; }).catch((e) => { console.warn('[notebook] gfx2d.js no disponible', e); return null; });
+const manipP = import('./manipulate.js?v=1794355523').then((m) => { manip = m; return m; }).catch((e) => { console.warn('[notebook] manipulate.js no disponible', e); return null; });
 
 // ------------------------------------------------------------------------------------------------ catalogue
 let catalog = null; let catalogP = null;
@@ -644,6 +644,7 @@ function createEditor({ code = '', readOnly = false, placeholder = '', onRun, on
     keys: () => { const k = hooks.keys ? hooks.keys() : null; if (k) return k; if (G == null) return null; if (ghostKeys.g !== G) ghostKeys = { g: G, keys: keysFor(G) }; return ghostKeys.keys; },
     ghostNext: () => (G == null || gstate.wrong || gstate.next == null || gstate.next >= L.D.length ? null : L.D.slice(gstate.next, gstate.next + 4)),
     primary: () => (hooks.primary ? hooks.primary() : null),
+    actions: () => (hooks.actions ? hooks.actions() : null),
     busy: () => !!(hooks.busy && hooks.busy()),
     run: () => { onRun && onRun(); },
   };
@@ -812,6 +813,7 @@ export function createCell(container, opts = {}) {
     },
     onEmptyBackspace: opts.onEmptyBackspace || null,
     keys: () => cellKeys,
+    actions: () => opts.actions || null,          // [{label, onPress}] shown in the «⋯» sheet of the key bar
   };
   const editor = createEditor({ code: opts.code || '', readOnly: !!opts.readOnly, placeholder: opts.placeholder || '', onRun: () => { run(); }, onHelp: showHelp, onInput: () => { opts.onInput && opts.onInput(); }, ghost: opts.ghost != null ? opts.ghost : null, onGhost, hooks });
   const el = h('div', { class: 'wl-cell' + (opts.ghost != null ? ' wl-cell--ghost' : '') },
@@ -973,7 +975,13 @@ export function createNotebook(container, opts = {}) {
       if (!cells.length) insert('', null, 0);
       if (focusPrev) cells[Math.max(0, i - 1)].cell.focus();
     };
-    rec.cell = createCell(slot, { code, onResult: opts.onResult, onInput: changed, onEmptyBackspace: () => { if (cells.length > 1) remove(true); } });
+    rec.cell = createCell(slot, {
+      code, onResult: opts.onResult, onInput: changed, onEmptyBackspace: () => { if (cells.length > 1) remove(true); },
+      actions: compact ? null : [
+        { label: '+ celda debajo', onPress: () => { insert('', null, cells.indexOf(rec) + 1).cell.focus(); changed(); } },
+        { label: 'Eliminar celda', onPress: () => remove(true) },
+      ],
+    });
     if (!compact) {
       rec.cell.el.querySelector('.wl-tools').append(h('button', { class: 'wl-del', type: 'button', title: 'Eliminar celda', 'aria-label': 'Eliminar celda', text: '×', onclick: () => remove(false) }));
     }

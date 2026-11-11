@@ -1,8 +1,8 @@
 // Vista: índice de contenidos (#/indice) — la ruta de aprendizaje como una página de contenidos de documentación:
 // aireada, con tres niveles de texto bien distintos (título ≫ temas > comandos/meta).
-import { store } from '../store.js?v=1794355221';
-import { loadCourse, loadCommands, loadAllLessons, safe, flatUnits, nextUnit, yearProgress, lessonHref, cmdHref } from '../data.js?v=1794355221';
-import { h, icon, yearBadge, emptyState, skeleton, fmtDate } from '../fx.js?v=1794355221';
+import { store } from '../store.js?v=1794355523';
+import { loadCourse, loadCommands, loadAllLessons, safe, flatUnits, nextUnit, yearProgress, lessonHref, cmdHref } from '../data.js?v=1794355523';
+import { h, icon, yearBadge, emptyState, skeleton, fmtDate } from '../fx.js?v=1794355523';
 
 let alive = false;
 let root = null;

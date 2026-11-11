@@ -8,7 +8,7 @@
 //   · «⋯» opens a compact sheet with every symbol, grouped; a tap inserts and closes it, a long press keeps it open;
 //   · the primary action («▶ Evaluar» unless the host of the cell sets another one) stays fixed at the right.
 //
-//   import { keybar, keysFor } from './keybar.js?v=1794355221'
+//   import { keybar, keysFor } from './keybar.js?v=1794355523'
 //   keysFor(code)           → ['[', ']', ',', '->', …]   the symbol keys a piece of code needs
 //   keybar.visible          true while the bar is shown
 //   keybar.height           px taken by the bar itself (0 when hidden)
@@ -21,9 +21,9 @@
 // <html> also gets the classes  wl-touch  (touch device)  and  wl-kb-open  (bar visible).
 //
 // Cells talk to the bar through attach(target)/detach(target); a target is
-//   { ta, type(text), move(±1), enter(explicit), keys(), ghostNext(), isGhost(), primary(), run(), busy() }
+//   { ta, type(text), move(±1), enter(explicit), keys(), ghostNext(), isGhost(), primary(), run(), busy(), actions() }
 // Keys go through target.type(): the same input path as the keyboard, so ghost validation applies.
-import { tokenize } from './wl-highlight.js?v=1794355221';
+import { tokenize } from './wl-highlight.js?v=1794355523';
 
 // Canonical order of the cell keys (never the order of appearance: that would give the answer away).
 const ORDER = ['[', ']', '[[', ']]', '{', '}', '(', ')', ',', ';', '->', ':>', '=', ':=', '==', '===', '!=', '=!=', '<', '>', '<=', '>=', '&&', '||', '!',
@@ -78,6 +78,7 @@ let raf = 0;
 let inset = 0;
 let suggestions = null;   // {list, pick}
 let shownKeys = null;
+let actionsBox = null; let shownActions = null;
 
 function isTouch() {
   if (!hasDom) return false;
@@ -152,6 +153,8 @@ function build() {
     grp.append(box);
     sheet.append(grp);
   }
+  actionsBox = el('div', 'wl-kb-group wl-kb-actions');
+  sheet.append(actionsBox);
   const line = el('div', 'wl-kb-row');
   row = el('div', 'wl-kb-keys');
   sugBox = el('div', 'wl-kb-sugs');
@@ -263,6 +266,25 @@ function paint() {
     lastNext = undefined;
     row.scrollLeft = 0;
   }
+  // actions on the cell itself (new cell below, delete…): last group of the sheet
+  const acts = (target.actions && target.actions()) || [];
+  const asig = acts.map((a) => a.label).join('|');
+  if (asig !== shownActions) {
+    shownActions = asig;
+    actionsBox.textContent = '';
+    actionsBox.hidden = !acts.length;
+    if (acts.length) {
+      actionsBox.append(el('div', 'wl-kb-cap', 'Celda'));
+      const box = el('div', 'wl-kb-grid');
+      acts.forEach((a, i) => {
+        const b = el('button', 'wl-kb-key wl-kb-word wl-kb-act', a.label);
+        b.type = 'button';
+        pressable(b, () => { toggleSheet(false); const cur = (target && target.actions && target.actions()) || []; if (cur[i]) { try { cur[i].onPress(); } catch (e) { console.error('[keybar] action', e); } } });
+        box.append(b);
+      });
+      actionsBox.append(box);
+    }
+  }
   const p = (target.primary && target.primary()) || null;
   const busy = target.busy && target.busy();
   const label = p && p.label ? p.label : busy ? 'Evaluando…' : '▶ Evaluar';
@@ -287,7 +309,11 @@ function paint() {
       try { row.scrollTo({ left: Math.max(0, want), behavior: 'smooth' }); } catch { row.scrollLeft = Math.max(0, want); }
     }
   }
-  if (sheet && !sheet.hidden) for (const b of sheet.querySelectorAll('.wl-kb-key')) b.classList.toggle('is-next', !!expect && next === '⋯' && expect.startsWith(b.dataset.k));
+  if (sheet && !sheet.hidden) {
+    let best = null;
+    if (expect && next === '⋯') for (const b of sheet.querySelectorAll('.wl-kb-key')) if (expect.startsWith(b.dataset.k) && (!best || b.dataset.k.length > best.length)) best = b.dataset.k;
+    for (const b of sheet.querySelectorAll('.wl-kb-key')) b.classList.toggle('is-next', best != null && b.dataset.k === best);
+  }
   // completions as chips at the start of the row (free cells)
   const list = suggestions && suggestions.list.length ? suggestions.list : null;
   const ssig = list ? list.join('|') : '';
