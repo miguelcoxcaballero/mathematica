@@ -6,11 +6,11 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794356580';
-import { createCell } from './notebook.js?v=1794356580';
-import { store } from './store.js?v=1794356580';
-import * as fx from './fx.js?v=1794356580';
-import * as keybarMod from './keybar.js?v=1794356580'; // namespace import: `keysFor` may not be exported yet (SPEC §15.4)
+import { kernel } from './kernel-client.js?v=1794356662';
+import { createCell } from './notebook.js?v=1794356662';
+import { store } from './store.js?v=1794356662';
+import * as fx from './fx.js?v=1794356662';
+import * as keybarMod from './keybar.js?v=1794356662'; // namespace import: `keysFor` may not be exported yet (SPEC §15.4)
 
 const { sfx, xpFloat } = fx;
 
@@ -154,6 +154,14 @@ export function keysFor(code) {
   }
   return KEY_ORDER.filter((k) => found.has(k));
 }
+// On touch devices the key bar always carries the next action (cells are created with `primary`), so the inline
+// «Comprobar» and the footer step aside from the very first screen, not only after the first setPrimary() call.
+try {
+  if (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches && keybarMod && keybarMod.keybar) {
+    document.documentElement.classList.add('lx-primary');
+  }
+} catch (_) { /* no key bar: keep the regular buttons */ }
+
 /** Sets the key bar's primary action of a cell (SPEC §15.1: `cell.setPrimary`). No-op until notebook.js provides it. */
 export function setPrimary(cell, action) {
   if (!cell || typeof cell.setPrimary !== 'function') return;
