@@ -555,12 +555,11 @@
     "difficulty": 3,
     "cmds": [
      "D",
-     "Solve",
-     "Simplify"
+     "Solve"
     ],
     "real": true,
     "source": "PL2 · ejercicio 1",
-    "solution": "P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];\nys[x_] = a Cos[x];\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nSolve[edo // Simplify, a]\nyp[x_] = ys[x] /. a -> 1",
+    "solution": "P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];\nys[x_] = a Cos[x];\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nSolve[edo, a]\nyp[x_] = ys[x] /. a -> 1",
     "check": {
      "type": "value",
      "expr": "yp[x]",
@@ -570,10 +569,10 @@
     },
     "hints": [
      "`P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];`",
-     "`ys[x_] = a Cos[x];`, `edo` como antes y `Solve[edo // Simplify, a]`.",
+     "`ys[x_] = a Cos[x];`, `edo` como antes y `Solve[edo, a]`.",
      "Sale a = 1: `yp[x_] = ys[x] /. a -> 1`."
     ],
-    "explain": "`Solve` da `a -> 1` y `a -> -Cot[x]`; solo vale la constante. Simplificar antes ayuda a `Solve`.",
+    "explain": "`Solve` da `a -> 1` y `a -> -Cot[x]`; solo vale la constante.",
     "requires": [
      "Solve",
      "D"
@@ -630,7 +629,7 @@
     "id": "2-m2-pl2-e08",
     "kind": "code",
     "title": "La general del guion",
-    "prompt": "**Ej. 1.** Ya definidas `P`, `Q`, `R` y `yp[x_] = Cos[x]`. Define `P1`, `Q1` y guarda la relación en `sol`. Simplifica el integrando.",
+    "prompt": "**Ej. 1.** Ya definidas `P`, `Q`, `R` y `yp[x_] = Cos[x]`. Define `P1`, `Q1` y guarda la relación (simplificada) en `sol`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -639,18 +638,18 @@
     ],
     "real": true,
     "source": "PL2 · ejercicio 1",
-    "solution": "P1[x_] = Q[x] + 2 R[x] yp[x] // Simplify;\nQ1[x_] = -R[x] // Simplify;\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Simplify[Exp[Integrate[P1[x], x]] Q1[x]], x]) /. z -> 1/(y - yp[x])",
+    "solution": "P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];\nsol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x]) // Simplify",
     "check": {
      "type": "satisfies",
      "test": "Head[sol] === Equal && With[{g = C1 /. First[Solve[sol, C1]]}, Abs[(D[g, x] + D[g, y]*(Cos[x] - Tan[x] Sec[x] y^2 - y)) /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] < 10^-6 && Abs[(D[g, x] + D[g, y]*(Cos[x] - Tan[x] Sec[x] y^2 - y)) /. {x -> 1.4, y -> 0.6, C1 -> 1.1}] < 10^-6 && Abs[D[g, y] /. {x -> 0.7, y -> 1.3, C1 -> 0.4}] > 10^-8]",
      "msg": "`sol` no es la solución general de la ecuación: debe ser una igualdad `... == ...` que contenga la constante `C1`, guardada en la variable `sol`."
     },
     "hints": [
-     "`P1[x_] = Q[x] + 2 R[x] yp[x] // Simplify; Q1[x_] = -R[x] // Simplify;`",
-     "Envuelve el integrando: `Integrate[Simplify[Exp[Integrate[P1[x], x]] Q1[x]], x]`.",
-     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Simplify[...], x]) /. z -> 1/(y - yp[x])`"
+     "`P1[x_] = Q[x] + 2 R[x] yp[x]; Q1[x_] = -R[x];`",
+     "`sol = z == fórmula con P1, Q1 /. z -> 1/(y - yp[x]) // Simplify`",
+     "`sol = z == Exp[Integrate[-P1[x], x]] (C1 + Integrate[Exp[Integrate[P1[x], x]] Q1[x], x]) /. z -> 1/(y - yp[x]) // Simplify`"
     ],
-    "explain": "`P1 = -1 - 2 Tan[x]`, `Q1 = Tan[x] Sec[x]`; el integrando se reduce a `E^(-x) Sin[x]`. Redefine siempre `P1`, `Q1`: reutilizar las de otro ejercicio da una solución falsa.",
+    "explain": "`P1 = -1 - 2 Tan[x]`, `Q1 = Tan[x] Sec[x]`. Redefine siempre `P1`, `Q1`: reutilizar las de otro ejercicio da una solución falsa.",
     "setup": "P[x_] = Cos[x]; Q[x_] = -1; R[x_] = -Tan[x] Sec[x];\nyp[x_] = Cos[x];",
     "requires": [
      "Integrate"
@@ -882,12 +881,18 @@
      "run": true
     },
     {
-     "code": "ys[t] == 5",
-     "md": "La ecuación que hay que resolver."
+     "code": "Solve[ys[t] == 5, t]",
+     "md": "El guion lo resuelve con `Solve`: sale exacto.",
+     "run": true
+    },
+    {
+     "code": "% // N",
+     "md": "`%` es el último resultado: pásalo a decimal.",
+     "run": true
     },
     {
      "code": "FindRoot[ys[t] == 5, {t, 30}]",
-     "md": "`FindRoot`: ecuación y `{variable, valor de partida}`.",
+     "md": "Otra vía: `FindRoot`, con `{variable, valor de partida}`.",
      "run": true
     }
    ],
@@ -904,9 +909,11 @@
      "tol": 0.0001
     }
    },
-   "more": "El guion usa `Solve[ys[t] == 5, t]` y luego `// N`. `FindRoot` da el número directamente y funciona aunque `Solve` no pueda con la ecuación.",
+   "more": "`Solve` da el valor exacto `50 Log[2]` (con un aviso sobre funciones inversas). `FindRoot` da el número directamente y funciona con cualquier ecuación.",
    "cmds": [
     "FindRoot",
+    "Solve",
+    "N",
     "Plot"
    ]
   },
@@ -1069,7 +1076,7 @@
      "`ys[t] /. Flatten[sT] // N`"
     ],
     "explain": "Se llena a los 50 min con 82.32 g. Reutilizar la regla con `/.` evita copiar números.",
-    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
+    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 17677.66952966369/(50 + t)^(3/2);",
     "requires": [
      "Solve"
     ]
@@ -1081,15 +1088,16 @@
     "id": "2-m2-pl2-e14",
     "kind": "code",
     "title": "¿Cuándo hay 50 g?",
-    "prompt": "**Prueba de clase.** Con `v[t]` y `ys[t]`: instante con 50 g (`FindRoot` desde t = 20, en `r`) y termina con la concentración entonces.",
+    "prompt": "**Prueba de clase.** Con `v[t]` y `ys[t]`: resuelve `ys[t] == 50` con `Solve`, toma la raíz real (la 3ª) y termina con la concentración.",
     "difficulty": 4,
     "cmds": [
-     "FindRoot",
+     "Solve",
+     "Part",
      "ReplaceAll"
     ],
     "real": true,
     "source": "PL2 · prueba de sesión 2020-21",
-    "solution": "r = FindRoot[ys[t] == 50, {t, 20}]\n50/v[t] /. r",
+    "solution": "resm50 = Solve[ys[t] == 50, t]\ntm50 = t /. resm50[[3]]\n50/v[tm50]",
     "check": {
      "type": "expr",
      "expected": "0.3270225921",
@@ -1097,14 +1105,12 @@
      "tol": 0.0001
     },
     "hints": [
-     "`r = FindRoot[ys[t] == 50, {t, 20}]`",
-     "Concentración = cantidad/volumen: `50/v[t] /. r`."
+     "`resm50 = Solve[ys[t] == 50, t]` da tres raíces: dos complejas y una real.",
+     "`tm50 = t /. resm50[[3]]`",
+     "Concentración = cantidad/volumen: `50/v[tm50]`."
     ],
-    "explain": "t ≈ 26.45 min y 0.327 g/l. El examen de 2021 preguntó justo esto con otros datos.",
-    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 12500 Sqrt[2]/(50 + t)^(3/2);",
-    "requires": [
-     "FindRoot"
-    ]
+    "explain": "t ≈ 26.45 min y 0.327 g/l. `[[3]]` coge la tercera raíz. El examen de 2021 preguntó justo esto con otros datos.",
+    "setup": "v[t_] = 100 + 2 t;\nys[t_] = 50 + t - 17677.66952966369/(50 + t)^(3/2);"
    }
   },
   {

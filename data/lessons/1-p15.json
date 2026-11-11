@@ -874,7 +874,7 @@
     "id": "1-p15-e16",
     "kind": "code",
     "title": "El caso crítico: ¿qué m?",
-    "prompt": "Con k = 17/5, guarda en `aug` la ampliada y resuelve en `m`: `Det[Take[aug, {1, 3}, {2, 4}]] == 0`.",
+    "prompt": "Con k = 3.4, guarda en `aug` la ampliada (`Join`) y resuelve en `m`: `Det[Take[aug, {1, 3}, {2, 4}]] == 0`.",
     "difficulty": 4,
     "cmds": [
      "Take",
@@ -885,7 +885,7 @@
     "real": true,
     "source": "Práctica 15 · P3 b)",
     "setup": "A = {{2, k - 3, 0}, {0, k - 5, -1}, {3, -1, -1}}; b = {{1}, {1}, {5 m - 10}};",
-    "solution": "aug = Join[A /. k -> 17/5, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
+    "solution": "aug = Join[A /. k -> 3.4, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
     "check": {
      "type": "any",
      "checks": [
@@ -899,7 +899,7 @@
        "expected": "5/2",
        "compare": "numeric",
        "tol": 1e-06,
-       "msg": "No es ese valor. Construye la ampliada con k = 17/5 y anula el determinante de `Take[aug, {1, 3}, {2, 4}]`."
+       "msg": "No es ese valor. Construye la ampliada con k = 3.4 y anula el determinante de `Take[aug, {1, 3}, {2, 4}]`."
       }
      ]
     },
@@ -907,10 +907,10 @@
      "Det"
     ],
     "hints": [
-     "`aug = Join[A /. k -> 17/5, b, 2];`",
+     "`aug = Join[A /. k -> 3.4, b, 2];`",
      "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
     ],
-    "explain": "m = 5/2. Con k = k0 el rango de A es 2; la ampliada también tiene rango 2 solo si se anula su menor de las columnas 2 a 4: entonces es compatible indeterminado. Con otro m, incompatible. Usa la fracción 17/5, no 3.4, para que los rangos sean exactos."
+    "explain": "m = 2.5, es decir 5/2 (`Rationalize[2.5]` lo convierte en fracción). Con k = k0, `MatrixRank[A /. k -> 3.4]` da 2; la ampliada también tiene rango 2 solo si se anula su menor de las columnas 2 a 4: compatible indeterminado. Con otro m, incompatible."
    }
   },
   {
@@ -976,17 +976,18 @@
     "id": "1-p15-e18",
     "kind": "code",
     "title": "Versión de clase: el m del caso crítico",
-    "prompt": "Mismas `A` y `b`. Con k = 9/5, forma la ampliada `aug` y halla el `m` que anula `Det[Take[aug, {1, 3}, {2, 4}]]`.",
+    "prompt": "Mismas `A` y `b`. Con k = 1.8, forma la ampliada `aug` y halla el `m` que anula `Det[Take[aug, {1, 3}, {2, 4}]]`.",
     "difficulty": 4,
     "cmds": [
      "Take",
      "Det",
-     "Solve"
+     "Solve",
+     "Join"
     ],
     "real": true,
     "source": "Práctica 15 · P2 b) (versión de clase)",
     "setup": "A = {{3, k - 3, 0}, {0, k - 1, -1}, {2, 0, -1}}; b = {{3}, {-1}, {m - 5}};",
-    "solution": "aug = Join[A /. k -> 9/5, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
+    "solution": "aug = Join[A /. k -> 1.8, b, 2];\nSolve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]",
     "check": {
      "type": "any",
      "checks": [
@@ -1007,7 +1008,7 @@
      "Det"
     ],
     "hints": [
-     "`aug = Join[A /. k -> 9/5, b, 2];`",
+     "`aug = Join[A /. k -> 1.8, b, 2];`",
      "`Solve[Det[Take[aug, {1, 3}, {2, 4}]] == 0, m]`"
     ],
     "explain": "m = 6: la misma receta del ejercicio anterior con otros números."
@@ -1018,7 +1019,7 @@
    "section": "Infinitas soluciones: elegir parámetros",
    "title": "Tú eliges qué se despeja",
    "md": "Un sistema con más incógnitas que ecuaciones. Lo que no despejas queda como parámetro.",
-   "target": "Solve[{x + y + z == 6, x - y == 0}, {y, z}]",
+   "target": "Solve[{x + y + z == 6, x - y == 0}, {z, x, y}]",
    "parts": [
     {
      "code": "Solve[{x + y + z == 6, x - y == 0}, {x, y}]",
@@ -1028,21 +1029,26 @@
     {
      "code": "Solve[{x + y + z == 6, x - y == 0}, {y, z}]",
      "md": "Ahora despeja `y` y `z`: el parámetro es `x`.",
+     "run": true
+    },
+    {
+     "code": "Solve[{x + y + z == 6, x - y == 0}, {z, x, y}]",
+     "md": "Con todas en la lista: queda libre la primera, y sale un aviso.",
      "run": true,
-     "hint": "En la lista final van solo las incógnitas que quieres despejar.",
-     "more": "En los cuadernos de la práctica se ponen todas las variables y se juega con el orden: Mathematica despeja las últimas de la lista y deja libres las primeras, con el aviso `Solve::svars`. Decir solo las que despejas es más claro."
+     "hint": "El aviso `Solve::svars` no es un error: dice que no hay solución única.",
+     "more": "Con todas las variables en la lista, Mathematica despeja las últimas y deja como parámetros las primeras. Es la forma que usan los cuadernos de la práctica: el orden de la lista decide los parámetros."
     }
    ],
    "recall": {
-    "prompt": "Resuelve x + y + z = 6, x − y = 0 despejando `y` y `z` (parámetro `x`).",
+    "prompt": "Resuelve x + y + z = 6, x − y = 0 con `z` como parámetro, poniendo las tres variables en la lista.",
     "hints": [
      "Las ecuaciones con `==`, en una lista.",
-     "Al final, solo las que despejas: `{y, z}`.",
-     "`Solve[{ == , == }, {y, z}]`"
+     "El parámetro va el primero de la lista de variables: `{z, x, y}`.",
+     "`Solve[{ == , == }, {z, x, y}]`"
     ],
     "check": {
      "type": "expr",
-     "expected": "{{y -> x, z -> 6 - 2 x}}",
+     "expected": "{{x -> 3 - z/2, y -> 3 - z/2}}",
      "compare": "set"
     }
    },
@@ -1056,7 +1062,7 @@
     "id": "1-p15-e19",
     "kind": "code",
     "title": "Parámetros y, z",
-    "prompt": "`ecs` (3 ecuaciones con x, y, z, w, t; escribe `ecs` para verlas) ya existe. Despeja x, t, w (parámetros y, z), en decimal.",
+    "prompt": "`ecs` (3 ecuaciones con x, y, z, w, t; escribe `ecs` para verlas) ya existe. Resuélvelo en decimal con parámetros y, z.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -1065,19 +1071,19 @@
     "real": true,
     "source": "Práctica 15 · P4 a) (versión A)",
     "setup": "ecs = {3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19};",
-    "solution": "Solve[ecs, {x, t, w}] // N",
+    "solution": "Solve[ecs, {y, z, x, t, w}] // N",
     "check": {
      "type": "expr",
      "expected": "{{x -> -1/5 - y/3 + 2 z/3, t -> -14/5, w -> 0}}",
      "compare": "set",
-     "msg": "No coincide. Despeja exactamente x, t y w: `Solve[ecs, {x, t, w}]`."
+     "msg": "No coincide. Los parámetros van los primeros: `Solve[ecs, {y, z, x, t, w}]`."
     },
     "requires": [
      "Solve"
     ],
     "hints": [
-     "Como incógnitas, solo las que se despejan: `{x, t, w}`.",
-     "`Solve[ecs, {x, t, w}] // N`"
+     "Pon los parámetros los primeros de la lista: `{y, z, x, t, w}`.",
+     "`Solve[ecs, {y, z, x, t, w}] // N`"
     ],
     "explain": "x = −0.2 − 0.333333·y + 0.666667·z, t = −2.8, w = 0. El sistema: 3x + y − 2z − w − 2t = 5; −3x/2 − y/2 + z + w/2 − t/4 = 1; 3x + y − 2z + 20w − 7t = 19."
    }
@@ -1088,7 +1094,7 @@
     "id": "1-p15-e20",
     "kind": "code",
     "title": "Parámetros x, y",
-    "prompt": "Mismo `ecs`. Resuélvelo ahora con parámetros x, y: despeja z, t, w, en decimal.",
+    "prompt": "Mismo `ecs`. Resuélvelo ahora, en decimal, con parámetros x, y.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -1097,19 +1103,19 @@
     "real": true,
     "source": "Práctica 15 · P4 b) (versión A)",
     "setup": "ecs = {3 x + y - 2 z - w - 2 t == 5, -3 x/2 - y/2 + z + w/2 - t/4 == 1, 3 x + y - 2 z + 20 w - 7 t == 19};",
-    "solution": "Solve[ecs, {z, t, w}] // N",
+    "solution": "Solve[ecs, {x, y, z, t, w}] // N",
     "check": {
      "type": "expr",
      "expected": "{{z -> 3/10 + 3 x/2 + y/2, t -> -14/5, w -> 0}}",
      "compare": "set",
-     "msg": "No coincide. Despeja exactamente z, t y w: `Solve[ecs, {z, t, w}]`."
+     "msg": "No coincide. Los parámetros van los primeros: `Solve[ecs, {x, y, z, t, w}]`."
     },
     "requires": [
      "Solve"
     ],
     "hints": [
-     "Solo cambia la lista de incógnitas: `{z, t, w}`.",
-     "`Solve[ecs, {z, t, w}] // N`"
+     "Solo cambia el orden de la lista: `{x, y, z, t, w}`.",
+     "`Solve[ecs, {x, y, z, t, w}] // N`"
     ],
     "explain": "z = 0.3 + 1.5·x + 0.5·y, t = −2.8, w = 0: la misma familia de soluciones escrita con otros parámetros."
    }
@@ -1182,7 +1188,7 @@
     "id": "1-p15-e23",
     "kind": "code",
     "title": "La misma solución con dos caras",
-    "prompt": "`ecs5` (ese sistema, con x1…x4) ya existe. Guarda en `solC` el `Solve` despejando x1, x4 y en `solD` despejando x3, x4.",
+    "prompt": "`ecs5` (ese sistema, con x1…x4) ya existe. Guarda en `solC` su `Solve` con parámetros x2, x3 y en `solD` con parámetros x1, x2.",
     "difficulty": 3,
     "cmds": [
      "Solve"
@@ -1190,7 +1196,7 @@
     "real": true,
     "source": "Práctica 15 · P5",
     "setup": "ecs5 = {2 x1 - 8 x2 - 4 x3 + x4 == 0, x1 - 4 x2 - 2 x3 + x4 == 1, -x1 + 4 x2 + 2 x3 == 1};",
-    "solution": "solC = Solve[ecs5, {x1, x4}]\nsolD = Solve[ecs5, {x3, x4}]",
+    "solution": "solC = Solve[ecs5, {x2, x3, x1, x4}]\nsolD = Solve[ecs5, {x1, x2, x3, x4}]",
     "check": {
      "type": "all",
      "checks": [
@@ -1199,14 +1205,14 @@
        "expr": "solC",
        "expected": "{{x1 -> -1 + 4 x2 + 2 x3, x4 -> 2}}",
        "compare": "set",
-       "msg": "`solC` debe ser la salida de `Solve[ecs5, {x1, x4}]`."
+       "msg": "`solC` debe despejar x1 y x4: `Solve[ecs5, {x2, x3, x1, x4}]`."
       },
       {
        "type": "value",
        "expr": "solD",
        "expected": "{{x3 -> 1/2 + x1/2 - 2 x2, x4 -> 2}}",
        "compare": "set",
-       "msg": "`solD` debe ser la salida de `Solve[ecs5, {x3, x4}]`."
+       "msg": "`solD` debe despejar x3 y x4: `Solve[ecs5, {x1, x2, x3, x4}]`."
       }
      ]
     },
@@ -1214,8 +1220,8 @@
      "Solve"
     ],
     "hints": [
-     "`solC = Solve[ecs5, {x1, x4}]`",
-     "`solD = Solve[ecs5, {x3, x4}]`"
+     "`solC = Solve[ecs5, {x2, x3, x1, x4}]`",
+     "`solD = Solve[ecs5, {x1, x2, x3, x4}]`"
     ],
     "explain": "El test daba por buenas las dos formas: (4x2 + 2x3 − 1, x2, x3, 2) y (x1, x2, 1/2 + x1/2 − 2x2, 2). Es la misma familia con distintos parámetros. La opción «solución única (−1, 0, 0, 2)» era falsa."
    }

@@ -118,7 +118,7 @@
      "`LaplaceTransform[función, t, s]`",
      "`LaplaceTransform[t Cos[t], t, s]`"
     ],
-    "explain": "Sale `(s^2 - 1)/(s^2 + 1)^2`. Si aparece con `I`, es lo mismo escrito de otra forma.",
+    "explain": "Sale `(s^2 - 1)/(s^2 + 1)^2`.",
     "requires": [
      "LaplaceTransform"
     ]
@@ -307,8 +307,8 @@
    "target": "LaplaceTransform[Sin[3 x] + 3 DiracDelta[x - 2], x, s]",
    "parts": [
     {
-     "code": "LaplaceTransform[DiracDelta[t - 1], t, s]",
-     "md": "Transforma un golpe en `t = 1`.",
+     "code": "LaplaceTransform[DiracDelta[t], t, s]",
+     "md": "Transforma un golpe en `t = 0`.",
      "run": true
     },
     {
@@ -343,12 +343,12 @@
    "type": "build",
    "section": "Funciones periódicas",
    "title": "Definir por trozos",
-   "md": "Construye una función periódica regla a regla y pruébala.",
-   "target": "f[x_] := x /; 0 < x < 1\nf[x_] := f[x - 1] /; x >= 1\nf[x_] := 0 /; x <= 0\nPlot[f[x], {x, -3, 3}]",
+   "md": "Construye una función periódica regla a regla y pruébala (ejemplo 6.1.2).",
+   "target": "T = 1;\nf[x_] := f[x - T] /; x >= T\nf[x_] := 0 /; x <= 0\nf[x_] := x /; 0 < x < T\nPlot[f[x], {x, -3, 3}]",
    "parts": [
     {
-     "code": "f[x_] := x /; 0 < x < 1",
-     "md": "Define el trozo básico: vale `x` entre 0 y 1.",
+     "code": "T = 1;\nf[x_] := x /; 0 < x < T",
+     "md": "Periodo `T = 1` y el trozo básico: vale `x` entre 0 y `T`.",
      "run": true,
      "hint": "`/;` se lee 'con la condición de que'."
     },
@@ -359,8 +359,8 @@
      "hint": "Fuera no sabe qué hacer: devuelve `f[1.3]` sin evaluar."
     },
     {
-     "code": "f[x_] := f[x - 1] /; x >= 1",
-     "md": "Añade la repetición: si te pasas de 1, resta un periodo.",
+     "code": "f[x_] := f[x - T] /; x >= T",
+     "md": "Añade la repetición: si te pasas de `T`, resta un periodo.",
      "run": true
     },
     {
@@ -369,16 +369,16 @@
      "run": true
     },
     {
-     "code": "f[x_] := x /; 0 < x < 1\nf[x_] := f[x - 1] /; x >= 1\nf[x_] := 0 /; x <= 0\nPlot[f[x], {x, -3, 3}]",
+     "code": "T = 1;\nf[x_] := f[x - T] /; x >= T\nf[x_] := 0 /; x <= 0\nf[x_] := x /; 0 < x < T\nPlot[f[x], {x, -3, 3}]",
      "md": "Todo junto, más la regla de que vale 0 antes de 0. Dibújala.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Define la función causal de periodo 1 que vale `x` en `0 < x < 1` y dibújala de -3 a 3.",
+    "prompt": "Define la función causal de periodo `T = 1` que vale `x` en `0 < x < T` y dibújala de -3 a 3.",
     "hints": [
-     "Tres reglas con `:=` y `/;`",
-     "`f[x_] := x /; 0 < x < 1`, `f[x_] := f[x - 1] /; x >= 1`, `f[x_] := 0 /; x <= 0`",
+     "`T = 1;` y tres reglas con `:=` y `/;`",
+     "`f[x_] := f[x - T] /; x >= T`, `f[x_] := 0 /; x <= 0`, `f[x_] := x /; 0 < x < T`",
      "`Plot[f[x], {x, -3, 3}]`"
     ],
     "check": {
@@ -391,39 +391,41 @@
    },
    "cmds": [
     "Plot"
-   ],
-   "more": "El guion (ejemplo 6.1.2) llama `T` al periodo: `T = 1; f[x_] := f[x - T] /; x >= T`."
+   ]
   },
   {
    "type": "build",
    "title": "Transformada periódica",
    "md": "Basta integrar un periodo y dividir por `1 - Exp[-T*s]`.",
-   "target": "(1/(1 - Exp[-s])) Integrate[x*Exp[-s*x], {x, 0, 1}, Assumptions -> s > 0]",
+   "target": "T = 1;\n(1/(1 - Exp[-T*s])) Integrate[x*Exp[-s*x], {x, 0, T}]",
    "parts": [
     {
-     "code": "Integrate[x*Exp[-s*x], {x, 0, 1}, Assumptions -> s > 0]",
+     "code": "T = 1;\nIntegrate[x*Exp[-s*x], {x, 0, T}]",
      "md": "Integra un periodo del trozo `x` por `Exp[-s*x]`.",
-     "run": true,
-     "hint": "`Assumptions -> s > 0` avisa de que `s` es positivo."
+     "run": true
     },
     {
-     "code": "(1/(1 - Exp[-s])) Integrate[x*Exp[-s*x], {x, 0, 1}, Assumptions -> s > 0]",
-     "md": "Multiplica por `1/(1 - Exp[-s])`: periodo `T = 1`.",
+     "code": "T = 1;\n(1/(1 - Exp[-T*s])) Integrate[x*Exp[-s*x], {x, 0, T}]",
+     "md": "Multiplica por `1/(1 - Exp[-T*s])`.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Transformada de la función de periodo 1 que vale `x` en un periodo.",
+    "prompt": "Transformada de la función de periodo `T = 1` que vale `x` en un periodo.",
     "hints": [
-     "Es `(1/(1 - Exp[-s]))` por una integral de 0 a 1",
-     "El integrando es `x*Exp[-s*x]`, con `Assumptions -> s > 0`"
-    ]
+     "Es `(1/(1 - Exp[-T*s]))` por una integral de 0 a `T`",
+     "El integrando es `x*Exp[-s*x]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "(1 - E^(-s) (1 + s))/((1 - E^(-s)) s^2)"
+    }
    },
    "cmds": [
     "Integrate",
     "Exp"
    ],
-   "more": "Fórmula general: `(1/(1 - Exp[-T*s])) Integrate[trozo*Exp[-s*x], {x, 0, T}]`. `LaplaceTransform` no entiende la definición por reglas."
+   "more": "`LaplaceTransform` no entiende la definición por reglas: por eso se usa esta propiedad, con la fórmula del trozo dentro de la integral."
   },
   {
    "type": "exercise",
@@ -439,14 +441,14 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 1c",
-    "solution": "T = 2;\n(1/(1 - Exp[-T*s])) Integrate[(t^2 - 2) Exp[-s*t], {t, 0, T}, Assumptions -> s > 0]",
+    "solution": "T = 2;\n(1/(1 - Exp[-T*s])) Integrate[(t^2 - 2) Exp[-s*t], {t, 0, T}]",
     "check": {
      "type": "expr",
      "expected": "2 ((1 - s^2) E^(2 s) - (1 + s)^2)/(s^3 (E^(2 s) - 1))"
     },
     "hints": [
      "Cambia el periodo, el trozo y la variable de integración.",
-     "`(1/(1 - Exp[-2 s])) Integrate[(t^2 - 2) Exp[-s*t], {t, 0, 2}, Assumptions -> s > 0]`"
+     "`T = 2;` y `(1/(1 - Exp[-T*s])) Integrate[(t^2 - 2) Exp[-s*t], {t, 0, T}]`"
     ],
     "explain": "Solo se integra de 0 a `T`. Con `// Simplify` sale con `Cosh` y `Sinh`: es lo mismo.",
     "requires": [
@@ -576,10 +578,14 @@
      "run": true
     },
     {
+     "code": "Convolve[Cos[3 t] UnitStep[t], Sin[3 t]/3 UnitStep[t], t, x]",
+     "md": "Sí coincide con la convolución (cada función por `UnitStep[t]`).",
+     "run": true
+    },
+    {
      "code": "Integrate[Cos[3 t]*Sin[3 (x - t)]/3, {t, 0, x}]",
-     "md": "Sí coincide con esta integral: `f(t) g(x - t)` de 0 a `x`.",
-     "run": true,
-     "hint": "Es la convolución de `Cos[3 x]` y `Sin[3 x]/3`."
+     "md": "La convolución a mano: integral de `f(t) g(x - t)` de 0 a `x`.",
+     "run": true
     }
    ],
    "recall": {
@@ -591,9 +597,9 @@
    },
    "cmds": [
     "Integrate",
+    "Convolve",
     "InverseLaplaceTransform"
-   ],
-   "more": "Comando directo del guion: `Convolve[f1[t], g1[t], t, x]`, con cada función multiplicada por `UnitStep[t]`."
+   ]
   },
   {
    "type": "exercise",
@@ -846,7 +852,7 @@
     "id": "2-m2-pl6-e12",
     "kind": "code",
     "title": "Guion 2b",
-    "prompt": "Resuelve con Laplace `y'' + y = 2 Sin[2 t]`, `y(0) = 10`, `y'(0) = 0`. Última salida: la solución.",
+    "prompt": "Resuelve con Laplace `y'' + y = Sqrt[2] Sin[Sqrt[2] t]`, `y(0) = 10`, `y'(0) = 0`. Última salida: la solución.",
     "difficulty": 3,
     "cmds": [
      "LaplaceTransform",
@@ -854,11 +860,11 @@
      "Solve"
     ],
     "real": true,
-    "source": "PL6 · ejercicio 2b (adaptado: frecuencia 2 en lugar de Sqrt[2])",
-    "solution": "ecdif = y''[t] + y[t] == 2 Sin[2 t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 10, y'[0] -> 0}",
+    "source": "PL6 · ejercicio 2b",
+    "solution": "ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];\nec1 = LaplaceTransform[ecdif, t, s];\nsol1 = Solve[ec1, LaplaceTransform[y[t], t, s]];\nsol2 = InverseLaplaceTransform[sol1, s, t];\nsoluc = sol2 /. {y[0] -> 10, y'[0] -> 0}",
     "check": {
      "type": "ode",
-     "eq": "y''[t] + y[t] == 2 Sin[2 t]",
+     "eq": "y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t]",
      "func": "y",
      "var": "t",
      "ics": [
@@ -867,11 +873,11 @@
      ]
     },
     "hints": [
-     "`ecdif = y''[t] + y[t] == 2 Sin[2 t];`",
-     "Después `ec1`, `sol1`, `sol2` como siempre.",
+     "La raíz es `Sqrt[2]`.",
+     "`ecdif = y''[t] + y[t] == Sqrt[2] Sin[Sqrt[2] t];`",
      "`soluc = sol2 /. {y[0] -> 10, y'[0] -> 0}`"
     ],
-    "explain": "Solución: `10 Cos[t] + (4/3) Sin[t] - (2/3) Sin[2 t]`. En el guion el segundo miembro es `Sqrt[2] Sin[Sqrt[2] t]` y sale `10 Cos[t] + 2 Sin[t] - Sqrt[2] Sin[Sqrt[2] t]`: mismas cinco líneas.",
+    "explain": "Solución: `10 Cos[t] + 2 Sin[t] - Sqrt[2] Sin[Sqrt[2] t]`.",
     "requires": [
      "LaplaceTransform",
      "InverseLaplaceTransform"
@@ -1029,7 +1035,7 @@
      "La ecuación: `y''[t] + y[t] == f[t] + 5`.",
      "Después `sol1`, `Y[s_] = ... /. {y[0] -> 10, y'[0] -> 0};` y `Y[2.3]`."
     ],
-    "explain": "`Y(2.3)` = 4.03645. También vale definir `f` con `Piecewise`. Una parte imaginaria de 10^-17 es ruido: `Chop`.",
+    "explain": "`Y(2.3)` = 4.03645. También vale definir `f` con `Piecewise`.",
     "requires": [
      "LaplaceTransform"
     ]
@@ -1164,35 +1170,30 @@
    "section": "Ecuación integro-diferencial",
    "title": "Transformar una convolución",
    "md": "La transformada de una convolución es el producto de transformadas.",
-   "target": "LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s]",
+   "target": "LaplaceTransform[Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}], x, s]",
    "parts": [
     {
-     "code": "LaplaceTransform[Exp[2 x], x, s]",
-     "md": "Transforma el primer factor.",
-     "run": true
-    },
-    {
-     "code": "LaplaceTransform[y'[x], x, s]",
-     "md": "Transforma el segundo.",
-     "run": true
-    },
-    {
      "code": "LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s]",
-     "md": "Su producto: la transformada de la convolución de `E^(2 x)` con `y'`.",
+     "md": "Multiplica las transformadas de `E^(2 x)` y de `y'`.",
+     "run": true
+    },
+    {
+     "code": "LaplaceTransform[Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}], x, s]",
+     "md": "Transforma su convolución, escrita como integral: sale lo mismo.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Transformada de la convolución de `E^(2 x)` con `y'(x)`: producto de las dos transformadas.",
+    "prompt": "Transformada de la integral en `t`, de 0 a `x`, de `E^(2 (x - t)) y'(t)` (variable `x`, nueva `s`).",
     "hints": [
-     "Dos `LaplaceTransform[..., x, s]` multiplicadas con `*`",
-     "`LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s]`"
+     "Dentro va `Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}]`",
+     "`LaplaceTransform[Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}], x, s]`"
     ]
    },
    "cmds": [
-    "LaplaceTransform"
-   ],
-   "more": "La convolución es la integral de 0 a `x` de `E^(2 (x - t)) y'(t)`. En Mathematica `LaplaceTransform` también la reconoce si la escribes con `Integrate`."
+    "LaplaceTransform",
+    "Integrate"
+   ]
   },
   {
    "type": "exercise",
@@ -1200,7 +1201,7 @@
     "id": "2-m2-pl6-e18",
     "kind": "code",
     "title": "Guion 3",
-    "prompt": "`y'' + y + conv(E^(2x), y') - conv(x, y'') = E^(2x)`, `y(0) = y'(0) = 0`. Resuélvela (variable `x`).",
+    "prompt": "`y'' + y + Int[E^(2(x-t)) y'(t)] - Int[(x-t) y''(t)] = E^(2x)`, integrales en `t` de 0 a `x`; `y(0) = y'(0) = 0`.",
     "difficulty": 4,
     "cmds": [
      "LaplaceTransform",
@@ -1209,7 +1210,7 @@
     ],
     "real": true,
     "source": "PL6 · ejercicio 3",
-    "solution": "ec1 = LaplaceTransform[y''[x] + y[x], x, s] + LaplaceTransform[Exp[2 x], x, s]*LaplaceTransform[y'[x], x, s] - LaplaceTransform[x, x, s]*LaplaceTransform[y''[x], x, s] == LaplaceTransform[Exp[2 x], x, s];\nsol1 = Solve[ec1, LaplaceTransform[y[x], x, s]];\nsol2 = InverseLaplaceTransform[sol1, s, x];\nsoluc = sol2 /. {y[0] -> 0, y'[0] -> 0}",
+    "solution": "ec1 = LaplaceTransform[y''[x] + y[x] + Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}] - Integrate[(x - t)*y''[t], {t, 0, x}] == Exp[2 x], x, s];\nsol1 = Solve[ec1, LaplaceTransform[y[x], x, s]];\nsol2 = InverseLaplaceTransform[sol1, s, x];\nsoluc = sol2 /. {y[0] -> 0, y'[0] -> 0}",
     "check": {
      "type": "any",
      "checks": [
@@ -1228,11 +1229,11 @@
      ]
     },
     "hints": [
-     "Cada `conv(f, g)` se transforma como `LaplaceTransform[f, x, s]*LaplaceTransform[g, x, s]`.",
-     "`ec1 = LaplaceTransform[y''[x] + y[x], x, s] + (producto 1) - (producto 2) == LaplaceTransform[Exp[2 x], x, s];`",
+     "Las integrales se escriben `Integrate[Exp[2 (x - t)]*y'[t], {t, 0, x}]` y `Integrate[(x - t)*y''[t], {t, 0, x}]`.",
+     "`ec1 = LaplaceTransform[y''[x] + y[x] + (integral 1) - (integral 2) == Exp[2 x], x, s];`",
      "Después `Solve[ec1, LaplaceTransform[y[x], x, s]]`, la inversa `[sol1, s, x]` y `/. {y[0] -> 0, y'[0] -> 0}`."
     ],
-    "explain": "Solución: `1 - E^x + x E^x`. `conv(f, g)` es la integral de 0 a `x` de `f(x - t) g(t)`. En la prueba cambiaban el núcleo a `E^(5 (x - t))` y pedían `y(1.5)`.",
+    "explain": "Solución: `1 - E^x + x E^x`. En la prueba cambiaban el núcleo a `E^(5 (x - t))` y pedían `y(1.5)`.",
     "requires": [
      "LaplaceTransform",
      "InverseLaplaceTransform"

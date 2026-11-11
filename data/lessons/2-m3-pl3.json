@@ -42,30 +42,30 @@
    "section": "Transformada de Fourier",
    "title": "Fourier de teoría",
    "md": "FourierTransform necesita una opción para usar la definición de clase.",
-   "target": "FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
+   "target": "FourierTransform[HeavisideTheta[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
    "parts": [
     {
-     "code": "{UnitStep[-2], UnitStep[3]}",
+     "code": "{HeavisideTheta[-2], HeavisideTheta[3]}",
      "md": "El escalón vale 0 en los negativos y 1 en los positivos.",
      "run": true
     },
     {
-     "code": "FourierTransform[UnitStep[t] Exp[-t], t, w]",
+     "code": "FourierTransform[HeavisideTheta[t] Exp[-t], t, w]",
      "md": "Transforma e^(−t) (para t > 0): función, variable, variable nueva.",
      "run": true
     },
     {
-     "code": "FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
+     "code": "FourierTransform[HeavisideTheta[t] Exp[-t], t, w, FourierParameters -> {1, -1}]",
      "md": "Añade la opción de teoría: desaparece el factor √(2π).",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Transformada de Fourier de `UnitStep[t] Exp[-t]` (de `t` a `w`) con la definición de teoría.",
+    "prompt": "Transformada de Fourier de `HeavisideTheta[t] Exp[-t]` (de `t` a `w`), definición de teoría.",
     "hints": [
      "La opción es `FourierParameters -> {1, -1}`.",
      "`FourierTransform[función, t, w, FourierParameters -> {1, -1}]`",
-     "`FourierTransform[UnitStep[t] Exp[-t], t, w, FourierParameters -> {1, -1}]`"
+     "`FourierTransform[HeavisideTheta[t] Exp[-t], t, w, FourierParameters -> {1, -1}]`"
     ],
     "check": {
      "type": "expr",
@@ -75,9 +75,9 @@
    "cmds": [
     "FourierTransform",
     "FourierParameters",
-    "UnitStep"
+    "HeavisideTheta"
    ],
-   "more": "Definición de teoría: F(w) = ∫ f(t) e^(−iwt) dt. El guion llama λ a la variable y usa `HeavisideTheta[t]` como escalón; aquí `w` y `UnitStep`, que se teclean mejor."
+   "more": "Definición de teoría: F(w) = ∫ f(t) e^(−iwt) dt. El guion llama λ a la variable; aquí `w`, que se teclea sin letras griegas."
   },
   {
    "type": "exercise",
@@ -107,6 +107,46 @@
     ],
     "explain": "6/(9 + w²): real y par, como la función de partida."
    }
+  },
+  {
+   "type": "build",
+   "title": "Fourier inversa",
+   "md": "La inversa lleva la misma opción y las variables al revés.",
+   "target": "InverseFourierTransform[1/(1 + I w), w, t, FourierParameters -> {1, -1}]",
+   "parts": [
+    {
+     "code": "F = FourierTransform[Exp[-Abs[t]], t, w, FourierParameters -> {1, -1}]",
+     "md": "Transforma e^(−|t|) y guárdala en F.",
+     "run": true
+    },
+    {
+     "code": "InverseFourierTransform[F, w, t, FourierParameters -> {1, -1}]",
+     "md": "Deshazlo con la inversa: ahora w, t.",
+     "run": true
+    },
+    {
+     "code": "InverseFourierTransform[1/(1 + I w), w, t, FourierParameters -> {1, -1}]",
+     "md": "Invierte 1/(1 + i w): vuelve el escalón por e^(−t).",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Transformada inversa de Fourier (teoría) de `1/(1 + I w)`, de `w` a `t`.",
+    "hints": [
+     "`InverseFourierTransform[función, w, t, FourierParameters -> {1, -1}]`",
+     "`InverseFourierTransform[1/(1 + I w), w, t, FourierParameters -> {1, -1}]`"
+    ],
+    "check": {
+     "type": "value",
+     "expr": "(% /. t -> 2.) - Exp[-2.]",
+     "expected": "0",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
+   },
+   "cmds": [
+    "InverseFourierTransform"
+   ]
   },
   {
    "type": "build",
@@ -243,7 +283,7 @@
      "Piecewise"
     ],
     "real": true,
-    "source": "Prueba de la PL3 (2021) · ej. 2 (como el Ejercicio 1 del guion)",
+    "source": "Prueba de la PL3 (2021) · ej. 2",
     "solution": "f = Piecewise[{{Cos[x], Abs[x] <= Pi}}, 0];\nF[w_] = FourierTransform[f, x, w, FourierParameters -> {1, -1}];\nN[F[-2.5]]",
     "check": {
      "type": "expr",
@@ -259,7 +299,39 @@
      "`f = Piecewise[{{Cos[x], Abs[x] <= Pi}}, 0];`",
      "`F[w_] = FourierTransform[f, x, w, FourierParameters -> {1, -1}];` y `N[F[-2.5]]`"
     ],
-    "explain": "F(w) = −2w sin(πw)/(w² − 1); F(−2.5) ≈ −0.9524. El Ejercicio 1 del guion es igual con t² sin t para |t| ≤ 5π."
+    "explain": "F(w) = −2w sin(πw)/(w² − 1); F(−2.5) ≈ −0.9524."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl3-e04",
+    "kind": "code",
+    "title": "Seno recortado",
+    "prompt": "f(t) = t² sin t si |t| ≤ 5π, 0 en el resto. Guarda su transformada (teoría) en `F[w_]` y devuelve `N[F[0.5]]`.",
+    "difficulty": 3,
+    "cmds": [
+     "FourierTransform",
+     "Piecewise"
+    ],
+    "real": true,
+    "source": "PL3 · Ejercicio 1",
+    "solution": "f = Piecewise[{{t^2 Sin[t], Abs[t] <= 5 Pi}}, 0];\nF[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}];\nN[F[0.5]]",
+    "check": {
+     "type": "expr",
+     "expected": "-641.3810341466979 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "FourierTransform",
+     "Piecewise"
+    ],
+    "hints": [
+     "`f = Piecewise[{{t^2 Sin[t], Abs[t] <= 5 Pi}}, 0];`",
+     "`F[w_] = FourierTransform[f, t, w, FourierParameters -> {1, -1}];` y `N[F[0.5]]`"
+    ],
+    "explain": "F(0.5) ≈ −641.38 i: imaginaria pura, porque f es impar. Con `// FullSimplify` la fórmula queda como en el guion."
    }
   },
   {
@@ -303,7 +375,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e04",
+    "id": "2-m3-pl3-e05",
     "kind": "code",
     "title": "Seno inversa",
     "prompt": "Transformada seno inversa de `w/(1 + w^2)` (de `w` a `t`); en las inversas el factor es `Sqrt[2/Pi]`.",
@@ -390,6 +462,11 @@
      "run": true
     },
     {
+     "code": "FourierTransform[1/(1 + t^2), t, w, FourierParameters -> {1, -1}]",
+     "md": "Compara con el comando directo: une las dos ramas con Abs[w].",
+     "run": true
+    },
+    {
      "code": "Fpos[w_] = -2 Pi I Residue[Exp[-I w t]/(1 + t^2), {t, -I}];\nFpos[1]",
      "md": "Las dos líneas seguidas.",
      "run": true
@@ -407,14 +484,14 @@
     }
    },
    "cmds": [
-    "Residue"
-   ],
-   "more": "Las dos ramas juntas son π e^(−|w|), lo que da `FourierTransform` con la opción de teoría."
+    "Residue",
+    "FourierTransform"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e05",
+    "id": "2-m3-pl3-e06",
     "kind": "code",
     "title": "Cuatro polos, w negativa",
     "prompt": "f(t) = 1/(1 + t⁴). Calcula por residuos F(−1) (decimal). Polos de arriba: (1 + i)/√2 y (−1 + i)/√2.",
@@ -445,7 +522,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e06",
+    "id": "2-m3-pl3-e07",
     "kind": "code",
     "title": "Cuatro polos, w positiva",
     "prompt": "Misma f(t) = 1/(1 + t⁴). Calcula por residuos F(2) (decimal). Polos de abajo: (1 − i)/√2 y (−1 − i)/√2.",
@@ -476,7 +553,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e07",
+    "id": "2-m3-pl3-e08",
     "kind": "code",
     "title": "Seis polos",
     "prompt": "f(t) = 1/(1 + t⁶). Calcula por residuos F(−1). Polos de arriba: `I`, `Exp[I Pi/6]`, `Exp[5 I Pi/6]` (súmalos con `Total` y `Table`).",
@@ -527,6 +604,11 @@
      "run": true
     },
     {
+     "code": "InverseFourierTransform[1/(1 + 2 I w)^3, w, x, FourierParameters -> {1, -1}]",
+     "md": "Compruébalo con el comando directo: HeavisideTheta[x] marca x > 0.",
+     "run": true
+    },
+    {
      "code": "fx[x_] = I Residue[Exp[I w x]/(1 + 2 I w)^3, {w, I/2}];\nN[fx[3.7]]",
      "md": "Define y evalúa en x = 3.7.",
      "run": true
@@ -554,7 +636,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e08",
+    "id": "2-m3-pl3-e09",
     "kind": "code",
     "title": "Polo de orden 5",
     "prompt": "F(w) = 1/(1 + 4πiw)⁵, polo en i/(4π) (arriba). Define `fx[x_]` por residuos (x > 0) y devuelve `N[fx[20]]`.",
@@ -585,7 +667,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e09",
+    "id": "2-m3-pl3-e10",
     "kind": "code",
     "title": "Polo abajo (examen)",
     "prompt": "F(w) = 1/(1 − 2iw)³, polo en −i/2 (abajo): f(x) = −i·residuo para x < 0 y 0 para x > 0. Devuelve `N[{f(−π), f(3.7)}]`.",
@@ -702,7 +784,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e10",
+    "id": "2-m3-pl3-e11",
     "kind": "code",
     "title": "EDO de segundo orden",
     "prompt": "Resuelve con Laplace y'' + y = e^(−t), y(0) = 1, y'(0) = 0. La última línea debe devolver y(t).",
@@ -787,7 +869,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e11",
+    "id": "2-m3-pl3-e12",
     "kind": "code",
     "title": "Tres polos múltiples",
     "prompt": "F(s) = 1/((s − 8)⁴ (s + 1)³ (s − 2)). Devuelve su inversa de Laplace como suma de residuos (polos 8, 2 y −1).",
@@ -816,7 +898,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e12",
+    "id": "2-m3-pl3-e13",
     "kind": "code",
     "title": "Inversa en dos instantes",
     "prompt": "F(s) = 1/((s − 1)(s + 2)³). Define `f[t_]` por residuos (polos −2 y 1) y devuelve `{f[0.1], f[0.3]}`.",
@@ -886,7 +968,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e13",
+    "id": "2-m3-pl3-e14",
     "kind": "code",
     "title": "Dos transformadas Z",
     "prompt": "Devuelve la lista con la transformada Z de `2^n` y la de `n 3^n`.",
@@ -914,7 +996,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e14",
+    "id": "2-m3-pl3-e15",
     "kind": "code",
     "title": "Una inversa Z",
     "prompt": "Transformada Z inversa de `z/((z - 1) (z - 2))`.",
@@ -938,6 +1020,44 @@
     ],
     "explain": "x_n = 2ⁿ − 1: la sucesión 0, 1, 3, 7, 15…"
    }
+  },
+  {
+   "type": "build",
+   "title": "Delta discreta",
+   "md": "La delta discreta es el impulso de las sucesiones.",
+   "target": "ZTransform[DiscreteDelta[n - 5], n, z]",
+   "parts": [
+    {
+     "code": "Table[DiscreteDelta[n], {n, -2, 2}]",
+     "md": "Vale 1 en n = 0 y 0 en el resto.",
+     "run": true
+    },
+    {
+     "code": "ZTransform[DiscreteDelta[n], n, z]",
+     "md": "Su transformada Z es 1.",
+     "run": true
+    },
+    {
+     "code": "ZTransform[DiscreteDelta[n - 5], n, z]",
+     "md": "Retrasada 5 pasos: 1/z⁵.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Transformada Z de la delta retrasada 5 pasos, `DiscreteDelta[n - 5]`.",
+    "hints": [
+     "`ZTransform[sucesión, n, z]`",
+     "`ZTransform[DiscreteDelta[n - 5], n, z]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "1/z^5"
+    }
+   },
+   "cmds": [
+    "DiscreteDelta",
+    "ZTransform"
+   ]
   },
   {
    "type": "build",
@@ -998,6 +1118,11 @@
      "run": true
     },
     {
+     "code": "Table[InverseZTransform[X, z, n], {n, 0, 4}]",
+     "md": "Compruébalo con el comando directo: 0, 0, 1/2, 1, 9/8.",
+     "run": true
+    },
+    {
      "code": "X = 2 (1 + 2 z)/(2 z - 1)^3;\nxn = Residue[z^(n - 1) X, {z, 1/2}];\nx0 = Residue[z^(-1) X, {z, 1/2}] + Residue[z^(-1) X, {z, 0}];\n{x0, xn}",
      "md": "Todo seguido: x0 aparte y xn para n ≥ 1.",
      "run": true
@@ -1018,12 +1143,12 @@
    "cmds": [
     "Residue"
    ],
-   "more": "Es el Ejemplo 1 del guion. La sucesión es 0, 0, 1/2, 1, 9/8…; `InverseZTransform` lo indica con un `UnitStep`."
+   "more": "Es el Ejemplo 1 del guion (`xn` y `xndirecto`)."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e15",
+    "id": "2-m3-pl3-e16",
     "kind": "code",
     "title": "Polo cuádruple en cero",
     "prompt": "X = 2(1 + 2z)/(z⁴(2z − 1)³). Devuelve `{x2, xn}`: `x2` con los polos 1/2 y 0 (n = 2) y `xn` solo con 1/2 (n ≥ 5).",
@@ -1051,7 +1176,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e16",
+    "id": "2-m3-pl3-e17",
     "kind": "code",
     "title": "Z evaluada en un punto",
     "prompt": "Transformada Z de x_n = (−1)ⁿ 3ⁿ/(2n)!, evaluada en z = 4/π² (decimal).",
@@ -1082,112 +1207,121 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e17",
+    "id": "2-m3-pl3-e18",
     "kind": "code",
-    "title": "Inversa leyendo una serie",
-    "prompt": "X(z) = cos(2/z): x_n es el coeficiente de uⁿ en `Cos[2 u]` (u = 1/z). Devuelve `{x0, x3, x6}`.",
+    "title": "Inversa de un coseno",
+    "prompt": "X(z) = cos(2/z). Guarda su Z inversa en `xn` y devuelve `N[Table[xn, {n, 0, 6, 3}]]` (x0, x3 y x6).",
     "difficulty": 3,
     "cmds": [
-     "SeriesCoefficient",
+     "InverseZTransform",
      "Table"
     ],
     "real": true,
     "source": "Prueba de la PL3 (2021) · ej. 7",
-    "solution": "Table[SeriesCoefficient[Cos[2 u], {u, 0, k}], {k, {0, 3, 6}}]",
+    "solution": "xn = InverseZTransform[Cos[2/z], z, n];\nN[Table[xn, {n, 0, 6, 3}]]",
     "check": {
      "type": "expr",
-     "expected": "{1, 0, -4/45}"
+     "expected": "{1, 0, -4/45}",
+     "compare": "numeric",
+     "tol": 1e-06
     },
-    "hints": [
-     "`SeriesCoefficient[Cos[2 u], {u, 0, k}]` da x_k.",
-     "`Table[SeriesCoefficient[Cos[2 u], {u, 0, k}], {k, {0, 3, 6}}]`"
+    "requires": [
+     "InverseZTransform"
     ],
-    "explain": "x0 = 1, x3 = 0, x6 = −4/45. En Mathematica también: `InverseZTransform[Cos[2/z], z, n]`."
+    "hints": [
+     "`xn = InverseZTransform[Cos[2/z], z, n];`",
+     "`Table[xn, {n, 0, 6, 3}]` va de 0 a 6 de 3 en 3."
+    ],
+    "explain": "x0 = 1, x3 = 0 y x6 = −4/45 ≈ −0.0889: son los coeficientes de 1/zⁿ al desarrollar cos(2/z)."
    }
   },
   {
    "type": "build",
    "section": "Ecuaciones en diferencias",
    "title": "El desplazamiento",
-   "md": "Si Y es la Z de y_n, la de y_(n+1) es z·Y − z·y_0.",
-   "target": "InverseZTransform[Simplify[z Y - z], z, n]",
+   "md": "ZTransform sabe transformar una sucesión desplazada.",
+   "target": "ZTransform[Subscript[y, n + 2], n, z]",
    "parts": [
     {
-     "code": "Y = ZTransform[2^n, n, z]",
-     "md": "Transformada de y_n = 2ⁿ (y_0 = 1).",
+     "code": "ZTransform[Subscript[y, n], n, z]",
+     "md": "La Z de una sucesión desconocida y_n queda indicada.",
      "run": true
     },
     {
-     "code": "Simplify[z Y - z]",
-     "md": "Aplica el desplazamiento: z·Y − z·y_0.",
+     "code": "ZTransform[Subscript[y, n + 1], n, z]",
+     "md": "Desplazada un paso: aparece el valor inicial y_0.",
      "run": true
     },
     {
-     "code": "InverseZTransform[Simplify[z Y - z], z, n]",
-     "md": "Invierte para comprobar: sale 2·2ⁿ, que es y_(n+1).",
+     "code": "ZTransform[Subscript[y, n + 2], n, z]",
+     "md": "Dos pasos: aparecen y_0 e y_1.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Con `Y = ZTransform[2^n, n, z]` ya definida, simplifica la transformada de y_(n+1): z·Y − z.",
+    "prompt": "Calcula la transformada Z de la sucesión desplazada dos pasos, `Subscript[y, n + 2]`.",
     "hints": [
-     "La regla es z·Y − z·y_0, con y_0 = 1.",
-     "`Simplify[z Y - z]`"
+     "`Subscript[y, n + 2]` es y con subíndice n + 2.",
+     "`ZTransform[Subscript[y, n + 2], n, z]`"
     ],
     "check": {
      "type": "expr",
-     "expected": "2 z/(z - 2)"
-    },
-    "solution": "Simplify[z Y - z]"
+     "expected": "ZTransform[Subscript[y, n + 2], n, z]"
+    }
    },
    "cmds": [
     "ZTransform",
-    "InverseZTransform"
+    "Subscript"
    ],
-   "more": "Para dos pasos: la de y_(n+2) es z²·Y − z²·y_0 − z·y_1. En Mathematica, `ZTransform[Subscript[y, n + 1] - …, n, z]` aplica estas reglas solo; así empieza el guion (`paso1`).",
-   "setup": "Y = ZTransform[2^n, n, z];"
+   "more": "Si Y es la Z de y_n: la de y_(n+1) es z·Y − z·y_0 y la de y_(n+2) es z²·Y − z²·y_0 − z·y_1. En el cuaderno, el subíndice se teclea con Ctrl+_."
   },
   {
    "type": "build",
    "title": "Resolver con Z",
-   "md": "y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1: transformar, despejar, invertir.",
-   "target": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
+   "md": "y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1, en los cuatro pasos del guion.",
+   "target": "paso1 = ZTransform[Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, n, z];\npaso2 = paso1 /. Subscript[y, 0] -> 1;\npaso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]];\nsol = InverseZTransform[paso3[[1, 1, 2]], z, n]",
    "parts": [
     {
-     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z]",
-     "md": "Ecuación transformada: y_(n+1) pasa a z Y − z, e y_n a Y.",
+     "code": "paso1 = ZTransform[Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, n, z]",
+     "md": "Transforma la ecuación entera (con ==).",
      "run": true
     },
     {
-     "code": "Yz = Y /. Solve[ec, Y][[1]]",
-     "md": "Despeja Y y quédate con la expresión.",
+     "code": "paso2 = paso1 /. Subscript[y, 0] -> 1",
+     "md": "Mete la condición inicial y_0 = 1.",
      "run": true
     },
     {
-     "code": "yn = InverseZTransform[Yz, z, n]",
-     "md": "Invierte: es la solución y_n.",
+     "code": "paso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]]",
+     "md": "Despeja la transformada de y_n: es la incógnita de Solve.",
      "run": true
     },
     {
-     "code": "Table[yn, {n, 0, 3}]",
-     "md": "Lista los primeros términos: el primero debe ser y_0 = 1.",
+     "code": "sol = InverseZTransform[paso3[[1, 1, 2]], z, n]",
+     "md": "Invierte el lado derecho de la regla, [[1, 1, 2]].",
      "run": true
     },
     {
-     "code": "ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nTable[yn, {n, 0, 3}]",
-     "md": "Las cuatro líneas seguidas.",
+     "code": "sol /. n -> 0",
+     "md": "Comprueba la condición inicial: debe dar 1.",
+     "run": true
+    },
+    {
+     "code": "paso1 = ZTransform[Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, n, z];\npaso2 = paso1 /. Subscript[y, 0] -> 1;\npaso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]];\nsol = InverseZTransform[paso3[[1, 1, 2]], z, n]",
+     "md": "Los cuatro pasos seguidos.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Resuelve con Z y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1 (`ec`, `Yz`, `yn`) y lista n = 0…3.",
+    "prompt": "Resuelve con Z y_(n+1) − y_n/2 = (1/5)ⁿ, y_0 = 1: `paso1`, `paso2`, `paso3`, `sol`.",
     "hints": [
-     "`ec = z Y - z - Y/2 == ZTransform[(1/5)^n, n, z];`",
-     "`Yz = Y /. Solve[ec, Y][[1]];` y `yn = InverseZTransform[Yz, z, n];`",
-     "`Table[yn, {n, 0, 3}]`"
+     "`paso1 = ZTransform[ecuación, n, z];` y `paso2 = paso1 /. Subscript[y, 0] -> 1;`",
+     "`paso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]];`",
+     "`sol = InverseZTransform[paso3[[1, 1, 2]], z, n]`"
     ],
     "check": {
-     "type": "expr",
+     "type": "value",
+     "expr": "Table[sol, {n, 0, 3}]",
      "expected": "{1, 3/2, 19/20, 103/200}"
     }
    },
@@ -1195,25 +1329,25 @@
     "ZTransform",
     "InverseZTransform",
     "Solve",
-    "Table"
+    "Subscript"
    ],
-   "more": "Es el Ejemplo 1 del guion. Allí: `paso1 = ZTransform[ecuación con Subscript[y, n], n, z]`, `paso2 = paso1 /. Subscript[y, 0] -> 1`, `paso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]]` e inversa."
+   "more": "Es el Ejemplo 1 del guion: los mismos cuatro pasos que una EDO con Laplace."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e18",
+    "id": "2-m3-pl3-e19",
     "kind": "code",
     "title": "Dibujar la solución",
-    "prompt": "La solución anterior ya está en `yn`. Dibuja sus términos de n = 0 a 10 con `DiscretePlot`.",
+    "prompt": "La solución anterior ya está en `sol`. Dibuja sus términos de n = 0 a 10 con `DiscretePlot`.",
     "difficulty": 1,
     "cmds": [
      "DiscretePlot"
     ],
     "real": false,
     "source": null,
-    "setup": "yn = (13 2^(-n) - 2 5^(1 - n))/3;",
-    "solution": "DiscretePlot[yn, {n, 0, 10}]",
+    "setup": "sol = (13 2^(-n) - 2 5^(1 - n))/3;",
+    "solution": "DiscretePlot[sol, {n, 0, 10}]",
     "check": {
      "type": "graphics",
      "dim": 2,
@@ -1224,7 +1358,7 @@
     ],
     "hints": [
      "Misma sintaxis que `Plot`, con `{n, 0, 10}`.",
-     "`DiscretePlot[yn, {n, 0, 10}]`"
+     "`DiscretePlot[sol, {n, 0, 10}]`"
     ],
     "explain": "`DiscretePlot` es como `Plot`, pero solo en valores enteros de n."
    }
@@ -1232,21 +1366,21 @@
   {
    "type": "build",
    "title": "RSolve",
-   "md": "RSolve es el DSolve de las sucesiones.",
-   "target": "RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]",
+   "md": "RSolve es el DSolve de las sucesiones: sirve para comprobar.",
+   "target": "RSolve[{Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, Subscript[y, 0] == 1}, Subscript[y, n], n]",
    "parts": [
     {
-     "code": "RSolve[y[n + 1] == 2 y[n], y[n], n]",
+     "code": "RSolve[Subscript[y, n + 1] == 2 Subscript[y, n], Subscript[y, n], n]",
      "md": "Sin condición inicial: aparece una constante C.",
      "run": true
     },
     {
-     "code": "RSolve[{y[n + 1] == 2 y[n], y[0] == 3}, y[n], n]",
+     "code": "RSolve[{Subscript[y, n + 1] == 2 Subscript[y, n], Subscript[y, 0] == 3}, Subscript[y, n], n]",
      "md": "Con condición inicial, las dos en una lista.",
      "run": true
     },
     {
-     "code": "RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]",
+     "code": "RSolve[{Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, Subscript[y, 0] == 1}, Subscript[y, n], n]",
      "md": "Ahora la ecuación del guion: coincide con la de Z.",
      "run": true
     }
@@ -1254,23 +1388,23 @@
    "recall": {
     "prompt": "Resuelve con `RSolve`: y_(n+1) − y_n/2 = (1/5)ⁿ con y_0 = 1.",
     "hints": [
-     "Ecuación y condición en una lista; después `y[n]` y `n`.",
-     "`RSolve[{y[n + 1] - y[n]/2 == (1/5)^n, y[0] == 1}, y[n], n]`"
+     "Ecuación y condición en una lista; después `Subscript[y, n]` y `n`.",
+     "`RSolve[{Subscript[y, n + 1] - Subscript[y, n]/2 == 1/5^n, Subscript[y, 0] == 1}, Subscript[y, n], n]`"
     ],
     "check": {
      "type": "expr",
-     "expected": "{{y[n] -> (13 2^(-n) - 2 5^(1 - n))/3}}"
+     "expected": "{{Subscript[y, n] -> (13 2^(-n) - 2 5^(1 - n))/3}}"
     }
    },
    "cmds": [
-    "RSolve"
-   ],
-   "more": "El guion escribe las sucesiones con subíndices: `Subscript[y, n + 1]`, `Subscript[y, 0] == 1`."
+    "RSolve",
+    "Subscript"
+   ]
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl3-e19",
+    "id": "2-m3-pl3-e20",
     "kind": "code",
     "title": "Segundo orden con RSolve",
     "prompt": "Resuelve con `RSolve`: y_(n+2) − 3y_(n+1) + 2y_n = 0, y_0 = 0, y_1 = 1.",
@@ -1280,49 +1414,28 @@
     ],
     "real": false,
     "source": null,
-    "solution": "RSolve[{y[n + 2] - 3 y[n + 1] + 2 y[n] == 0, y[0] == 0, y[1] == 1}, y[n], n]",
+    "solution": "RSolve[{Subscript[y, n + 2] - 3 Subscript[y, n + 1] + 2 Subscript[y, n] == 0, Subscript[y, 0] == 0, Subscript[y, 1] == 1}, Subscript[y, n], n]",
     "check": {
-     "type": "expr",
-     "expected": "{{y[n] -> 2^n - 1}}"
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{{Subscript[y, n] -> 2^n - 1}}"
+      },
+      {
+       "type": "expr",
+       "expected": "{{y[n] -> 2^n - 1}}"
+      }
+     ]
     },
     "requires": [
      "RSolve"
     ],
     "hints": [
-     "Dos condiciones en la lista: `y[0] == 0, y[1] == 1`.",
-     "`RSolve[{y[n + 2] - 3 y[n + 1] + 2 y[n] == 0, y[0] == 0, y[1] == 1}, y[n], n]`"
+     "Dos condiciones en la lista: `Subscript[y, 0] == 0, Subscript[y, 1] == 1`.",
+     "`RSolve[{ecuación, condición 1, condición 2}, Subscript[y, n], n]`"
     ],
-    "explain": "y_n = 2ⁿ − 1."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m3-pl3-e20",
-    "kind": "code",
-    "title": "Segundo orden con Z",
-    "prompt": "x_(n+2) − 2x_(n+1) + x_n = n²/3ⁿ, x_0 = 1, x_1 = −1. La ecuación transformada ya está en `ec` (incógnita `X`). Devuelve `Table[xn, {n, 0, 3}]`.",
-    "difficulty": 4,
-    "cmds": [
-     "InverseZTransform",
-     "Solve"
-    ],
-    "real": true,
-    "source": "PL3 · Ejemplo 2 del guion",
-    "setup": "ec = z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z];",
-    "solution": "Xz = X /. Solve[ec, X][[1]];\nxn = InverseZTransform[Xz, z, n];\nTable[xn, {n, 0, 3}]",
-    "check": {
-     "type": "expr",
-     "expected": "{1, -1, -3, -14/3}"
-    },
-    "requires": [
-     "InverseZTransform"
-    ],
-    "hints": [
-     "`Xz = X /. Solve[ec, X][[1]];`",
-     "`xn = InverseZTransform[Xz, z, n];` y `Table[xn, {n, 0, 3}]`"
-    ],
-    "explain": "`ec` es `z^2 X - z^2 + z - 2 (z X - z) + X == ZTransform[n^2/3^n, n, z]`: desplazamiento con x_0 = 1, x_1 = −1. Los dos primeros términos, 1 y −1, son las condiciones iniciales."
+    "explain": "y_n = 2ⁿ − 1. También vale escribir la sucesión como `y[n]`, `y[n + 1]`."
    }
   },
   {
@@ -1330,31 +1443,30 @@
    "ex": {
     "id": "2-m3-pl3-e21",
     "kind": "code",
-    "title": "Con un seno",
-    "prompt": "y_(n+1) + y_n = sin(3n), y_0 = 2. La Z de sin(3n) ya está en `ZS`. Plantea `ec`, despeja, invierte y devuelve `N[Table[yn, {n, 0, 3}]]`.",
+    "title": "Segundo orden con Z",
+    "prompt": "x_(n+2) − 2x_(n+1) + x_n = n²/3ⁿ, x_0 = 1, x_1 = −1. Resuélvela con Z en cuatro pasos y devuelve `Table[sol, {n, 0, 3}]`.",
     "difficulty": 4,
     "cmds": [
+     "ZTransform",
      "InverseZTransform",
      "Solve"
     ],
     "real": true,
-    "source": "PL3 · Ejercicio 5",
-    "setup": "ZS = z Sin[3]/(z^2 - 2 z Cos[3] + 1);",
-    "solution": "ec = z Y - 2 z + Y == ZS;\nYz = Y /. Solve[ec, Y][[1]];\nyn = InverseZTransform[Yz, z, n];\nN[Table[yn, {n, 0, 3}]]",
+    "source": "PL3 · Ejemplo 2 del guion",
+    "solution": "paso1 = ZTransform[Subscript[x, n + 2] - 2 Subscript[x, n + 1] + Subscript[x, n] == n^2/3^n, n, z];\npaso2 = paso1 /. {Subscript[x, 0] -> 1, Subscript[x, 1] -> -1};\npaso3 = Solve[paso2, ZTransform[Subscript[x, n], n, z]];\nsol = InverseZTransform[paso3[[1, 1, 2]], z, n];\nTable[sol, {n, 0, 3}]",
     "check": {
      "type": "expr",
-     "expected": "{2, -2, 2 + Sin[3], -2 - Sin[3] + Sin[6]}",
-     "compare": "numeric",
-     "tol": 1e-06
+     "expected": "{1, -1, -3, -14/3}"
     },
     "requires": [
+     "ZTransform",
      "InverseZTransform"
     ],
     "hints": [
-     "Con y_0 = 2, y_(n+1) pasa a `z Y - 2 z`: `ec = z Y - 2 z + Y == ZS;`",
-     "`Yz = Y /. Solve[ec, Y][[1]];`, `yn = InverseZTransform[Yz, z, n];` y `N[Table[yn, {n, 0, 3}]]`"
+     "Dos condiciones: `paso2 = paso1 /. {Subscript[x, 0] -> 1, Subscript[x, 1] -> -1};`",
+     "Los pasos 3 y 4 no cambian (con `x` en vez de `y`); al final, `Table[sol, {n, 0, 3}]`."
     ],
-    "explain": "Términos: 2, −2, 2.141, −2.421. `ZS` es lo que da `ZTransform[Sin[3 n], n, z]`: z sin 3/(z² − 2z cos 3 + 1)."
+    "explain": "x_n = 3^(−n) (45 + 18n(2 + n) − 3ⁿ (37 + 4n))/8. Los dos primeros términos, 1 y −1, son las condiciones iniciales."
    }
   },
   {
@@ -1362,31 +1474,93 @@
    "ex": {
     "id": "2-m3-pl3-e22",
     "kind": "code",
+    "title": "Con un seno",
+    "prompt": "y_(n+1) + y_n = sin(3n), y_0 = 2. Resuélvela con Z en cuatro pasos y devuelve `N[Table[sol, {n, 0, 3}]]`.",
+    "difficulty": 4,
+    "cmds": [
+     "ZTransform",
+     "InverseZTransform",
+     "Solve"
+    ],
+    "real": true,
+    "source": "PL3 · Ejercicio 5",
+    "solution": "paso1 = ZTransform[Subscript[y, n + 1] + Subscript[y, n] == Sin[3 n], n, z];\npaso2 = paso1 /. Subscript[y, 0] -> 2;\npaso3 = Solve[paso2, ZTransform[Subscript[y, n], n, z]];\nsol = InverseZTransform[paso3[[1, 1, 2]], z, n];\nN[Table[sol, {n, 0, 3}]]",
+    "check": {
+     "type": "expr",
+     "expected": "{2, -2, 2 + Sin[3], -2 - Sin[3] + Sin[6]}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "ZTransform",
+     "InverseZTransform"
+    ],
+    "hints": [
+     "`paso1 = ZTransform[Subscript[y, n + 1] + Subscript[y, n] == Sin[3 n], n, z];` y `paso2 = paso1 /. Subscript[y, 0] -> 2;`",
+     "Pasos 3 y 4 como siempre; al final, `N[Table[sol, {n, 0, 3}]]`."
+    ],
+    "explain": "Términos: 2, −2, 2.141, −2.421. Se comprueban con la propia ecuación: y_1 = sin 0 − y_0, y_2 = sin 3 − y_1…"
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl3-e23",
+    "kind": "code",
     "title": "Un sistema",
-    "prompt": "y_(n+1) + 3y_n + 2x_n = 0, x_(n+1) − y_n = 0, x_0 = 1, y_0 = 2. El sistema transformado ya está en `sisZ` (incógnitas `X`, `Y`). Devuelve `{xn, yn}`.",
+    "prompt": "y_(n+1) + 3y_n + 2x_n = 0, x_(n+1) − y_n = 0, x_0 = 1, y_0 = 2. Resuélvelo con Z y devuelve `{solx, soly}`.",
     "difficulty": 5,
     "cmds": [
+     "ZTransform",
      "InverseZTransform",
      "Solve"
     ],
     "real": true,
     "source": "PL3 · Ejemplo 3 del guion (sistema)",
-    "setup": "sisZ = {z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0};",
-    "solution": "sol = Solve[sisZ, {X, Y}];\nxn = InverseZTransform[X /. sol[[1]], z, n];\nyn = InverseZTransform[Y /. sol[[1]], z, n];\n{xn, yn}",
+    "solution": "paso1 = ZTransform[{Subscript[y, n + 1] + 3 Subscript[y, n] + 2 Subscript[x, n] == 0, Subscript[x, n + 1] - Subscript[y, n] == 0}, n, z];\npaso2 = paso1 /. {Subscript[x, 0] -> 1, Subscript[y, 0] -> 2};\npaso3 = Solve[paso2, {ZTransform[Subscript[x, n], n, z], ZTransform[Subscript[y, n], n, z]}];\nsolx = InverseZTransform[paso3[[1, 1, 2]], z, n];\nsoly = InverseZTransform[paso3[[1, 2, 2]], z, n];\n{solx, soly}",
     "check": {
      "type": "value",
-     "expr": "Table[{xn, yn}, {n, 0, 4}]",
+     "expr": "Table[{solx, soly}, {n, 0, 4}]",
      "expected": "Table[{-3 (-2)^n + 4 (-1)^n, 6 (-2)^n - 4 (-1)^n}, {n, 0, 4}]"
     },
     "requires": [
-     "InverseZTransform",
-     "Solve"
+     "ZTransform",
+     "InverseZTransform"
     ],
     "hints": [
-     "`sol = Solve[sisZ, {X, Y}];` da las dos transformadas a la vez.",
-     "`xn = InverseZTransform[X /. sol[[1]], z, n];` y lo mismo con `Y` para `yn`."
+     "Las dos ecuaciones van en una lista dentro de `ZTransform`; `Solve` despeja las dos transformadas a la vez.",
+     "`solx = InverseZTransform[paso3[[1, 1, 2]], z, n];` y `soly` con `paso3[[1, 2, 2]]`."
     ],
-    "explain": "`sisZ` es `{z Y - 2 z + 3 Y + 2 X == 0, z X - z - Y == 0}`. Solución: x_n = −3(−2)ⁿ + 4(−1)ⁿ, y_n = 6(−2)ⁿ − 4(−1)ⁿ. En Mathematica se comprueba con `RSolve` y `{x[n], y[n]}`."
+    "explain": "x_n = −3(−2)ⁿ + 4(−1)ⁿ e y_n = 6(−2)ⁿ − 4(−1)ⁿ; en n = 0 dan 1 y 2."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl3-e24",
+    "kind": "code",
+    "title": "El sistema con RSolve",
+    "prompt": "Comprueba con `RSolve` el sistema y_(n+1) + 3y_n + 2x_n = 0, x_(n+1) − y_n = 0, x_0 = 1, y_0 = 2. Devuelve las reglas.",
+    "difficulty": 4,
+    "cmds": [
+     "RSolve"
+    ],
+    "real": true,
+    "source": "PL3 · Ejemplo 3 del guion (comprobación)",
+    "solution": "RSolve[{Subscript[y, n + 1] + 3 Subscript[y, n] + 2 Subscript[x, n] == 0, Subscript[x, n + 1] - Subscript[y, n] == 0, Subscript[x, 0] == 1, Subscript[y, 0] == 2}, {Subscript[x, n], Subscript[y, n]}, n]",
+    "check": {
+     "type": "value",
+     "expr": "Table[{Subscript[x, n], Subscript[y, n]} /. %[[1]], {n, 0, 4}]",
+     "expected": "Table[{-3 (-2)^n + 4 (-1)^n, 6 (-2)^n - 4 (-1)^n}, {n, 0, 4}]"
+    },
+    "requires": [
+     "RSolve"
+    ],
+    "hints": [
+     "Ecuaciones y condiciones en una lista; incógnitas `{Subscript[x, n], Subscript[y, n]}`.",
+     "`RSolve[{ec1, ec2, Subscript[x, 0] == 1, Subscript[y, 0] == 2}, {Subscript[x, n], Subscript[y, n]}, n]`"
+    ],
+    "explain": "Da las mismas x_n e y_n que la transformada Z."
    }
   }
  ]

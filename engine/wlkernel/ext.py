@@ -3144,10 +3144,12 @@ class DerivQ(XB):
             dv = d.downvalues
             if not dv:
                 return SymbolFalse
-            sig = tuple(id(r) for r in dv)
+            # Keep the rule objects themselves (not their id()): a freed rule's address can be reused by the rule
+            # of a NEW definition after a reset, which made a stale derivative look current.
+            sig = tuple(dv)
             key = (name, n.value)
             hit = _DERIV_CACHE.get(key)
-            if hit is not None and hit[0] == sig:
+            if hit is not None and len(hit[0]) == len(sig) and all(x is y for x, y in zip(hit[0], sig)):
                 return _stash("deriv", hit[1])
             _DERIV_BUSY[0] = True
             try:

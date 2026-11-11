@@ -29,7 +29,7 @@
      "value": 37.18506,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\nvueltas[a_, w_] := FixedPoint[If[a - Pi < Arg[w] + 2*#*Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, w_] := Arg[w] + 2 Pi*vueltas[a, w]\narg[40, z] // N",
+     "solution": "ClearAll[\"Global`*\"]\nz := 2*E - Sqrt[3*Pi]*I   (* E e I en mayúscula: son las constantes *)\nvueltas[a_, w_] := FixedPoint[If[a - Pi < Arg[w] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\narg[a_, w_] := Arg[w] + 2 Pi*vueltas[a, w]\narg[40, z] // N",
      "explain": "Todos los argumentos son `Arg[z] + 2 k Pi`. La determinación 40 es el que queda a menos de `Pi` de 40: aquí `k = 6`. El bloque `vueltas`/`arg` de la chuleta va sumando vueltas hasta entrar en el intervalo; solo se cambia el 40. Comprueba que el resultado está entre `40 - Pi` y `40 + Pi`."
     },
     {
@@ -76,8 +76,8 @@
      "value": 28.15144435,
      "tol": 1e-06,
      "points": 0.6,
-     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nL = NIntegrate[Sqrt[x'[t]^2 + y'[t]^2], {t, a, b}]\nNumberForm[L, 10]   (* para ver las 10 cifras *)",
-     "explain": "Longitud: integral de `Sqrt[x'(t)^2 + y'(t)^2]` en todo el intervalo. Esta integral no tiene primitiva sencilla, así que se usa `NIntegrate`. Cuando piden más dígitos de los que muestra la salida, usa `N[..., 10]` o `NumberForm[L, 10]`."
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\nL = N[Integrate[Sqrt[x'[t]^2 + y'[t]^2], {t, a, b}], 10]\nNumberForm[L, 10]   (* para ver las 10 cifras *)",
+     "explain": "Longitud: integral de `Sqrt[x'(t)^2 + y'(t)^2]` en todo el intervalo. El segundo argumento de `N[..., 10]` es el número de cifras: cámbialo según lo que pida cada casilla. `NumberForm[L, 10]` las muestra."
     },
     {
      "label": "c)",
@@ -86,35 +86,35 @@
      "value": 204.6705,
      "tol": 0.001,
      "points": 0.6,
-     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\n(* en 0 <= t <= b la curva está por debajo del eje (y <= 0): se toma valor absoluto *)\nAR = Abs[2 Pi*NIntegrate[y[t]*Sqrt[x'[t]^2 + y'[t]^2], {t, 0, b}]]",
+     "solution": "ClearAll[\"Global`*\"]\nx[t_] := 3 t^2/8 + 2\ny[t_] := -4 Sin[3 t/5]\na = -5 Pi/3; b = 5 Pi/3;\nParametricPlot[{x[t], y[t]}, {t, a, b}]   (* curva cerrada, simétrica respecto de OX *)\n(* Abs porque en 0 <= t <= b la curva está por debajo del eje (y <= 0) *)\nAR = 2*Pi*NIntegrate[Abs[y[t]]*Sqrt[x'[t]^2 + y'[t]^2], {t, 0, b}]",
      "explain": "Área de revolución alrededor de OX: `2 Pi` por la integral de `|y(t)|` por el elemento de longitud. Si integras toda la curva cerrada cuentas la superficie dos veces (las dos mitades generan la misma). El resultado tiene que ser positivo: si sale negativo es por el signo de `y`, no por un error."
     }
    ]
   },
   {
    "title": "P3 · Ecuación diferencial lineal de segundo orden",
-   "prompt": "Integra la ecuación diferencial `3 y''/4 + 5 y'/6 - 2 y = Pi Cos[t/3]`.\n\nPrimero, halla las constantes para que `y(1) = -5`, `y(2) = 3 E` (apartados a y b). Después, resuelve el problema con `y(0) = 2`, `y'(0) = -0.7` (apartado c).\n\nEn el examen real se teclean los valores de `C[1]` y `C[2]` tal como los numera Mathematica. Aquí se piden valores de la solución, que no dependen de cómo se numeren las constantes.",
+   "prompt": "Integra la ecuación diferencial `3 y''/4 + 5 y'/6 - 2 y = Pi Cos[t/3]`.\n\nPrimero, halla las constantes `C[1]` y `C[2]` de la solución general de `DSolve` para que `y(1) = -5`, `y(2) = 3 E` (apartados a y b). Después, resuelve el problema con `y(0) = 2`, `y'(0) = -0.7` (apartado c).",
    "points": 1.5,
    "parts": [
     {
      "label": "a)",
-     "prompt": "Con `y(1) = -5`, `y(2) = 3 E`: valor de `y(0)`, con 6 cifras significativas.",
+     "prompt": "Valor de `C[1]`, con 6 cifras significativas.",
      "answerType": "numeric",
-     "value": -66.40188,
+     "value": -65.87375,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t];\nyg[t_] = y[t] /. Flatten[sol]   (* solución general como función, con C[1] y C[2] *)\nctes = Solve[{yg[1] == -5, yg[2] == 3 E}, {C[1], C[2]}];   (* las dos condiciones *)\nN[ctes]\nyg[0] /. Flatten[ctes] // N",
-     "explain": "`DSolve` devuelve una regla `{{y[t] -> ...}}`. Para poder escribir `yg[1]`, `yg[2]` hay que convertirla en función: `yg[t_] = y[t] /. Flatten[sol]`. Después `Solve` con las dos condiciones da `C[1]` y `C[2]`. Error típico: saltarse ese paso y que `Solve` no encuentre las constantes."
+     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t] // Simplify\ny[t_] = y[t] /. Flatten[sol];   (* paso clave: la solución general como función *)\nctes = Solve[{y[1] == -5, y[2] == 3 E}, {C[1], C[2]}] // N   (* las dos condiciones *)\nC[1] /. Flatten[ctes]",
+     "explain": "`DSolve` devuelve una regla `{{y[t] -> ...}}`. Para poder escribir `y[1]`, `y[2]` hay que convertirla en función: `y[t_] = y[t] /. Flatten[sol]`. Después `Solve` con las dos condiciones da `C[1]` y `C[2]`. Error típico: saltarse ese paso y que `Solve` no encuentre las constantes."
     },
     {
      "label": "b)",
-     "prompt": "Con las mismas condiciones: valor de `y(3)`, con 6 cifras significativas.",
+     "prompt": "Valor de `C[2]`, con 6 cifras significativas.",
      "answerType": "numeric",
-     "value": 31.12607,
+     "value": 0.9534912,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t];\nyg[t_] = y[t] /. Flatten[sol]   (* solución general como función, con C[1] y C[2] *)\nctes = Solve[{yg[1] == -5, yg[2] == 3 E}, {C[1], C[2]}];   (* las dos condiciones *)\nN[ctes]\nyg[3] /. Flatten[ctes] // N",
-     "explain": "Se sustituyen las constantes halladas con `/. Flatten[ctes]` y se evalúa. Una de las exponenciales crece (`E^(1.17 t)`) y la otra decae (`E^(-2.28 t)`): por eso la solución se dispara al alejarse del intervalo `[1, 2]`."
+     "solution": "ClearAll[\"Global`*\"]\nsol = DSolve[3 y''[t]/4 + 5 y'[t]/6 - 2 y[t] == Pi*Cos[t/3], y[t], t] // Simplify\ny[t_] = y[t] /. Flatten[sol];   (* paso clave: la solución general como función *)\nctes = Solve[{y[1] == -5, y[2] == 3 E}, {C[1], C[2]}] // N   (* las dos condiciones *)\nC[2] /. Flatten[ctes]",
+     "explain": "`C[1]` acompaña a la exponencial que decae (`E^(-2.28 t)`) y `C[2]` a la que crece (`E^(1.17 t)`): mira la salida de `DSolve` para saber cuál es cuál. Las dos casillas van en ese orden."
     },
     {
      "label": "c)",
@@ -130,7 +130,7 @@
   },
   {
    "title": "P4 · Integrales impropias",
-   "prompt": "Calcula las integrales impropias en `]-Infinity, +Infinity[` de las tres funciones siguientes. Si converge, escribe su valor con 6 cifras significativas; si diverge, escribe `999`.\n\nLas tres tienen el mismo denominador `p(x) = 3 x^2 - 12 x/5 + 21/25`.\n\nSi `NIntegrate` hasta infinito tarda demasiado o da un aviso, prueba `Integrate[...] // N` o un intervalo grande como `{x, -200, 200}`.",
+   "prompt": "Calcula las integrales impropias en `]-Infinity, +Infinity[` de las tres funciones siguientes. Si converge, escribe su valor con 6 cifras significativas; si diverge, escribe `999`.\n\nLas tres tienen el mismo denominador `p(x) = 3 x^2 - 12 x/5 + 21/25`.",
    "points": 0.9,
    "parts": [
     {
@@ -140,8 +140,8 @@
      "value": 21.16099,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\nIntegrate[7/p[x], {x, -Infinity, Infinity}]   (* exacta: 35 Sqrt[3] Pi/9 *)\nN[%]",
-     "explain": "El integrando decae como `1/x^2`: converge. La receta del examen es `NIntegrate[7/p[x], {x, -Infinity, Infinity}]`; con `Integrate` sale además el valor exacto, `35 Sqrt[3] Pi/9`. Los infinitos se escriben `Infinity` y `-Infinity`."
+     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\nNIntegrate[7/p[x], {x, -Infinity, Infinity}]",
+     "explain": "El integrando decae como `1/x^2`: converge. Con `Integrate` en lugar de `NIntegrate` sale además el valor exacto, `35 Sqrt[3] Pi/9`. Los infinitos se escriben `Infinity` y `-Infinity`."
     },
     {
      "label": "b)",
@@ -160,8 +160,8 @@
      "value": 5.827851,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\n(* converge (decae como 1/x^2); se corta en un intervalo grande: la cola es del orden de 1/R^2 *)\nNIntegrate[7 Sin[x]/p[x], {x, -200, 200}]",
-     "explain": "`|Sin[x]| <= 1`, así que el integrando está acotado por `7/p(x)`, que converge: esta también. En Mathematica basta `NIntegrate[7 Sin[x]/p[x], {x, -Infinity, Infinity}]`; si avisa pero da un número estable, ese número vale. Las de `Sin` y `Cos` convergen; la del numerador `a x + b` es la que diverge."
+     "solution": "ClearAll[\"Global`*\"]\np[x_] := 3 x^2 - 12 x/5 + 21/25   (* denominador común, sin raíces reales *)\nNIntegrate[7 Sin[x]/p[x], {x, -Infinity, Infinity}]",
+     "explain": "`|Sin[x]| <= 1`, así que el integrando está acotado por `7/p(x)`, que converge: esta también. Si `NIntegrate` avisa pero da un número estable, ese número vale. Las de `Sin` y `Cos` convergen; la del numerador `a x + b` es la que diverge."
     }
    ]
   },

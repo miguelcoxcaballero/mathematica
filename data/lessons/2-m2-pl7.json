@@ -11,7 +11,6 @@
   "Series",
   "Normal",
   "CoefficientList",
-  "ExpandAll",
   "LegendreP",
   "HermiteH",
   "LaguerreL",
@@ -429,24 +428,52 @@
   {
    "type": "build",
    "section": "Versión compacta",
-   "title": "Sin leer a ojo",
-   "md": "Segunda forma del guion: coeficientes `a[k]` y derivadas en 0.",
-   "target": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
+   "title": "Derivadas en 0",
+   "md": "El coeficiente de `x^k` se lee derivando `k` veces y evaluando en 0.",
+   "target": "D[7 + 4 x + 5 x^2, {x, 2}] /. x -> 0",
    "parts": [
     {
-     "code": "D[7 + 4 x + 5 x^2, {x, 2}] /. x -> 0",
-     "md": "Deriva dos veces y evalúa en 0: sale 2 por el coeficiente de `x^2`.",
-     "run": true,
-     "hint": "Anular el coeficiente `k` = anular la derivada k-ésima en 0."
-    },
-    {
-     "code": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}]",
-     "md": "La serie con coeficientes indexados `a[k]`.",
+     "code": "D[7 + 4 x + 5 x^2, x] /. x -> 0",
+     "md": "Deriva una vez y evalúa en 0: sale el coeficiente de `x`.",
      "run": true
     },
     {
-     "code": "ecuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];",
-     "md": "La ecuación con la serie dentro.",
+     "code": "D[7 + 4 x + 5 x^2, {x, 2}] /. x -> 0",
+     "md": "Dos veces: sale 2 por el coeficiente de `x^2`.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "Derivada segunda de `7 + 4 x + 5 x^2` evaluada en `x = 0`.",
+    "hints": [
+     "`D[polinomio, {x, 2}]` y después `/. x -> 0`",
+     "`D[7 + 4 x + 5 x^2, {x, 2}] /. x -> 0`"
+    ]
+   },
+   "cmds": [
+    "D"
+   ],
+   "more": "Anular el coeficiente `k` de un polinomio equivale a anular su derivada k-ésima en 0."
+  },
+  {
+   "type": "build",
+   "title": "Sin leer a ojo",
+   "md": "Segunda forma del guion (7.1.2): coeficientes `a[k]` y derivadas en 0.",
+   "target": "y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = ddy[x, 5] - 2x*dy[x, 5] - 2y[x, 5];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
+   "parts": [
+    {
+     "code": "y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}]",
+     "md": "La serie hasta orden `n`, con coeficientes indexados `a[k]`.",
+     "run": true
+    },
+    {
+     "code": "dy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];",
+     "md": "Sus dos derivadas.",
+     "run": true
+    },
+    {
+     "code": "ecuacion[x_] = ddy[x, 5] - 2x*dy[x, 5] - 2y[x, 5];",
+     "md": "La ecuación con la serie de orden 5 dentro.",
      "run": true
     },
     {
@@ -460,16 +487,16 @@
      "run": true
     },
     {
-     "code": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
-     "md": "Las cuatro líneas seguidas.",
+     "code": "y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = ddy[x, 5] - 2x*dy[x, 5] - 2y[x, 5];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nSolve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]",
+     "md": "Las seis líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
     "prompt": "Resuelve `y'' - 2 x y' - 2 y = 0` hasta `x^5` con la versión compacta (`Sum`, `ecuacion`, `de[k]`).",
     "hints": [
-     "`y[x_] = Sum[a[k]*x^k, {k, 0, 5}];` y `ecuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] - 2 y[x];`",
-     "`de[k_] := D[ecuacion[x], {x, k}] /. x -> 0`",
+     "`y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];` y sus derivadas `dy[x_, n_]`, `ddy[x_, n_]`",
+     "`ecuacion[x_] = ddy[x, 5] - 2x*dy[x, 5] - 2y[x, 5];` y `de[k_] := D[ecuacion[x], {x, k}] /. x -> 0`",
      "`Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}]`"
     ],
     "check": {
@@ -482,8 +509,7 @@
     "Sum",
     "D",
     "Solve"
-   ],
-   "more": "En el guion la serie lleva el orden como argumento: `y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}]` y se usa `y[x, 5]`. Es lo mismo."
+   ]
   },
   {
    "type": "exercise",
@@ -491,7 +517,7 @@
     "id": "2-m2-pl7-e07",
     "kind": "code",
     "title": "Compacto, otra ecuación",
-    "prompt": "Resuelve `y'' - x y = 0` hasta `x^5` con la versión compacta. Última salida: `y[x] /. First[sol]`.",
+    "prompt": "Resuelve `y'' - x y = 0` hasta `x^5` con la versión compacta. Última salida: `y[x, 5] /. First[sol]`.",
     "difficulty": 3,
     "cmds": [
      "Sum",
@@ -500,7 +526,7 @@
     ],
     "real": false,
     "source": null,
-    "solution": "y[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = D[y[x], {x, 2}] - x*y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}];\ny[x] /. First[sol]",
+    "solution": "y[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = ddy[x, 5] - x*y[x, 5];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}];\ny[x, 5] /. First[sol]",
     "check": {
      "type": "any",
      "checks": [
@@ -515,9 +541,9 @@
      ]
     },
     "hints": [
-     "Solo cambia una línea: `ecuacion[x_] = D[y[x], {x, 2}] - x*y[x];`",
+     "Solo cambia una línea: `ecuacion[x_] = ddy[x, 5] - x*y[x, 5];`",
      "`sol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0}, {a[2], a[3], a[4], a[5]}];`",
-     "`y[x] /. First[sol]`"
+     "`y[x, 5] /. First[sol]`"
     ],
     "explain": "`a[0] (1 + x^3/6) + a[1] (x + x^4/12)`: la ecuación de Airy.",
     "requires": [
@@ -531,58 +557,58 @@
    "section": "Frobenius",
    "title": "La ecuación indicial",
    "md": "Punto singular: la serie lleva un `x^m` delante. Ejemplo 7.1.2.",
-   "target": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0\nSolve[ecu[0] == 0, m]",
+   "target": "y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = x^2*ddy[x, 5] + 4x*dy[x, 5] + (x^2 + 2) y[x, 5];\nde[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify\necu[k_] := de[k] /. x -> 0\nSolve[{ecu[0] == 0, ecu[1] == 0}, {m, a[1]}]",
    "parts": [
     {
-     "code": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];",
+     "code": "y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}]",
      "md": "La serie de Frobenius: potencias `k + m`.",
      "run": true
     },
     {
-     "code": "ecuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];",
+     "code": "dy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];",
+     "md": "Sus dos derivadas.",
+     "run": true
+    },
+    {
+     "code": "ecuacion[x_] = x^2*ddy[x, 5] + 4x*dy[x, 5] + (x^2 + 2) y[x, 5];",
      "md": "La ecuación `x^2 y'' + 4 x y' + (x^2 + 2) y` con la serie dentro.",
      "run": true
     },
     {
-     "code": "g[x_] = ExpandAll[ecuacion[x]/x^m]",
-     "md": "Divide por `x^m` y desarrolla: queda un polinomio.",
+     "code": "de[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify\necu[k_] := de[k] /. x -> 0",
+     "md": "Divide por `x^m`, deriva `k` veces y evalúa en 0.",
      "run": true
     },
     {
-     "code": "ecu[k_] := D[g[x], {x, k}] /. x -> 0",
-     "md": "Derivada k-ésima en 0, como antes.",
+     "code": "Solve[{ecu[0] == 0, ecu[1] == 0}, {m, a[1]}]",
+     "md": "Las dos primeras ecuaciones dan `m` y `a[1]`.",
      "run": true
     },
     {
-     "code": "Solve[ecu[0] == 0, m]",
-     "md": "La primera ecuación da los valores de `m`.",
-     "run": true
-    },
-    {
-     "code": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0\nSolve[ecu[0] == 0, m]",
-     "md": "Las cinco líneas seguidas.",
+     "code": "y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = x^2*ddy[x, 5] + 4x*dy[x, 5] + (x^2 + 2) y[x, 5];\nde[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify\necu[k_] := de[k] /. x -> 0\nSolve[{ecu[0] == 0, ecu[1] == 0}, {m, a[1]}]",
+     "md": "Las siete líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Plantea Frobenius para `x^2 y'' + 4 x y' + (x^2 + 2) y = 0` y halla los valores de `m`.",
+    "prompt": "Plantea Frobenius para `x^2 y'' + 4 x y' + (x^2 + 2) y = 0` y halla `m` y `a[1]`.",
     "hints": [
-     "`y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];` y `ecuacion[x_] = ...;`",
-     "`g[x_] = ExpandAll[ecuacion[x]/x^m];` y `ecu[k_] := D[g[x], {x, k}] /. x -> 0`",
-     "`Solve[ecu[0] == 0, m]`"
+     "`y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}];`, `dy`, `ddy` y `ecuacion[x_] = ...;`",
+     "`de[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify` y `ecu[k_] := de[k] /. x -> 0`",
+     "`Solve[{ecu[0] == 0, ecu[1] == 0}, {m, a[1]}]`"
     ],
     "check": {
      "type": "expr",
-     "expected": "{{m -> -1}, {m -> -2}}",
+     "expected": "{{m -> -2}, {m -> -1, a[1] -> 0}}",
      "compare": "set"
     }
    },
    "cmds": [
     "Sum",
-    "ExpandAll",
+    "Expand",
     "Solve"
    ],
-   "more": "Sale `m = -1` y `m = -2`. El guion escribe `de[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify` y `ecu[k_] := de[k] /. x -> 0`: mismas ecuaciones."
+   "more": "Sale `m = -2`, o `m = -1` con `a[1] = 0`. El aviso `Solve::svars` es normal: con `m = -2` no queda ecuación para `a[1]`."
   },
   {
    "type": "exercise",
@@ -590,7 +616,7 @@
     "id": "2-m2-pl7-e08",
     "kind": "code",
     "title": "Terminar con m = -1",
-    "prompt": "Con el planteamiento ya definido: pon `m = -1; a[1] = 0;`, despeja `a[2]…a[5]` y da la solución simplificada.",
+    "prompt": "Con el planteamiento ya definido: pon `m = -1; a[1] = 0;`, despeja `a[2]…a[5]` y da `y[x, 5]` simplificada.",
     "difficulty": 3,
     "cmds": [
      "Solve",
@@ -598,7 +624,7 @@
     ],
     "real": true,
     "source": "PL7 · ejemplo 7.1.2",
-    "solution": "m = -1; a[1] = 0;\nsol = Solve[{ecu[2] == 0, ecu[3] == 0, ecu[4] == 0, ecu[5] == 0}, {a[2], a[3], a[4], a[5]}];\ny[x] /. First[sol] // Simplify",
+    "solution": "m = -1; a[1] = 0;\nsol = Solve[{ecu[2] == 0, ecu[3] == 0, ecu[4] == 0, ecu[5] == 0}, {a[2], a[3], a[4], a[5]}];\ny[x, 5] /. First[sol] // Simplify",
     "check": {
      "type": "expr",
      "expected": "a[0] (120 - 20 x^2 + x^4)/(120 x)"
@@ -606,13 +632,13 @@
     "hints": [
      "`m = -1; a[1] = 0;`",
      "`sol = Solve[{ecu[2] == 0, ecu[3] == 0, ecu[4] == 0, ecu[5] == 0}, {a[2], a[3], a[4], a[5]}];`",
-     "`y[x] /. First[sol] // Simplify`"
+     "`y[x, 5] /. First[sol] // Simplify`"
     ],
-    "explain": "Son los primeros términos de `a[0] Sin[x]/x^2`. Con `m = -1`, `ecu[1] == 0` obliga a `a[1] = 0`.",
+    "explain": "Son los primeros términos de `a[0] Sin[x]/x^2`.",
     "requires": [
      "Solve"
     ],
-    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + 4 x*D[y[x], x] + (x^2 + 2) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0"
+    "setup": "y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = x^2*ddy[x, 5] + 4x*dy[x, 5] + (x^2 + 2) y[x, 5];\nde[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify\necu[k_] := de[k] /. x -> 0"
    }
   },
   {
@@ -621,7 +647,7 @@
     "id": "2-m2-pl7-e09",
     "kind": "code",
     "title": "Indicial de Bessel",
-    "prompt": "Bessel de orden 1/2 (`y`, `g`, `ecu[k]` ya definidos): halla los valores de `m`.",
+    "prompt": "Bessel de orden 1/2 (`y`, `ecuacion`, `ecu[k]` ya definidos): halla los valores de `m` con `ecu[0] == 0`.",
     "difficulty": 2,
     "cmds": [
      "Solve"
@@ -635,14 +661,14 @@
      "compare": "set"
     },
     "hints": [
-     "Es la última línea del planteamiento.",
+     "Una ecuación, una incógnita.",
      "`Solve[ecu[0] == 0, m]`"
     ],
     "explain": "`m = 1/2` y `m = -1/2`. En Bessel de orden `k` siempre sale `m = k` y `m = -k`.",
     "requires": [
      "Solve"
     ],
-    "setup": "y[x_] = Sum[a[k]*x^(k + m), {k, 0, 5}];\necuacion[x_] = x^2*D[y[x], {x, 2}] + x*D[y[x], x] + (x^2 - 1/4) y[x];\ng[x_] = ExpandAll[ecuacion[x]/x^m];\necu[k_] := D[g[x], {x, k}] /. x -> 0"
+    "setup": "y[x_, n_] = Sum[a[k]*x^(k + m), {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = x^2*ddy[x, 5] + x*dy[x, 5] + (x^2 - 1/4) y[x, 5];\nde[k_] := Expand[D[ecuacion[x]/x^m, {x, k}]] // Simplify\necu[k_] := de[k] /. x -> 0"
    }
   },
   {
@@ -1061,7 +1087,7 @@
     "id": "2-m2-pl7-e17",
     "kind": "code",
     "title": "Guion 1: segunda solución",
-    "prompt": "Con `y0 = 2 x` definida y `y'' - 2 x y' + 2 y = 0` (`q/p = -2 x`): define `P`, `z` e `y1`.",
+    "prompt": "Con `y0 = 2 x` definida y `y'' - 2 x y' + 2 y = 0` (`q/p = -2 x`): define `P`, `z`, `y1` y calcula `y1[1.1]`.",
     "difficulty": 4,
     "cmds": [
      "Integrate",
@@ -1070,7 +1096,7 @@
     ],
     "real": true,
     "source": "PL7 · ejercicio 1",
-    "solution": "P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-2 x)/1*y0[x]);\nz[x_] = Integrate[Exp[Integrate[-P[x], x]], x];\ny1[x_] = z[x]*y0[x]",
+    "solution": "P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-2 x)/1*y0[x]);\nz[x_] = Integrate[Exp[Integrate[-P[x], x]], x];\ny1[x_] = z[x]*y0[x];\ny1[1.1]",
     "check": {
      "type": "all",
      "checks": [
@@ -1081,18 +1107,25 @@
        "msg": "Revisa `P[x]`: es `(1/y0) (2 y0' + (q/p) y0)` con `q/p = -2 x`."
       },
       {
-       "type": "satisfies",
-       "test": "Simplify[y1[x] - y0[x]*Integrate[Exp[Integrate[-P[x], x]], x]] === 0 && !FreeQ[y1[x], x]",
-       "msg": "`y1[x]` debe ser `z[x]*y0[x]` con `z[x] = Integrate[Exp[Integrate[-P[x], x]], x]`."
+       "type": "value",
+       "expr": "Simplify[D[y1[x], {x, 2}] - 2 x D[y1[x], x] + 2 y1[x]]",
+       "expected": "0",
+       "msg": "`y1[x]` no cumple la ecuación: debe ser `z[x]*y0[x]`."
+      },
+      {
+       "type": "expr",
+       "expected": "1.0573852064",
+       "compare": "numeric",
+       "tol": 1e-05
       }
      ]
     },
     "hints": [
      "Cambia `q/p`: `P[x_] = 1/y0[x]*(2 D[y0[x], x] + (-2 x)/1*y0[x]);`",
-     "`z[x_] = Integrate[Exp[Integrate[-P[x], x]], x];`",
-     "`y1[x_] = z[x]*y0[x]`"
+     "`z[x_] = Integrate[Exp[Integrate[-P[x], x]], x];` y `y1[x_] = z[x]*y0[x];`",
+     "`y1[1.1]`"
     ],
-    "explain": "`y1 = 2 x (-E^(x^2)/x + Sqrt[Pi] Erfi[x])`. `Erfi` es otra función especial. En la prueba pedían `y1[1.1]` = 1.05739.",
+    "explain": "`y1 = 2 x (-E^(x^2)/x + Sqrt[Pi] Erfi[x])` y `y1(1.1)` = 1.05739, el valor de la prueba de clase. `Erfi` es otra función especial.",
     "requires": [
      "Integrate"
     ],

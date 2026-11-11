@@ -882,7 +882,7 @@
     "real": true,
     "source": "Práctica 17 · P3 (ej2a)",
     "setup": "A = {{2, -1, -1}, {3, 2, 5}, {5, 1, 4}}; b = {1, -3, 1};",
-    "solution": "sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}]",
+    "solution": "sol = Solve[Transpose[A].b == Transpose[A].A.{x, y, z}, {z, y, x}]",
     "check": {
      "type": "satisfies",
      "test": "ListQ[sol] && Length[sol] == 1 && Length[First[sol]] == 2 && Max[Abs[(Transpose[A].A.({x, y, z} /. First[sol]) - Transpose[A].b) /. {x -> 0.3, y -> 0.7, z -> 1.1}]] < 10^-6",
@@ -894,10 +894,10 @@
     ],
     "hints": [
      "Ecuaciones normales con tres incógnitas: `Transpose[A].A.{x, y, z} == Transpose[A].b`.",
-     "Para que `z` quede como parámetro, pide a `Solve` solo `{x, y}`.",
-     "`sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}]`"
+     "Para que `z` quede como parámetro, ponla la primera en la lista de incógnitas: `{z, y, x}`.",
+     "`sol = Solve[Transpose[A].b == Transpose[A].A.{x, y, z}, {z, y, x}]`"
     ],
-    "explain": "`x = 2/7 - (3/7) z ≈ 0.285714 - 0.428571 z`, `y = -10/7 - (13/7) z ≈ -1.42857 - 1.85714 z`. Sale un parámetro porque `A` tiene rango 2. En clase escribían `Solve[…, {z, y, x}]`: Mathematica deja libre la primera incógnita de la lista."
+    "explain": "`x = 2/7 - (3/7) z ≈ 0.285714 - 0.428571 z`, `y = -10/7 - (13/7) z ≈ -1.42857 - 1.85714 z`. Sale un parámetro porque `A` tiene rango 2: `Solve` deja libre la primera incógnita de la lista y avisa con `Solve::svars`."
    }
   },
   {
@@ -917,7 +917,7 @@
     "real": true,
     "source": "Práctica 17 · P3 (ej2b)",
     "setup": "A = {{2, -1, -1}, {3, 2, 5}, {5, 1, 4}}; b = {1, -3, 1};",
-    "solution": "sol = Solve[Transpose[A].A.{x, y, z} == Transpose[A].b, {x, y}];\nAxsol = A.{x, y, z} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
+    "solution": "sol = Solve[Transpose[A].b == Transpose[A].A.{x, y, z}, {z, y, x}];\nAxsol = A.{x, y, z} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
     "check": {
      "type": "expr",
      "expected": "Sqrt[3]",
@@ -1093,7 +1093,7 @@
     "real": true,
     "source": "Examen PL2 2022 · Álgebra P3",
     "setup": "A = {{2, -3, 5, 6}, {-5, 4, -3, -2}, {3, -3, 5, 1}, {-3, 1, 2, 4}}; b = {-15, 7, -9, 4};",
-    "solution": "sol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}];\nAxsol = A.{x, y, z, w} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
+    "solution": "sol = Solve[Transpose[A].b == Transpose[A].A.{x, y, z, w}, {y, x, z, w}];\nAxsol = A.{x, y, z, w} /. Flatten[sol] // Simplify;\nNorm[b - Axsol] // N",
     "check": {
      "type": "expr",
      "expected": "4 Sqrt[3]",
@@ -1105,8 +1105,8 @@
      "Norm"
     ],
     "hints": [
-     "`y` parámetro → despeja solo `{x, z, w}`.",
-     "`sol = Solve[Transpose[A].A.{x, y, z, w} == Transpose[A].b, {x, z, w}]`",
+     "`y` parámetro → ponla la primera: `{y, x, z, w}`.",
+     "`sol = Solve[Transpose[A].b == Transpose[A].A.{x, y, z, w}, {y, x, z, w}]`",
      "`Norm[b - A.{x, y, z, w} /. Flatten[sol]] // Simplify // N`"
     ],
     "explain": "`x = -1.44828 + 0.632184 y`, `z = -0.793103 + 0.195402 y`, `w = -0.689655 + 0.126437 y` y `Ec = 4 Sqrt[3] ≈ 6.9282`. Idéntico a la práctica, con una incógnita más."

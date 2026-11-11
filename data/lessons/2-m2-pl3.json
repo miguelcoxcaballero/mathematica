@@ -1093,22 +1093,23 @@
     "difficulty": 3,
     "cmds": [
      "D",
-     "CoefficientList",
+     "Collect",
      "Solve"
     ],
     "real": true,
     "source": "PL3 · ejercicio 4",
-    "solution": "yp[x_] = A + B x + C1 x^2;\nres = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);\nSolve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]",
+    "solution": "yp[x_] = A + B x + C1 x^2;\npol = D[yp[x], {x, 2}] - 4 yp[x];\nCollect[pol, x]\nSolve[{-4 A + 2 C1 == -1, -4 B == 1, -4 C1 == 2}, {A, B, C1}]",
     "check": {
      "type": "expr",
      "expected": "{{A -> 0, B -> -1/4, C1 -> -1/2}}",
      "compare": "set"
     },
     "hints": [
-     "Residuo: `res = D[yp[x], {x, 2}] - 4 yp[x] - (2 x^2 + x - 1);` (con paréntesis).",
-     "`Solve[CoefficientList[res, x] == {0, 0, 0}, {A, B, C1}]`"
+     "`yp[x_] = A + B x + C1 x^2;`, `pol = D[yp[x], {x, 2}] - 4 yp[x];` y `Collect[pol, x]`.",
+     "Iguala con `2x² + x − 1`: libre con −1, de x con 1, de x² con 2.",
+     "`Solve[{-4 A + 2 C1 == -1, -4 B == 1, -4 C1 == 2}, {A, B, C1}]`"
     ],
-    "explain": "A = 0, B = −1/4, C = −1/2. También vale `Collect` e igualar a mano.",
+    "explain": "A = 0, B = −1/4, C = −1/2. También vale el atajo con `CoefficientList`.",
     "requires": [
      "Solve",
      "D"
@@ -1151,9 +1152,9 @@
   {
    "type": "build",
    "section": "Con senos y cosenos",
-   "title": "Evaluar en puntos",
-   "md": "`y'' + y' = sen x`: no hay potencias que agrupar. Otro truco.",
-   "target": "Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]",
+   "title": "Agrupar seno y coseno",
+   "md": "`y'' + y' = sen x`: ahora se agrupa por `Cos[x]` y `Sin[x]`.",
+   "target": "Solve[{-a + b == 0, -1 - a - b == 0}, {a, b}]",
    "parts": [
     {
      "code": "yq[x_] = a Cos[x] + b Sin[x];",
@@ -1166,37 +1167,34 @@
      "run": true
     },
     {
-     "code": "res /. x -> 0",
-     "md": "Entonces también en x = 0: una ecuación.",
+     "code": "Collect[res, {Cos[x], Sin[x]}]",
+     "md": "Agrupa por coseno y por seno.",
      "run": true
     },
     {
-     "code": "res /. x -> Pi/2",
-     "md": "Y en x = π/2: otra. Dos incógnitas, dos puntos.",
-     "run": true
-    },
-    {
-     "code": "Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]",
-     "md": "Resuelve el sistema.",
+     "code": "Solve[{-a + b == 0, -1 - a - b == 0}, {a, b}]",
+     "md": "Cada coeficiente, a cero.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "`y'' + y' = sen x` con `yq = a Cos[x] + b Sin[x]`: residuo `res` y `Solve` evaluando en 0 y π/2.",
+    "prompt": "`y'' + y' = sen x` con `yq = a Cos[x] + b Sin[x]`: residuo `res`, `Collect` y `Solve` de los coeficientes.",
     "hints": [
      "`yq[x_] = a Cos[x] + b Sin[x];` y `res = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];`",
-     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]`"
+     "`Collect[res, {Cos[x], Sin[x]}]`",
+     "`Solve[{-a + b == 0, -1 - a - b == 0}, {a, b}]`"
     ],
     "check": {
      "type": "expr",
      "expected": "{{a -> -1/2, b -> -1/2}}",
      "compare": "set"
     },
-    "solution": "yq[x_] = a Cos[x] + b Sin[x];\nres = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]"
+    "solution": "yq[x_] = a Cos[x] + b Sin[x];\nres = D[yq[x], {x, 2}] + D[yq[x], x] - Sin[x];\nCollect[res, {Cos[x], Sin[x]}]\nSolve[{-a + b == 0, -1 - a - b == 0}, {a, b}]"
    },
+   "more": "Alternativa sin copiar coeficientes: como el residuo es 0 para todo x, evalúalo en tantos puntos como incógnitas: `Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/2) == 0}, {a, b}]`.",
    "cmds": [
     "D",
-    "ReplaceAll",
+    "Collect",
     "Solve"
    ]
   },
@@ -1210,12 +1208,12 @@
     "difficulty": 4,
     "cmds": [
      "D",
-     "Solve",
-     "ReplaceAll"
+     "Collect",
+     "Solve"
     ],
     "real": true,
     "source": "Examen 2021 · P3",
-    "solution": "res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]",
+    "solution": "res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];\nCollect[res, {Cos[3 x], Sin[3 x]}]\nSolve[{29 a - 3 b == 0, 7 c - 18 d == 0, 3 a + 29 b - 5 == 0, 18 c + 7 d == 0}, {a, b, c, d}]",
     "check": {
      "type": "expr",
      "expected": "{{a -> 3/170, b -> 29/170, c -> 0, d -> 0}}",
@@ -1223,8 +1221,8 @@
     },
     "hints": [
      "Residuo: `res = D[yp[x], {x, 3}] - D[yp[x], {x, 2}] + 3 D[yp[x], x] - 2 yp[x] - 5 Exp[-x] Sin[3 x];`",
-     "Cuatro incógnitas: evalúa `res` en 0, π/6, π/3 y π/2.",
-     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}]`"
+     "`Collect[res, {Cos[3 x], Sin[3 x]}]`: en cada paréntesis, lo que lleva `E^(-x)` y lo que no, a cero.",
+     "`Solve[{29 a - 3 b == 0, 7 c - 18 d == 0, 3 a + 29 b - 5 == 0, 18 c + 7 d == 0}, {a, b, c, d}]`"
     ],
     "explain": "`yp = a e^(-x) cos 3x + b e^(-x) sen 3x + c cos 3x + d sen 3x`. Sale a = 3/170, b = 29/170, c = d = 0 (0.0176 y 0.1706).",
     "setup": "yp[x_] = a Exp[-x] Cos[3 x] + b Exp[-x] Sin[3 x] + c Cos[3 x] + d Sin[3 x];",
@@ -1594,7 +1592,7 @@
    "type": "build",
    "title": "Barrer frecuencias",
    "md": "`ys[t, w]` ya está definida. Mira todas las frecuencias a la vez.",
-   "target": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.05}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
+   "target": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.02}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
    "setup": "resul = DSolve[{y''[t] + 1/10 y'[t] + 4 y[t] == Cos[w t], y[0] == 0, y'[0] == 0}, y[t], t];\nys[t_, w_] = y[t] /. Flatten[resul];",
    "parts": [
     {
@@ -1608,12 +1606,12 @@
      "run": true
     },
     {
-     "code": "ListPlot[Table[{w, ys[10, w]}, {w, 1, 3, 0.05}], PlotRange -> {-2, 2}]",
+     "code": "ListPlot[Table[{w, ys[10, w]}, {w, 1, 3, 0.02}], PlotRange -> {-2, 2}]",
      "md": "`ListPlot` los dibuja como puntos: el pico está en w = 2.",
      "run": true
     },
     {
-     "code": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.05}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
+     "code": "Manipulate[ListPlot[Table[{w, ys[t, w]}, {w, 1, 3, 0.02}], PlotStyle -> PointSize[0.02], PlotRange -> {-2, 2}], {{t, 0, \"t\"}, 0, 20}]",
      "md": "El del guion: ahora el deslizador es el tiempo `t`.",
      "run": true,
      "hint": "`{{t, 0, \"t\"}, 0, 20}`: variable, valor inicial y etiqueta; después, mínimo y máximo."
@@ -1623,7 +1621,7 @@
     "prompt": "Con `ys` definida: el `Manipulate` del guion (`ListPlot` de la tabla en `w`, deslizador `t` de 0 a 20).",
     "hints": [
      "`Manipulate[ListPlot[Table[...], opciones], {{t, 0, \"t\"}, 0, 20}]`.",
-     "La tabla: `Table[{w, ys[t, w]}, {w, 1, 3, 0.05}]`."
+     "La tabla: `Table[{w, ys[t, w]}, {w, 1, 3, 0.02}]`."
     ],
     "check": {
      "type": "none"

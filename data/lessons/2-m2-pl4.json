@@ -334,22 +334,23 @@
     "difficulty": 4,
     "cmds": [
      "D",
-     "CoefficientList",
+     "Collect",
      "Solve"
     ],
     "real": true,
     "source": "PL2 · prueba de sesión 2020-21",
-    "solution": "ys[x_] = a x + b;\nres = D[ys[x], x] - (P[x] + Q[x] ys[x] + R[x] ys[x]^2);\nSolve[CoefficientList[res, x] == {0, 0, 0}, {a, b}]",
+    "solution": "ys[x_] = a x + b;\nedo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;\nCollect[edo, x]\nSolve[{4 - 2 b - b^2 == a, 2 - 2 a + 2 b - 2 a b == 0, -1 + 2 a - a^2 == 0}, {a, b}]",
     "check": {
      "type": "expr",
      "expected": "{{a -> 1, b -> -3}, {a -> 1, b -> 1}}",
      "compare": "set"
     },
     "hints": [
-     "`ys[x_] = a x + b;` y el residuo `res = D[ys[x], x] - (P[x] + Q[x] ys[x] + R[x] ys[x]^2);`",
-     "Polinomio en x: `Solve[CoefficientList[res, x] == {0, 0, 0}, {a, b}]`"
+     "`ys[x_] = a x + b;` y `edo = D[ys[x], x] == P[x] + Q[x] ys[x] + R[x] ys[x]^2;`",
+     "`Collect[edo, x]`: iguala el término libre, el de x y el de x² de los dos lados.",
+     "`Solve[{4 - 2 b - b^2 == a, 2 - 2 a + 2 b - 2 a b == 0, -1 + 2 a - a^2 == 0}, {a, b}]`"
     ],
-    "explain": "Dos soluciones: `a = 1, b = 1` y `a = 1, b = −3`. Con dos parámetros no basta `Solve[edo, a]`: se anulan los coeficientes.",
+    "explain": "Dos soluciones: `a = 1, b = 1` y `a = 1, b = −3`. Con dos parámetros no basta `Solve[edo, a]`: se igualan coeficientes.",
     "setup": "P[x_] = -x^2 + 2 x + 4; Q[x_] = 2 x - 2; R[x_] = -1;",
     "requires": [
      "Solve",
@@ -622,15 +623,17 @@
     "id": "2-m2-pl4-e13",
     "kind": "code",
     "title": "Examen 2021, P2: concentración",
-    "prompt": "**Examen 2021, P2.** Con `v[t]`, `yf[t]`: instante con 110 g (`FindRoot` desde t = 50, en `r`); termina con la concentración entonces.",
+    "prompt": "**Examen 2021, P2.** Con `v[t]`, `yf[t]`: instante con 110 g (`Solve`, raíz positiva); termina con la concentración entonces, en decimal.",
     "difficulty": 4,
     "cmds": [
-     "FindRoot",
-     "ReplaceAll"
+     "Solve",
+     "Part",
+     "ReplaceAll",
+     "N"
     ],
     "real": true,
     "source": "Examen 2021 · P2",
-    "solution": "r = FindRoot[yf[t] == 110, {t, 50}]\n110/v[t] /. r",
+    "solution": "t110 = Solve[yf[t] == 110, t]\nt110f = t /. t110[[2]]\n110/v[t110f] // N",
     "check": {
      "type": "expr",
      "expected": "0.2873836233",
@@ -638,13 +641,14 @@
      "tol": 0.0001
     },
     "hints": [
-     "`r = FindRoot[yf[t] == 110, {t, 50}]`",
-     "Concentración = cantidad/volumen: `110/v[t] /. r`"
+     "`t110 = Solve[yf[t] == 110, t]` da dos raíces; la positiva es la segunda.",
+     "`t110f = t /. t110[[2]]`",
+     "Concentración = cantidad/volumen: `110/v[t110f] // N`"
     ],
-    "explain": "t ≈ 66.38 min y 0.2874 g/l. Con `Solve` salen varias raíces: se elige la real positiva.",
+    "explain": "t ≈ 66.38 min y 0.2874 g/l. De las raíces de `Solve` se elige la real positiva: la única con sentido como tiempo.",
     "setup": "Vmax = 500; V0 = 250; c0 = 0.4; pe = 0.5; fe = 4; fs = 2;\nv[t_] = V0 + (fe - fs) t;\nyf[t_] = (50 + t (250 + t))/(125 + t);",
     "requires": [
-     "FindRoot"
+     "Solve"
     ]
    }
   },
@@ -903,14 +907,13 @@
     "prompt": "**Examen 2014, P2.** `yp[x]` (con `a`, `b`, `c`, `d`) ya definida. Hállalos para `y''' + y'' + 3y' + 2y = 5 e^x sen 3x`; termina con `// N`.",
     "difficulty": 4,
     "cmds": [
-     "D",
+     "Simplify",
      "Solve",
-     "ReplaceAll",
      "N"
     ],
     "real": true,
     "source": "Examen 2014 · P2",
-    "solution": "res = D[yp[x], {x, 3}] + D[yp[x], {x, 2}] + 3 D[yp[x], x] + 2 yp[x] - 5 Exp[x] Sin[3 x];\nSolve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}] // N",
+    "solution": "yp'''[x] + yp''[x] + 3 yp'[x] + 2 yp[x] // Simplify\nSolve[{-(29 a + 3 b) == 0, (3 a - 29 b) == 5, -(7 c + 18 d) == 0, 18 c - 7 d == 0}, {a, b, c, d}] // N",
     "check": {
      "type": "expr",
      "expected": "{{a -> 3/170, b -> -29/170, c -> 0, d -> 0}}",
@@ -918,15 +921,14 @@
      "tol": 1e-05
     },
     "hints": [
-     "`res = D[yp[x], {x, 3}] + D[yp[x], {x, 2}] + 3 D[yp[x], x] + 2 yp[x] - 5 Exp[x] Sin[3 x];`",
-     "Evalúa `res` en 0, π/6, π/3, π/2 e iguala a 0.",
-     "`Solve[{(res /. x -> 0) == 0, (res /. x -> Pi/6) == 0, (res /. x -> Pi/3) == 0, (res /. x -> Pi/2) == 0}, {a, b, c, d}] // N`"
+     "Lado izquierdo: `yp'''[x] + yp''[x] + 3 yp'[x] + 2 yp[x] // Simplify`.",
+     "Iguala con `5 E^x Sin[3 x]`: coeficientes de `E^x Cos`, `E^x Sin`, `Cos` y `Sin`.",
+     "`Solve[{-(29 a + 3 b) == 0, (3 a - 29 b) == 5, -(7 c + 18 d) == 0, 18 c - 7 d == 0}, {a, b, c, d}] // N`"
     ],
-    "explain": "`yp = a e^x cos 3x + b e^x sen 3x + c cos 3x + d sen 3x`. Solución oficial: a = 0.0176, b = −0.1706, c = d = 0.",
+    "explain": "`yp = a e^x cos 3x + b e^x sen 3x + c cos 3x + d sen 3x`. Es la solución oficial: a = 0.0176, b = −0.1706, c = d = 0.",
     "setup": "yp[x_] = a Exp[x] Cos[3 x] + b Exp[x] Sin[3 x] + c Cos[3 x] + d Sin[3 x];",
     "requires": [
-     "Solve",
-     "D"
+     "Solve"
     ]
    }
   },

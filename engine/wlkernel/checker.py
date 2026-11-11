@@ -60,6 +60,11 @@ def close(a, b, tol):
     """Relative tolerance (SPEC: "tolerancia relativa"); near zero an absolute floor absorbs rounding noise,
     but genuinely tiny values (1e-30 ...) are still compared relatively."""
     try:
+        # Infinity/NaN never match a finite number (inf <= tol*inf used to be True); two infinities must be the same one.
+        if a != a or b != b:
+            return False
+        if abs(a) == float("inf") or abs(b) == float("inf"):
+            return a == b
         d = abs(a - b)
         m = max(abs(a), abs(b))
         if d <= tol * m:

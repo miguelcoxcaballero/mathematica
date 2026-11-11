@@ -176,36 +176,30 @@
    "type": "build",
    "section": "Laurent hacia fuera",
    "title": "Potencias negativas",
-   "md": "Lejos de las singularidades se desarrolla en 1/z: un Taylor en u = 1/z.",
-   "target": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z",
+   "md": "Lejos de las singularidades se desarrolla en potencias de 1/z.",
+   "target": "Normal[Series[f, {z, Infinity, 4}]]",
    "parts": [
     {
-     "code": "f /. z -> 1/u",
-     "md": "Cambia z por 1/u en f.",
+     "code": "Series[f, {z, 0, 4}]",
+     "md": "Recuerda: con centro 0 salen potencias positivas.",
      "run": true
     },
     {
-     "code": "Series[f /. z -> 1/u, {u, 0, 4}]",
-     "md": "Desarrolla en u = 0.",
+     "code": "Series[f, {z, Infinity, 4}]",
+     "md": "Cambia el centro por Infinity: potencias de 1/z.",
      "run": true
     },
     {
-     "code": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]]",
+     "code": "Normal[Series[f, {z, Infinity, 4}]]",
      "md": "Quita el término O con Normal.",
-     "run": true
-    },
-    {
-     "code": "Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z",
-     "md": "Deshaz el cambio: u vuelve a ser 1/z.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "`f` ya está definida. Desarróllala en potencias negativas de z hasta 1/z⁴.",
+    "prompt": "`f` ya está definida. Desarróllala en potencias negativas de z hasta 1/z⁴, sin el término `O`.",
     "hints": [
-     "Sustituye `z -> 1/u`, desarrolla en `{u, 0, 4}` y aplica `Normal`.",
-     "Deshaz el cambio con `/. u -> 1/z`.",
-     "`Normal[Series[f /. z -> 1/u, {u, 0, 4}]] /. u -> 1/z`"
+     "El centro es `Infinity`: `Series[f, {z, Infinity, 4}]`.",
+     "`Normal[Series[f, {z, Infinity, 4}]]`"
     ],
     "check": {
      "type": "expr",
@@ -216,7 +210,7 @@
     "Series",
     "Normal"
    ],
-   "more": "Vale para |z| > 3, fuera de las dos singularidades. El guion lo pide con centro `Infinity`: `Series[f, {z, Infinity, 4}]`.",
+   "more": "Vale para |z| > 3, fuera de las dos singularidades (−1 y −3).",
    "setup": "f = 1/((z + 1) (z + 3));"
   },
   {
@@ -283,69 +277,68 @@
   {
    "type": "build",
    "title": "Hacia fuera, otro centro",
-   "md": "Para potencias negativas de (z − a): z = a + 1/u.",
-   "target": "Normal[Series[1/(z - 2) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
+   "md": "Para potencias negativas de (z − a): cambio de variable w = z − a.",
+   "target": "Series[f /. z -> w + 3, {w, Infinity, 4}] /. w -> z - 3",
    "parts": [
     {
-     "code": "1/(z - 2) /. z -> -1 + 1/u",
-     "md": "Centro a = −1: sustituye z por −1 + 1/u.",
+     "code": "f /. z -> w + 3",
+     "md": "Centro 3: cambia z por w + 3.",
      "run": true
     },
     {
-     "code": "Series[1/(z - 2) /. z -> -1 + 1/u, {u, 0, 3}]",
-     "md": "Taylor en u = 0.",
+     "code": "Series[f /. z -> w + 3, {w, Infinity, 4}]",
+     "md": "Desarrolla en w con centro Infinity.",
      "run": true
     },
     {
-     "code": "Normal[Series[1/(z - 2) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
-     "md": "Normal y deshaz el cambio: u = 1/(z + 1).",
+     "code": "Series[f /. z -> w + 3, {w, Infinity, 4}] /. w -> z - 3",
+     "md": "Deshaz el cambio: w = z − 3.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Desarrolla `1/(z - 2)` en potencias negativas de (z + 1) hasta orden 3.",
+    "prompt": "`f` ya está. Desarróllala en potencias negativas de (z − 3) hasta orden 4.",
     "hints": [
-     "Cambio: `z -> -1 + 1/u`; al final, `u -> 1/(z + 1)`.",
-     "`Normal[Series[1/(z - 2) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)`"
+     "Cambio `z -> w + 3`, serie en `{w, Infinity, 4}` y al final `w -> z - 3`.",
+     "`Series[f /. z -> w + 3, {w, Infinity, 4}] /. w -> z - 3`"
     ],
     "check": {
      "type": "expr",
-     "expected": "1/(z + 1) + 3/(z + 1)^2 + 9/(z + 1)^3"
+     "expected": "1/(z - 3)^2 - 10/(z - 3)^3 + 76/(z - 3)^4"
     }
    },
    "cmds": [
-    "Series",
-    "Normal"
+    "Series"
    ],
-   "more": "Vale para |z + 1| > 3. El guion: `Series[f /. z -> w + a, {w, Infinity, n}] /. w -> z - a` (da un aviso `SeriesData::sdatv` inofensivo)."
+   "more": "Vale para |z − 3| > 6. En Mathematica el último paso suelta el aviso `SeriesData::sdatv`: es inofensivo.",
+   "setup": "f = 1/((z + 1) (z + 3));"
   },
   {
    "type": "exercise",
    "ex": {
     "id": "2-m3-pl2-e04",
     "kind": "code",
-    "title": "Centro en z = 3",
-    "prompt": "Desarrolla `1/(z - 1)` en potencias negativas de (z − 3) hasta orden 3 (expresión normal).",
+    "title": "Centro en z = −1",
+    "prompt": "Desarrolla `1/(z - 2)` en potencias negativas de (z + 1) hasta orden 3.",
     "difficulty": 3,
     "cmds": [
-     "Series",
-     "Normal"
+     "Series"
     ],
     "real": false,
     "source": null,
-    "solution": "Normal[Series[1/(z - 1) /. z -> 3 + 1/u, {u, 0, 3}]] /. u -> 1/(z - 3)",
+    "solution": "Series[1/(z - 2) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1",
     "check": {
      "type": "expr",
-     "expected": "1/(z - 3) - 2/(z - 3)^2 + 4/(z - 3)^3"
+     "expected": "1/(z + 1) + 3/(z + 1)^2 + 9/(z + 1)^3"
     },
     "requires": [
      "Series"
     ],
     "hints": [
-     "Cambio: `z -> 3 + 1/u`; al final, `u -> 1/(z - 3)`.",
-     "`Normal[Series[1/(z - 1) /. z -> 3 + 1/u, {u, 0, 3}]] /. u -> 1/(z - 3)`"
+     "Centro −1: cambio `z -> w - 1`; al final, `w -> z + 1`.",
+     "`Series[1/(z - 2) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1`"
     ],
-    "explain": "1/(z−3) − 2/(z−3)² + 4/(z−3)³, válido para |z − 3| > 2."
+    "explain": "1/(z+1) + 3/(z+1)² + 9/(z+1)³, válido para |z + 1| > 3."
    }
   },
   {
@@ -481,7 +474,7 @@
    "section": "Laurent en una corona",
    "title": "Cada fracción a su lado",
    "md": "f = −1/((z−1)(z−2)) en la corona 2 < |z + 1| < 3.",
-   "target": "Apart[-1/((z - 1) (z - 2))]\nSeries[-1/(z - 2), {z, -1, 3}]\nNormal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
+   "target": "s1 = Series[-1/(z - 2), {z, -1, 3}];\ns2 = Series[1/(z - 1) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1;\ns1 + s2",
    "parts": [
     {
      "code": "Apart[-1/((z - 1) (z - 2))]",
@@ -489,39 +482,43 @@
      "run": true
     },
     {
-     "code": "Series[-1/(z - 2), {z, -1, 3}]",
+     "code": "s1 = Series[-1/(z - 2), {z, -1, 3}]",
      "md": "Polo 2 (borde exterior): Taylor con centro −1.",
      "run": true
     },
     {
-     "code": "Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
-     "md": "Polo 1 (borde interior): hacia fuera, con u.",
+     "code": "s2 = Series[1/(z - 1) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1",
+     "md": "Polo 1 (borde interior): hacia fuera, con w = z + 1.",
      "run": true
     },
     {
-     "code": "Apart[-1/((z - 1) (z - 2))]\nSeries[-1/(z - 2), {z, -1, 3}]\nNormal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)",
-     "md": "Los tres pasos seguidos: el Laurent es la suma de ambos trozos.",
+     "code": "s1 + s2",
+     "md": "Súmalas: es el Laurent en la corona.",
+     "run": true
+    },
+    {
+     "code": "s1 = Series[-1/(z - 2), {z, -1, 3}];\ns2 = Series[1/(z - 1) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1;\ns1 + s2",
+     "md": "Otra vez, las tres líneas seguidas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Parte de potencias negativas de (z + 1): desarrolla `1/(z - 1)` hacia fuera hasta orden 3.",
+    "prompt": "Laurent de −1/((z−1)(z−2)) en 2 < |z + 1| < 3: `s1` (hacia dentro), `s2` (hacia fuera) y su suma.",
     "hints": [
-     "Cambio `z -> -1 + 1/u`, serie en `{u, 0, 3}`, `Normal` y `u -> 1/(z + 1)`.",
-     "`Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)`"
+     "`s1 = Series[-1/(z - 2), {z, -1, 3}];`",
+     "`s2 = Series[1/(z - 1) /. z -> w - 1, {w, Infinity, 3}] /. w -> z + 1;` y `s1 + s2`"
     ],
     "check": {
-     "type": "expr",
+     "type": "value",
+     "expr": "s2",
      "expected": "1/(z + 1) + 2/(z + 1)^2 + 4/(z + 1)^3"
-    },
-    "solution": "Normal[Series[1/(z - 1) /. z -> -1 + 1/u, {u, 0, 3}]] /. u -> 1/(z + 1)"
+    }
    },
    "cmds": [
     "Apart",
-    "Series",
-    "Normal"
+    "Series"
    ],
-   "more": "Regla: polo en el borde exterior (o más lejos) → hacia dentro, Taylor. Polo en el borde interior (o más cerca) → hacia fuera. El guion extrae las fracciones con `desc[[1]]`, `desc[[2]]`; el orden puede variar."
+   "more": "Regla: polo en el borde exterior (o más lejos) → hacia dentro, Taylor. Polo en el borde interior (o más cerca) → hacia fuera. El guion extrae las fracciones con `desc[[1]]`, `desc[[2]]`: mira antes el orden en que salen."
   },
   {
    "type": "exercise",
@@ -870,23 +867,26 @@
     "id": "2-m3-pl2-e12",
     "kind": "code",
     "title": "Laurent en potencias negativas",
-    "prompt": "g = 1/((z+1)²(z+2i−1)). Devuelve la lista de coeficientes de 1/z³ y 1/z⁴ de su Laurent hacia fuera.",
+    "prompt": "f = 1/((z+1)²(z+2i−1)e^(z+3)). Obtén su Laurent en potencias negativas de z, hasta orden 4.",
     "difficulty": 3,
     "cmds": [
-     "SeriesCoefficient"
+     "Series"
     ],
     "real": true,
     "source": "PL2 · Ejercicio 1",
-    "solution": "g = 1/((z + 1)^2 (z + 2 I - 1));\n{SeriesCoefficient[g, {z, Infinity, 3}], SeriesCoefficient[g, {z, Infinity, 4}]}",
+    "solution": "f = 1/((z + 1)^2 (z + 2 I - 1) Exp[z + 3]);\nSeries[f, {z, Infinity, 4}]",
     "check": {
      "type": "expr",
-     "expected": "{1, -1 - 2 I}"
+     "expected": "(1/z^3 - (1 + 2 I)/z^4) Exp[-z - 3]"
     },
-    "hints": [
-     "Centro `Infinity`: `SeriesCoefficient[g, {z, Infinity, 3}]`.",
-     "`{SeriesCoefficient[g, {z, Infinity, 3}], SeriesCoefficient[g, {z, Infinity, 4}]}`"
+    "requires": [
+     "Series"
     ],
-    "explain": "g = 1/z³ − (1 + 2i)/z⁴ + … En el guion la función lleva además un factor e^(−z−3), sin singularidades, que se deja aparte: `Series[f, {z, Infinity, 4}]` lo devuelve multiplicando."
+    "hints": [
+     "Centro `Infinity` y orden 4.",
+     "`Series[f, {z, Infinity, 4}]`"
+    ],
+    "explain": "Sale e^(−z−3) (1/z³ − (1 + 2i)/z⁴ + …): el factor exponencial no tiene singularidades y queda multiplicando."
    }
   },
   {
@@ -973,16 +973,16 @@
     "id": "2-m3-pl2-e16",
     "kind": "code",
     "title": "Cinco polos",
-    "prompt": "∫ dz/((z²−1/2)(z²+2i−1)(z+1/4−i/4)) sobre |z| = 2, numérico. Polos (todos dentro): −1/4+i/4, ±√(1−2i), ±1/√2.",
+    "prompt": "∫ dz/((z²−1/2)(z²+2i−1)(z+1/4−i/4)) sobre |z| = 2, por residuos (numérico). Saca los polos con `Solve`.",
     "difficulty": 4,
     "cmds": [
      "Residue",
-     "Table",
+     "Solve",
      "Total"
     ],
     "real": true,
     "source": "PL2 · Ejercicio 3",
-    "solution": "den = (z^2 - 1/2) (z^2 + 2 I - 1) (z + (1/4 - I/4));\npolos = {-1/4 + I/4, -Sqrt[1 - 2 I], Sqrt[1 - 2 I], -1/Sqrt[2], 1/Sqrt[2]};\nN[Abs[polos]]\nN[2 Pi I Total[Table[Residue[1/den, {z, p}], {p, polos}]]]",
+    "solution": "den = (z^2 - 1/2) (z^2 + 2 I - 1) (z + (1/4 - I/4));\npolos = z /. Solve[den == 0, z];\nN[Abs[polos]]\nN[2 Pi I Total[Table[Residue[1/den, {z, p}], {p, polos}]]]",
     "check": {
      "type": "expr",
      "expected": "0",
@@ -993,10 +993,10 @@
      "Residue"
     ],
     "hints": [
-     "Guarda `den` y la lista `polos`; `N[Abs[polos]]` confirma que todos son menores que 2.",
+     "`polos = z /. Solve[den == 0, z];` y `N[Abs[polos]]`: los cinco módulos son menores que 2.",
      "`N[2 Pi I Total[Table[Residue[1/den, {z, p}], {p, polos}]]]`"
     ],
-    "explain": "La suma de los cinco residuos es 0 (sale ≈ 10⁻¹⁶). Comprobación del guion: `zt[t_] = 2 Exp[I t]; NIntegrate[(1/den /. z -> zt[t]) zt'[t], {t, 0, 2 Pi}]`."
+    "explain": "Módulos 0.354, 1.495, 1.495, 0.707 y 0.707: todos dentro. La suma de los cinco residuos es 0 (sale ≈ 10⁻¹⁶)."
    }
   },
   {
@@ -1004,16 +1004,79 @@
    "ex": {
     "id": "2-m3-pl2-e17",
     "kind": "code",
-    "title": "Con un polo doble",
-    "prompt": "∫ z/((z²−1/4)(z²+9)(z+1/2−i/2)²) dz sobre |z| = 1, numérico. Dentro: ±1/2 y −1/2+i/2 (doble).",
-    "difficulty": 4,
+    "title": "Comprobar parametrizando",
+    "prompt": "`den` ya está. Comprueba la integral anterior parametrizando |z| = 2 con `NIntegrate`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "PL2 · Ejercicio 3 (comprobación)",
+    "setup": "den = (z^2 - 1/2) (z^2 + 2 I - 1) (z + (1/4 - I/4));",
+    "solution": "zt[t_] = 2 Exp[I t];\nNIntegrate[(1/den /. z -> zt[t]) zt'[t], {t, 0, 2 Pi}]",
+    "check": {
+     "type": "expr",
+     "expected": "0",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Camino `zt[t_] = 2 Exp[I t];` e integrando `(1/den /. z -> zt[t]) zt'[t]`.",
+     "`NIntegrate[(1/den /. z -> zt[t]) zt'[t], {t, 0, 2 Pi}]`"
+    ],
+    "explain": "También sale 0 (un número del orden de 10⁻¹⁷): los dos métodos coinciden."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e18",
+    "kind": "code",
+    "title": "Residuos con exponencial",
+    "prompt": "f = 1/((z−2)(z−4)e^(1/(z−3))). Devuelve `N` de la lista de sus residuos en z = 2 y z = 4.",
+    "difficulty": 3,
     "cmds": [
      "Residue",
      "N"
     ],
     "real": true,
+    "source": "Prueba de la PL2 (2021) · ej. 1",
+    "solution": "f = 1/((z - 2) (z - 4) Exp[1/(z - 3)]);\nN[{Residue[f, {z, 2}], Residue[f, {z, 4}]}]",
+    "check": {
+     "type": "expr",
+     "expected": "{-1.3591409142295225, 0.18393972058572117}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "Residue"
+    ],
+    "hints": [
+     "Guarda `f` y pide `Residue[f, {z, 2}]` y `Residue[f, {z, 4}]`.",
+     "`N[{Residue[f, {z, 2}], Residue[f, {z, 4}]}]`"
+    ],
+    "explain": "−1.3591 (= −e/2) y 0.1839 (= 1/(2e)). En z = 3 la singularidad es esencial y `Residue` no la calcula."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl2-e19",
+    "kind": "code",
+    "title": "Con un polo doble",
+    "prompt": "∫ z/((z²−1/4)(z²+9)(z+1/2−i/2)²) dz sobre |z| = 1, por residuos (numérico). Saca los polos con `Solve`.",
+    "difficulty": 4,
+    "cmds": [
+     "Residue",
+     "Solve",
+     "N"
+    ],
+    "real": true,
     "source": "Prueba de la PL2 (2021) · ej. 2",
-    "solution": "f = z/((z^2 - 1/4) (z^2 + 9) (z + (1/2 - I/2))^2);\nN[2 Pi I (Residue[f, {z, -1/2}] + Residue[f, {z, 1/2}] + Residue[f, {z, -1/2 + I/2}])]",
+    "solution": "den = (z^2 - 1/4) (z^2 + 9) (z + (1/2 - I/2))^2;\n{z1, z2, z3, z4, z5, z6} = z /. Solve[den == 0, z]\nN[Abs[{z1, z2, z3, z4, z5, z6}]]\nN[2 Pi I (Residue[z/den, {z, -1/2}] + Residue[z/den, {z, 1/2}] + Residue[z/den, {z, -1/2 + I/2}])]",
     "check": {
      "type": "expr",
      "expected": "0.012488797944326505 - 0.0743154217531602 I",
@@ -1024,16 +1087,16 @@
      "Residue"
     ],
     "hints": [
-     "Guarda la función en `f` y suma los tres residuos interiores.",
-     "`N[2 Pi I (Residue[f, {z, -1/2}] + Residue[f, {z, 1/2}] + Residue[f, {z, -1/2 + I/2}])]`"
+     "`z /. Solve[den == 0, z]` da −1/2, −1/2 + i/2 (doble), ±3i y 1/2. Dentro de |z| = 1: ±1/2 y −1/2 + i/2.",
+     "`N[2 Pi I (Residue[z/den, {z, -1/2}] + Residue[z/den, {z, 1/2}] + Residue[z/den, {z, -1/2 + I/2}])]`"
     ],
-    "explain": "≈ 0.01249 − 0.07432 i. Los polos ±3i quedan fuera."
+    "explain": "≈ 0.01249 − 0.07432 i. Los polos ±3i quedan fuera. El polo doble sale repetido en la lista de `Solve`."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl2-e18",
+    "id": "2-m3-pl2-e20",
     "kind": "code",
     "title": "Dos contornos",
     "prompt": "g = sinh((4+i)z)/(z²(z²+1)). Devuelve `N[{Ia, Ib}]`: a) |z| = 2; b) |z − i/2| = 1 (el polo −i queda fuera).",
@@ -1064,7 +1127,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl2-e19",
+    "id": "2-m3-pl2-e21",
     "kind": "code",
     "title": "Corona con coeficientes",
     "prompt": "f = −1/((z−1−i/2)(z+2)), centro 2−i, corona 1.803 < |z−(2−i)| < 4.123. Devuelve `N[{c₋₁, c0}]`.",

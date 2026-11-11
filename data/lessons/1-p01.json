@@ -404,7 +404,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Head[%] === Rational || Head[Out[$Line]] === Rational",
+       "test": "Head[%] === Rational",
        "msg": "Se pedía el resultado exacto: escribe los datos sin punto decimal y no uses `N`."
       }
      ]
@@ -466,7 +466,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 30 || Precision[Out[$Line]] == 30",
+       "test": "Precision[%] == 30",
        "msg": "El valor es correcto, pero no tiene 30 cifras: usa `N[expr, 30]` con datos exactos (sin decimales)."
       }
      ]
@@ -512,7 +512,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 20 || Precision[Out[$Line]] == 20",
+       "test": "Precision[%] == 20",
        "msg": "El valor es correcto, pero no tiene 20 cifras: usa `N[expr, 20]` con datos exactos (sin decimales)."
       }
      ]
@@ -547,7 +547,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 20 || Precision[Out[$Line]] == 20",
+       "test": "Precision[%] == 20",
        "msg": "El valor es correcto, pero no tiene 20 cifras: usa `N[expr, 20]` con datos exactos (sin decimales)."
       }
      ]
@@ -588,7 +588,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 12 || Precision[Out[$Line]] == 12",
+       "test": "Precision[%] == 12",
        "msg": "El valor es correcto, pero no tiene 12 cifras: usa `N[expr, 12]` con datos exactos (sin decimales)."
       }
      ]
@@ -660,7 +660,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
+       "test": "Precision[%] == 8",
        "msg": "El valor es correcto, pero no tiene 8 cifras: usa `N[expr, 8]` con datos exactos (sin decimales)."
       }
      ]
@@ -859,7 +859,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
+       "test": "Precision[%] == 8",
        "msg": "El valor es correcto, pero no tiene 8 cifras: usa `N[expr, 8]` con datos exactos (sin decimales)."
       }
      ]
@@ -926,7 +926,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
+       "test": "Precision[%] == 10",
        "msg": "El valor es correcto, pero no tiene 10 cifras: usa `N[expr, 10]` con datos exactos (sin decimales)."
       }
      ]
@@ -1049,8 +1049,13 @@
      "run": true
     },
     {
+     "code": "8!!",
+     "md": "El doble factorial: salta de dos en dos.",
+     "run": true
+    },
+    {
      "code": "8!! == 8*6*4*2",
-     "md": "El doble factorial salta de dos en dos: compruébalo.",
+     "md": "Compruébalo también.",
      "run": true
     }
    ],
@@ -1133,7 +1138,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "test": "Precision[%] == 16",
        "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
@@ -1175,7 +1180,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "test": "Precision[%] == 16",
        "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
@@ -1218,7 +1223,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "test": "Precision[%] == 16",
        "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
@@ -1257,11 +1262,11 @@
        "type": "expr",
        "expected": "(7 - 2 I)/(E + Pi I)",
        "compare": "numeric",
-       "tol": 0.0001
+       "tol": 1e-05
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 6 || Precision[Out[$Line]] == 6",
+       "test": "Precision[%] == 6",
        "msg": "El valor es correcto, pero no tiene 6 cifras: usa `N[expr, 6]` con datos exactos (sin decimales)."
       }
      ]
@@ -1304,7 +1309,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 13 || Precision[Out[$Line]] == 13",
+       "test": "Precision[%] == 13",
        "msg": "El valor es correcto, pero no tiene 13 cifras: usa `N[expr, 13]` con datos exactos (sin decimales)."
       }
      ]
@@ -1353,7 +1358,7 @@
     "id": "1-p01-e20",
     "kind": "code",
     "title": "Práctica 1 · 3d",
-    "prompt": "Comprueba con `==` que `16!!` es igual a 16·14·12·10·8·6·4·2. Debe salir `True`.",
+    "prompt": "Calcula `16!!` y, en otra línea, comprueba con `==` que es igual a 16·14·12·10·8·6·4·2.",
     "difficulty": 3,
     "cmds": [
      "Factorial2",
@@ -1361,22 +1366,22 @@
     ],
     "real": true,
     "source": "Práctica 1 · Pregunta 3d",
-    "solution": "16!! == 16*14*12*10*8*6*4*2",
+    "solution": "16!!\n16!! == 16*14*12*10*8*6*4*2",
     "check": {
      "type": "expr",
      "expected": "True",
      "compare": "same",
-     "msg": "La salida debe ser `True`: escribe la comparación `16!! == 16*14*12*10*8*6*4*2`."
+     "msg": "La última línea debe ser la comparación `16!! == 16*14*12*10*8*6*4*2` y dar `True`."
     },
     "requires": [
      "Factorial",
      "Equal"
     ],
     "hints": [
-     "Doble factorial `16!!` y dos signos igual.",
-     "`16!! == 16*14*12*10*8*6*4*2`"
+     "Primera línea: `16!!`",
+     "Segunda: `16!! == 16*14*12*10*8*6*4*2`"
     ],
-    "explain": "16!! = 10321920, el producto de los pares de 16 a 2."
+    "explain": "Oficial: 16!! = 10321920, el producto de los pares de 16 a 2."
    }
   }
  ]

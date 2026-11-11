@@ -262,7 +262,7 @@
    "type": "build",
    "title": "Límites con Solve",
    "md": "Tres `Solve` sobre el plano `x + y + 2 z == 13` dan los tres límites.",
-   "target": "Integrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
+   "target": "NIntegrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
    "parts": [
     {
      "code": "Solve[x + y + 2 z == 13 /. {y -> 0, z -> 0}, x]",
@@ -280,7 +280,7 @@
      "run": true
     },
     {
-     "code": "Integrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
+     "code": "NIntegrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]",
      "md": "Con los tres límites, el volumen: apartado b) de la prueba.",
      "run": true
     }
@@ -288,15 +288,21 @@
    "recall": {
     "prompt": "De memoria: volumen bajo el plano `x + y + 2 z = 13` (primer octante). Los límites: 13, `13 - x`, `(13 - x - y)/2`.",
     "hints": [
-     "Integral triple de `1` con tres iteradores que empiezan en `0`.",
+     "`NIntegrate` de `1` con tres iteradores que empiezan en `0`.",
      "`{x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}`",
-     "`Integrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]`"
-    ]
+     "`NIntegrate[1, {x, 0, 13}, {y, 0, 13 - x}, {z, 0, (13 - x - y)/2}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "183.0833333333",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
    },
    "cmds": [
     "Solve",
     "ReplaceAll",
-    "Integrate"
+    "NIntegrate"
    ],
    "section": "El tetraedro de la prueba"
   },
@@ -335,15 +341,14 @@
     "id": "1-p24-e06",
     "kind": "code",
     "title": "Tetraedro B: volumen",
-    "prompt": "Volumen (decimal) con `x` de `0` a `5`, `y` de `0` a `(15 - 3 x)/2` y `z` de `0` a `(15 - 3 x - 2 y)/4`.",
+    "prompt": "Volumen con `NIntegrate`: `x` de `0` a `5`, `y` de `0` a `(15 - 3 x)/2`, `z` de `0` a `(15 - 3 x - 2 y)/4`.",
     "difficulty": 3,
     "cmds": [
-     "Integrate",
-     "N"
+     "NIntegrate"
     ],
     "real": true,
     "source": "Práctica 24 · P4 b) (variante B)",
-    "solution": "V = Integrate[1, {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N",
+    "solution": "V = NIntegrate[1, {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}]",
     "check": {
      "type": "expr",
      "expected": "23.4375",
@@ -351,8 +356,8 @@
      "tol": 1e-06
     },
     "hints": [
-     "Volumen = integral triple de `1`; añade `// N`.",
-     "`Integrate[1, {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N`"
+     "Volumen = integral triple de `1`.",
+     "`NIntegrate[1, {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}]`"
     ],
     "explain": "V = 23.4375 (en la prueba, 23.4370–23.4380)."
    }
@@ -395,16 +400,15 @@
     "id": "1-p24-e08",
     "kind": "code",
     "title": "Tetraedro B: masa",
-    "prompt": "Masa (decimal): la integral del volumen cambiando el `1` por `Exp[x]`. Límites: 5, `(15 - 3 x)/2`, `(15 - 3 x - 2 y)/4`.",
+    "prompt": "Masa: el `NIntegrate` del volumen cambiando el `1` por `Exp[x]`. Límites: 5, `(15 - 3 x)/2`, `(15 - 3 x - 2 y)/4`.",
     "difficulty": 3,
     "cmds": [
-     "Integrate",
-     "Exp",
-     "N"
+     "NIntegrate",
+     "Exp"
     ],
     "real": true,
     "source": "Práctica 24 · P4 c) (variante B)",
-    "solution": "M = Integrate[Exp[x], {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N",
+    "solution": "M = NIntegrate[Exp[x], {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}]",
     "check": {
      "type": "expr",
      "expected": "146.15230405",
@@ -416,9 +420,9 @@
     ],
     "hints": [
      "Los iteradores no cambian; solo el integrando.",
-     "`Integrate[Exp[x], {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}] // N`"
+     "`NIntegrate[Exp[x], {x, 0, 5}, {y, 0, (15 - 3 x)/2}, {z, 0, (15 - 3 x - 2 y)/4}]`"
     ],
-    "explain": "M ≈ 146.152. En el cuaderno de clase se usa `NIntegrate` con los mismos iteradores."
+    "explain": "M ≈ 146.152. Los límites describen el sólido; lo que integras decide si obtienes volumen o masa."
    }
   },
   {
@@ -489,17 +493,16 @@
     "id": "1-p24-e10",
     "kind": "code",
     "title": "Paraboloide en cartesianas",
-    "prompt": "Volumen (decimal): `x` de `-Sqrt[6]` a `Sqrt[6]`, `y` de `0` a `Sqrt[6 - x^2]`, `z` de `0` a `(x^2 + y^2)/8`.",
+    "prompt": "Volumen: integra con `NIntegrate` la altura `(x^2 + y^2)/8`, `x` de `-Sqrt[6]` a `Sqrt[6]`, `y` de `0` a `Sqrt[6 - x^2]`.",
     "difficulty": 4,
     "cmds": [
-     "Integrate",
-     "Sqrt",
-     "N"
+     "NIntegrate",
+     "Sqrt"
     ],
     "real": true,
     "source": "Práctica 24 · P2 (variante A)",
     "more": "Enunciado de la prueba: calcula el volumen de la región limitada inferiormente por el plano XOY y superiormente por el paraboloide `8z = x^2 + y^2`, que está dentro del cilindro `x^2 + y^2 = 6` y cuyos puntos verifican `y > 0`.",
-    "solution": "Integrate[1, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}, {z, 0, (x^2 + y^2)/8}] // N",
+    "solution": "NIntegrate[(x^2 + y^2)/8, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}]",
     "check": {
      "type": "expr",
      "expected": "3.5342917352",
@@ -507,9 +510,9 @@
      "tol": 1e-05
     },
     "hints": [
-     "`Integrate[1, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}, {z, 0, (x^2 + y^2)/8}] // N`"
+     "`NIntegrate[(x^2 + y^2)/8, {x, -Sqrt[6], Sqrt[6]}, {y, 0, Sqrt[6 - x^2]}]`"
     ],
-    "explain": "V = 9π/8 ≈ 3.53429. Los límites de `y` salen de `Solve[x^2 + y^2 == 6, y]`, quedándote con `y > 0`."
+    "explain": "V = 9π/8 ≈ 3.53429. Es la integral doble de la altura; la triple de `1` con `z` de `0` a `(x^2 + y^2)/8` da lo mismo."
    }
   },
   {
@@ -658,17 +661,16 @@
     "id": "1-p24-e14",
     "kind": "code",
     "title": "Dos esferas: el volumen",
-    "prompt": "Volumen (decimal) en cilíndricas: `r` de `0` a `Sqrt[335]/6`, `z` de `6 - Sqrt[10 - r^2]` a `Sqrt[36 - r^2]`.",
-    "difficulty": 5,
+    "prompt": "Los límites `x1`, `x2`, `y1`, `y2`, `z1`, `z2` ya están definidos. Calcula el volumen con `NIntegrate` de `1`.",
+    "difficulty": 4,
     "cmds": [
-     "Integrate",
-     "Sqrt",
-     "N"
+     "NIntegrate"
     ],
     "real": true,
     "source": "Práctica 24 · P3 b) (variante B)",
-    "more": "En cartesianas (cuaderno de clase): `NIntegrate[1, {x, -Sqrt[335]/6, Sqrt[335]/6}, {y, -Sqrt[335 - 36 x^2]/6, Sqrt[335 - 36 x^2]/6}, {z, 6 - Sqrt[10 - x^2 - y^2], Sqrt[36 - x^2 - y^2]}]`.",
-    "solution": "Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N",
+    "setup": "x1 = -Sqrt[335]/6; x2 = Sqrt[335]/6;\ny1 = -Sqrt[335 - 36 x^2]/6; y2 = Sqrt[335 - 36 x^2]/6;\nz1 = 6 - Sqrt[10 - x^2 - y^2]; z2 = Sqrt[36 - x^2 - y^2];",
+    "more": "Límites: `x` entre `±Sqrt[335]/6`; `y` entre `±Sqrt[335 - 36 x^2]/6`; `z` desde la esfera pequeña, `6 - Sqrt[10 - x^2 - y^2]`, hasta la grande, `Sqrt[36 - x^2 - y^2]`.",
+    "solution": "NIntegrate[1, {x, x1, x2}, {y, y1, y2}, {z, z1, z2}]",
     "check": {
      "type": "expr",
      "expected": "53.1406190487",
@@ -676,8 +678,7 @@
      "tol": 2e-05
     },
     "hints": [
-     "Giro completo: `{a, 0, 2 Pi}`. Integrando: el jacobiano `r`.",
-     "`Integrate[r, {a, 0, 2 Pi}, {r, 0, Sqrt[335]/6}, {z, 6 - Sqrt[10 - r^2], Sqrt[36 - r^2]}] // N`"
+     "`NIntegrate[1, {x, x1, x2}, {y, y1, y2}, {z, z1, z2}]`"
     ],
     "explain": "V ≈ 53.1406. Abajo la esfera pequeña, arriba la grande: con los límites de `z` al revés sale negativo."
    }

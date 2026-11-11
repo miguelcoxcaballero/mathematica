@@ -643,7 +643,7 @@
    "type": "build",
    "title": "Contar vueltas: rotations",
    "md": "Arg solo da el ángulo principal; rotations cuenta las vueltas que faltan.",
-   "target": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
+   "target": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
    "parts": [
     {
      "code": "Arg[1 - I]",
@@ -651,10 +651,10 @@
      "run": true
     },
     {
-     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]",
+     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]",
      "md": "Teclea la función del guion que cuenta vueltas.",
      "run": true,
-     "hint": "Si el ángulo `Arg[z] + 2 Pi #` está entre a − π y a + π, se queda; si no, suma una vuelta hacia `a`."
+     "hint": "Si el ángulo `Arg[z] + 2 # Pi` está entre a − π y a + π, se queda; si no, suma una vuelta hacia `a`."
     },
     {
      "code": "rotations[8 Pi, 1 - I]",
@@ -662,7 +662,7 @@
      "run": true
     },
     {
-     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
+     "code": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\nrotations[8 Pi, 1 - I]",
      "md": "Otra vez, las dos líneas seguidas.",
      "run": true
     }
@@ -671,8 +671,8 @@
     "prompt": "Escribe `rotations[a_, z_]` del guion y calcula `rotations[8 Pi, 1 - I]`.",
     "hints": [
      "`FixedPoint[If[ventana, #, # + Sign[a]] &, 0]`",
-     "La ventana: `a - Pi < Arg[z] + 2 Pi # <= a + Pi`.",
-     "`rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]`"
+     "La ventana: `a - Pi < Arg[z] + 2 # Pi <= a + Pi`.",
+     "`rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]`"
     ],
     "check": {
      "type": "expr",
@@ -684,7 +684,7 @@
     "Arg",
     "Sign"
    ],
-   "more": "La determinación a del argumento es el único valor del ángulo en (a − π, a + π]. En el guion verás `2#Pi`: es lo mismo que `2 Pi #`."
+   "more": "La determinación a del argumento es el único valor del ángulo en (a − π, a + π]. `2 # Pi` es 2π por el número de vueltas `#`."
   },
   {
    "type": "build",
@@ -736,7 +736,7 @@
     "Arg",
     "Log"
    ],
-   "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]"
+   "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]"
   },
   {
    "type": "exercise",
@@ -751,7 +751,7 @@
     ],
     "real": false,
     "source": null,
-    "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
+    "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
     "solution": "myarg[20, -1 + I]",
     "check": {
      "type": "expr",
@@ -780,8 +780,8 @@
      "N"
     ],
     "real": true,
-    "source": "Prueba de la PL1 (2021) · ej. 2 (el Ejercicio 2 del guion es igual, con ±745)",
-    "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 Pi # <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
+    "source": "Prueba de la PL1 (2021) · ej. 2",
+    "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
     "solution": "z = 1 + Sqrt[3] I;\nN[{mylog[0, z], mylog[-125, z], mylog[125, z]}]",
     "check": {
      "type": "expr",
@@ -797,6 +797,38 @@
      "`N[{mylog[0, z], mylog[-125, z], mylog[125, z]}]`"
     ],
     "explain": "La parte real es siempre ln 2. La imaginaria es π/3 más las vueltas: −20 vueltas para a = −125 y +20 para a = 125."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl1-e09",
+    "kind": "code",
+    "title": "Ramas ±745",
+    "prompt": "`mylog` ya está. Para `z = N[(2 + 3 I)^5/(Pi - 2 I)^7]` devuelve la lista de determinaciones 0, −745 y 745 de ln z.",
+    "difficulty": 3,
+    "cmds": [
+     "Log",
+     "N"
+    ],
+    "real": true,
+    "source": "PL1 · Ejercicio 2",
+    "setup": "rotations[a_, z_] := FixedPoint[If[a - Pi < Arg[z] + 2 # Pi <= a + Pi, #, # + Sign[a]] &, 0]\nmyarg[a_, z_] := Arg[z] + 2 Pi rotations[a, z]\nmylog[a_, z_] := Log[Abs[z]] + I myarg[a, z]",
+    "solution": "z = N[(2 + 3 I)^5/(Pi - 2 I)^7];\n{mylog[0, z], mylog[-745, z], mylog[745, z]}",
+    "check": {
+     "type": "expr",
+     "expected": "{-2.791575598376318 + 2.5991638436441242 I, -2.791575598376318 - 745.0998877107266 I, -2.791575598376318 + 744.0150300908352 I}",
+     "compare": "numeric",
+     "tol": 1e-06
+    },
+    "requires": [
+     "mylog"
+    ],
+    "hints": [
+     "Define `z` en numérico y llama a `mylog[a, z]` con a = 0, −745 y 745.",
+     "`{mylog[0, z], mylog[-745, z], mylog[745, z]}`"
+    ],
+    "explain": "Parte real −2.7916 en las tres; parte imaginaria 2.599 (principal), −745.0999 y 744.0150. Son 119 vueltas en un sentido y 118 en el otro."
    }
   },
   {
@@ -891,12 +923,51 @@
     "ParametricPlot",
     "Through"
    ],
-   "more": "El guion añade un giro `Exp[I α]` (ángulo de ataque) y enseña circunferencia y perfil juntos con `GraphicsRow[{g1, g2}]`."
+   "more": "El guion añade un giro `Exp[I α]`: es el ángulo de ataque."
+  },
+  {
+   "type": "build",
+   "title": "Dos gráficos en fila",
+   "md": "El guion enseña la circunferencia y el perfil juntos.",
+   "target": "GraphicsRow[{g1, g2}]",
+   "parts": [
+    {
+     "code": "g1 = ParametricPlot[Through[{Re, Im}[zz]], {t, 0, 2 Pi}];",
+     "md": "Guarda la circunferencia en g1 (el ; evita que se dibuje).",
+     "run": true
+    },
+    {
+     "code": "g2 = ParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}];",
+     "md": "Guarda el perfil en g2.",
+     "run": true
+    },
+    {
+     "code": "GraphicsRow[{g1, g2}]",
+     "md": "Ponlos en fila con GraphicsRow.",
+     "run": true
+    }
+   ],
+   "recall": {
+    "prompt": "`g1` y `g2` ya existen. Ponlos uno al lado del otro.",
+    "hints": [
+     "El comando es `GraphicsRow` y recibe una lista.",
+     "`GraphicsRow[{g1, g2}]`"
+    ],
+    "check": {
+     "type": "satisfies",
+     "test": "Head[%] === GraphicsRow",
+     "msg": "Usa GraphicsRow con la lista {g1, g2}."
+    }
+   },
+   "cmds": [
+    "GraphicsRow"
+   ],
+   "setup": "xc = 0.05; yc = 0.2; R = 2;\nzz = xc + R Cos[t] + I (yc + R Sin[t]);\nlam2 = (-xc + Sqrt[R^2 - yc^2])^2;\ng1 = ParametricPlot[Through[{Re, Im}[zz]], {t, 0, 2 Pi}];\ng2 = ParametricPlot[Through[{Re, Im}[zz + lam2/zz]], {t, 0, 2 Pi}];"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e09",
+    "id": "2-m3-pl1-e10",
     "kind": "code",
     "title": "Tu propio perfil",
     "prompt": "Dibuja el perfil de Joukowski con xc = 0.3, yc = 0.4, R = 2.",
@@ -1024,7 +1095,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e10",
+    "id": "2-m3-pl1-e11",
     "kind": "code",
     "title": "Otro camino, otro resultado",
     "prompt": "Integra Im(z) de 0 a 2 + i por la poligonal 0 → 2 → 2 + i: suma las integrales de los dos segmentos.",
@@ -1053,7 +1124,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e11",
+    "id": "2-m3-pl1-e12",
     "kind": "code",
     "title": "Conjugado sobre una circunferencia",
     "prompt": "Integra (exacto) el conjugado de z sobre |z| = 2, una vuelta antihoraria.",
@@ -1082,7 +1153,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e12",
+    "id": "2-m3-pl1-e13",
     "kind": "code",
     "title": "Arco entre dos rectas",
     "prompt": "Integra z³/(z² + 20) sobre el arco de |z| = 2 que va de t = π/4 a t = 3π/4 (numérico).",
@@ -1103,24 +1174,23 @@
      "Camino `zt[t_] = 2 Exp[I t];` e integrando `zt[t]^3/(zt[t]^2 + 20) zt'[t]`.",
      "`NIntegrate[zt[t]^3/(zt[t]^2 + 20) zt'[t], {t, Pi/4, 3 Pi/4}]`"
     ],
-    "explain": "≈ −0.0521 i. Es el arco entre las rectas y = x e y = −x con y ≥ 0. Una parte real del orden de 10⁻¹⁶ es ruido numérico."
+    "explain": "≈ −0.0521 i. Es el arco entre y = x e y = −x con y ≥ 0. Una parte real del orden de 10⁻¹⁶ es ruido numérico."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e13",
+    "id": "2-m3-pl1-e14",
     "kind": "code",
     "title": "Los ángulos del arco",
     "prompt": "Circunferencia de centro 1 + i y radio 3; arco entre y = x e y = −x con y ≤ 0. Guarda sus ángulos (numéricos) en `tini` y `tfin`.",
     "difficulty": 4,
     "cmds": [
-     "Solve",
-     "Arg"
+     "Solve"
     ],
     "real": true,
     "source": "PL1 · Ejercicio 4 (límites de integración)",
-    "solution": "s1 = N[Solve[{(x - 1)^2 + (y - 1)^2 == 9, y == x}, {x, y}]];\ns2 = N[Solve[{(x - 1)^2 + (y - 1)^2 == 9, y == -x}, {x, y}]];\nP1 = x + I y /. s1[[1]];\nP2 = x + I y /. s2[[2]];\n{tini, tfin} = {Arg[P1 - (1 + I)], Arg[P2 - (1 + I)]}",
+    "solution": "x[t_] := 1 + 3 Cos[t]; y[t_] := 1 + 3 Sin[t];\nSolve[{x[t] == y[t], y[t] <= 0}, t]\nSolve[{-x[t] == y[t], y[t] <= 0}, t]\n{tini, tfin} = N[{-3 Pi/4, 2 ArcTan[3 - Sqrt[14]]}]",
     "check": {
      "type": "any",
      "checks": [
@@ -1144,47 +1214,83 @@
      "Solve"
     ],
     "hints": [
-     "Corta la circunferencia con cada recta usando `Solve`; el ángulo de P visto desde el centro c es `Arg[P - c]`.",
-     "`N[Solve[{(x - 1)^2 + (y - 1)^2 == 9, y == x}, {x, y}]]` da dos puntos: quédate con el de y negativa. Igual con `y == -x`.",
-     "Pasa cada punto a complejo con `x + I y /. regla` y calcula `Arg[P - (1 + I)]`."
+     "Parametriza: `x[t_] := 1 + 3 Cos[t]; y[t_] := 1 + 3 Sin[t];`",
+     "`Solve[{x[t] == y[t], y[t] <= 0}, t]` da el corte con y = x; con `-x[t] == y[t]`, el de y = −x.",
+     "Copia los dos valores: `{tini, tfin} = N[{-3 Pi/4, 2 ArcTan[3 - Sqrt[14]]}]`"
     ],
-    "explain": "tini = −3π/4 ≈ −2.356 y tfin ≈ −1.276. En el guion salen de `Solve[{x[t] == y[t], y[t] <= 0}, t]`. Con esos límites, ∫ z⁴/(z³ − 10) dz = 0.7427 − 1.1184 i."
+    "explain": "tini = −3π/4 ≈ −2.356 y tfin ≈ −1.276. En Mathematica cada solución lleva además `+ 2 Pi C[1]` (todas las vueltas): se toma C[1] = 0."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "2-m3-pl1-e15",
+    "kind": "code",
+    "title": "La integral del arco",
+    "prompt": "`tini` y `tfin` ya están. Integra z⁴/(z³ − 10) sobre ese arco de centro 1 + i y radio 3 (numérico).",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "PL1 · Ejercicio 4",
+    "setup": "tini = N[-3 Pi/4]; tfin = N[2 ArcTan[3 - Sqrt[14]]];",
+    "solution": "zt[t_] = 1 + I + 3 Exp[I t];\nNIntegrate[zt[t]^4/(zt[t]^3 - 10) zt'[t], {t, tini, tfin}]",
+    "check": {
+     "type": "expr",
+     "expected": "0.7426974490567901 - 1.1183598546077187 I",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "Camino: `zt[t_] = 1 + I + 3 Exp[I t];`",
+     "`NIntegrate[zt[t]^4/(zt[t]^3 - 10) zt'[t], {t, tini, tfin}]`"
+    ],
+    "explain": "≈ 0.7427 − 1.1184 i, el resultado de las dos soluciones de 2021."
    }
   },
   {
    "type": "build",
    "section": "Fórmula de Cauchy",
    "title": "Valor principal",
-   "md": "Con una singularidad sobre el camino se quita un trocito simétrico.",
-   "target": "Limit[Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}], r -> 0, Direction -> -1]",
+   "md": "Con una singularidad sobre el camino, la integral puede no converger.",
+   "target": "Integrate[I/(-1 + E^(-t)), {t, -1, 1}, PrincipalValue -> True]",
    "parts": [
     {
-     "code": "Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}]",
-     "md": "Integra 1/t de −1 a 2 saltándote el trozo (−r, r).",
+     "code": "Integrate[1/t, {t, -1, 2}]",
+     "md": "Integra 1/t de −1 a 2: la singularidad t = 0 está en medio.",
      "run": true
     },
     {
-     "code": "Limit[Integrate[1/t, {t, -1, -r}] + Integrate[1/t, {t, r, 2}], r -> 0, Direction -> -1]",
-     "md": "Haz r → 0 por la derecha: es el valor principal.",
+     "code": "Integrate[1/t, {t, -1, 2}, PrincipalValue -> True]",
+     "md": "Pide el valor principal con la opción PrincipalValue.",
+     "run": true
+    },
+    {
+     "code": "Integrate[I/(-1 + E^(-t)), {t, -1, 1}, PrincipalValue -> True]",
+     "md": "Ahora el ejemplo del guion: sale −i.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Calcula el valor principal de ∫ 1/t dt entre −1 y 2 con `Limit`.",
+    "prompt": "Calcula el valor principal de ∫ i/(e^(−t) − 1) dt entre −1 y 1.",
     "hints": [
-     "Suma las integrales de −1 a −r y de r a 2.",
-     "`Limit[..., r -> 0, Direction -> -1]`"
+     "La opción es `PrincipalValue -> True`.",
+     "`Integrate[I/(-1 + E^(-t)), {t, -1, 1}, PrincipalValue -> True]`"
     ],
     "check": {
      "type": "expr",
-     "expected": "Log[2]"
+     "expected": "-I"
     }
    },
    "cmds": [
-    "Limit",
-    "Integrate"
+    "Integrate",
+    "PrincipalValue"
    ],
-   "more": "En Mathematica también sale directamente con la opción `PrincipalValue -> True`: `Integrate[1/t, {t, -1, 2}, PrincipalValue -> True]`."
+   "more": "Es ∫ 1/(e^(iz) − 1) dz sobre el segmento z = 2π + t i, que pasa por la singularidad z = 2π. El valor principal quita un trozo simétrico (−r, r) y hace r → 0."
   },
   {
    "type": "build",
@@ -1209,6 +1315,11 @@
      "run": true
     },
     {
+     "code": "zt[t_] = 3/2 Exp[I t];\nNIntegrate[(zt[t] + 5)/(zt[t]^2 + zt[t] - 2) zt'[t], {t, 0, 2 Pi}]",
+     "md": "Compruébalo parametrizando |z| = 3/2.",
+     "run": true
+    },
+    {
      "code": "g[z_] = (z + 5)/(z + 2);\n2 Pi I g[1]",
      "md": "Otra vez la fórmula, en dos líneas.",
      "run": true
@@ -1228,13 +1339,13 @@
    "cmds": [
     "Factor"
    ],
-   "more": "Si el polo queda fuera de la curva, la integral vale 0. En sentido horario cambia el signo. Parametrizando con `zt[t_] = 3/2 Exp[I t]` y `NIntegrate` sale lo mismo: 12.566 i."
+   "more": "Si el polo queda fuera de la curva, la integral vale 0. En sentido horario cambia el signo."
   },
   {
    "type": "build",
    "title": "Cauchy con derivada",
    "md": "Con (z − z1)^(n+1): 2πi·g⁽ⁿ⁾(z1)/n!.",
-   "target": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!",
+   "target": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I h''[1]/2!",
    "parts": [
     {
      "code": "h[z_] = (z + 5)/(z + 2)^3;",
@@ -1242,12 +1353,12 @@
      "run": true
     },
     {
-     "code": "D[h[z], {z, 2}] /. z -> 1",
-     "md": "n = 2: derivada segunda, evaluada en el polo.",
+     "code": "h''[1]",
+     "md": "n = 2: derivada segunda en el polo, con dos comillas simples.",
      "run": true
     },
     {
-     "code": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!",
+     "code": "h[z_] = (z + 5)/(z + 2)^3;\n2 Pi I h''[1]/2!",
      "md": "La fórmula completa: 2πi por la derivada entre 2!.",
      "run": true
     }
@@ -1256,7 +1367,7 @@
     "prompt": "Calcula ∫ (z + 5)/(z² + z − 2)³ dz sobre |z| = 3/2 (polo triple en z = 1).",
     "hints": [
      "`h[z_] = (z + 5)/(z + 2)^3;` y derivada segunda en z = 1.",
-     "`2 Pi I (D[h[z], {z, 2}] /. z -> 1)/2!`"
+     "`2 Pi I h''[1]/2!`"
     ],
     "check": {
      "type": "expr",
@@ -1264,14 +1375,14 @@
     }
    },
    "cmds": [
-    "D"
+    "Derivative"
    ],
-   "more": "El guion escribe la derivada como `h''[1]`."
+   "more": "`h''[1]` equivale a `D[h[z], {z, 2}] /. z -> 1`."
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e14",
+    "id": "2-m3-pl1-e16",
     "kind": "code",
     "title": "Cauchy con e^z",
     "prompt": "Calcula ∫ e^z/(z − 2) dz sobre |z| = 3 con la fórmula de Cauchy (exacto).",
@@ -1296,7 +1407,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e15",
+    "id": "2-m3-pl1-e17",
     "kind": "code",
     "title": "Polo triple de la prueba",
     "prompt": "Calcula (numérico) ∫ sin⁶z/(z − π/6)³ dz sobre la circunferencia de centro 1 + i y radio 2.",
@@ -1307,19 +1418,16 @@
     ],
     "real": true,
     "source": "Prueba de la PL1 (2021) · ej. 5c",
-    "solution": "g[z_] = Sin[z]^6;\nN[2 Pi I (D[g[z], {z, 2}] /. z -> Pi/6)/2!]",
+    "solution": "gc[z_] = Sin[z]^6;\nN[2 Pi I gc''[Pi/6]/2!]",
     "check": {
      "type": "expr",
      "expected": "4.123340357836604 I",
      "compare": "numeric",
      "tol": 1e-05
     },
-    "requires": [
-     "D"
-    ],
     "hints": [
      "El polo π/6 está dentro (`Abs[Pi/6 - (1 + I)]` ≈ 1.108 < 2). Con g(z) = sin⁶z, n = 2.",
-     "`N[2 Pi I (D[g[z], {z, 2}] /. z -> Pi/6)/2!]`"
+     "`gc[z_] = Sin[z]^6;` y `N[2 Pi I gc''[Pi/6]/2!]`"
     ],
     "explain": "≈ 4.1233 i. En el apartado b de la prueba el radio era 1: el polo quedaba fuera y la integral era 0."
    }
@@ -1328,10 +1436,10 @@
    "type": "exercise",
    "section": "Ejercicios del guion",
    "ex": {
-    "id": "2-m3-pl1-e16",
+    "id": "2-m3-pl1-e18",
     "kind": "code",
     "title": "Binómica, módulo y argumento",
-    "prompt": "z = (2 + 3i)^5/(π − 2i)^7. Con `z = N[...]`, devuelve `{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}`.",
+    "prompt": "z = (2 + 3i)^5/(π − 2i)^7. Devuelve `N` de la lista `{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}`.",
     "difficulty": 3,
     "cmds": [
      "Abs",
@@ -1340,7 +1448,7 @@
     ],
     "real": true,
     "source": "PL1 · Ejercicio 1",
-    "solution": "z = N[(2 + 3 I)^5/(Pi - 2 I)^7];\n{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}",
+    "solution": "z = (2 + 3 I)^5/(Pi - 2 I)^7;\nN[{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}]",
     "check": {
      "type": "expr",
      "expected": "{-0.05252183549581, 0.03165679911073, 0.06132451494946, 2.599163843644, 148.9211185038}",
@@ -1352,8 +1460,8 @@
      "Arg"
     ],
     "hints": [
-     "`z = N[(2 + 3 I)^5/(Pi - 2 I)^7];`",
-     "`{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}`"
+     "`z = (2 + 3 I)^5/(Pi - 2 I)^7;`",
+     "`N[{Re[z], Im[z], Abs[z], Arg[z], Arg[z] 180/Pi}]`"
     ],
     "explain": "z ≈ −0.0525 + 0.0317 i: módulo 0.0613, argumento 2.599 rad = 148.92°."
    }
@@ -1361,7 +1469,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e17",
+    "id": "2-m3-pl1-e19",
     "kind": "code",
     "title": "Cauchy en sentido horario",
     "prompt": "f(z) = e^(−z)/(i − 3z), polo en i/3. Integra en sentido horario sobre |z − i| = 1/2 y sobre |z − i| = 1. Devuelve `{Ia, Ib}`.",
@@ -1388,7 +1496,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e18",
+    "id": "2-m3-pl1-e20",
     "kind": "code",
     "title": "Polo de orden 6",
     "prompt": "Calcula ∫ e^(−z)/(i − 3z)^6 dz sobre |z − i| = 1 en sentido horario, con Cauchy para derivadas.",
@@ -1398,71 +1506,35 @@
     ],
     "real": true,
     "source": "PL1 · Ejercicio 5 c)",
-    "solution": "g[z_] = Exp[-z]/3^6;\n-2 Pi I (D[g[z], {z, 5}] /. z -> I/3)/5!",
+    "solution": "g[z_] = Exp[-z]/3^6;\n-2 Pi I g'''''[I/3]/5!",
     "check": {
      "type": "expr",
      "expected": "I Pi Exp[-I/3]/43740",
      "compare": "numeric",
      "tol": 1e-09
     },
-    "requires": [
-     "D"
-    ],
     "hints": [
      "(i − 3z)^6 = 3^6 (z − i/3)^6: `g[z_] = Exp[-z]/3^6` y derivada quinta.",
-     "`-2 Pi I (D[g[z], {z, 5}] /. z -> I/3)/5!` (el menos, por el sentido horario)."
+     "`-2 Pi I g'''''[I/3]/5!` (cinco comillas; el menos, por el sentido horario)."
     ],
-    "explain": "πi e^(−i/3)/43740 ≈ 2.35·10⁻⁵ + 6.79·10⁻⁵ i. El guion escribe la derivada quinta como `g'''''[I/3]`."
+    "explain": "πi e^(−i/3)/43740 ≈ 2.35·10⁻⁵ + 6.79·10⁻⁵ i."
    }
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "2-m3-pl1-e19",
+    "id": "2-m3-pl1-e21",
     "kind": "code",
-    "title": "Tres polos: el triple",
-    "prompt": "∫ cosh((2+i)z)/(z³(z²+1)) dz. Guarda en `c0` la contribución del polo triple z = 0 (Cauchy con n = 2).",
+    "title": "Tres polos, dos circunferencias",
+    "prompt": "f(z) = cosh((2+i)z)/(z³(z²+1)). Integra parametrizando sobre |z| = 2 y sobre |z + i/2| = 1. Devuelve `{Ia, Ib}`.",
     "difficulty": 4,
     "cmds": [
-     "D",
+     "NIntegrate",
      "Cosh"
     ],
     "real": true,
-    "source": "PL1 · Ejercicio 6 (polo z = 0)",
-    "solution": "g0[z_] = Cosh[(2 + I) z]/(z^2 + 1);\nc0 = 2 Pi I (D[g0[z], {z, 2}] /. z -> 0)/2!",
-    "check": {
-     "type": "value",
-     "expr": "c0",
-     "expected": "-4 Pi + I Pi",
-     "compare": "numeric",
-     "tol": 1e-06
-    },
-    "requires": [
-     "D"
-    ],
-    "hints": [
-     "Quita el factor z³: `g0[z_] = Cosh[(2 + I) z]/(z^2 + 1);`",
-     "`c0 = 2 Pi I (D[g0[z], {z, 2}] /. z -> 0)/2!`"
-    ],
-    "explain": "c0 = −4π + πi. La integral sobre una curva es la suma de las contribuciones de los polos interiores (teorema de deformación)."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "2-m3-pl1-e20",
-    "kind": "code",
-    "title": "Tres polos: dos circunferencias",
-    "prompt": "`c0` ya está. Añade los polos i y −i y devuelve `N[{Ia, Ib}]`: a) |z| = 2 (los tres polos); b) |z + i/2| = 1 (sin el polo i).",
-    "difficulty": 5,
-    "cmds": [
-     "Cosh",
-     "N"
-    ],
-    "real": true,
-    "source": "PL1 · Ejercicio 6 a) y b)",
-    "setup": "c0 = -4 Pi + I Pi;",
-    "solution": "g1[z_] = Cosh[(2 + I) z]/(z^3 (z + I));\ng2[z_] = Cosh[(2 + I) z]/(z^3 (z - I));\nc1 = 2 Pi I g1[I]; c2 = 2 Pi I g2[-I];\nN[{c0 + c1 + c2, c0 + c2}]",
+    "source": "PL1 · Ejercicio 6",
+    "solution": "f[z_] = Cosh[(2 + I) z]/(z^3 (z^2 + 1));\nza[t_] = 2 Exp[I t]; zb[t_] = -I/2 + Exp[I t];\n{NIntegrate[f[za[t]] za'[t], {t, 0, 2 Pi}], NIntegrate[f[zb[t]] zb'[t], {t, 0, 2 Pi}]}",
     "check": {
      "type": "expr",
      "expected": "{-5.852112165183835 - 0.8931430086556864 I, -9.209241389771503 + 1.124224822467053 I}",
@@ -1470,10 +1542,10 @@
      "tol": 1e-05
     },
     "hints": [
-     "Polo i: `g1[z_] = Cosh[(2 + I) z]/(z^3 (z + I))`, `c1 = 2 Pi I g1[I]`. Polo −i: cambia los signos.",
-     "`N[{c0 + c1 + c2, c0 + c2}]`"
+     "Define `f[z_]` y dos caminos: `za[t_] = 2 Exp[I t]` y `zb[t_] = -I/2 + Exp[I t]`.",
+     "Cada integral: `NIntegrate[f[za[t]] za'[t], {t, 0, 2 Pi}]`; mete las dos en una lista."
     ],
-    "explain": "a) −5.852 − 0.893 i. b) −9.209 + 1.124 i. En 2021 lo resolvieron con `NIntegrate[f[zt[t]] zt'[t], {t, 0, 2 Pi}]`; en la PL2 saldrá en una línea con `Residue`."
+    "explain": "a) −5.852 − 0.893 i (dentro: 0, i y −i). b) −9.209 + 1.124 i (el polo i queda fuera). En la PL2 saldrá en una línea con `Residue`."
    }
   }
  ]

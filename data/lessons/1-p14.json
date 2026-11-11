@@ -1067,10 +1067,14 @@
      "run": true
     },
     {
+     "code": "<< Combinatorica`",
+     "md": "Carga el paquete que trae el comando `Cofactor`.",
+     "run": true
+    },
+    {
      "code": "Cofactor[A, {1, 2}]",
-     "md": "El comando `Cofactor` da lo mismo de un golpe.",
-     "run": true,
-     "hint": "En Mathematica de escritorio hay que cargar antes su paquete: ``<< Combinatorica` ``."
+     "md": "`Cofactor` da lo mismo de un golpe.",
+     "run": true
     },
     {
      "code": "Table[Cofactor[A, {i, j}], {i, 1, 3}, {j, 1, 3}]",
@@ -1152,7 +1156,7 @@
     "real": true,
     "source": "Práctica 14 · P5 a)",
     "setup": "W = {{1, -2, 0, 3}, {-1, 2, -1, 1}, {1, 3, 0, 2}, {2, -1, 0, 1}};",
-    "solution": "adjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];\n{adjW[[4, 3]], adjW[[4, 4]]}",
+    "solution": "<< Combinatorica`\nadjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];\n{adjW[[4, 3]], adjW[[4, 4]]}",
     "check": {
      "type": "all",
      "checks": [
@@ -1169,7 +1173,7 @@
      ]
     },
     "hints": [
-     "`adjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];` (o el atajo `Inverse[W]*Det[W]`).",
+     "Tras ``<< Combinatorica` ``: `adjW = Transpose[Table[Cofactor[W, {i, j}], {i, 1, 4}, {j, 1, 4}]];` (o el atajo `Inverse[W]*Det[W]`).",
      "Después: `{adjW[[4, 3]], adjW[[4, 4]]}`."
     ],
     "explain": "Salen −3 y 5. El enunciado real pide `Cofactor` y `Table`; con el atajo `Inverse[W]*Det[W]` se obtiene la misma matriz. Si olvidas el `Transpose`, el (4,3) sale cambiado por el (3,4)."

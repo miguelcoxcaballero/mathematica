@@ -15,6 +15,7 @@
   "Piecewise",
   "Plot",
   "Integrate",
+  "Limit",
   "Abs",
   "N",
   "Table",
@@ -536,8 +537,8 @@
    "ex": {
     "id": "1-p27-e08",
     "kind": "code",
-    "title": "Polinomio de grado 10",
-    "prompt": "`f[x]` ya está definida. Define ahora `F10[x_]`, el polinomio de Fourier de grado 10 (mismo periodo).",
+    "title": "Grados 10 y 50",
+    "prompt": "`f[x]` ya está definida. Define igual `F10[x_]` y `F50[x_]`, los polinomios de Fourier de grados 10 y 50.",
     "difficulty": 3,
     "cmds": [
      "FourierTrigSeries"
@@ -545,11 +546,11 @@
     "real": true,
     "source": "Práctica 27 · P2 c)",
     "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]",
-    "solution": "F10[x_] = FourierTrigSeries[f[x], x, 10, FourierParameters -> {1, 2 Pi/4}];",
+    "solution": "F10[x_] = FourierTrigSeries[f[x], x, 10, FourierParameters -> {1, 2 Pi/4}];\nF50[x_] = FourierTrigSeries[f[x], x, 50, FourierParameters -> {1, 2 Pi/4}];",
     "check": {
      "type": "value",
-     "expr": "F10[142] // N",
-     "expected": "0.5077642099",
+     "expr": "{F10[142], F50[142]} // N",
+     "expected": "{0.5077642099, 0.5016999911}",
      "compare": "numeric",
      "tol": 1e-06
     },
@@ -558,9 +559,10 @@
      "FourierParameters"
     ],
     "hints": [
-     "Solo cambia el grado: `F10[x_] = FourierTrigSeries[f[x], x, 10, FourierParameters -> {1, 2 Pi/4}];`"
+     "Solo cambia el grado: `F10[x_] = FourierTrigSeries[f[x], x, 10, FourierParameters -> {1, 2 Pi/4}];`",
+     "Y lo mismo con `50` para `F50`."
     ],
-    "explain": "`F50` se obtiene igual con grado 50. En los ejercicios siguientes ya viene calculado, porque en el navegador tarda."
+    "explain": "Mismo comando, distinto grado. Con `=` las integrales se calculan una sola vez, al definir."
    }
   },
   {
@@ -648,26 +650,30 @@
     "id": "1-p27-e10",
     "kind": "code",
     "title": "Límites laterales en 142",
-    "prompt": "`FE[x]` ya está definida. Estima sus límites laterales en 142: da `{FE[142 - 0.001], FE[142 + 0.001]}`.",
-    "difficulty": 2,
+    "prompt": "`FE[x]` ya está definida. Da la lista con su límite en 142 por la izquierda (`Direction -> 1`) y por la derecha (`Direction -> -1`).",
+    "difficulty": 3,
     "cmds": [
-     "Mod"
+     "Limit"
     ],
     "real": true,
     "source": "Práctica 27 · P2 e)",
     "setup": "f[x_] := Piecewise[{{2 x + 4, -2 <= x < -1/2}, {1, -1/2 <= x < 2}}]\nFE[x_] := f[-2 + Mod[x + 2, 4]]",
-    "more": "En Mathematica los límites exactos son `Limit[FE[x], x -> 142, Direction -> 1]` (por la izquierda: 1) y `Limit[FE[x], x -> 142, Direction -> -1]` (por la derecha: 0). En versiones recientes: `Direction -> \"FromBelow\"` y `\"FromAbove\"`.",
-    "solution": "{FE[142 - 0.001], FE[142 + 0.001]}",
+    "more": "En versiones recientes de Mathematica también se escribe `Direction -> \"FromBelow\"` (izquierda) y `Direction -> \"FromAbove\"` (derecha).",
+    "solution": "{Limit[FE[x], x -> 142, Direction -> 1], Limit[FE[x], x -> 142, Direction -> -1]}",
     "check": {
      "type": "expr",
-     "expected": "{1, 0.002}",
+     "expected": "{1, 0}",
      "compare": "numeric",
      "tol": 1e-06
     },
-    "hints": [
-     "`{FE[142 - 0.001], FE[142 + 0.001]}`"
+    "requires": [
+     "Limit"
     ],
-    "explain": "Por la izquierda 1 y por la derecha prácticamente 0 (0.002: ya empieza la rampa). Límites laterales 1 y 0; semisuma 1/2."
+    "hints": [
+     "`Limit[FE[x], x -> 142, Direction -> 1]` es el límite por la izquierda.",
+     "`{Limit[FE[x], x -> 142, Direction -> 1], Limit[FE[x], x -> 142, Direction -> -1]}`"
+    ],
+    "explain": "`{1, 0}`: por la izquierda acaba el tramo constante (1) y por la derecha empieza la rampa (0). Semisuma: 1/2."
    }
   },
   {

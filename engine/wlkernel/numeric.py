@@ -160,9 +160,13 @@ def integrate_1d(f, a, b, points=(), rtol=1e-9, limit=120, oscillatory=False, so
     if a > b:
         a, b, sign = b, a, -1.0
     pts = sorted(p for p in points if a < p < b)
+    inf = float("inf")
+    if a == -inf and b == inf and not pts:
+        # Split the whole line at 0 (as Mathematica does): the symmetric change of variable cancelled two
+        # divergent 1/x tails and returned the principal value without any warning.
+        pts = [0.0]
     bounds = [a] + pts + [b]
     total, err, ok = 0.0, 0.0, True
-    inf = float("inf")
     for lo, hi in zip(bounds[:-1], bounds[1:]):
         if oscillatory and (lo == -inf or hi == inf):
             v = e = 0.0
@@ -522,6 +526,8 @@ class NIntegrate(XB):
             ma = mpmath.mpf("-inf") if a == float("-inf") else mpmath.mpf(a)
             mb = mpmath.mpf("inf") if b == float("inf") else mpmath.mpf(b)
             pts = [ma] + [mpmath.mpf(p) for p in bounds[1:-1]] + [mb]
+            if len(pts) == 2 and a == float("-inf") and b == float("inf"):
+                pts.insert(1, mpmath.mpf(0))  # no principal values: each tail must converge on its own
             with budget(4.0):
                 v, err = mpmath.quad(f, pts, error=True)
             v = complex(v)

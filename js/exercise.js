@@ -6,11 +6,11 @@
 // template / shuffled lines shown read-only; fix → broken code read-only; mcq → a note). "Ver solución" is a ghost to type.
 //   mountGhost(host, code, {onDone, before, evaluate}) — a cell that must be typed character by character.
 // Also exports the small UI helpers shared by the LEARN views (md, h, esc, badges, rng, kernel pill…).
-import { kernel } from './kernel-client.js?v=1794356662';
-import { createCell } from './notebook.js?v=1794356662';
-import { store } from './store.js?v=1794356662';
-import * as fx from './fx.js?v=1794356662';
-import * as keybarMod from './keybar.js?v=1794356662'; // namespace import: `keysFor` may not be exported yet (SPEC §15.4)
+import { kernel } from './kernel-client.js?v=1794357739';
+import { createCell } from './notebook.js?v=1794357739';
+import { store } from './store.js?v=1794357739';
+import * as fx from './fx.js?v=1794357739';
+import * as keybarMod from './keybar.js?v=1794357739'; // namespace import: `keysFor` may not be exported yet (SPEC §15.4)
 
 const { sfx, xpFloat } = fx;
 

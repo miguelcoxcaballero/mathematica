@@ -122,7 +122,7 @@
     "id": "1-p26-e02",
     "kind": "code",
     "title": "Suma de la prueba",
-    "prompt": "Suma en decimal de la serie de término `(3 n + 2)/5^n` desde `n = 1` hasta infinito.",
+    "prompt": "Define `a[n_] := (3 n + 2)/5^n` y calcula en decimal la suma de `a[n]` desde `n = 1` hasta infinito.",
     "difficulty": 2,
     "cmds": [
      "Sum",
@@ -130,8 +130,8 @@
     ],
     "real": true,
     "source": "Práctica 26 · P2 a)",
-    "more": "Enunciado de la prueba: sean `a_n = (3n + 2)/5^n` y `b_n = (-1)^n/(n^2 + 37n + 40)`. a) Calcula la suma de `a_n` desde n = 1 hasta ∞. En el cuaderno de clase se define antes `a[n_] := (3n+2)/(5^n)` y se suma `a[n]`.",
-    "solution": "Sum[(3 n + 2)/5^n, {n, 1, Infinity}] // N",
+    "more": "Enunciado de la prueba: sean `a_n = (3n + 2)/5^n` y `b_n = (-1)^n/(n^2 + 37n + 40)`. a) Calcula la suma de `a_n` desde n = 1 hasta ∞.",
+    "solution": "a[n_] := (3 n + 2)/5^n\nSum[a[n], {n, 1, Infinity}] // N",
     "check": {
      "type": "expr",
      "expected": "1.4375",
@@ -142,7 +142,7 @@
      "Sum"
     ],
     "hints": [
-     "`Sum[(3 n + 2)/5^n, {n, 1, Infinity}] // N`"
+     "`a[n_] := (3 n + 2)/5^n` y después `Sum[a[n], {n, 1, Infinity}] // N`."
     ],
     "explain": "La suma exacta es `23/16 = 1.4375` (en la prueba se admitía 1.4374–1.4376)."
    }

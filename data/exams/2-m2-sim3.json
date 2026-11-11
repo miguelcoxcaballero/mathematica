@@ -214,7 +214,7 @@
      "value": 4,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 7}];   (* serie truncada en x^7 *)\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] + 8 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\nsol = Solve[Table[de[k] == 0, {k, 0, 5}], Table[a[k], {k, 2, 7}]]\nysol[x_] = y[x] /. Flatten[sol] /. {a[0] -> 3, a[1] -> 1}\nCoefficient[ysol[x], x, 4]",
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];   (* serie truncada en x^n *)\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = ddy[x, 7] - 2 x*dy[x, 7] + 8 y[x, 7];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0, de[5] == 0}, {a[2], a[3], a[4], a[5], a[6], a[7]}]\nysol[x_] = y[x, 7] /. Flatten[sol] /. {a[0] -> 3, a[1] -> 1}\nCoefficient[ysol[x], x, 4]",
      "explain": "`a[4] = 4 a[0]/3`. La parte par se corta en `x^4`: con `a[0] = 12` sería el polinomio de Hermite `H4`. La parte impar no se corta. Con serie hasta `x^7` se imponen las ecuaciones de las potencias 0 a 5."
     },
     {
@@ -224,8 +224,8 @@
      "value": 0.6281622,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 7}];   (* serie truncada en x^7 *)\necuacion[x_] = D[y[x], {x, 2}] - 2 x*D[y[x], x] + 8 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\nsol = Solve[Table[de[k] == 0, {k, 0, 5}], Table[a[k], {k, 2, 7}]]\nysol[x_] = y[x] /. Flatten[sol] /. {a[0] -> 3, a[1] -> 1}\nysol[0.5]",
-     "explain": "La serie es `3 + x - 12 x^2 - x^3 + 4 x^4 + x^5/10 + x^7/210`. Error típico: definir `y[x_]` con `:=` y luego cambiar las `a[k]` con `=`: usa reglas (`/.` y `->`) para no dejar los coeficientes asignados."
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];   (* serie truncada en x^n *)\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = ddy[x, 7] - 2 x*dy[x, 7] + 8 y[x, 7];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0, de[5] == 0}, {a[2], a[3], a[4], a[5], a[6], a[7]}]\nysol[x_] = y[x, 7] /. Flatten[sol] /. {a[0] -> 3, a[1] -> 1}\nysol[0.5]",
+     "explain": "La serie es `3 + x - 12 x^2 - x^3 + 4 x^4 + x^5/10 + x^7/210`. Error típico: dar valor a las `a[k]` con `=`: usa reglas (`/.` y `->`) para no dejar los coeficientes asignados."
     },
     {
      "label": "c)",
@@ -234,7 +234,7 @@
      "value": 0.3333333,
      "tol": 0.001,
      "points": 0.4,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 5}];\necuacion[x_] = x*D[y[x], {x, 2}] + (1 - x)*D[y[x], x] + 4 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\n(* aquí solo queda libre a[0]: se despejan a[1] ... a[5] con las potencias 0 a 4 *)\nsol = Solve[Table[de[k] == 0, {k, 0, 4}], Table[a[k], {k, 1, 5}]]\nysol[x_] = y[x] /. Flatten[sol] /. a[0] -> 1\nysol[2] // N",
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = x*ddy[x, 5] + (1 - x)*dy[x, 5] + 4 y[x, 5];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0\n(* aquí solo queda libre a[0]: se despejan a[1] ... a[5] con las potencias 0 a 4 *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0}, {a[1], a[2], a[3], a[4], a[5]}]\nysol[x_] = y[x, 5] /. Flatten[sol] /. a[0] -> 1\nysol[2] // N",
      "explain": "`x = 0` es un punto singular regular: solo hay una solución en serie de Taylor y queda libre únicamente `a[0]`. Sale `1 - 4 x + 3 x^2 - 2 x^3/3 + x^4/24`, que es `LaguerreL[4, x]`. Error típico: intentar despejar desde `a[2]` como en un punto ordinario."
     }
    ]

@@ -1272,7 +1272,7 @@
     "id": "1-p10-e24",
     "kind": "code",
     "title": "Real 4 (1/3) · La cota M4",
-    "prompt": "Ya existen `f`, `a = 2`, `b = 4`. Dibuja `Abs[f''''[x]]` en `[a, b]`, calcula `N[Abs[f''''[a]]]` y guarda en `M4` el natural que lo acota.",
+    "prompt": "Ya existen `f`, `a = 2`, `b = 4`. Dibuja `Abs[f''''[x]]` en `[a, b]`, calcula `Abs[f''''[2.]]` y guarda en `M4` el natural que lo acota.",
     "difficulty": 3,
     "cmds": [
      "Abs",
@@ -1282,7 +1282,7 @@
     "real": true,
     "source": "Práctica 10 · P5 (ej4), apartado a)",
     "setup": "f[x_] := 6 Sin[Sqrt[2 x + Log[x]]]\na = 2; b = 4;",
-    "solution": "Plot[Abs[f''''[x]], {x, a, b}]\nN[Abs[f''''[a]]]\nM4 = 3",
+    "solution": "Plot[Abs[f''''[x]], {x, a, b}]\nAbs[f''''[2.]]\nM4 = 3",
     "check": {
      "type": "value",
      "expr": "M4",
@@ -1291,7 +1291,7 @@
     },
     "hints": [
      "`Plot[Abs[f''''[x]], {x, a, b}]` muestra que el máximo está en `x = a`.",
-     "`N[Abs[f''''[a]]]` da 2.82…: el menor natural por encima es 3. Última línea: `M4 = 3`."
+     "`Abs[f''''[2.]]` da 2.82…: el menor natural por encima es 3. Última línea: `M4 = 3`."
     ],
     "explain": "Enunciado real: integral de `f(x) = 6 Sin[Sqrt[2 x + Log[x]]]` en [2, 4] con error menor que `10^-10`. El máximo de `|f''''|` es ≈ 2.822, así que `M4 = 3`."
    }

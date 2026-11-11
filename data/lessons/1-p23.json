@@ -122,6 +122,11 @@
      "run": true
     },
     {
+     "code": "NIntegrate[x y, {x, 0, 1}, {y, 0, x}]",
+     "md": "Con `NIntegrate`, la misma integral directamente en decimal.",
+     "run": true
+    },
+    {
      "code": "Integrate[1, {x, 0, 1}, {y, x^2, x}]",
      "md": "Otra región: entre la parábola `x^2` y la recta `x`. Integrando 1: su área.",
      "run": true
@@ -549,22 +554,22 @@
    "ex": {
     "id": "1-p23-e10",
     "kind": "code",
-    "title": "La función de la prueba",
-    "prompt": "`f[x, y]` ya está definida. Integra numéricamente `f[r Cos[a], r Sin[a]] r` con `a` de `0` a `Pi/6` y `r` de `0` a `3`.",
-    "difficulty": 3,
+    "title": "La prueba, en polares",
+    "prompt": "`f[x, y]` ya está definida. Con `x = r Cos[a]`, `y = r Sin[a]`, integra `f[x, y] r` con `a` de `0` a `Pi/6` y `r` de `0` a `3/Cos[a]`.",
+    "difficulty": 4,
     "cmds": [
      "NIntegrate",
      "Cos",
      "Sin"
     ],
     "real": true,
-    "source": "Práctica 23 · P3 a) (adaptado: sector circular)",
+    "source": "Práctica 23 · P3 a)",
     "setup": "f[x_, y_] := (2 + x^2 + y^2 + x)^(-3/2)",
-    "more": "Enunciado de la prueba: sea `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` y la región `0 <= x <= 3`, `0 <= y <= x/√3`. Calcula la integral doble a) en polares y b) en cartesianas, y compara. Adaptado: aquí el recinto es el sector `r <= 3`; en la prueba el radio llega hasta `3/Cos[a]` y el resultado es 0.149809.",
-    "solution": "NIntegrate[f[r Cos[a], r Sin[a]] r, {a, 0, Pi/6}, {r, 0, 3}]",
+    "more": "Enunciado de la prueba: sea `f(x, y) = (2 + x^2 + y^2 + x)^(-3/2)` y la región `0 <= x <= 3`, `0 <= y <= x/√3`. Calcula la integral doble a) en polares y b) en cartesianas, y compara. La recta `y = x/√3` es el ángulo `π/6` y la recta `x = 3` es `r = 3/Cos[a]`.",
+    "solution": "x = r Cos[a]; y = r Sin[a];\nNIntegrate[f[x, y] r, {a, 0, Pi/6}, {r, 0, 3/Cos[a]}]",
     "check": {
      "type": "expr",
-     "expected": "0.1455203305",
+     "expected": "0.1498091901",
      "compare": "numeric",
      "tol": 1e-05
     },
@@ -573,15 +578,47 @@
      "Cos"
     ],
     "hints": [
-     "`NIntegrate[f[r Cos[a], r Sin[a]] r, {a, 0, Pi/6}, {r, 0, 3}]`"
+     "Primera línea: `x = r Cos[a]; y = r Sin[a];`",
+     "`NIntegrate[f[x, y] r, {a, 0, Pi/6}, {r, 0, 3/Cos[a]}]`"
     ],
-    "explain": "≈ 0.145520. En la prueba: `{r, 0, 3/Cos[a]}` en polares o `{x, 0, 3}, {y, 0, x/Sqrt[3]}` en cartesianas dan los dos 0.149809."
+    "explain": "≈ 0.149809. En Mathematica, con `Integrate` exacto sale una fracción con denominador `Sqrt[7]`; su numerador vale 0.396358, la otra casilla de la prueba."
    }
   },
   {
    "type": "exercise",
    "ex": {
     "id": "1-p23-e11",
+    "kind": "code",
+    "title": "La prueba, en cartesianas",
+    "prompt": "`f[x, y]` ya está definida. Intégrala numéricamente con `x` de `0` a `3` e `y` de `0` a `x/Sqrt[3]`.",
+    "difficulty": 3,
+    "cmds": [
+     "NIntegrate",
+     "Sqrt"
+    ],
+    "real": true,
+    "source": "Práctica 23 · P3 b)",
+    "setup": "f[x_, y_] := (2 + x^2 + y^2 + x)^(-3/2)",
+    "solution": "NIntegrate[f[x, y], {x, 0, 3}, {y, 0, x/Sqrt[3]}]",
+    "check": {
+     "type": "expr",
+     "expected": "0.1498091901",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "`NIntegrate[f[x, y], {x, 0, 3}, {y, 0, x/Sqrt[3]}]`"
+    ],
+    "explain": "Vuelve a salir 0.149809: cambiar de coordenadas no cambia el valor."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p23-e12",
     "kind": "code",
     "title": "Triángulo en cartesianas",
     "prompt": "Integra `(1 + x^2 + y^2)^(-3/2)` sobre el triángulo `0 <= x <= 1`, `0 <= y <= x`.",
@@ -650,7 +687,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e12",
+    "id": "1-p23-e13",
     "kind": "code",
     "title": "Jacobiano de las polares",
     "prompt": "Calcula `Det` de la matriz de derivadas de `{r Cos[a], r Sin[a]}` respecto de `{r, a}` y simplifica.",
@@ -726,7 +763,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e13",
+    "id": "1-p23-e14",
     "kind": "code",
     "title": "Paralelogramo: la integral",
     "prompt": "Integra `(-2 u + 4 v)/1.25` con `u` de `-3` a `1` y `v` de `7/9` a `5`.",
@@ -753,7 +790,7 @@
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p23-e14",
+    "id": "1-p23-e15",
     "kind": "code",
     "title": "Volumen bajo un paraboloide",
     "prompt": "Integra la altura `(2 x^2 + y^2)/5` con `x` de `-Sqrt[8]` a `Sqrt[8]` e `y` de `0` a `Sqrt[8 - x^2]`, en decimal.",

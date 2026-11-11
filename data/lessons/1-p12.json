@@ -537,22 +537,11 @@
     "setup": "yg[x_] = y[x] /. First[DSolve[y''[x] + 3 y'[x] + 2 y[x] == Exp[-2 x] Sin[4 x], y[x], x]];",
     "solution": "yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}",
     "check": {
-     "type": "any",
-     "checks": [
-      {
-       "type": "expr",
-       "expected": "0.3617150556",
-       "compare": "numeric",
-       "tol": 4e-06
-      },
-      {
-       "type": "expr",
-       "expected": "0.2160789484",
-       "compare": "numeric",
-       "tol": 4e-06,
-       "msg": "El valor no coincide. Evalúa `yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`."
-      }
-     ]
+     "type": "expr",
+     "expected": "0.3617150556",
+     "compare": "numeric",
+     "tol": 4e-06,
+     "msg": "El valor no coincide. Evalúa `yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`."
     },
     "requires": [
      "ReplaceAll"
@@ -561,7 +550,7 @@
      "Mismo patrón que antes: reglas para las dos constantes aplicadas a `yg[2.8]`.",
      "`yg[2.8] /. {C[1] -> 3.2, C[2] -> 5.75}`"
     ],
-    "explain": "La respuesta oficial es 0.361715: en Mathematica C[1] acompaña a e^(−2x) y C[2] a e^(−x). Si en tu `yg[x]` aparecen al revés, el mismo método da 0.216079: mira siempre a qué término acompaña cada constante."
+    "explain": "y(2.8) = 0.361715. En la solución general, `C[1]` acompaña a e^(−2x) y `C[2]` a e^(−x): mira siempre a qué término acompaña cada constante."
    }
   },
   {
@@ -594,12 +583,7 @@
      "Las ecuaciones: `y1[0] == 1` y `y1'[0] == 2`, en una lista.",
      "Las incógnitas: `{C[1], C[2]}`.",
      "`Solve[{ == , == }, {C[1], C[2]}]`"
-    ],
-    "check": {
-     "type": "expr",
-     "expected": "Solve[{y1[0] == 1, y1'[0] == 2}, {C[1], C[2]}]",
-     "compare": "set"
-    }
+    ]
    },
    "cmds": [
     "Solve",
@@ -695,7 +679,7 @@
     "solution": "ctes = Solve[{yg[0] == 2.3825, yg'[0] == 0.7575}, {C[1], C[2]}]",
     "check": {
      "type": "satisfies",
-     "test": "With[{c = Flatten[ctes] /. C[k_] :> C[Round[k]]}, Abs[(yg[0] /. c) - 2.3825] < 10^-6 && Abs[(yg'[0] /. c) - 0.7575] < 10^-6]",
+     "test": "With[{c = Flatten[ctes]}, Abs[(yg[0] /. c) - 2.3825] < 10^-6 && Abs[(yg'[0] /. c) - 0.7575] < 10^-6]",
      "msg": "Las constantes de `ctes` no cumplen y(0) = 2.3825 e y′(0) = 0.7575. Revisa el `Solve`."
     },
     "hints": [
@@ -1167,18 +1151,18 @@
     "id": "1-p12-e18",
     "kind": "code",
     "title": "Sistema de segundo orden",
-    "prompt": "Resuelve x″ − 2x − 3y = −5, y″ + x + 2y = −2 con x(0) = y(0) = x′(0) = y′(0) = 0. Devuelve `{x(1.75), y(1.75)}`.",
+    "prompt": "Resuelve x″ − 2x − 3y = −5, y″ + 2x + 2y = −2 con x(0) = y(0) = x′(0) = y′(0) = 0. Devuelve `{x(1.75), y(1.75)}`.",
     "difficulty": 4,
     "cmds": [
      "DSolve",
      "ReplaceAll"
     ],
     "real": true,
-    "source": "Práctica 12 · P5 (adaptado: un coeficiente cambiado)",
-    "solution": "sol = DSolve[{x''[t] - 2 x[t] - 3 y[t] == -5, y''[t] + x[t] + 2 y[t] == -2, x[0] == 0, y[0] == 0, x'[0] == 0, y'[0] == 0}, {x[t], y[t]}, t];\n{x[t], y[t]} /. sol[[1]] /. t -> 1.75",
+    "source": "Práctica 12 · P5",
+    "solution": "sol = DSolve[{x''[t] - 2 x[t] - 3 y[t] == -5, y''[t] + 2 x[t] + 2 y[t] == -2, x[0] == 0, y[0] == 0, x'[0] == 0, y'[0] == 0}, {x[t], y[t]}, t];\n{x[t], y[t]} /. sol[[1]] /. t -> 1.75",
     "check": {
      "type": "expr",
-     "expected": "{-14.14362395, 0.3943057780}",
+     "expected": "{-13.44170614, 2.506517267}",
      "compare": "numeric",
      "tol": 2e-06
     },
@@ -1189,7 +1173,7 @@
      "Seis igualdades en la lista: dos ecuaciones y cuatro condiciones (`x[0] == 0`, `y[0] == 0`, `x'[0] == 0`, `y'[0] == 0`).",
      "`{x[t], y[t]} /. sol[[1]] /. t -> 1.75`"
     ],
-    "explain": "Sale −14.1436 y 0.394306. En la prueba original la segunda ecuación era y″ + 2x + 2y = −2 (casillas −13.4417 y 2.50652; Mathematica da una fórmula enorme con `RootSum`). El método es idéntico: no se lee la fórmula, se aplica como regla."
+    "explain": "x(1.75) = −13.4417 e y(1.75) = 2.50652. La fórmula simbólica es enorme: no se lee, se aplica como regla (termina `sol = …` con `;`) y se sustituye t."
    }
   },
   {
@@ -1265,26 +1249,27 @@
     "id": "1-p12-e21",
     "kind": "code",
     "title": "Examen: las constantes",
-    "prompt": "`yg[t]` ya está definida. Guarda en `ctes` las constantes para que y(2) = −3 e y(−π) = e. Usa `NSolve` (el número e es `E`).",
+    "prompt": "`yg[t]` ya está definida. Guarda en `ctes` las constantes, en decimal, para que y(2) = −3 e y(−π) = e (el número e es `E`).",
     "difficulty": 4,
     "cmds": [
-     "NSolve",
+     "Solve",
+     "N",
      "C"
     ],
     "real": true,
     "source": "Examen PL1 2014/15 · P3 a)",
     "setup": "yg[t_] = y[t] /. First[DSolve[3 y''[t]/4 - 3 y'[t]/2 + 2 y[t] == 5 Cos[t/3], y[t], t]];",
-    "solution": "ctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]",
+    "solution": "ctes = Solve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}] // N",
     "check": {
      "type": "satisfies",
-     "test": "With[{c = N[Flatten[ctes]] /. C[k_] :> C[Round[k]]}, Abs[(yg[2] /. c) + 3] < 10^-6 && Abs[(yg[-Pi] /. c) - E] < 10^-6]",
-     "msg": "Las constantes de `ctes` no cumplen y(2) = −3 e y(−π) = e. Revisa las dos condiciones del `NSolve`."
+     "test": "With[{c = N[Flatten[ctes]]}, Abs[(yg[2] /. c) + 3] < 10^-6 && Abs[(yg[-Pi] /. c) - E] < 10^-6]",
+     "msg": "Las constantes de `ctes` no cumplen y(2) = −3 e y(−π) = e. Revisa las dos condiciones del `Solve`."
     },
     "hints": [
      "Condiciones: `yg[2] == -3` y `yg[-Pi] == E`. Incógnitas: `{C[1], C[2]}`.",
-     "`ctes = NSolve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}]`"
+     "`ctes = Solve[{yg[2] == -3, yg[-Pi] == E}, {C[1], C[2]}] // N`"
     ],
-    "explain": "En Mathematica salen C[1] = 54.4671 y C[2] = 34.8407, las casillas del examen. Las condiciones no tienen por qué ser en t = 0 ni llevar derivada."
+    "explain": "C[1] = 54.4671 y C[2] = 34.8407, las casillas del examen. Las condiciones no tienen por qué ser en t = 0 ni llevar derivada."
    }
   },
   {

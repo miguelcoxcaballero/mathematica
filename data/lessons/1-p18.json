@@ -939,13 +939,10 @@
       }
      ]
     },
-    "requires": [
-     "Inverse"
-    ],
     "hints": [
      "Vectores e imágenes en columnas: `V = Transpose[orig]; W = Transpose[imag];`",
-     "Como `gcc.V == W`, despeja: `gcc = W.Inverse[V]`.",
-     "Última línea: `gcc.{2, 3, -1}`."
+     "Como `gcc.V == W`, despeja: `gcc = W.Inverse[V]`. Última línea: `gcc.{2, 3, -1}`.",
+     "Otra vía (la de clase): matriz `t` de 9 incógnitas y `Solve[{t.orig[[1]] == imag[[1]], …}, Flatten[t]]`."
     ],
     "explain": "Datos del examen: g(1,2,3) = (1,14,-12), g(1,1,-1) = (6,-4,16), g(1,1,-2) = (-2,-5,1). Sale `gcc = {{51, -37, 8}, {-17, 14, 1}, {119, -88, 15}}` y `g(2,3,-1) = (-17, 7, -41)`. En clase también lo hacían con una matriz de 9 incógnitas y `Solve`."
    }

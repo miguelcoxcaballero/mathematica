@@ -579,6 +579,11 @@ class Kernel:
     def reset_user(self):
         """Clear all Global` definitions (like Quit kernel but fast)."""
         self.eval_code('ClearAll["Global`*"]')
+        try:
+            from . import ext as _ext
+            _ext._DERIV_CACHE.clear()
+        except Exception:
+            pass
         self._restore_system()
         # stored graphics payloads (for Show) of the previous exercise are no longer reachable
         for key in [k_ for k_, v in self.registry.items() if isinstance(v, dict) and v.get("kind") == "g"]:

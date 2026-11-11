@@ -760,7 +760,7 @@
     ],
     "check": {
      "type": "satisfies",
-     "test": "With[{m = If[Head[%] === Manipulate, %, Out[$Line]]}, Head[m] === Manipulate && !FreeQ[m, Plot] && MatchQ[m, Manipulate[_, {{a, 2}, 1, 5}]]]",
+     "test": "With[{m = %}, Head[m] === Manipulate && !FreeQ[m, Plot] && MatchQ[m, Manipulate[_, {{a, 2}, 1, 5}]]]",
      "msg": "Se espera `Manipulate[Plot[…], {{a, 2}, 1, 5}]`."
     }
    },
@@ -786,7 +786,7 @@
     "solution": "Manipulate[Plot[Cos[n x], {x, 0, 2 Pi}], {{n, 2}, 1, 6}]",
     "check": {
      "type": "satisfies",
-     "test": "With[{m = If[Head[%] === Manipulate, %, Out[$Line]]}, Head[m] === Manipulate && !FreeQ[m, Plot] && MatchQ[m, Manipulate[_, {{n, 2}, 1, 6}]]]",
+     "test": "With[{m = %}, Head[m] === Manipulate && !FreeQ[m, Plot] && MatchQ[m, Manipulate[_, {{n, 2}, 1, 6}]]]",
      "msg": "Se espera `Manipulate[Plot[…], {{n, 2}, 1, 6}]`."
     },
     "requires": [
@@ -817,7 +817,7 @@
     "solution": "Manipulate[Plot3D[Sin[a x] Cos[y], {x, -3, 3}, {y, -3, 3}], {a, 1, 3}]",
     "check": {
      "type": "satisfies",
-     "test": "With[{m = If[Head[%] === Manipulate, %, Out[$Line]]}, Head[m] === Manipulate && !FreeQ[m, Plot3D] && (MatchQ[m, Manipulate[_, {a, 1, 3}, ___]] || MatchQ[m, Manipulate[_, {{a, _}, 1, 3}, ___]])]",
+     "test": "With[{m = %}, Head[m] === Manipulate && !FreeQ[m, Plot3D] && (MatchQ[m, Manipulate[_, {a, 1, 3}, ___]] || MatchQ[m, Manipulate[_, {{a, _}, 1, 3}, ___]])]",
      "msg": "Se espera `Manipulate[Plot3D[…], {a, 1, 3}]`."
     },
     "requires": [
@@ -1005,7 +1005,7 @@
     "solution": "Manipulate[ParametricPlot3D[{2 Cos[t], t/(3 Pi), Sin[t]}, {t, 0, k}, PlotRange -> {{-2, 2}, {0, 7}, {-1, 1}}], {{k, 55}, 6 Pi, 20 Pi}]",
     "check": {
      "type": "satisfies",
-     "test": "With[{m = If[Head[%] === Manipulate, %, Out[$Line]]}, Head[m] === Manipulate && !FreeQ[m, ParametricPlot3D] && !FreeQ[m, PlotRange] && !FreeQ[m, {t, 0, k}] && (MatchQ[m, Manipulate[_, {{k, 55}, 6 Pi, 20 Pi}, ___]] || MatchQ[m, Manipulate[_, {k, 6 Pi, 20 Pi}, {k, 55}]])]",
+     "test": "With[{m = %}, Head[m] === Manipulate && !FreeQ[m, ParametricPlot3D] && !FreeQ[m, PlotRange] && !FreeQ[m, {t, 0, k}] && (MatchQ[m, Manipulate[_, {{k, 55}, 6 Pi, 20 Pi}, ___]] || MatchQ[m, Manipulate[_, {k, 6 Pi, 20 Pi}, {k, 55}]])]",
      "msg": "Se espera `Manipulate[ParametricPlot3D[…, {t, 0, k}, PlotRange -> …], {{k, 55}, 6 Pi, 20 Pi}]`."
     },
     "requires": [

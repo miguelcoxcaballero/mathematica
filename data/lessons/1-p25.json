@@ -193,35 +193,6 @@
    "ex": {
     "id": "1-p25-e03",
     "kind": "code",
-    "title": "dS de otro plano",
-    "prompt": "Calcula el elemento de área `dS` del plano `z = 2 x + 2 y + 1` con `Norm[{1, z_x, z_y}]`.",
-    "difficulty": 1,
-    "cmds": [
-     "Norm",
-     "D"
-    ],
-    "real": false,
-    "source": null,
-    "solution": "Norm[{1, D[2 x + 2 y + 1, x], D[2 x + 2 y + 1, y]}]",
-    "check": {
-     "type": "expr",
-     "expected": "3"
-    },
-    "requires": [
-     "Norm",
-     "D"
-    ],
-    "hints": [
-     "`Norm[{1, D[2 x + 2 y + 1, x], D[2 x + 2 y + 1, y]}]`"
-    ],
-    "explain": "`dS = Sqrt[1 + 4 + 4] = 3`: el plano «cunde» el triple que su sombra."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p25-e04",
-    "kind": "code",
     "title": "Área sobre un rectángulo",
     "prompt": "Área del trozo del plano `z = 2 x + 2 y + 1` que queda sobre `0 <= x <= 1`, `0 <= y <= 2`.",
     "difficulty": 2,
@@ -251,44 +222,60 @@
   {
    "type": "build",
    "title": "Área de un paraboloide",
-   "md": "Trozo de `z = 3 - (x^2 + y^2)` dentro del cilindro `x^2 + y^2 = 2`: área en polares.",
-   "target": "Integrate[Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}]",
+   "md": "Área de un trozo de `z = 3 - (x^2 + y^2)`: `NIntegrate` de `dS` sobre su sombra.",
+   "target": "z[x_, y_] := 3 - (x^2 + y^2)\ndS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];\nNIntegrate[dS, {x, -1, 1}, {y, -Sqrt[1 - x^2], Sqrt[1 - x^2]}]",
    "parts": [
     {
-     "code": "Norm[{1, D[3 - x^2 - y^2, x], D[3 - x^2 - y^2, y]}]",
-     "md": "El `dS` del paraboloide (el `Abs` no molesta).",
+     "code": "z[x_, y_] := 3 - (x^2 + y^2)",
+     "md": "La superficie, como función de `x` e `y`.",
      "run": true
     },
     {
-     "code": "Sqrt[1 + 4 r^2]",
-     "md": "Lo mismo en polares: `x^2 + y^2` es `r^2`."
+     "code": "dS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}]",
+     "md": "Su elemento de área (el `Abs` no molesta).",
+     "run": true
     },
     {
-     "code": "Integrate[Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}]",
-     "md": "Área: `dS` por el jacobiano `r`, sobre el círculo de radio `Sqrt[2]`.",
+     "code": "NIntegrate[dS, {x, -1, 1}, {y, -1, 1}]",
+     "md": "Área del trozo que queda sobre un cuadrado.",
+     "run": true
+    },
+    {
+     "code": "NIntegrate[dS, {x, -1, 1}, {y, -Sqrt[1 - x^2], Sqrt[1 - x^2]}]",
+     "md": "Y sobre el círculo unidad: los límites de `y` dependen de `x`.",
+     "run": true
+    },
+    {
+     "code": "z[x_, y_] := 3 - (x^2 + y^2)\ndS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];\nNIntegrate[dS, {x, -1, 1}, {y, -Sqrt[1 - x^2], Sqrt[1 - x^2]}]",
+     "md": "Las tres líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "De memoria: área de `z = 3 - (x^2 + y^2)` dentro de `x^2 + y^2 = 2`, en polares (`dS = Sqrt[1 + 4 r^2]`).",
+    "prompt": "De memoria: área de `z = 3 - (x^2 + y^2)` sobre el círculo unidad (`z[x_, y_]`, `dS`, `NIntegrate`).",
     "hints": [
-     "Integrando: `dS` por el jacobiano `r`.",
-     "Iteradores: `{a, 0, 2 Pi}` y `{r, 0, Sqrt[2]}`.",
-     "`Integrate[Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}]`"
-    ]
+     "Tres líneas: `z[x_, y_] := ...`, `dS = Norm[{1, z_x, z_y}];` y la integral.",
+     "`dS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];`",
+     "`NIntegrate[dS, {x, -1, 1}, {y, -Sqrt[1 - x^2], Sqrt[1 - x^2]}]`"
+    ],
+    "check": {
+     "type": "expr",
+     "expected": "5.3304135003",
+     "compare": "numeric",
+     "tol": 1e-06
+    }
    },
    "cmds": [
     "Norm",
-    "Integrate",
-    "Sqrt"
+    "D",
+    "NIntegrate"
    ],
-   "more": "En la prueba el cilindro es elíptico (`3 x^2 + 2 y^2 = 5`) y se integra en cartesianas con `NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]`, con los límites sacados con `Solve`.",
    "section": "El casquete de la prueba"
   },
   {
    "type": "exercise",
    "ex": {
-    "id": "1-p25-e05",
+    "id": "1-p25-e04",
     "kind": "code",
     "title": "Casquete: límites de x",
     "prompt": "Para el cilindro elíptico `3 x^2 + 2 y^2 == 5`, halla con `Solve` el límite superior de `x` (haz `y -> 0`), en decimal.",
@@ -315,7 +302,40 @@
     "hints": [
      "`sol = Solve[3 x^2 + 2 y^2 == 5 /. y -> 0, x];` y después `x /. sol[[2]] // N`."
     ],
-    "explain": "`x` va de `-Sqrt[5/3]` a `Sqrt[5/3] ≈ 1.29099`. Los de `y` salen de `Solve[3 x^2 + 2 y^2 == 5, y]`."
+    "explain": "`x` va de `-Sqrt[5/3]` a `Sqrt[5/3] ≈ 1.29099`."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p25-e05",
+    "kind": "code",
+    "title": "Casquete: límites de y",
+    "prompt": "Despeja `y` del cilindro `3 x^2 + 2 y^2 == 5` con `Solve` y guarda las ramas: `y1 = y /. sol[[1]]; y2 = y /. sol[[2]];`.",
+    "difficulty": 2,
+    "cmds": [
+     "Solve",
+     "ReplaceAll",
+     "Part"
+    ],
+    "real": true,
+    "source": "Práctica 25 · P2 a) (variante A)",
+    "solution": "sol = Solve[3 x^2 + 2 y^2 == 5, y];\ny1 = y /. sol[[1]]; y2 = y /. sol[[2]];\n{y1, y2}",
+    "check": {
+     "type": "value",
+     "expr": "{y1, y2} /. x -> 0.5",
+     "expected": "{-Sqrt[(5 - 3 0.25)/2], Sqrt[(5 - 3 0.25)/2]}",
+     "compare": "numeric",
+     "tol": 1e-08
+    },
+    "requires": [
+     "Solve"
+    ],
+    "hints": [
+     "`sol = Solve[3 x^2 + 2 y^2 == 5, y];`",
+     "`y1 = y /. sol[[1]]; y2 = y /. sol[[2]];`"
+    ],
+    "explain": "`y` va de `-Sqrt[(5 - 3 x^2)/2]` a `Sqrt[(5 - 3 x^2)/2]`: límites en función de `x`."
    }
   },
   {
@@ -324,27 +344,32 @@
     "id": "1-p25-e06",
     "kind": "code",
     "title": "Casquete: área",
-    "prompt": "Área (decimal) del trozo de `z = 3 - (x^2 + y^2)` dentro del cilindro `x^2 + y^2 = 2`, en polares.",
+    "prompt": "`z[x, y]` y los límites `x1`, `x2`, `y1`, `y2` ya están definidos. Guarda `dS` y calcula el área con `NIntegrate`.",
     "difficulty": 3,
     "cmds": [
-     "Integrate",
-     "Sqrt",
-     "N"
+     "Norm",
+     "D",
+     "NIntegrate"
     ],
     "real": true,
-    "source": "Práctica 25 · P2 b) (adaptado: cilindro circular)",
-    "solution": "A = Integrate[Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}] // N",
+    "source": "Práctica 25 · P2 b) (variante A)",
+    "setup": "z[x_, y_] := 3 - (x^2 + y^2)\nx1 = -Sqrt[5/3]; x2 = Sqrt[5/3];\ny1 = -Sqrt[(5 - 3 x^2)/2]; y2 = Sqrt[(5 - 3 x^2)/2];",
+    "solution": "dS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];\nA = NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]",
     "check": {
      "type": "expr",
-     "expected": "13.6135681656",
+     "expected": "14.0929258",
      "compare": "numeric",
-     "tol": 1e-06
+     "tol": 2e-06
     },
-    "hints": [
-     "`dS = Sqrt[1 + 4 r^2]`, por el jacobiano `r`.",
-     "`Integrate[Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}] // N`"
+    "requires": [
+     "Norm",
+     "NIntegrate"
     ],
-    "explain": "Área = 13π/3 ≈ 13.6136; la sombra mide solo 2π ≈ 6.28. Con el cilindro elíptico de la prueba el resultado es 14.0929."
+    "hints": [
+     "`dS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];`",
+     "`A = NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]`"
+    ],
+    "explain": "Área ≈ 14.0929 (la elipse-sombra mide solo 6.41: la superficie inclinada «cunde» más)."
    }
   },
   {
@@ -353,29 +378,30 @@
     "id": "1-p25-e07",
     "kind": "code",
     "title": "Casquete: masa",
-    "prompt": "Con `x = r Cos[a]`, `y = r Sin[a]`: integra la densidad `(x^4 + y^2) (3 - r^2)` por `Sqrt[1 + 4 r^2] r` en el mismo círculo. Decimal.",
-    "difficulty": 4,
+    "prompt": "`z`, los límites y `dS` ya están definidos. Define `d[x_, y_] := (x^4 + y^2) z[x, y]` e integra `d[x, y] dS` con `NIntegrate`.",
+    "difficulty": 3,
     "cmds": [
-     "Integrate",
-     "Cos",
-     "Sin",
-     "N"
+     "NIntegrate"
     ],
     "real": true,
-    "source": "Práctica 25 · P2 c) (adaptado: cilindro circular)",
-    "more": "La densidad `(x^4 + y^2) z` se evalúa **sobre la superficie**: la `z` vale `3 - (x^2 + y^2) = 3 - r^2`.",
-    "solution": "x = r Cos[a]; y = r Sin[a];\nM = Integrate[(x^4 + y^2) (3 - r^2) Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}] // N",
+    "source": "Práctica 25 · P2 c) (variante A)",
+    "setup": "z[x_, y_] := 3 - (x^2 + y^2)\nx1 = -Sqrt[5/3]; x2 = Sqrt[5/3];\ny1 = -Sqrt[(5 - 3 x^2)/2]; y2 = Sqrt[(5 - 3 x^2)/2];\ndS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];",
+    "more": "La densidad `(x^4 + y^2) z` se evalúa **sobre la superficie**: su `z` es `z[x, y]`.",
+    "solution": "d[x_, y_] := (x^4 + y^2) z[x, y]\nM = NIntegrate[d[x, y] dS, {x, x1, x2}, {y, y1, y2}]",
     "check": {
      "type": "expr",
-     "expected": "24.3968979494",
+     "expected": "23.4489761",
      "compare": "numeric",
-     "tol": 1e-06
+     "tol": 2e-06
     },
-    "hints": [
-     "Primera línea: `x = r Cos[a]; y = r Sin[a];`",
-     "`M = Integrate[(x^4 + y^2) (3 - r^2) Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}] // N`"
+    "requires": [
+     "NIntegrate"
     ],
-    "explain": "M ≈ 24.3969. Masa = integral de densidad por `dS`; en la prueba (cilindro elíptico) sale 23.4490."
+    "hints": [
+     "`d[x_, y_] := (x^4 + y^2) z[x, y]`",
+     "`M = NIntegrate[d[x, y] dS, {x, x1, x2}, {y, y1, y2}]`"
+    ],
+    "explain": "M ≈ 23.4490. Masa = integral de densidad por `dS`."
    }
   },
   {
@@ -387,22 +413,22 @@
     "prompt": "`M` y `A` ya están definidas (masa y área del casquete). Calcula la densidad media.",
     "difficulty": 1,
     "cmds": [
-     "Integrate"
+     "NIntegrate"
     ],
     "real": true,
-    "source": "Práctica 25 · P2 d) (adaptado: cilindro circular)",
-    "setup": "M = 24.39689794944002; A = 13.613568165555769;",
+    "source": "Práctica 25 · P2 d) (variante A)",
+    "setup": "M = 23.448975417835136; A = 14.092926176181038;",
     "solution": "M/A",
     "check": {
      "type": "expr",
-     "expected": "1.7921013482",
+     "expected": "1.6638826547",
      "compare": "numeric",
      "tol": 1e-06
     },
     "hints": [
      "Densidad media = masa / área: `M/A`."
     ],
-    "explain": "≈ 1.79210 (en la prueba, 1.66388)."
+    "explain": "≈ 1.66388."
    }
   },
   {
@@ -411,27 +437,28 @@
     "id": "1-p25-e09",
     "kind": "code",
     "title": "Casquete: centro de masas",
-    "prompt": "`M` ya está definida. `Cz` = integral de `(3 - r^2)` por el integrando de la masa, dividida por `M`. Decimal.",
-    "difficulty": 4,
+    "prompt": "Todo está definido (`z`, límites, `dS`, `d[x, y]`, `M`). `Cz` = `NIntegrate` de `z[x, y] d[x, y] dS`, dividido por `M`.",
+    "difficulty": 3,
     "cmds": [
-     "Integrate",
-     "N"
+     "NIntegrate"
     ],
     "real": true,
-    "source": "Práctica 25 · P2 e) (adaptado: cilindro circular)",
-    "setup": "M = 24.39689794944002;",
-    "solution": "x = r Cos[a]; y = r Sin[a];\nIntegrate[(3 - r^2) (x^4 + y^2) (3 - r^2) Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}]/M // N",
+    "source": "Práctica 25 · P2 e) (variante A)",
+    "setup": "z[x_, y_] := 3 - (x^2 + y^2)\nx1 = -Sqrt[5/3]; x2 = Sqrt[5/3];\ny1 = -Sqrt[(5 - 3 x^2)/2]; y2 = Sqrt[(5 - 3 x^2)/2];\ndS = Norm[{1, D[z[x, y], x], D[z[x, y], y]}];\nd[x_, y_] := (x^4 + y^2) z[x, y]\nM = 23.448975417835136;",
+    "solution": "Cz = NIntegrate[z[x, y] d[x, y] dS, {x, x1, x2}, {y, y1, y2}]/M",
     "check": {
      "type": "expr",
-     "expected": "1.6282853058",
+     "expected": "1.6148643",
      "compare": "numeric",
-     "tol": 1e-06
+     "tol": 2e-06
     },
-    "hints": [
-     "Es la integral de la masa con un factor `z = 3 - r^2` más.",
-     "`x = r Cos[a]; y = r Sin[a];` y `Integrate[(3 - r^2) (x^4 + y^2) (3 - r^2) Sqrt[1 + 4 r^2] r, {a, 0, 2 Pi}, {r, 0, Sqrt[2]}]/M // N`"
+    "requires": [
+     "NIntegrate"
     ],
-    "explain": "Cz ≈ 1.62829 (en la prueba, 1.61486). `Cx` y `Cy` valen 0 por simetría: al calcularlas en la prueba sale el aviso `NIntegrate::izero`, que no es un error."
+    "hints": [
+     "`Cz = NIntegrate[z[x, y] d[x, y] dS, {x, x1, x2}, {y, y1, y2}]/M`"
+    ],
+    "explain": "Cz ≈ 1.61486. `Cx` y `Cy` valen 0 por simetría; en Mathematica, al calcular `Cy` sale el aviso `NIntegrate::izero`, que no es un error."
    }
   },
   {
@@ -648,17 +675,17 @@
     "id": "1-p25-e14",
     "kind": "code",
     "title": "Flujo: Stokes",
-    "prompt": "Integra `(x - 10)/2` con `x` de `0` a `4` e `y` de `-Sqrt[4 x - x^2]` a `Sqrt[4 x - x^2]`, en decimal.",
+    "prompt": "Saca con `Solve` los límites `x1`, `x2`, `y1`, `y2` del cilindro `(x - 2)^2 + y^2 == 4` e integra `(x - 10)/2` con `NIntegrate`.",
     "difficulty": 4,
     "cmds": [
-     "Integrate",
-     "Sqrt",
-     "N"
+     "Solve",
+     "NIntegrate",
+     "ReplaceAll",
+     "Part"
     ],
     "real": true,
     "source": "Práctica 25 · P4 b) (variante A)",
-    "more": "Los límites son la sombra del cilindro `(x - 2)^2 + y^2 = 4`: `Solve[... /. y -> 0, x]` da `x` entre 0 y 4, y `Solve[..., y]` da las dos ramas de `y` (comprueba cuál es la negativa).",
-    "solution": "Integrate[(x - 10)/2, {x, 0, 4}, {y, -Sqrt[4 x - x^2], Sqrt[4 x - x^2]}] // N",
+    "solution": "cyl = (x - 2)^2 + y^2 == 4;\nsx = Solve[cyl /. y -> 0, x]; sy = Solve[cyl, y];\nx1 = x /. sx[[1]]; x2 = x /. sx[[2]];\ny1 = y /. sy[[1]]; y2 = y /. sy[[2]];\nNIntegrate[(x - 10)/2, {x, x1, x2}, {y, y1, y2}]",
     "check": {
      "type": "expr",
      "expected": "-50.2654824574",
@@ -666,7 +693,9 @@
      "tol": 1e-05
     },
     "hints": [
-     "`Integrate[(x - 10)/2, {x, 0, 4}, {y, -Sqrt[4 x - x^2], Sqrt[4 x - x^2]}] // N`"
+     "`cyl = (x - 2)^2 + y^2 == 4;` y `sx = Solve[cyl /. y -> 0, x]; sy = Solve[cyl, y];`",
+     "`x1 = x /. sx[[1]]; x2 = x /. sx[[2]];` y lo mismo para `y1`, `y2` con `sy`.",
+     "`NIntegrate[(x - 10)/2, {x, x1, x2}, {y, y1, y2}]`"
     ],
     "explain": "Flujo = −16π ≈ −50.2655: **el mismo número** que el trabajo sobre la curva. Eso es el teorema de Stokes: circulación en el borde = flujo del rotacional."
    }
@@ -707,27 +736,34 @@
    "ex": {
     "id": "1-p25-e16",
     "kind": "code",
-    "title": "Examen: el normal",
-    "prompt": "Para `zs = (2 - x^2 - 4 y^2)/5` construye el normal hacia arriba `n1 = {-z_x, -z_y, 1}` con `D`.",
-    "difficulty": 2,
+    "title": "Examen: área",
+    "prompt": "`zs[x, y]` y los límites `x1`, `x2`, `y1`, `y2` ya están definidos. Área del paraboloide: `dS` y `NIntegrate`.",
+    "difficulty": 4,
     "cmds": [
-     "D"
+     "Norm",
+     "D",
+     "NIntegrate"
     ],
     "real": true,
-    "source": "Examen PL2 · junio 2018 · P4 (Cálculo de varias variables)",
-    "more": "Enunciado del examen: considera el campo `W = (2x - 3z^2, y^3 + 6y, x^2 - 2yz)` y la porción del paraboloide `x^2 + 4y^2 + 5z = 2` situada por encima del plano `z = -3`, con densidad `(x + 5)^2 (y + 7) z^2`. a) Área de la porción de superficie. b) Flujo de W (positivo hacia arriba). c) Volumen del sólido. d) Densidad media.",
-    "solution": "zs = (2 - x^2 - 4 y^2)/5;\nn1 = {-D[zs, x], -D[zs, y], 1}",
+    "source": "Examen PL2 · junio 2018 · P4 a) (Cálculo de varias variables)",
+    "setup": "zs[x_, y_] := (2 - x^2 - 4 y^2)/5\nx1 = -Sqrt[17]; x2 = Sqrt[17];\ny1 = -Sqrt[17 - x^2]/2; y2 = Sqrt[17 - x^2]/2;",
+    "more": "Enunciado del examen: considera el campo `W = (2x - 3z^2, y^3 + 6y, x^2 - 2yz)` y la porción del paraboloide `x^2 + 4y^2 + 5z = 2` situada por encima del plano `z = -3`, con densidad `(x + 5)^2 (y + 7) z^2`. a) Área. b) Flujo de W (positivo hacia arriba). c) Volumen. d) Densidad media. Los límites salen de cortar con `z = -3`: la elipse `x^2 + 4 y^2 = 17`.",
+    "solution": "dS = Norm[{1, D[zs[x, y], x], D[zs[x, y], y]}];\nNIntegrate[dS, {x, x1, x2}, {y, y1, y2}]",
     "check": {
      "type": "expr",
-     "expected": "{2 x/5, 8 y/5, 1}"
+     "expected": "53.6664873",
+     "compare": "numeric",
+     "tol": 2e-06
     },
     "requires": [
-     "D"
+     "Norm",
+     "NIntegrate"
     ],
     "hints": [
-     "`zs = (2 - x^2 - 4 y^2)/5;` y después `n1 = {-D[zs, x], -D[zs, y], 1}`."
+     "`dS = Norm[{1, D[zs[x, y], x], D[zs[x, y], y]}];`",
+     "`NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]`"
     ],
-    "explain": "`{2 x/5, 8 y/5, 1}`. El área (apartado a, 53.6665) es `NIntegrate` de `Norm[{1, z_x, z_y}]` sobre la elipse `x^2 + 4 y^2 <= 17`."
+    "explain": "Área ≈ 53.6665. Es el ejercicio del casquete con otra superficie."
    },
    "section": "Pregunta de examen"
   },
@@ -737,26 +773,28 @@
     "id": "1-p25-e17",
     "kind": "code",
     "title": "Examen: flujo",
-    "prompt": "`W`, `zs` y `n1` ya están definidos. Integra `W[x, y, zs].n1` con `x` de `-Sqrt[17]` a `Sqrt[17]`, `y` de `-Sqrt[17 - x^2]/2` a `Sqrt[17 - x^2]/2`. Decimal.",
+    "prompt": "`W`, `zs` y los límites ya están definidos. Define `n1 = {-z_x, -z_y, 1}` con `D` e integra `W[x, y, zs[x, y]].n1` con `NIntegrate`.",
     "difficulty": 5,
     "cmds": [
-     "Integrate",
-     "N"
+     "D",
+     "NIntegrate"
     ],
     "real": true,
     "source": "Examen PL2 · junio 2018 · P4 b) (Cálculo de varias variables)",
-    "setup": "W[x_, y_, z_] := {2 x - 3 z^2, y^3 + 6 y, x^2 - 2 y z}\nzs = (2 - x^2 - 4 y^2)/5;\nn1 = {2 x/5, 8 y/5, 1};",
-    "more": "Los límites salen de cortar el paraboloide con `z = -3`: queda la elipse `x^2 + 4 y^2 = 17` (`Solve` con `y -> 0` para `x`, y despejando `y`).",
-    "solution": "Integrate[W[x, y, zs].n1, {x, -Sqrt[17], Sqrt[17]}, {y, -Sqrt[17 - x^2]/2, Sqrt[17 - x^2]/2}] // N",
+    "setup": "zs[x_, y_] := (2 - x^2 - 4 y^2)/5\nx1 = -Sqrt[17]; x2 = Sqrt[17];\ny1 = -Sqrt[17 - x^2]/2; y2 = Sqrt[17 - x^2]/2;\nW[x_, y_, z_] := {2 x - 3 z^2, y^3 + 6 y, x^2 - 2 y z}",
+    "solution": "n1 = {-D[zs[x, y], x], -D[zs[x, y], y], 1};\nNIntegrate[W[x, y, zs[x, y]].n1, {x, x1, x2}, {y, y1, y2}]",
     "check": {
      "type": "expr",
      "expected": "573.1246747852",
      "compare": "numeric",
      "tol": 2e-05
     },
+    "requires": [
+     "NIntegrate"
+    ],
     "hints": [
-     "`W[x, y, zs]` es el campo evaluado sobre la superficie.",
-     "`Integrate[W[x, y, zs].n1, {x, -Sqrt[17], Sqrt[17]}, {y, -Sqrt[17 - x^2]/2, Sqrt[17 - x^2]/2}] // N`"
+     "`n1 = {-D[zs[x, y], x], -D[zs[x, y], y], 1};`",
+     "`NIntegrate[W[x, y, zs[x, y]].n1, {x, x1, x2}, {y, y1, y2}]`"
     ],
     "explain": "Flujo ≈ 573.125. «Positivo hacia arriba» coincide con el normal `{-z_x, -z_y, 1}`: no hay que cambiar el signo."
    }
@@ -767,25 +805,59 @@
     "id": "1-p25-e18",
     "kind": "code",
     "title": "Examen: volumen",
-    "prompt": "Volumen (decimal): mismos límites en `x` e `y`, y `z` desde `-3` hasta `(2 - x^2 - 4 y^2)/5`.",
+    "prompt": "`zs` y los límites ya están definidos. Volumen: `NIntegrate` de `1` con `z` desde `-3` hasta `zs[x, y]`. Guárdalo en `vol`.",
     "difficulty": 4,
     "cmds": [
-     "Integrate",
-     "N"
+     "NIntegrate"
     ],
     "real": true,
     "source": "Examen PL2 · junio 2018 · P4 c) (Cálculo de varias variables)",
-    "solution": "Integrate[1, {x, -Sqrt[17], Sqrt[17]}, {y, -Sqrt[17 - x^2]/2, Sqrt[17 - x^2]/2}, {z, -3, (2 - x^2 - 4 y^2)/5}] // N",
+    "setup": "zs[x_, y_] := (2 - x^2 - 4 y^2)/5\nx1 = -Sqrt[17]; x2 = Sqrt[17];\ny1 = -Sqrt[17 - x^2]/2; y2 = Sqrt[17 - x^2]/2;",
+    "solution": "vol = NIntegrate[1, {x, x1, x2}, {y, y1, y2}, {z, -3, zs[x, y]}]",
     "check": {
      "type": "expr",
      "expected": "45.3960138444",
      "compare": "numeric",
      "tol": 1e-05
     },
-    "hints": [
-     "Integral triple de `1`: `{x, -Sqrt[17], Sqrt[17]}`, `{y, -Sqrt[17 - x^2]/2, Sqrt[17 - x^2]/2}`, `{z, -3, (2 - x^2 - 4 y^2)/5}`."
+    "requires": [
+     "NIntegrate"
     ],
-    "explain": "Volumen = 289π/20 ≈ 45.396. La masa es la misma integral con la densidad en lugar del `1`, y la densidad media (822.44) su cociente."
+    "hints": [
+     "`vol = NIntegrate[1, {x, x1, x2}, {y, y1, y2}, {z, -3, zs[x, y]}]`"
+    ],
+    "explain": "Volumen ≈ 45.396: integral triple con la `z` entre el plano y la superficie."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p25-e19",
+    "kind": "code",
+    "title": "Examen: densidad media",
+    "prompt": "`zs`, los límites y `vol` ya están definidos. Integra la densidad `(x + 5)^2 (y + 7) z^2` en el sólido y divide por `vol`.",
+    "difficulty": 4,
+    "cmds": [
+     "NIntegrate"
+    ],
+    "real": true,
+    "source": "Examen PL2 · junio 2018 · P4 d) (Cálculo de varias variables)",
+    "setup": "zs[x_, y_] := (2 - x^2 - 4 y^2)/5\nx1 = -Sqrt[17]; x2 = Sqrt[17];\ny1 = -Sqrt[17 - x^2]/2; y2 = Sqrt[17 - x^2]/2;\nvol = 45.39601384437254;",
+    "solution": "masa = NIntegrate[(x + 5)^2 (y + 7) z^2, {x, x1, x2}, {y, y1, y2}, {z, -3, zs[x, y]}];\nmasa/vol",
+    "check": {
+     "type": "expr",
+     "expected": "822.444",
+     "compare": "numeric",
+     "tol": 1e-05
+    },
+    "requires": [
+     "NIntegrate"
+    ],
+    "hints": [
+     "`masa = NIntegrate[(x + 5)^2 (y + 7) z^2, {x, x1, x2}, {y, y1, y2}, {z, -3, zs[x, y]}];`",
+     "Última línea: `masa/vol`."
+    ],
+    "explain": "Densidad media ≈ 822.44. Con esto está la pregunta completa del examen: área, flujo, volumen y densidad media con los mismos límites."
    }
   }
  ]

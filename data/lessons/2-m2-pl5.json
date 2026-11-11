@@ -111,7 +111,7 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`Y[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
@@ -155,7 +155,7 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{0, 1}, {-6, -5}}).v - ({0, Cos[t]})) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{0, 1}, {-6, -5}}).v - ({0, Cos[t]})) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`Y[t]` no cumple el sistema del guion."
       },
       {
@@ -242,7 +242,7 @@
     "id": "2-m2-pl5-e03",
     "kind": "code",
     "title": "Ecuación como sistema",
-    "prompt": "**Ej. 2.** `y'' + β² y = 0` con β² = {{k}}: escríbela como sistema (`y1`, `y2`), guarda `DSolve` en `res` y define `Y[t_]`.",
+    "prompt": "**Ej. 2.** `y'' + β² y = 0` (escribe β como `b`): pásala a sistema (`y1`, `y2`), guarda `DSolve` en `res` y define `Y[t_]`.",
     "difficulty": 3,
     "cmds": [
      "DSolve",
@@ -251,35 +251,28 @@
     ],
     "real": true,
     "source": "PL5 · ejercicio 2",
-    "solution": "res = DSolve[{y1'[t] == y2[t], y2'[t] == -{{k}} y1[t]}, {y1[t], y2[t]}, t];\nY[t_] = {y1[t], y2[t]} /. Flatten[res]",
+    "solution": "res = DSolve[{y1'[t] == y2[t], y2'[t] == -b^2 y1[t]}, {y1[t], y2[t]}, t];\nY[t_] = {y1[t], y2[t]} /. Flatten[res]",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{0, 1}, {-{{k}}, 0}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
-       "msg": "`Y[t]` no cumple `y1' = y2`, `y2' = −{{k}} y1`. Ojo al signo."
+       "test": "With[{v = Y[t]}, Max[Abs[Flatten[(D[v, t] - ({{0, 1}, {-b^2, 0}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "msg": "`Y[t]` no cumple `y1' = y2`, `y2' = −b² y1`. Ojo al signo."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = Y[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C[1], C[2]}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = Y[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C[1], C[2]}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución general (sin condiciones iniciales)."
       }
      ]
     },
     "hints": [
-     "`y1' = y2` y `y2' = −{{k}} y1`.",
-     "`res = DSolve[{y1'[t] == y2[t], y2'[t] == -{{k}} y1[t]}, {y1[t], y2[t]}, t];`",
+     "`y1' = y2` y `y2' = −b² y1`.",
+     "`res = DSolve[{y1'[t] == y2[t], y2'[t] == -b^2 y1[t]}, {y1[t], y2[t]}, t];`",
      "`Y[t_] = {y1[t], y2[t]} /. Flatten[res]`"
     ],
     "explain": "Salen senos y cosenos de frecuencia β. Si olvidas el signo menos salen exponenciales: es el error típico.",
-    "params": {
-     "k": [
-      9,
-      4,
-      16
-     ]
-    },
     "requires": [
      "DSolve"
     ]
@@ -533,12 +526,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, 2}, {2, 1}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solH[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `C1`, `C2`."
       }
      ]
@@ -615,12 +608,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{2, 1}, {1, 2}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{2, 1}, {1, 2}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solH[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `C1`, `C2`."
       }
      ]
@@ -693,12 +686,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{-4, 1, 1}, {1, 5, -1}, {0, 1, -3}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{-4, 1, 1}, {1, 5, -1}, {0, 1, -3}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solH[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 3}, {c, {C1, C2, C3}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 3}, {c, {C1, C2, C3}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `C1`, `C2`, `C3`."
       }
      ]
@@ -802,12 +795,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solR[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, -5}, {1, -1}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solR[t]}, Max[Abs[Flatten[(D[v, t] - ({{1, -5}, {1, -1}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solR[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solR[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solR[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `C1`, `C2`."
       }
      ]
@@ -845,17 +838,17 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solR[t]}, Max[Abs[Flatten[(D[v, t] - ({{-1, -2}, {2, -1}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solR[t]}, Max[Abs[Flatten[(D[v, t] - ({{-1, -2}, {2, -1}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solR[t]` no cumple el sistema: `D[Y, t] - A.Y` no da el vector cero."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solR[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solR[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {C1, C2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `C1`, `C2`."
       },
       {
        "type": "satisfies",
-       "test": "Max[Abs[Im[N[solR[t] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]]] < 10^-10",
+       "test": "Max[Abs[Im[N[solR[t] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]]] < 10^-10",
        "msg": "`solR[t]` debe ser real: usa la fórmula con `Re` e `Im`."
       }
      ]
@@ -1003,10 +996,10 @@
    "setup": "m3 = {{-8, -1}, {16, 0}};\nv1 = {-1, 4} Exp[-4 x];\nv2 = {a1 x + b1, a2 x + b2} Exp[-4 x];",
    "parts": [
     {
-     "code": "sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a2, b2}]",
+     "code": "sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a1, b1, a2, b2}]",
      "md": "Término libre y coeficiente de x de cada componente, a cero.",
      "run": true,
-     "hint": "Solo dos ecuaciones son independientes: se despejan `a2`, `b2`."
+     "hint": "Solo dos son independientes: `Solve` avisa y deja `a2`, `b2` en función de `a1`, `b1`."
     },
     {
      "code": "v2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}",
@@ -1027,7 +1020,7 @@
    "recall": {
     "prompt": "Con `m3`, `v1`, `v2` definidos: `sv` (despeja `a2`, `b2`), `v2p` (con `a1 = 1`, `b1 = 0`) y `ys[x_]`.",
     "hints": [
-     "`sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a2, b2}];`",
+     "`sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a1, b1, a2, b2}];`",
      "`v2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0};`",
      "`ys[x_] = c1 v1 + c2 v2p`"
     ],
@@ -1036,17 +1029,17 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = ys[x]}, Max[Abs[Flatten[(D[v, x] - ({{-8, -1}, {16, 0}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = ys[x]}, Max[Abs[Flatten[(D[v, x] - ({{-8, -1}, {16, 0}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`ys[x]` no cumple el sistema."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = ys[x]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {c1, c2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = ys[x]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {c1, c2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `c1`, `c2`."
       }
      ]
     },
-    "solution": "sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a2, b2}];\nv2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0};\nys[x_] = c1 v1 + c2 v2p"
+    "solution": "sv = Solve[{a1 + 4 b1 + b2 == 0, 4 a1 + a2 == 0, a2 - 4 (4 b1 + b2) == 0, -4 (4 a1 + a2) == 0}, {a1, b1, a2, b2}];\nv2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0};\nys[x_] = c1 v1 + c2 v2p"
    },
    "cmds": [
     "Solve",
@@ -1101,13 +1094,13 @@
     ],
     "real": true,
     "source": "PL5 · ejercicio 3b",
-    "solution": "v2 = {a1 t + b1, a2 t + b2} Exp[-t];\nD[v2, t] - m.v2 // Simplify\nsv = Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a2, b2}]\nv2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}",
+    "solution": "v2 = {a1 t + b1, a2 t + b2} Exp[-t];\nD[v2, t] - m.v2 // Simplify\nsv = Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a1, a2, b1, b2}]\nv2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}",
     "check": {
      "type": "all",
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = v2p}, Max[Abs[Flatten[(D[v, t] - ({{1, 1}, {-4, -3}}).v) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = v2p}, Max[Abs[Flatten[(D[v, t] - ({{1, 1}, {-4, -3}}).v) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`v2p` no es solución del sistema (o aún contiene `a1`, `b1`, `a2`, `b2`)."
       },
       {
@@ -1119,7 +1112,7 @@
     },
     "hints": [
      "`v2 = {a1 t + b1, a2 t + b2} Exp[-t];` y `D[v2, t] - m.v2 // Simplify`.",
-     "`sv = Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a2, b2}]`",
+     "`sv = Solve[{a1 - 2 b1 - b2 == 0, -2 a1 - a2 == 0, a2 + 4 b1 + 2 b2 == 0, 4 a1 + 2 a2 == 0}, {a1, a2, b1, b2}]`",
      "`v2p = v2 /. Flatten[sv] /. {a1 -> 1, b1 -> 0}`"
     ],
     "explain": "`v2p = {t E^(-t), (1 - 2t) E^(-t)}`. General: `C1 {-1, 2} E^(-t) + C2 v2p`.",
@@ -1224,12 +1217,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{6, -8}, {1, 0}}).v - ({Exp[3 t], 0})) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solH[t]}, Max[Abs[Flatten[(D[v, t] - ({{6, -8}, {1, 0}}).v - ({Exp[3 t], 0})) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solH[t]` no cumple el sistema completo."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {K1, K2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solH[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {K1, K2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `K1`, `K2`."
       }
      ]
@@ -1265,12 +1258,12 @@
      "checks": [
       {
        "type": "satisfies",
-       "test": "With[{v = solG[t]}, Max[Abs[Flatten[(D[v, t] - ({{3, 8}, {-1, -3}}).v - ({Exp[t], 0})) /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
+       "test": "With[{v = solG[t]}, Max[Abs[Flatten[(D[v, t] - ({{3, 8}, {-1, -3}}).v - ({Exp[t], 0})) /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}]]] < 10^-6]",
        "msg": "`solG[t]` no cumple `Y' = A Y + {e^t, 0}`."
       },
       {
        "type": "satisfies",
-       "test": "With[{v = solG[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {K1, K2}}]] /. {t -> 0.7, x -> 0.7, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
+       "test": "With[{v = solG[t]}, Abs[Det[Table[D[v[[i]], c], {i, 2}, {c, {K1, K2}}]] /. {t -> 0.7, x -> 0.7, b -> 1.3, C1 -> 0.3, C2 -> 1.1, C3 -> -0.6, K1 -> 0.3, K2 -> 1.1, C[1] -> 0.3, C[2] -> 1.1, C[3] -> -0.6, c1 -> 0.3, c2 -> 1.1}] > 10^-8]",
        "msg": "Debe ser la solución GENERAL, con las constantes `K1`, `K2`."
       }
      ]

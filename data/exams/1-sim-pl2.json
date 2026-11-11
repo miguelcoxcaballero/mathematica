@@ -141,8 +141,8 @@
      "value": 0.6113325,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP1[[1]]",
-     "explain": "Los puntos críticos anulan el gradiente: `Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}]`. Para saber cuál está más cerca del origen se calcula `Norm` de cada uno: `2.675` frente a `3.284`. Error típico: quedarse con el primero que devuelve `Solve` sin comprobar las distancias."
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == 0, {x, y}];   (* gradiente = 0 *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP1[[1]]",
+     "explain": "Los puntos críticos anulan el gradiente: `Solve[Grad[f[x, y], {x, y}] == 0, {x, y}]`. Para saber cuál está más cerca del origen se calcula `Norm` de cada uno: `2.675` frente a `3.284`. Error típico: quedarse con el primero que devuelve `Solve` sin comprobar las distancias."
     },
     {
      "label": "b)",
@@ -151,7 +151,7 @@
      "value": 2.930907,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP2[[2]]",
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == 0, {x, y}];   (* gradiente = 0 *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nP2[[2]]",
      "explain": "`P2 = (1.48242, 2.93091)`. `{x, y} /. pc` convierte las reglas de `Solve` en una lista de puntos; `[[2]]` saca la segunda coordenada."
     },
     {
@@ -161,7 +161,7 @@
      "value": -20.90604,
      "tol": 0.001,
      "points": 0.4,
-     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\nhes /. {x -> P1[[1]], y -> P1[[2]]}",
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == 0, {x, y}];   (* gradiente = 0 *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\nhes /. {x -> P1[[1]], y -> P1[[2]]}",
      "explain": "La matriz hessiana es el gradiente del gradiente y el hessiano su determinante: `48 x - 201/4`. En `P1` es negativo, así que `P1` es un punto de silla, sin mirar nada más."
     },
     {
@@ -171,7 +171,7 @@
      "value": 2,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == {0, 0}, {x, y}];   (* gradiente = vector nulo *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\n{hes, h11} /. {x -> P2[[1]], y -> P2[[2]]}   (* {20.906, 5.789}: los dos positivos *)\ntipo = 2   (* hessiano > 0 y f_xx > 0: mínimo local *)",
+     "solution": "ClearAll[\"Global`*\"]\nf[x_, y_] := 2 (x - 1)^3 - 3 (x + 1) (y - 2)/2 + 2 (y - 2)^2 + 5\npc = Solve[Grad[f[x, y], {x, y}] == 0, {x, y}];   (* gradiente = 0 *)\npts = {x, y} /. pc // N\nTable[{Norm[punto], punto}, {punto, pts}]   (* distancia al origen de cada uno *)\nP1 = pts[[1]]; P2 = pts[[2]];               (* P1 = el más cercano al origen *)\nH = Grad[Grad[f[x, y], {x, y}], {x, y}];   (* matriz hessiana *)\nhes = Det[H]                               (* hessiano: 48 x - 201/4 *)\nh11 = H[[1, 1]];                           (* derivada segunda respecto de x *)\n{hes, h11} /. {x -> P2[[1]], y -> P2[[2]]}   (* {20.906, 5.789}: los dos positivos *)\ntipo = 2   (* hessiano > 0 y f_xx > 0: mínimo local *)",
      "explain": "Criterio: hessiano negativo, punto de silla (1); hessiano positivo y `f_xx > 0`, mínimo local (2); hessiano positivo y `f_xx < 0`, máximo local (3). En `P2` salen `20.906` y `5.789`: mínimo."
     }
    ]
@@ -215,8 +215,8 @@
      "value": 48.83165,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\ndS = Sqrt[1 + D[zs[x, y], x]^2 + D[zs[x, y], y]^2];\n(* en Mathematica: NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]. Aquí, la integral interior exacta y la exterior numérica *)\ninterior[x_] = Integrate[dS, {y, y1, y2}];\nArea = NIntegrate[interior[x], {x, x1, x2}]",
-     "explain": "La proyección sobre el plano XY es la elipse `x^2 + 3 y^2 <= 9` (corte del paraboloide con `z = -2`). El elemento de área de `z = zs(x, y)` es `Sqrt[1 + zs_x^2 + zs_y^2]`. Los límites de `y` dependen de `x`: por eso `{x, ...}` va primero y `{y, ...}` después."
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nlimx = Solve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = x /. limx[[1]]; x2 = x /. limx[[2]];\nlimy = Solve[surface /. z -> z1, y]             (* las dos ramas de y *)\ny1 = y /. limy[[1]]; y2 = y /. limy[[2]];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\ndS = Norm[{-D[zs[x, y], x], -D[zs[x, y], y], 1}];   (* elemento de área *)\nArea = NIntegrate[dS, {x, x1, x2}, {y, y1, y2}]",
+     "explain": "La proyección sobre el plano XY es la elipse `x^2 + 3 y^2 <= 9` (corte del paraboloide con `z = -2`). El elemento de área de `z = zs(x, y)` es la norma de `(-zs_x, -zs_y, 1)`. Los límites de `y` dependen de `x`: por eso `{x, ...}` va primero y `{y, ...}` después."
     },
     {
      "label": "b)",
@@ -225,7 +225,7 @@
      "value": 120.3909,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nn1 = {-D[zs[x, y], x], -D[zs[x, y], y], 1};   (* normal hacia arriba *)\n(* en Mathematica: NIntegrate[W[x, y, zs[x, y]].n1, {x, x1, x2}, {y, y1, y2}] *)\ninterior[x_] = Integrate[W[x, y, zs[x, y]].n1, {y, y1, y2}];\nFlujo = NIntegrate[interior[x], {x, x1, x2}]",
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nlimx = Solve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = x /. limx[[1]]; x2 = x /. limx[[2]];\nlimy = Solve[surface /. z -> z1, y]             (* las dos ramas de y *)\ny1 = y /. limy[[1]]; y2 = y /. limy[[2]];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nn1 = {-D[zs[x, y], x], -D[zs[x, y], y], 1};   (* normal hacia arriba *)\nFlujo = NIntegrate[W[x, y, zs[x, y]].n1, {x, x1, x2}, {y, y1, y2}]",
      "explain": "Flujo a través de `z = zs(x, y)`: integral doble de `W` evaluado sobre la superficie por la normal `(-zs_x, -zs_y, 1)`, que apunta hacia arriba. Si el enunciado pidiera el flujo hacia abajo, se cambia el signo. Error típico: evaluar `W[x, y, z]` sin sustituir `z` por `zs[x, y]`."
     },
     {
@@ -235,7 +235,7 @@
      "value": 36.72944,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nVol = Integrate[1, {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}] // N",
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nlimx = Solve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = x /. limx[[1]]; x2 = x /. limx[[2]];\nlimy = Solve[surface /. z -> z1, y]             (* las dos ramas de y *)\ny1 = y /. limy[[1]]; y2 = y /. limy[[2]];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nVol = NIntegrate[1, {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}]",
      "explain": "Volumen: integral triple de 1, con `z` entre el plano (`z1 = -2`, abajo) y la superficie (`zs[x, y]`, arriba). La variable más interior es la última de la lista y puede depender de las anteriores. En exacto sale `27 Sqrt[3] Pi/4`."
     },
     {
@@ -245,8 +245,8 @@
      "value": 61.98093,
      "tol": 0.001,
      "points": 0.5,
-     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nSolve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = -3; x2 = 3;\nSolve[surface /. z -> z1, y]             (* y entre las dos ramas *)\ny1 = -Sqrt[(9 - x^2)/3]; y2 = Sqrt[(9 - x^2)/3];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nMasa = Integrate[dens[x, y, z], {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}] // N",
-     "explain": "Masa: la misma integral triple con la densidad como integrando. Si `Integrate` exacto tarda mucho, se cambia por `NIntegrate`: en el examen solo cuenta el número. No llames `z` a la superficie despejada: chocaría con la variable de integración."
+     "solution": "ClearAll[\"Global`*\"]\nW[x_, y_, z_] := {y - x*z, 2 y + x^2, z^2 + x*y}\ndens[x_, y_, z_] := y^2*(x + 3)*(z + 2)\nsurface = x^2 + 3 y^2 + 2 z == 5; z1 = -2;\n(* límites: se despeja en la superficie *)\nlimx = Solve[surface /. {y -> 0, z -> z1}, x]   (* x entre -3 y 3 *)\nx1 = x /. limx[[1]]; x2 = x /. limx[[2]];\nlimy = Solve[surface /. z -> z1, y]             (* las dos ramas de y *)\ny1 = y /. limy[[1]]; y2 = y /. limy[[2]];\nzs[x_, y_] = z /. Flatten[Solve[surface, z]]   (* la superficie como z = zs(x, y) *)\nMasa = NIntegrate[dens[x, y, z], {x, x1, x2}, {y, y1, y2}, {z, z1, zs[x, y]}]",
+     "explain": "Masa: la misma integral triple con la densidad como integrando. Se usa `NIntegrate` y no `Integrate`: en el examen solo cuenta el número. No llames `z` a la superficie despejada: chocaría con la variable de integración."
     }
    ]
   },

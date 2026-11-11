@@ -253,7 +253,7 @@
        "type": "expr",
        "expected": "(1 + 2 I)^3/(1 + Pi I)^2",
        "compare": "numeric",
-       "tol": 0.0001
+       "tol": 1e-05
       }
      ]
     }
@@ -1074,7 +1074,7 @@
        "type": "expr",
        "expected": "-2.786981774557633 + 1.5054626060406342 I",
        "compare": "numeric",
-       "tol": 0.0001,
+       "tol": 1e-05,
        "msg": "La última línea debe mostrar `z` en decimales: `N[z, 6]`."
       }
      ]

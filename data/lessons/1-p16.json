@@ -473,7 +473,7 @@
    "type": "build",
    "title": "La intersección",
    "md": "Con los mismos `S` y `T`: halla los vectores de `S ∩ T`.",
-   "target": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {y, w, t}];\nx S[[1]] + y S[[2]] /. Flatten[sol]",
+   "target": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {x, y, w, t}];\nx S[[1]] + y S[[2]] /. Flatten[sol]",
    "setup": "S = {{1, 0, 0, 1}, {0, 0, 1, 1}}; T = {{1, 0, 0, 0}, {0, 0, 1, 0}};",
    "parts": [
     {
@@ -488,10 +488,10 @@
      "run": true
     },
     {
-     "code": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {y, w, t}]",
-     "md": "Iguálalos y despeja `y, w, t`.",
+     "code": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {x, y, w, t}]",
+     "md": "Iguálalos y resuelve en `x, y, w, t`.",
      "run": true,
-     "hint": "En la lista van solo las incógnitas a despejar: `x` queda como parámetro."
+     "hint": "Sobra una incógnita: `Solve` deja libre la primera de la lista (`x`) y avisa con `Solve::svars`."
     },
     {
      "code": "x S[[1]] + y S[[2]] /. Flatten[sol]",
@@ -500,7 +500,7 @@
      "hint": "`Flatten` quita un nivel de llaves para que `/.` sustituya limpio."
     },
     {
-     "code": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {y, w, t}];\nx S[[1]] + y S[[2]] /. Flatten[sol]",
+     "code": "sol = Solve[x S[[1]] + y S[[2]] == w T[[1]] + t T[[2]], {x, y, w, t}];\nx S[[1]] + y S[[2]] /. Flatten[sol]",
      "md": "Las dos líneas juntas.",
      "run": true,
      "hint": "Sale `{x, 0, -x, 0}`: la recta de (1, 0, -1, 0). `Normalize` daría el vector de norma 1."
@@ -509,7 +509,7 @@
    "recall": {
     "prompt": "Halla los vectores de `S ∩ T`: resuelve y sustituye (dos líneas).",
     "hints": [
-     "Línea 1: `sol = Solve[genérico de S == genérico de T, {y, w, t}];`",
+     "Línea 1: `sol = Solve[genérico de S == genérico de T, {x, y, w, t}];`",
      "Genérico de S: `x S[[1]] + y S[[2]]`; de T: `w T[[1]] + t T[[2]]`",
      "Línea 2: `x S[[1]] + y S[[2]] /. Flatten[sol]`"
     ],
@@ -755,12 +755,13 @@
     "prompt": "G: `x - 2y = 0`, `2x - 2z = w`, `2w = y + 3z`. Guarda en `g` su generador con segunda componente 1.",
     "difficulty": 3,
     "cmds": [
-     "NullSpace",
-     "Part"
+     "Solve",
+     "Flatten",
+     "ReplaceAll"
     ],
     "real": true,
     "source": "Práctica 16 · P3 (ej2a)",
-    "solution": "base = NullSpace[{{1, -2, 0, 0}, {2, 0, -2, -1}, {0, -1, -3, 2}}];\ng = base[[1]]/base[[1, 2]]",
+    "solution": "sol = Solve[{x - 2 y == 0, 2 x - 2 z == w, 2 w == y + 3 z}, {y, x, z, w}];\ng = {x, y, z, w} /. Flatten[sol] /. y -> 1",
     "check": {
      "type": "value",
      "expr": "g",
@@ -768,11 +769,11 @@
      "msg": "`g` debe ser el vector de G con segunda componente 1."
     },
     "hints": [
-     "Ecuaciones a cero: `x - 2y = 0`, `2x - 2z - w = 0`, `-y - 3z + 2w = 0` → filas `{1, -2, 0, 0}`, `{2, 0, -2, -1}`, `{0, -1, -3, 2}`.",
-     "`base = NullSpace[{{1, -2, 0, 0}, {2, 0, -2, -1}, {0, -1, -3, 2}}];` devuelve una lista con un vector.",
-     "El vector es `base[[1]]` y su segunda componente `base[[1, 2]]`: `g = base[[1]]/base[[1, 2]]`."
+     "Resuelve con `y` la primera de la lista: `Solve[{x - 2 y == 0, 2 x - 2 z == w, 2 w == y + 3 z}, {y, x, z, w}]`.",
+     "Sale todo en función de `y`. Sustituye: `{x, y, z, w} /. Flatten[sol] /. y -> 1`.",
+     "Otra vía: `NullSpace` de la matriz de coeficientes y dividir el vector por su 2.ª componente."
     ],
-    "explain": "`G = <(2, 1, 1, 2)>`: tres ecuaciones independientes en R⁴ dejan dimensión 1. En clase lo sacaron con `Solve[{x - 2 y == 0, 2 x - 2 z == w, 2 w == y + 3 z}, {y, x, z, w}]`, que deja todo en función de `y`."
+    "explain": "`G = <(2, 1, 1, 2)>`. Cuando sobran incógnitas, `Solve` deja como parámetro la **primera** de la lista (y avisa con `Solve::svars`): por eso se pone `y` delante."
    }
   },
   {
@@ -812,7 +813,7 @@
     "id": "1-p16-e15",
     "kind": "code",
     "title": "Real · vector de (E+G)∩F",
-    "prompt": "`EplusG` (3 vectores) y `F` (2) ya definidos. Iguala genéricos (`x, y, z` y `p, q`), deja `x` libre y guarda en `vec` el vector común.",
+    "prompt": "`EplusG` (3 vectores) y `F` (2) ya definidos. Iguala genéricos (`x, y, z` y `p, q`), resuelve y guarda en `vec` el vector común.",
     "difficulty": 4,
     "cmds": [
      "Solve",
@@ -822,7 +823,7 @@
     "real": true,
     "source": "Práctica 16 · P3 (ej2c, paso 1)",
     "setup": "ME = {{1, 0, 0, 1}, {0, 0, 1, 1}}; F = {{1, 0, 0, 0}, {0, 0, 1, 0}}; G = {{2, 1, 1, 2}}; EplusG = Join[ME, G];",
-    "solution": "sol = Solve[x EplusG[[1]] + y EplusG[[2]] + z EplusG[[3]] == p F[[1]] + q F[[2]], {y, z, p, q}];\nvec = p F[[1]] + q F[[2]] /. Flatten[sol]",
+    "solution": "sol = Solve[x EplusG[[1]] + y EplusG[[2]] + z EplusG[[3]] == p F[[1]] + q F[[2]], {x, y, z, p, q}];\nvec = p F[[1]] + q F[[2]] /. Flatten[sol]",
     "check": {
      "type": "satisfies",
      "test": "VectorQ[vec] && Length[vec] == 4 && vec[[2]] === 0 && vec[[4]] === 0 && Simplify[vec[[1]] + vec[[3]]] === 0 && !(vec[[1]] === 0)",
@@ -833,7 +834,7 @@
     ],
     "hints": [
      "Genérico de E + G: `x EplusG[[1]] + y EplusG[[2]] + z EplusG[[3]]`. Genérico de F: `p F[[1]] + q F[[2]]`.",
-     "`sol = Solve[… == …, {y, z, p, q}];` deja `x` libre.",
+     "`sol = Solve[… == …, {x, y, z, p, q}];` Sobra una incógnita: queda libre la primera, `x`.",
      "`vec = p F[[1]] + q F[[2]] /. Flatten[sol]`"
     ],
     "explain": "Sale `{x, 0, -x, 0}`: la intersección es la recta generada por (1, 0, -1, 0)."

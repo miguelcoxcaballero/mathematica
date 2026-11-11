@@ -613,6 +613,11 @@
      "run": true
     },
     {
+     "code": "FindRoot[Cos[x] == x, {x, 0.7}, WorkingPrecision -> 10]",
+     "md": "Con `WorkingPrecision -> 10`: el resultado con 10 cifras.",
+     "run": true
+    },
+    {
      "code": "x /. FindRoot[Cos[x] == x, {x, 0.7}]",
      "md": "Con `x /.` delante, el número sin flecha.",
      "run": true
@@ -635,7 +640,7 @@
     "FindRoot",
     "ReplaceAll"
    ],
-   "more": "`{x, 0.7}` no es un intervalo: es la incógnita y por dónde empezar. `FindRoot` devuelve una sola lista de reglas (llaves simples). En Mathematica, la opción `WorkingPrecision -> 10` hace el cálculo con 10 cifras."
+   "more": "`{x, 0.7}` no es un intervalo: es la incógnita y por dónde empezar. `FindRoot` devuelve una sola lista de reglas (llaves simples). `WorkingPrecision -> n` es lo que se añade cuando el enunciado pide «n cifras significativas»."
   },
   {
    "type": "build",
@@ -743,7 +748,7 @@
    "section": "Cortes de dos curvas",
    "title": "Mirar la gráfica y afinar",
    "md": "Halla dónde se cortan `x^2 + y^2 = 4` e `y = Exp[x] - 1`.",
-   "target": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];\n{xc, Exp[xc] - 1}",
+   "target": "sol = FindRoot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {{x, 1}, {y, 1.7}}];\n{x, y} /. sol",
    "parts": [
     {
      "code": "ContourPlot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {x, -3, 3}, {y, -3, 3}, Axes -> True]",
@@ -751,31 +756,35 @@
      "run": true
     },
     {
-     "code": "x^2 + (Exp[x] - 1)^2 == 4",
-     "md": "Sustituye la `y` de la segunda ecuación en la primera: una sola incógnita."
-    },
-    {
-     "code": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}]",
-     "md": "Afina con `FindRoot` desde `x = 1` y guarda el número.",
+     "code": "ContourPlot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {x, -3, 3}, {y, -3, 3}, GridLines -> Automatic]",
+     "md": "Con rejilla se leen mejor las coordenadas de los cortes.",
      "run": true
     },
     {
-     "code": "{xc, Exp[xc] - 1}",
-     "md": "El punto: la `x` hallada y su `y`.",
+     "code": "{{x, 1}, {y, 1.7}}",
+     "md": "El punto de partida: una pareja `{incógnita, valor}` por cada incógnita."
+    },
+    {
+     "code": "sol = FindRoot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {{x, 1}, {y, 1.7}}]",
+     "md": "`FindRoot` con la lista de ecuaciones y ese punto de partida.",
      "run": true
     },
     {
-     "code": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];\n{xc, Exp[xc] - 1}",
+     "code": "{x, y} /. sol",
+     "md": "Convierte las reglas en el punto de corte.",
+     "run": true
+    },
+    {
+     "code": "sol = FindRoot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {{x, 1}, {y, 1.7}}];\n{x, y} /. sol",
      "md": "Las dos líneas juntas.",
      "run": true
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1` cerca de `x = 1`, como `{x, y}`.",
+    "prompt": "Sin mirar: corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1` cerca de `(1, 1.7)`, como `{x, y}`.",
     "hints": [
-     "La ecuación con la `y` sustituida: `x^2 + (Exp[x] - 1)^2 == 4`.",
-     "`xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, 1}];`",
-     "Segunda línea: `{xc, Exp[xc] - 1}`."
+     "`sol = FindRoot[{ecuación1, ecuación2}, {{x, 1}, {y, 1.7}}];`",
+     "Segunda línea: `{x, y} /. sol`."
     ],
     "check": {
      "type": "expr",
@@ -787,9 +796,10 @@
    "cmds": [
     "FindRoot",
     "ContourPlot",
-    "ReplaceAll"
+    "ReplaceAll",
+    "GridLines"
    ],
-   "more": "En Mathematica también puedes darle a `FindRoot` el sistema entero, `FindRoot[{ec1, ec2}, {{x, 1}, {y, 1.7}}]`, y extraer el punto con `{x, y} /. solución`: así se hizo en la prueba real. Con `GridLines -> Automatic` la gráfica lleva rejilla para leer mejor los cortes."
+   "more": "`FindRoot` da un corte cada vez: si hay ocho cortes y te piden dos, lo lanzas dos veces con dos puntos de partida. También vale la forma `FindRoot[{ec1, ec2}, {x, 1}, {y, 1.7}]`."
   },
   {
    "type": "exercise",
@@ -797,7 +807,7 @@
     "id": "1-p08-e14",
     "kind": "code",
     "title": "El otro corte",
-    "prompt": "Calcula el otro corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1`, el que está cerca de `x = -2`, como `{x, y}`.",
+    "prompt": "Calcula el otro corte de `x^2 + y^2 == 4` con `y == Exp[x] - 1`, el que está cerca de `(-2, -1)`, como `{x, y}`.",
     "difficulty": 3,
     "cmds": [
      "FindRoot",
@@ -805,7 +815,7 @@
     ],
     "real": false,
     "source": null,
-    "solution": "xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, -2}];\n{xc, Exp[xc] - 1}",
+    "solution": "sol = FindRoot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {{x, -2}, {y, -1}}];\n{x, y} /. sol",
     "check": {
      "type": "expr",
      "expected": "{-1.816264069, -0.837367800}",
@@ -813,14 +823,15 @@
      "tol": 1e-05
     },
     "requires": [
-     "FindRoot"
+     "FindRoot",
+     "ReplaceAll"
     ],
     "hints": [
-     "Misma ecuación sustituida, `x^2 + (Exp[x] - 1)^2 == 4`, con otro punto de partida.",
-     "`xc = x /. FindRoot[x^2 + (Exp[x] - 1)^2 == 4, {x, -2}];`",
-     "Segunda línea: `{xc, Exp[xc] - 1}`."
+     "Mismo sistema, otro punto de partida: `{{x, -2}, {y, -1}}`.",
+     "`sol = FindRoot[{x^2 + y^2 == 4, y == Exp[x] - 1}, {{x, -2}, {y, -1}}];`",
+     "Segunda línea: `{x, y} /. sol`."
     ],
-    "explain": "Misma ecuación, otro punto de partida, otro corte: aproximadamente `(-1.81626, -0.837368)`."
+    "explain": "Mismo sistema, otro punto de partida, otro corte: aproximadamente `(-1.81626, -0.837368)`."
    }
   },
   {
@@ -838,7 +849,7 @@
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 2",
-    "solution": "N[Solve[2 x Log[Pi x/3] == 1, x], 11]",
+    "solution": "N[Solve[2 x Log[Pi x/3] == 1], 11]",
     "check": {
      "type": "any",
      "checks": [
@@ -863,10 +874,10 @@
      ]
     },
     "hints": [
-     "`Solve[2 x Log[Pi x/3] == 1, x]`, envuelto en `N[..., 11]`.",
-     "`N[Solve[2 x Log[Pi x/3] == 1, x], 11]`"
+     "`Solve[2 x Log[Pi x/3] == 1]`, envuelto en `N[..., 11]`.",
+     "`N[Solve[2 x Log[Pi x/3] == 1], 11]`"
     ],
-    "explain": "La solución es `x = 1.3740576532` (`Log` es el logaritmo neperiano). En Mathematica, `Solve` avisa aquí con `Solve::ifun`: ha usado funciones inversas y podría haberse dejado alguna solución. Es un aviso, no un error."
+    "explain": "La solución es `x = 1.3740576532` (`Log` es el logaritmo neperiano). Con una sola incógnita, `Solve` no necesita que se la indiques. El aviso `Solve::ifun` dice que ha usado funciones inversas y podría haberse dejado alguna solución: es un aviso, no un error."
    }
   },
   {
@@ -883,7 +894,7 @@
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 3 (cálculo)",
-    "solution": "Solve[z^5 == 1 - Pi I, z] // N",
+    "solution": "Solve[z^5 == 1 - Pi I] // N",
     "check": {
      "type": "expr",
      "expected": "{{z -> 1.2292051334961223 - 0.3171764372465776 I}, {z -> -1.1808794747594962 - 0.46590752156344095 I}, {z -> 0.6814979932818662 + 1.0710306427504497 I}, {z -> 0.07819255836458905 - 1.2670564613994328 I}, {z -> -0.8080162103830812 + 0.9791097774590019 I}}",
@@ -892,7 +903,7 @@
     },
     "hints": [
      "Las raíces quintas de `w` son las soluciones de `z^5 == w`.",
-     "`Solve[z^5 == 1 - Pi I, z] // N` (o `NSolve`)."
+     "`Solve[z^5 == 1 - Pi I] // N` (o `NSolve`)."
     ],
     "explain": "Cinco raíces, repartidas cada 72° en una circunferencia de radio |1 − πi|^(1/5) ≈ 1.27."
    }
@@ -911,7 +922,7 @@
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 3 (respuesta)",
-    "setup": "sol = Solve[z^5 == 1 - Pi I, z] // N;",
+    "setup": "sol = Solve[z^5 == 1 - Pi I] // N;",
     "solution": "raices = z /. sol;\nSelect[raices, Re[#] < 0 && Im[#] < 0 &][[1]]",
     "check": {
      "type": "expr",
@@ -921,7 +932,7 @@
     },
     "hints": [
      "Tercer cuadrante: parte real negativa y parte imaginaria negativa.",
-     "Si es, por ejemplo, la cuarta de la lista: `(z /. sol)[[4]]`.",
+     "Si es, por ejemplo, la segunda de la lista: `(z /. sol)[[2]]`.",
      "También vale teclearla: `-1.18088 - 0.465908 I`."
     ],
     "explain": "La respuesta de la prueba es `-1.18088 - 0.465908 I`: la única con las dos partes negativas. El orden en que salen las raíces puede cambiar de un programa a otro: mira siempre los signos."
@@ -967,16 +978,17 @@
     "id": "1-p08-e19",
     "kind": "code",
     "title": "Real P4 (2/3) · El corte P3",
-    "prompt": "`yc[x_] := 1 + x Sin[3 x]` ya existe. Resuelve `(x - 2)^2/3 + (yc[x] - 3)^2 == 4` cerca de `x = 2` y guarda en `P3` el punto `{x, yc[x]}`.",
+    "prompt": "`ecs` guarda las dos ecuaciones. Con `FindRoot` y `WorkingPrecision -> 10`, halla el corte cercano a `(2, 1)` y guarda `{x, y}` en `P3`.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
+     "WorkingPrecision",
      "ReplaceAll"
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 4 (P3)",
-    "setup": "yc[x_] := 1 + x Sin[3 x]",
-    "solution": "x3 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 2}];\nP3 = {x3, yc[x3]}",
+    "setup": "ecs = {(x - 2)^2/3 + (y - 3)^2 == 4, y == 1 + x Sin[3 x]};",
+    "solution": "sol = FindRoot[ecs, {{x, 2}, {y, 1}}, WorkingPrecision -> 10];\nP3 = {x, y} /. sol",
     "check": {
      "type": "value",
      "expr": "P3",
@@ -985,14 +997,14 @@
      "tol": 1e-07
     },
     "requires": [
-     "FindRoot"
+     "FindRoot",
+     "WorkingPrecision"
     ],
     "hints": [
-     "`x3 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 2}];`",
-     "Segunda línea: `P3 = {x3, yc[x3]}`.",
-     "En Mathematica también: `P3 = {x, y} /. FindRoot[{ec1, ec2}, {{x, 2}, {y, 1}}, WorkingPrecision -> 10]`."
+     "`sol = FindRoot[ecs, {{x, 2}, {y, 1}}, WorkingPrecision -> 10];`",
+     "Segunda línea: `P3 = {x, y} /. sol`."
     ],
-    "explain": "`P3 = (2.094513593, 1.000744540)`: el corte de menor ordenada. En la prueba se pedían 10 cifras significativas: en Mathematica se consigue añadiendo `WorkingPrecision -> 10` a `FindRoot`."
+    "explain": "`P3 = (2.094513593, 1.000744540)`: el corte de menor ordenada, con las 10 cifras significativas que pedía la prueba. En el cuaderno real: `FindRoot[...]` y después `P3 = {x, y} /. Flatten[%]`."
    }
   },
   {
@@ -1001,16 +1013,17 @@
     "id": "1-p08-e20",
     "kind": "code",
     "title": "Real P4 (3/3) · El corte P6",
-    "prompt": "Igual que antes, pero cerca de `x = 4.5`: guarda en `P6` el punto `{x, yc[x]}` del corte más alto.",
+    "prompt": "Igual, para el corte más alto, cerca de `(4.5, 4)`: guarda `{x, y}` en `P6`, con `WorkingPrecision -> 10`.",
     "difficulty": 4,
     "cmds": [
      "FindRoot",
+     "WorkingPrecision",
      "ReplaceAll"
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta 4 (P6)",
-    "setup": "yc[x_] := 1 + x Sin[3 x]",
-    "solution": "x6 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 4.5}];\nP6 = {x6, yc[x6]}",
+    "setup": "ecs = {(x - 2)^2/3 + (y - 3)^2 == 4, y == 1 + x Sin[3 x]};",
+    "solution": "sol = FindRoot[ecs, {x, 4.5}, {y, 4}, WorkingPrecision -> 10];\nP6 = {x, y} /. sol",
     "check": {
      "type": "value",
      "expr": "P6",
@@ -1019,12 +1032,13 @@
      "tol": 1e-07
     },
     "requires": [
-     "FindRoot"
+     "FindRoot",
+     "WorkingPrecision"
     ],
     "hints": [
-     "Misma ecuación, `(x - 2)^2/3 + (yc[x] - 3)^2 == 4`; solo cambia el punto de partida: `{x, 4.5}`.",
-     "`x6 = x /. FindRoot[(x - 2)^2/3 + (yc[x] - 3)^2 == 4, {x, 4.5}];`",
-     "Segunda línea: `P6 = {x6, yc[x6]}`."
+     "Solo cambia el punto de partida: `{{x, 4.5}, {y, 4}}` (o `{x, 4.5}, {y, 4}`).",
+     "`sol = FindRoot[ecs, {{x, 4.5}, {y, 4}}, WorkingPrecision -> 10];`",
+     "Segunda línea: `P6 = {x, y} /. sol`."
     ],
     "explain": "`P6 = (4.476186631, 4.398630255)`. Gráfica para estimar y `FindRoot` para afinar, una vez por cada corte: el patrón completo de la práctica."
    }
@@ -1035,31 +1049,30 @@
    "ex": {
     "id": "1-p08-e21",
     "kind": "code",
-    "title": "Real extra (1/3) · Reducir",
-    "prompt": "Sistema: `y == Exp[x - 2]`, `y^2 == x + z`, `x == z - y`. Reducido a `x`: resuelve `Exp[x - 2]^2 == 2 x + Exp[x - 2]` cerca de 0, en `sx`.",
-    "difficulty": 4,
+    "title": "Real extra a) · Tres ecuaciones",
+    "prompt": "Resuelve `{y == Exp[x - 2], y^2 == x + z, x == z - y}` con `FindRoot` desde `(0, 0, 1)` y guarda las reglas en `s`.",
+    "difficulty": 3,
     "cmds": [
-     "FindRoot",
-     "ReplaceAll"
+     "FindRoot"
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta extra, apartado a)",
-    "solution": "sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}]",
+    "solution": "s = FindRoot[{y == Exp[x - 2], y^2 == x + z, x == z - y}, {{x, 0}, {y, 0}, {z, 1}}]",
     "check": {
      "type": "value",
-     "expr": "sx",
-     "expected": "-0.0558042283",
+     "expr": "{x, y, z} /. s",
+     "expected": "{-0.0558042, 0.12799, 0.0721856}",
      "compare": "numeric",
-     "tol": 1e-06
+     "tol": 1e-05
     },
     "requires": [
      "FindRoot"
     ],
     "hints": [
-     "`sx = x /. FindRoot[ecuación, {x, 0}]`",
-     "`sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}]`"
+     "Tres ecuaciones en una lista y tres parejas: `{{x, 0}, {y, 0}, {z, 1}}`.",
+     "`s = FindRoot[{y == Exp[x - 2], y^2 == x + z, x == z - y}, {{x, 0}, {y, 0}, {z, 1}}]`"
     ],
-    "explain": "De la tercera ecuación, `z = x + y`; con eso la segunda queda `y^2 == 2 x + y`, y la primera da `y` en función de `x`. En Mathematica también sale directamente con `FindRoot[{ec1, ec2, ec3}, {{x, 0}, {y, 0}, {z, 1}}]`, como pedía el enunciado."
+    "explain": "La solución es `(x, y, z) ≈ (-0.0558042, 0.12799, 0.0721856)`, como en la prueba. `FindRoot` funciona igual con dos, tres o más incógnitas."
    }
   },
   {
@@ -1067,36 +1080,8 @@
    "ex": {
     "id": "1-p08-e22",
     "kind": "code",
-    "title": "Real extra (2/3) · La solución",
-    "prompt": "`sx` ya está calculado. Con `sy = Exp[sx - 2]` y `sz = sx + sy`, devuelve la solución `{sx, sy, sz}`.",
-    "difficulty": 3,
-    "cmds": [
-     "Exp"
-    ],
-    "real": true,
-    "source": "Práctica 8 · Pregunta extra, apartado a)",
-    "setup": "sx = x /. FindRoot[Exp[x - 2]^2 == 2 x + Exp[x - 2], {x, 0}];",
-    "solution": "sy = Exp[sx - 2];\nsz = sx + sy;\n{sx, sy, sz}",
-    "check": {
-     "type": "expr",
-     "expected": "{-0.0558042283, 0.1279898611, 0.0721856328}",
-     "compare": "numeric",
-     "tol": 1e-05
-    },
-    "hints": [
-     "Dos asignaciones y la lista final.",
-     "`sy = Exp[sx - 2];`, `sz = sx + sy;` y `{sx, sy, sz}`."
-    ],
-    "explain": "La solución es `(x, y, z) ≈ (-0.0558042, 0.12799, 0.0721856)`, como en la prueba."
-   }
-  },
-  {
-   "type": "exercise",
-   "ex": {
-    "id": "1-p08-e23",
-    "kind": "code",
-    "title": "Real extra (3/3) · El residuo",
-    "prompt": "`s` guarda la solución como reglas. Calcula `Abs` de `{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}` sustituyendo con `/. s`.",
+    "title": "Real extra b) · El residuo",
+    "prompt": "`s` guarda esa solución. Calcula `Abs` de `{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}` sustituyendo con `/. s`.",
     "difficulty": 3,
     "cmds": [
      "ReplaceAll",
@@ -1104,7 +1089,7 @@
     ],
     "real": true,
     "source": "Práctica 8 · Pregunta extra, apartado b)",
-    "setup": "s = {x -> -0.05580422828135819, y -> 0.1279898611095611, z -> 0.07218563282820292};",
+    "setup": "s = FindRoot[{y == Exp[x - 2], y^2 == x + z, x == z - y}, {{x, 0}, {y, 0}, {z, 1}}];",
     "solution": "Abs[{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}] /. s",
     "check": {
      "type": "satisfies",
@@ -1119,7 +1104,40 @@
      "`Abs[lista] /. s`",
      "`Abs[{y - Exp[x - 2], y^2 - (x + z), x - (z - y)}] /. s`"
     ],
-    "explain": "Son las diferencias entre los dos miembros de cada ecuación. Salen ceros o números del orden de 10^-17: la solución es correcta hasta donde llegan las 16 cifras de la máquina. Trabajando con 10 cifras, el residuo sería del orden de 10^-11."
+    "explain": "Son las diferencias entre los dos miembros de cada ecuación. Salen ceros o números del orden de 10^-17: sin indicar precisión, el programa trabaja con 16 cifras aunque solo enseñe 6."
+   }
+  },
+  {
+   "type": "exercise",
+   "ex": {
+    "id": "1-p08-e23",
+    "kind": "code",
+    "title": "Real extra c) · Con 10 cifras",
+    "prompt": "Resuelve el mismo sistema desde `(0, 0, 1)` con `WorkingPrecision -> 10` y guarda las reglas en `s10`.",
+    "difficulty": 3,
+    "cmds": [
+     "FindRoot",
+     "WorkingPrecision"
+    ],
+    "real": true,
+    "source": "Práctica 8 · Pregunta extra, apartado c)",
+    "solution": "s10 = FindRoot[{y == Exp[x - 2], y^2 == x + z, x == z - y}, {{x, 0}, {y, 0}, {z, 1}}, WorkingPrecision -> 10]",
+    "check": {
+     "type": "value",
+     "expr": "{x, y, z} /. s10",
+     "expected": "{-0.0558042283, 0.1279898611, 0.0721856328}",
+     "compare": "numeric",
+     "tol": 1e-07
+    },
+    "requires": [
+     "FindRoot",
+     "WorkingPrecision"
+    ],
+    "hints": [
+     "Es la celda del apartado a) con la opción `WorkingPrecision -> 10` al final.",
+     "`s10 = FindRoot[{y == Exp[x - 2], y^2 == x + z, x == z - y}, {{x, 0}, {y, 0}, {z, 1}}, WorkingPrecision -> 10]`"
+    ],
+    "explain": "Ahora `y = 0.1279898611`, con 10 cifras. Repitiendo el cálculo del residuo con `s10`, las diferencias son del orden de 10^-11: la precisión con la que se ha trabajado."
    }
   }
  ]

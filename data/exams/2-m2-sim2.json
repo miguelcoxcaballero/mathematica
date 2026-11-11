@@ -214,7 +214,7 @@
      "value": -3.333333,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 7}];   (* serie truncada en x^7: a[0] + a[1] x + ... *)\necuacion[x_] = (1 - x^2)*D[y[x], {x, 2}] - 2 x*D[y[x], x] + 12 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[Table[de[k] == 0, {k, 0, 5}], Table[a[k], {k, 2, 7}]]\nysol[x_] = y[x] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nCoefficient[ysol[x], x, 3] // N",
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];   (* serie truncada en x^n *)\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = (1 - x^2)*ddy[x, 7] - 2 x*dy[x, 7] + 12 y[x, 7];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0, de[5] == 0}, {a[2], a[3], a[4], a[5], a[6], a[7]}]\nysol[x_] = y[x, 7] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nCoefficient[ysol[x], x, 3] // N",
      "explain": "Se sustituye el polinomio con coeficientes `a[k]` en la ecuación y se anula el coeficiente de cada potencia. `D[ecuacion[x], {x, k}] /. x -> 0` es `k!` por el coeficiente de `x^k`, así que igualarlo a 0 es lo mismo. Sale `a[3] = -5 a[1]/3`."
     },
     {
@@ -224,7 +224,7 @@
      "value": 0.8,
      "tol": 0.001,
      "points": 0.3,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 7}];   (* serie truncada en x^7: a[0] + a[1] x + ... *)\necuacion[x_] = (1 - x^2)*D[y[x], {x, 2}] - 2 x*D[y[x], x] + 12 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[Table[de[k] == 0, {k, 0, 5}], Table[a[k], {k, 2, 7}]]\nysol[x_] = y[x] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nCoefficient[ysol[x], x, 6] // N",
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];   (* serie truncada en x^n *)\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = (1 - x^2)*ddy[x, 7] - 2 x*dy[x, 7] + 12 y[x, 7];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0, de[5] == 0}, {a[2], a[3], a[4], a[5], a[6], a[7]}]\nysol[x_] = y[x, 7] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nCoefficient[ysol[x], x, 6] // N",
      "explain": "`a[6] = 4 a[0]/5`. La parte impar se corta en `x^3` (`a[5] = a[7] = 0`): es el polinomio de Legendre `P3`, salvo factor. La parte par no se corta. Ojo: con serie hasta `x^7` solo se pueden imponer 6 ecuaciones (potencias 0 a 5)."
     },
     {
@@ -234,7 +234,7 @@
      "value": 0.2833333,
      "tol": 0.001,
      "points": 0.4,
-     "solution": "Clear[y, a, ecuacion, de, x, sol, ysol]\ny[x_] = Sum[a[k]*x^k, {k, 0, 7}];   (* serie truncada en x^7: a[0] + a[1] x + ... *)\necuacion[x_] = (1 - x^2)*D[y[x], {x, 2}] - 2 x*D[y[x], x] + 12 y[x];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[Table[de[k] == 0, {k, 0, 5}], Table[a[k], {k, 2, 7}]]\nysol[x_] = y[x] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nysol[0.5]",
+     "solution": "Clear[y, dy, ddy, a, ecuacion, de, x, sol, ysol]\ny[x_, n_] = Sum[a[k]*x^k, {k, 0, n}];   (* serie truncada en x^n *)\ndy[x_, n_] = D[y[x, n], x];\nddy[x_, n_] = D[y[x, n], {x, 2}];\necuacion[x_] = (1 - x^2)*ddy[x, 7] - 2 x*dy[x, 7] + 12 y[x, 7];\nde[k_] := D[ecuacion[x], {x, k}] /. x -> 0   (* proporcional al coeficiente de x^k *)\n(* con 8 coeficientes se anulan las potencias 0 a 5 y se despejan a[2] ... a[7] *)\nsol = Solve[{de[0] == 0, de[1] == 0, de[2] == 0, de[3] == 0, de[4] == 0, de[5] == 0}, {a[2], a[3], a[4], a[5], a[6], a[7]}]\nysol[x_] = y[x, 7] /. Flatten[sol] /. {a[0] -> 1, a[1] -> 2}\nysol[0.5]",
      "explain": "La solución es `1 + 2 x - 6 x^2 - 10 x^3/3 + 3 x^4 + 4 x^6/5`. Error típico: sustituir `a[0]` y `a[1]` antes de resolver el sistema, o poner una regla con `=` en lugar de `->`."
     }
    ]

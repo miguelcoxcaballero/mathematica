@@ -224,7 +224,6 @@
    "type": "build",
    "title": "Asíntota oblicua",
    "md": "Dos límites encadenados: pendiente m y ordenada n.",
-   "more": "Guarda `m` exacto y aproxima al final: si la redondeas antes, en el segundo límite el término en x ya no se cancela bien.",
    "target": "{m, n}",
    "parts": [
     {
@@ -389,17 +388,26 @@
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define `f` = x³ − 3x y guarda `f'[2]` en `p`.",
+    "prompt": "Sin mirar: define `f` = x³ − 3x y calcula `f'[2]`.",
     "hints": [
      "`f[x_] := x^3 - 3 x`",
-     "Debajo: `p = f'[2]`"
+     "Debajo: `f'[2]`"
     ],
-    "solution": "f[x_] := x^3 - 3 x\np = f'[2]",
+    "solution": "f[x_] := x^3 - 3 x\nf'[2]",
     "check": {
-     "type": "value",
-     "expr": "p",
-     "expected": "9",
-     "msg": "`p` debe ser la derivada de `f` en 2: `p = f'[2]`."
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "f[t]",
+       "expected": "t^3 - 3 t",
+       "msg": "Define `f[x_] := x^3 - 3 x`."
+      },
+      {
+       "type": "expr",
+       "expected": "9"
+      }
+     ]
     }
    },
    "cmds": [
@@ -488,8 +496,7 @@
        "msg": "`ytan` debe ser `f[a] + f'[a] (x - a)` con f = x² y a = 1."
       },
       {
-       "type": "value",
-       "expr": "ytan[2]",
+       "type": "expr",
        "expected": "3"
       }
      ]
@@ -528,12 +535,12 @@
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: con `f` = x², `a` = 1, define `ynormal[x_]` y guarda en `sol` su corte con OX.",
+    "prompt": "Sin mirar: con `f` = x², `a` = 1, define `ynormal[x_]` y halla la x de su corte con OX.",
     "hints": [
      "`ynormal[x_] = f[a] - 1/f'[a] (x - a)`",
-     "`sol = Solve[ynormal[x] == 0, x]`"
+     "`sol = Solve[ynormal[x] == 0, x];` y `x /. sol[[1]]`"
     ],
-    "solution": "f[x_] := x^2; a = 1;\nynormal[x_] = f[a] - 1/f'[a] (x - a);\nsol = Solve[ynormal[x] == 0, x]",
+    "solution": "f[x_] := x^2; a = 1;\nynormal[x_] = f[a] - 1/f'[a] (x - a);\nsol = Solve[ynormal[x] == 0, x];\nx /. sol[[1]]",
     "check": {
      "type": "all",
      "checks": [
@@ -544,10 +551,8 @@
        "msg": "`ynormal` debe ser `f[a] - 1/f'[a] (x - a)`."
       },
       {
-       "type": "value",
-       "expr": "x /. sol[[1]]",
-       "expected": "3",
-       "msg": "`sol` debe ser `Solve[ynormal[x] == 0, x]`."
+       "type": "expr",
+       "expected": "3"
       }
      ]
     }
@@ -671,17 +676,26 @@
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: `area[x_] = x (10 - x)`; resuelve `area'[x] == 0`, guarda la x en `xc` y el área en `am`.",
+    "prompt": "Sin mirar: `area[x_] = x (10 - x)`; resuelve `area'[x] == 0`, guarda la x en `xc` y da `area[xc]`.",
     "hints": [
      "`crit = Solve[area'[x] == 0, x]`",
-     "`xc = x /. Flatten[crit]` y `am = area[xc]`"
+     "`xc = x /. Flatten[crit]` y `area[xc]`"
     ],
-    "solution": "area[x_] = x (10 - x);\ncrit = Solve[area'[x] == 0, x];\nxc = x /. Flatten[crit];\nam = area[xc]",
+    "solution": "area[x_] = x (10 - x);\ncrit = Solve[area'[x] == 0, x];\nxc = x /. Flatten[crit];\narea[xc]",
     "check": {
-     "type": "value",
-     "expr": "{xc, am}",
-     "expected": "{5, 25}",
-     "msg": "`xc` debe ser la x que anula `area'` (5) y `am` el área en ese punto (25)."
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "xc",
+       "expected": "5",
+       "msg": "`xc` debe ser la x que anula `area'[x]`."
+      },
+      {
+       "type": "expr",
+       "expected": "25"
+      }
+     ]
     }
    },
    "cmds": [
@@ -933,16 +947,17 @@
     "id": "1-p04-e11",
     "kind": "code",
     "title": "Práctica 4 · 2b",
-    "prompt": "Define `g[x_]` = 3/8 + sin(x + 4)/|x + 4| y da en decimales sus límites laterales en −4: `{izquierda, derecha}`.",
+    "prompt": "Define `g[x_]` = 3/8 + sin(x + 4)/|x + 4|. Halla con `Solve` el punto p donde se anula `Abs[x + 4]` y da en decimales los límites en p: `{izquierda, derecha}`.",
     "difficulty": 3,
     "cmds": [
      "Limit",
      "Direction",
-     "Abs"
+     "Abs",
+     "Solve"
     ],
     "real": true,
     "source": "Práctica 4 · Pregunta 2b",
-    "solution": "g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];\n{Limit[g[x], x -> -4, Direction -> 1], Limit[g[x], x -> -4, Direction -> -1]} // N",
+    "solution": "g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];\nSolve[Abs[x + 4] == 0, x]\n{Limit[g[x], x -> -4, Direction -> 1], Limit[g[x], x -> -4, Direction -> -1]} // N",
     "check": {
      "type": "all",
      "checks": [
@@ -959,7 +974,7 @@
        "expected": "{-0.625, 1.375}",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "El punto es −4 y el orden {izquierda, derecha}."
+       "msg": "El punto es p = −4 y el orden {izquierda, derecha}."
       }
      ]
     },
@@ -968,10 +983,10 @@
      "Direction"
     ],
     "hints": [
-     "`g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];`",
+     "`g[x_] = 3/8 + Sin[x + 4]/Abs[x + 4];` y `Solve[Abs[x + 4] == 0, x]` (da p = −4).",
      "`{Limit[g[x], x -> -4, Direction -> 1], Limit[g[x], x -> -4, Direction -> -1]} // N`"
     ],
-    "explain": "Oficial: −0.625 y 1.375. El denominador se anula en p = −4."
+    "explain": "Oficial: −0.625 y 1.375."
    }
   },
   {
@@ -980,7 +995,7 @@
     "id": "1-p04-e12",
     "kind": "code",
     "title": "Práctica 4 · 2c",
-    "prompt": "Define `h[x_]` = (3.27x² − 5.6x + 4)/(3 − 2.6x); guarda `m` y `n` de su asíntota oblicua y da `N[{m, n}, 6]`.",
+    "prompt": "Define `h[x_]` = (3.27x² − 5.6x + 4)/(3 − 2.6x) y guarda en `m` y `n`, con 6 cifras, la pendiente y la ordenada de su asíntota oblicua.",
     "difficulty": 4,
     "cmds": [
      "Limit",
@@ -990,7 +1005,7 @@
     ],
     "real": true,
     "source": "Práctica 4 · Pregunta 2c",
-    "solution": "h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);\nm = Limit[h[x]/x, x -> Infinity];\nn = Limit[h[x] - m x, x -> Infinity];\nN[{m, n}, 6]",
+    "solution": "h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);\nm = N[Limit[h[x]/x, x -> Infinity], 6]\nn = N[Limit[h[x] - m x, x -> Infinity], 6]",
     "check": {
      "type": "all",
      "checks": [
@@ -1016,13 +1031,7 @@
        "expected": "0.7026627218934911",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`n` es el límite de `h[x] - m x`. Calcula `m` sin redondear antes de usarla."
-      },
-      {
-       "type": "expr",
-       "expected": "{-3.27/2.6, 0.7026627218934911}",
-       "compare": "numeric",
-       "tol": 1e-05
+       "msg": "`n` es el límite de `h[x] - m x` en el infinito."
       }
      ]
     },
@@ -1030,8 +1039,8 @@
      "Limit"
     ],
     "hints": [
-     "`m = Limit[h[x]/x, x -> Infinity];` y `n = Limit[h[x] - m x, x -> Infinity];`",
-     "Primera línea `h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);` y última `N[{m, n}, 6]`"
+     "`h[x_] = (3.27 x^2 - 5.6 x + 4)/(3 - 2.6 x);` y `m = N[Limit[h[x]/x, x -> Infinity], 6]`",
+     "`n = N[Limit[h[x] - m x, x -> Infinity], 6]`"
     ],
     "explain": "Oficial: m = −1.25769 y n = 0.702663."
    }
@@ -1042,7 +1051,7 @@
     "id": "1-p04-e13",
     "kind": "code",
     "title": "Práctica 4 · 3a",
-    "prompt": "Define `f[x_]` = ln(tan(3x)) y `a` = π/9. Guarda en `v` la lista decimal `{f[a], f'[a]}`.",
+    "prompt": "Define `f[x_]` = ln(tan(3x)) y `a` = π/9. Da en decimales la lista `{f[a], f'[a]}`.",
     "difficulty": 3,
     "cmds": [
      "Derivative",
@@ -1052,18 +1061,30 @@
     ],
     "real": true,
     "source": "Práctica 4 · Pregunta 3a",
-    "solution": "f[x_] = Log[Tan[3 x]];\na = Pi/9;\nv = N[{f[a], f'[a]}]",
+    "solution": "f[x_] = Log[Tan[3 x]];\na = Pi/9;\n{f[a], f'[a]} // N",
     "check": {
-     "type": "value",
-     "expr": "v",
-     "expected": "{0.5493061443340549, 6.928203230275509}",
-     "compare": "numeric",
-     "tol": 1e-05,
-     "msg": "`v` debe ser `N[{f[a], f'[a]}]` con `f[x_] = Log[Tan[3 x]]` y `a = Pi/9`."
+     "type": "all",
+     "checks": [
+      {
+       "type": "value",
+       "expr": "N[f[a]]",
+       "expected": "0.5493061443340549",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "Revisa `f[x_] = Log[Tan[3 x]]` y `a = Pi/9`."
+      },
+      {
+       "type": "expr",
+       "expected": "{0.5493061443340549, 6.928203230275509}",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "La última línea debe ser `{f[a], f'[a]} // N`."
+      }
+     ]
     },
     "hints": [
      "`f[x_] = Log[Tan[3 x]];` y `a = Pi/9;`",
-     "`v = N[{f[a], f'[a]}]`"
+     "`{f[a], f'[a]} // N`"
     ],
     "explain": "Oficial: f(a) = 0.549306 y f'(a) = 6.92820. La tangente es y = 0.549306 + 6.92820 (x − π/9)."
    }
@@ -1074,7 +1095,7 @@
     "id": "1-p04-e14",
     "kind": "code",
     "title": "Práctica 4 · 3b",
-    "prompt": "`f` y `a` ya están definidas. Define la tangente `ytan[x_]` y guarda en `y1` el valor decimal de `ytan[1]`.",
+    "prompt": "`f` y `a` ya están definidas. Define la tangente `ytan[x_]` y calcula `ytan[1]` en decimales.",
     "difficulty": 3,
     "cmds": [
      "Derivative",
@@ -1084,7 +1105,7 @@
     "real": true,
     "source": "Práctica 4 · Pregunta 3b",
     "setup": "f[x_] = Log[Tan[3 x]]; a = Pi/9;",
-    "solution": "ytan[x_] = f[a] + f'[a] (x - a);\ny1 = N[ytan[1]]",
+    "solution": "ytan[x_] = f[a] + f'[a] (x - a);\nytan[1] // N",
     "check": {
      "type": "all",
      "checks": [
@@ -1097,18 +1118,17 @@
        "msg": "`ytan` debe ser `f[a] + f'[a] (x - a)`."
       },
       {
-       "type": "value",
-       "expr": "y1",
+       "type": "expr",
        "expected": "5.059110222297273",
        "compare": "numeric",
        "tol": 1e-05,
-       "msg": "`y1` debe ser `N[ytan[1]]`."
+       "msg": "La última línea debe ser `ytan[1] // N`."
       }
      ]
     },
     "hints": [
      "`ytan[x_] = f[a] + f'[a] (x - a);`",
-     "`y1 = N[ytan[1]]`"
+     "`ytan[1] // N`"
     ],
     "explain": "Oficial: y(1) = 5.05911."
    }
@@ -1150,31 +1170,40 @@
     "id": "1-p04-e16",
     "kind": "code",
     "title": "Práctica 4 · 3d",
-    "prompt": "`ynormal[x_]` ya está definida. Con `Solve`, guarda en `corte` (decimal) la x donde corta al eje OX.",
+    "prompt": "`ynormal[x_]` ya está definida. Con `Solve`, halla en decimales la x donde corta al eje OX.",
     "difficulty": 4,
     "cmds": [
      "Solve",
-     "Flatten",
-     "ReplaceAll"
+     "N"
     ],
     "real": true,
     "source": "Práctica 4 · Pregunta 3d",
     "setup": "f[x_] = Log[Tan[3 x]]; a = Pi/9; ynormal[x_] = f[a] - 1/f'[a] (x - a);",
-    "solution": "sol = Solve[ynormal[x] == 0, x];\ncorte = x /. Flatten[sol] // N",
+    "solution": "Solve[ynormal[x] == 0] // N",
     "check": {
-     "type": "value",
-     "expr": "corte",
-     "expected": "4.15477045398425",
-     "compare": "numeric",
-     "tol": 1e-05,
-     "msg": "`corte` debe ser el número donde `ynormal[x]` vale 0: `x /. Flatten[sol] // N`."
+     "type": "any",
+     "checks": [
+      {
+       "type": "expr",
+       "expected": "{{x -> 4.15477045398425}}",
+       "compare": "set",
+       "tol": 1e-05
+      },
+      {
+       "type": "expr",
+       "expected": "4.15477045398425",
+       "compare": "numeric",
+       "tol": 1e-05,
+       "msg": "Corta al eje OX donde `ynormal[x] == 0`: resuélvelo con `Solve` y añade `// N`."
+      }
+     ]
     },
     "requires": [
      "Solve"
     ],
     "hints": [
-     "`sol = Solve[ynormal[x] == 0, x];`",
-     "`corte = x /. Flatten[sol] // N`"
+     "Corta al eje OX donde vale 0.",
+     "`Solve[ynormal[x] == 0] // N`"
     ],
     "explain": "Oficial: 4.15477."
    }
@@ -1270,27 +1299,28 @@
     "id": "1-p04-e19",
     "kind": "code",
     "title": "Práctica 4 · 4 (máximo)",
-    "prompt": "`A`, `alt` y `xcrit` ya están definidas. Guarda `A''[xcrit]` en `d2`, `alt[xcrit]` en `hcrit` y `A[xcrit]` en `amax`.",
+    "prompt": "`A`, `alt` y `xcrit` ya están definidas. Devuelve la lista `{A''[xcrit], alt[xcrit], A[xcrit]}`.",
     "difficulty": 4,
     "cmds": [
-     "Derivative",
-     "Set"
+     "Derivative"
     ],
     "real": true,
     "source": "Práctica 4 · Pregunta 4 (pasos 6-8)",
     "setup": "alt[x_] = (150 - 2 x - Pi x)/2; A[x_] = 2 x alt[x] + Pi x^2/2; xcrit = 150/(4 + Pi) // N;",
-    "solution": "d2 = A''[xcrit];\nhcrit = alt[xcrit];\namax = A[xcrit]",
+    "solution": "{A''[xcrit], alt[xcrit], A[xcrit]}",
     "check": {
-     "type": "value",
-     "expr": "{d2, hcrit, amax}",
+     "type": "expr",
      "expected": "{-7.141592653589793, 21.003718256683406, 1575.2788692512554}",
      "compare": "numeric",
      "tol": 1e-05,
-     "msg": "Revisa `d2 = A''[xcrit]`, `hcrit = alt[xcrit]` y `amax = A[xcrit]`."
+     "msg": "El orden es {`A''[xcrit]`, `alt[xcrit]`, `A[xcrit]`}."
     },
+    "requires": [
+     "Derivative"
+    ],
     "hints": [
-     "`d2 = A''[xcrit];` y `hcrit = alt[xcrit];`",
-     "`amax = A[xcrit]`"
+     "La segunda derivada se escribe con dos apóstrofos: `A''[xcrit]`.",
+     "`{A''[xcrit], alt[xcrit], A[xcrit]}`"
     ],
     "explain": "Oficial: A'' = −7.14159 (negativa: máximo), h = 21.0037 y área máxima 1575.28 m²."
    }

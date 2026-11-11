@@ -1529,7 +1529,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 11 || Precision[Out[$Line]] == 11",
+       "test": "Precision[%] == 11",
        "msg": "El valor es correcto, pero no tiene 11 cifras: usa `N[expr, 11]` con datos exactos (sin decimales)."
       }
      ]

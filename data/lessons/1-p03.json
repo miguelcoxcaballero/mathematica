@@ -151,7 +151,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 10 || Precision[Out[$Line]] == 10",
+       "test": "Precision[%] == 10",
        "msg": "El valor es correcto, pero no tiene 10 cifras: usa `N[expr, 10]` con datos exactos (sin decimales)."
       }
      ]
@@ -213,7 +213,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 8 || Precision[Out[$Line]] == 8",
+       "test": "Precision[%] == 8",
        "msg": "El valor es correcto, pero no tiene 8 cifras: usa `N[expr, 8]` con datos exactos (sin decimales)."
       }
      ]
@@ -250,7 +250,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 6 || Precision[Out[$Line]] == 6",
+       "test": "Precision[%] == 6",
        "msg": "El valor es correcto, pero no tiene 6 cifras: usa `N[expr, 6]` con datos exactos (sin decimales)."
       }
      ]
@@ -1019,7 +1019,6 @@
    "section": "La función inversa",
    "title": "Despejar al revés",
    "md": "La inversa: despeja x en función de y.",
-   "more": "En Mathematica, `Solve[y == 5 Cosh[2 x], x]` da las dos ramas ±ArcCosh[y/5]/2 con el aviso `Solve::ifun`. Es un aviso, no un error.",
    "target": "inv[5 Cosh[2*0.7]]",
    "parts": [
     {
@@ -1028,15 +1027,20 @@
      "run": true
     },
     {
-     "code": "Cosh[ArcCosh[3]]",
-     "md": "ArcCosh deshace a Cosh.",
+     "code": "Solve[y == 5 Cosh[2 x], x]",
+     "md": "Ahora con un Cosh: aparece ArcCosh.",
+     "run": true,
+     "hint": "El mensaje Solve::ifun es un aviso, no un error: avisa de que usa funciones inversas."
+    },
+    {
+     "code": "sol = Solve[y == 5 Cosh[2 x], x];",
+     "md": "Guarda las dos ramas.",
      "run": true
     },
     {
-     "code": "inv[y_] := ArcCosh[y/5]/2",
-     "md": "La inversa de y = 5 Cosh[2 x], despejada a mano.",
-     "run": true,
-     "hint": "Cosh[2 x] = y/5; luego 2 x = ArcCosh[y/5]; luego x = ArcCosh[y/5]/2."
+     "code": "inv[y_] = x /. sol[[2]]",
+     "md": "La rama positiva, como función.",
+     "run": true
     },
     {
      "code": "inv[5 Cosh[2*0.7]]",
@@ -1045,13 +1049,13 @@
     }
    ],
    "recall": {
-    "prompt": "Sin mirar: define `inv[y_]`, inversa de y = 5·cosh(2x), y calcula `inv[5 Cosh[2*0.7]]`.",
+    "prompt": "Sin mirar: despeja x de `y == 5 Cosh[2 x]` (en `sol`), define `inv[y_]` y da `inv[5 Cosh[2*0.7]]`.",
     "hints": [
-     "Aísla el coseno: `Cosh[2 x] = y/5`.",
-     "Aplica `ArcCosh` y divide entre 2.",
-     "`inv[y_] := ArcCosh[y/5]/2` y `inv[5 Cosh[2*0.7]]`"
+     "`sol = Solve[y == 5 Cosh[2 x], x];`",
+     "`inv[y_] = x /. sol[[2]]`",
+     "Última línea: `inv[5 Cosh[2*0.7]]`"
     ],
-    "solution": "inv[y_] := ArcCosh[y/5]/2\ninv[5 Cosh[2*0.7]]",
+    "solution": "sol = Solve[y == 5 Cosh[2 x], x];\ninv[y_] = x /. sol[[2]];\ninv[5 Cosh[2*0.7]]",
     "check": {
      "type": "all",
      "checks": [
@@ -1061,7 +1065,7 @@
        "expected": "0.5",
        "compare": "numeric",
        "tol": 1e-06,
-       "msg": "`inv` no deshace la función: debe ser `ArcCosh[y/5]/2`."
+       "msg": "`inv` no deshace la función: debe ser la rama positiva, `ArcCosh[y/5]/2`."
       },
       {
        "type": "expr",
@@ -1087,13 +1091,13 @@
     "prompt": "La altura de un arco es `10 - Cosh[x]`. Define su inversa `semi[a_]` y calcula en decimales la anchura en el suelo, `2 semi[0]`.",
     "difficulty": 3,
     "cmds": [
+     "Solve",
      "ArcCosh",
-     "SetDelayed",
      "N"
     ],
     "real": false,
     "source": null,
-    "solution": "semi[a_] := ArcCosh[10 - a]\n2 semi[0] // N",
+    "solution": "sol = Solve[a == 10 - Cosh[x], x];\nsemi[a_] = x /. sol[[2]];\n2 semi[0] // N",
     "check": {
      "type": "all",
      "checks": [
@@ -1103,7 +1107,7 @@
        "expected": "2",
        "compare": "numeric",
        "tol": 1e-06,
-       "msg": "`semi` debe ser `ArcCosh[10 - a]`."
+       "msg": "`semi` debe ser la rama positiva: `ArcCosh[10 - a]`."
       },
       {
        "type": "expr",
@@ -1113,12 +1117,9 @@
       }
      ]
     },
-    "requires": [
-     "ArcCosh"
-    ],
     "hints": [
-     "De `a = 10 - Cosh[x]` sale `Cosh[x] = 10 - a`, luego `x = ArcCosh[10 - a]`.",
-     "`semi[a_] := ArcCosh[10 - a]` y `2 semi[0] // N`"
+     "`sol = Solve[a == 10 - Cosh[x], x];` da dos ramas; la positiva es `sol[[2]]`.",
+     "`semi[a_] = x /. sol[[2]];` y `2 semi[0] // N`"
     ],
     "explain": "5.98645 m. Es justo lo que pide el arco de San Luis."
    }
@@ -1151,7 +1152,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "test": "Precision[%] == 16",
        "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
@@ -1194,7 +1195,7 @@
       },
       {
        "type": "satisfies",
-       "test": "Precision[%] == 16 || Precision[Out[$Line]] == 16",
+       "test": "Precision[%] == 16",
        "msg": "El valor es correcto, pero no tiene 16 cifras: usa `N[expr, 16]` con datos exactos (sin decimales)."
       }
      ]
@@ -1354,16 +1355,17 @@
     "id": "1-p03-e19",
     "kind": "code",
     "title": "Práctica 3 · 4b",
-    "prompt": "Define la inversa `semi[a_]` = c·ArcCosh[(693.8597 − a)/68.7672], con c = 299.2239/3.0022, y calcula `semi[0]`.",
+    "prompt": "Con `Solve`, despeja x de `a == 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]`; define `semi[a_]` (rama positiva) y da `semi[0]`.",
     "difficulty": 4,
     "cmds": [
+     "Solve",
      "ArcCosh",
-     "SetDelayed"
+     "Set"
     ],
     "real": true,
     "source": "Práctica 3 · Pregunta 4b",
     "setup": "A[x_] := 693.8597 - 68.7672 Cosh[3.0022 x/299.2239]",
-    "solution": "semi[a_] := 299.2239/3.0022 ArcCosh[(693.8597 - a)/68.7672]\nsemi[0]",
+    "solution": "sol = Solve[a == 693.8597 - 68.7672 Cosh[3.0022 x/299.2239], x];\nsemi[a_] = x /. sol[[2]];\nsemi[0]",
     "check": {
      "type": "all",
      "checks": [
@@ -1384,13 +1386,13 @@
      ]
     },
     "requires": [
-     "ArcCosh"
+     "Solve"
     ],
     "hints": [
-     "`semi[a_] := 299.2239/3.0022 ArcCosh[(693.8597 - a)/68.7672]`",
-     "Debajo: `semi[0]`"
+     "`sol = Solve[a == 693.8597 - 68.7672 Cosh[3.0022 x/299.2239], x];`",
+     "`semi[a_] = x /. sol[[2]];` y `semi[0]`"
     ],
-    "explain": "Oficial: c = 99.668 y semi(0) = 299.226 ft, la semianchura en el suelo. En Mathematica, `Solve` da esta misma expresión con el aviso `Solve::ifun`."
+    "explain": "Oficial: x(a) = 99.668·ArcCosh[(693.8597 − a)/68.7672] y semi(0) = 299.226 ft. `Solve::ifun` es solo un aviso."
    }
   },
   {
